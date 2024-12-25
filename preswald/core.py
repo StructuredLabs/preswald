@@ -26,38 +26,53 @@ state_manager = StateManager()
 
 def register_component_callback(component_id: str, callback: Callable):
     """Register a callback for component state changes"""
-    if component_id not in _component_callbacks:
-        _component_callbacks[component_id] = []
-    _component_callbacks[component_id].append(callback)
-    logger.debug(f"Registered callback for component {component_id}")
+    with _state_lock:
+        if component_id not in _component_callbacks:
+            _component_callbacks[component_id] = []
+        _component_callbacks[component_id].append(callback)
+        logger.debug(f"[STATE] Registered callback for component {component_id}")
+        logger.debug(f"  - Total callbacks: {len(_component_callbacks[component_id])}")
 
 def update_component_state(component_id: str, value: Any):
     """Update the state of a component and trigger callbacks"""
     with _state_lock:
-        logger.debug(f"Updating state for component {component_id}: {value}")
+        logger.debug(f"[STATE] Updating state for component {component_id}: {value}")
+        old_value = _component_states.get(component_id)
         _component_states[component_id] = value
+        
+        # Log state change
+        logger.debug(f"[STATE] State changed for {component_id}:")
+        logger.debug(f"  - Old value: {old_value}")
+        logger.debug(f"  - New value: {value}")
         
         # Trigger callbacks if any
         if component_id in _component_callbacks:
+            logger.debug(f"[STATE] Triggering {len(_component_callbacks[component_id])} callbacks for {component_id}")
             for callback in _component_callbacks[component_id]:
                 try:
                     callback(value)
+                    logger.debug(f"[STATE] Successfully executed callback for {component_id}")
                 except Exception as e:
-                    logger.error(f"Error in callback for component {component_id}: {e}")
+                    logger.error(f"[STATE] Error in callback for component {component_id}: {e}")
 
 def get_component_state(component_id: str, default: Any = None) -> Any:
     """Get the current state of a component"""
     with _state_lock:
-        return _component_states.get(component_id, default)
+        value = _component_states.get(component_id, default)
+        logger.debug(f"[STATE] Getting state for {component_id}: {value}")
+        return value
 
 def get_all_component_states() -> Dict[str, Any]:
     """Get all component states"""
     with _state_lock:
-        return dict(_component_states)
+        states = dict(_component_states)
+        logger.debug(f"[STATE] Getting all states: {states}")
+        return states
 
 def clear_component_states():
     """Clear all component states"""
     with _state_lock:
+        logger.debug("[STATE] Clearing all component states")
         _component_states.clear()
         _component_callbacks.clear()
 
@@ -87,12 +102,21 @@ def connect(source, name=None):
 
     try:
         if source.endswith(".csv"):
-            connections[name] = pd.read_csv(source)
+            # Get script directory and make path relative to it
+            import os
+            from preswald.server import SCRIPT_PATH
+            script_dir = os.path.dirname(SCRIPT_PATH)
+            # Make source path absolute if it's relative
+            if not os.path.isabs(source):
+                csv_path = os.path.join(script_dir, source)
+            else:
+                csv_path = source
+            connections[name] = pd.read_csv(csv_path)
         elif source.endswith(".json"):
             connections[name] = pd.read_json(source)
         elif source.endswith(".parquet"):
             connections[name] = pd.read_parquet(source)
-        elif source.startswith("postgres://") or source.startswith("mysql://"):
+        elif any(source.startswith(prefix) for prefix in ["postgresql://", "postgres://", "mysql://"]):
             engine = create_engine(source)
             connections[name] = engine
         else:
@@ -159,18 +183,6 @@ def execute_query(connection_name, query):
     with connection.connect() as conn:
         result = pd.read_sql(query, conn)
         return result
-
-
-def plotly(fig):
-    """
-    Render a Plotly figure.
-
-    Args:
-        fig: A Plotly figure object.
-    """
-    html = fig.to_html(full_html=False, include_plotlyjs="cdn")
-    _rendered_html.append(html)
-
 
 def get_rendered_components():
     """Get all rendered components as JSON"""

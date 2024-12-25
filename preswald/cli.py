@@ -25,16 +25,31 @@ def init(name):
         # Create boilerplate files
         with open(os.path.join(name, "hello.py"), "w") as f:
             f.write(
-                '''from preswald import text
+                '''from preswald import text, connect, view
+
+# Connect to data sources
+# You can use the config.toml file to configure your connections
+# or connect directly using the source parameter:
+
+# Example connections:
+# db = connect(source="postgresql://user:pass@localhost:5432/dbname")
+# csv_data = connect(source="data/file.csv")
+# json_data = connect(source="https://api.example.com/data.json")
+
+# Or use the configuration from config.toml:
+# db = connect()  # Uses the default_source from config.toml
 
 text("# Welcome to Preswald!")
 text("This is your first app. 🎉")
+
+# Example: View data from a connection
+# view("connection_name", limit=50)
 '''
             )
+
         with open(os.path.join(name, "config.toml"), "w") as f:
             f.write(
-                '''
-[project]
+                '''[project]
 title = "Preswald Project"
 version = "0.1.0"
 port = 8501
@@ -48,14 +63,63 @@ text = "#000000"
 [theme.font]
 family = "Arial, sans-serif"
 size = "16px"
+
+[data]
+default_source = "postgres"   # Default data source. Options: "csv", "postgres", "mysql", "json", "parquet"
+cache = true                  # Enable caching of data
+
+[data.postgres]
+host = "localhost"            # PostgreSQL host
+port = 5432                   # PostgreSQL port
+dbname = "mydb"              # Database name
+user = "user"                # Username
+# password is stored in secrets.toml
+
+[data.mysql]
+host = "localhost"           # MySQL host
+port = 3306                 # MySQL port
+dbname = "mydb"            # Database name
+user = "user"              # Username
+# password is stored in secrets.toml
+
+[data.csv]
+path = "data/sales.csv"    # Path to CSV file
+
+[data.json]
+url = "https://api.example.com/data"  # URL for JSON data
+# api_key is stored in secrets.toml
+
+[data.parquet]
+path = "data/sales.parquet"  # Path to Parquet file
 '''
             )
+
         with open(os.path.join(name, "secrets.toml"), "w") as f:
-            f.write("# Add your secrets (e.g., API keys) here.\n")
+            f.write('''# Add your secrets here (DO NOT commit this file)
+
+[data.postgres]
+password = ""  # PostgreSQL password
+
+[data.mysql]
+password = ""  # MySQL password
+
+[data.json]
+api_key = ""  # API key for JSON endpoint
+'''
+            )
+
         with open(os.path.join(name, ".gitignore"), "w") as f:
             f.write("secrets.toml\n")
+
         with open(os.path.join(name, "README.md"), "w") as f:
-            f.write("README.md\n")
+            f.write('''# Preswald Project
+
+## Setup
+1. Configure your data connections in `config.toml`
+2. Add sensitive information (passwords, API keys) to `secrets.toml`
+3. Run your app with `preswald run hello.py`
+'''
+            )
 
         click.echo(f"Initialized a new Preswald project in '{name}/'")
     except Exception as e:

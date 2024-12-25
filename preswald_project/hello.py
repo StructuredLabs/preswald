@@ -1,4 +1,4 @@
-from preswald import text, checkbox, slider, button, selectbox, text_input, progress, spinner, alert, image
+from preswald import text, checkbox, slider, button, selectbox, text_input, progress, spinner, alert, image, connect, view
 import time
 import threading
 import logging
@@ -18,9 +18,9 @@ def handle_component_update(component_id, value):
     """Callback function to handle component updates"""
     old_value = component_values.get(component_id)
     component_values[component_id] = value
-    logger.info(f"[Component Callback] State update for {component_id}:")
-    logger.info(f"  - Old value: {old_value}")
-    logger.info(f"  - New value: {value}")
+    # logger.info(f"[Component Callback] State update for {component_id}:")
+    # logger.info(f"  - Old value: {old_value}")
+    # logger.info(f"  - New value: {value}")
 
 def log_component_values():
     """Periodically log all component values"""
@@ -83,3 +83,50 @@ alert("This is an alert")
 image("https://picsum.photos/200/300")
 
 logger.info("[Script] All components created and initialized")
+
+
+# Connect to data sources
+# You can use the config.toml file to configure your connections
+# or connect directly using the source parameter:
+
+# Example connections:
+# db = connect(source="postgresql://user:pass@localhost:5432/dbname")
+# csv_data = connect(source="data/file.csv")
+# json_data = connect(source="https://api.example.com/data.json")
+
+# Or use the configuration from config.toml:
+# db = connect()  # Uses the default_source from config.toml
+
+text("# Welcome to Preswald!")
+text("This is your first app. 🎉")
+
+# Example: View data from a connection
+# view("connection_name", limit=50)
+
+text("# PostgreSQL Database Demo")
+
+# Now try the Preswald connection
+try:
+    # Connect to PostgreSQL
+    logger.info("[PRESWALD] Attempting to connect to PostgreSQL database via Preswald...")
+    db = connect(source="postgresql://jk:jk@localhost:5432/jk", name="postgres")
+    logger.info(f"[PRESWALD] Successfully connected to database with connection name: {db}")
+    
+    # Display all tables
+    text("## Database Tables")
+    text("Below are all tables in your database:")
+    logger.info("[PRESWALD] Attempting to view database tables...")
+    view("postgres", limit=50)
+    
+    # Example query
+    text("## Example Query")
+    text("Running a test query to verify connection:")
+    try:
+        logger.info("[PRESWALD] Executing test query...")
+    except Exception as e:
+        logger.error(f"[PRESWALD] Error running test query: {e}")
+        text(f"Error running test query: {str(e)}")
+
+except Exception as e:
+    logger.error(f"[PRESWALD] Error in Preswald database connection: {e}")
+    text(f"⚠️ Error connecting to database via Preswald: {str(e)}")

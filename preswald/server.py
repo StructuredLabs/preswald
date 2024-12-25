@@ -233,7 +233,7 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
                     for component_id, value in states.items():
                         try:
                             # Store old state for logging
-                            old_state = component_states.get(component_id)
+                            old_state = get_component_state(component_id)
                             logger.info(f"[Component Update] Processing {component_id}:")
                             logger.info(f"  - Old value: {old_state}")
                             logger.info(f"  - New value: {value}")
@@ -244,6 +244,13 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
                             client_states[client_id][component_id] = value
                             
                             logger.info(f"  - Updated persistent state: {component_states[component_id]}")
+                            
+                            # Send acknowledgment back to the client
+                            await websocket.send_json({
+                                "type": "state_update_ack",
+                                "component_id": component_id,
+                                "value": value
+                            })
                             
                             # Broadcast state update to other clients
                             await broadcast_state_update(client_id, component_id, value)
