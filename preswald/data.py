@@ -7,6 +7,7 @@ import json
 from typing import Dict, Any, Optional
 import logging
 from preswald.core import connections, get_connection
+from preswald.components import table
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -139,23 +140,20 @@ def connect(source: str = None, name: Optional[str] = None, config_path: str = "
         logger.error(f"[CONNECT] Failed to connect to source '{source}': {e}")
         raise RuntimeError(f"Connection failed: {str(e)}")
 
-def view(connection_name: str, limit: int = 100) -> str:
+def view(connection_name: str, limit: int = 100):
     """
-    Render a preview of the data from a connection as an HTML table.
+    Render a preview of the data from a connection using the table component.
     
     Args:
         connection_name (str): The name of the data connection.
         limit (int): Maximum number of rows to display in the table.
-    Returns:
-        str: HTML string containing the table representation of the data.
     """
     connection = get_connection(connection_name)
     
     try:
         if isinstance(connection, pd.DataFrame):
-            table_html = connection.head(limit).to_html(
-                classes="table table-striped", index=False)
-            return f"<div class='table-container'>{table_html}</div>"
+            return table(connection.head(limit))
+            
         elif hasattr(connection, 'connect'):  # SQLAlchemy engine
             # Get list of tables
             with connection.connect() as conn:
@@ -169,36 +167,33 @@ def view(connection_name: str, limit: int = 100) -> str:
                     tables_df = pd.read_sql_query(query, conn)
                     
                     if len(tables_df) == 0:
-                        return "<div>No tables found in the database.</div>"
+                        return table([], title="No tables found in the database.")
                     
-                    # Create HTML for each table
-                    all_tables_html = []
+                    # Create table components for each table
                     for table_name in tables_df['table_name']:
                         query = sql_text(f"SELECT * FROM {table_name} LIMIT {limit}")
                         try:
                             table_df = pd.read_sql_query(query, conn)
-                            table_html = table_df.to_html(classes="table table-striped", index=False)
-                            all_tables_html.append(f"<h3>{table_name}</h3>{table_html}")
+                            table(table_df, title=table_name)
                         except Exception as e:
                             logger.error(f"Error fetching data from table {table_name}: {e}")
-                            all_tables_html.append(f"<h3>{table_name}</h3><p>Error: {str(e)}</p>")
+                            table([], title=f"{table_name} - Error: {str(e)}")
                     
-                    return f"<div class='table-container'>{''.join(all_tables_html)}</div>"
                 except Exception as e:
                     logger.error(f"Error listing tables: {e}")
                     # If we can't list tables, try a simple SELECT
                     try:
                         query = sql_text("SELECT 1")
                         test_df = pd.read_sql_query(query, conn)
-                        return "<div>Connected to database successfully, but no data to display.</div>"
+                        return table([], title="Connected to database successfully, but no data to display.")
                     except Exception as e:
                         logger.error(f"Error testing connection: {e}")
-                        return f"<div>Error connecting to database: {str(e)}</div>"
+                        return table([], title=f"Error connecting to database: {str(e)}")
         else:
             raise TypeError(f"Connection '{connection_name}' does not contain viewable data")
     except Exception as e:
         logger.error(f"Error viewing connection '{connection_name}': {e}")
-        return f"<div class='error'>Error: {str(e)}</div>"
+        return table([], title=f"Error: {str(e)}")
 
 def query(connection_name: str, sql_query: str) -> pd.DataFrame:
     """
@@ -224,21 +219,20 @@ def query(connection_name: str, sql_query: str) -> pd.DataFrame:
         logger.error(f"Error executing query on '{connection_name}': {e}")
         raise
 
-def summary(connection_name: str) -> str:
+def summary(connection_name: str):
     """
     Generate a summary of the data from a connection.
     
     Args:
         connection_name (str): The name of the data connection.
     Returns:
-        str: HTML representation of the data summary.
+        dict: Table component containing the data summary.
     """
     connection = get_connection(connection_name)
     
     if isinstance(connection, pd.DataFrame):
         summary_df = connection.describe(include='all')
-        summary_html = summary_df.to_html(classes="table table-striped", index=True)
-        return f"<div class='summary-container'><h3>Data Summary</h3>{summary_html}</div>"
+        return table(summary_df, title="Data Summary")
     else:
         raise TypeError(f"Connection '{connection_name}' does not contain tabular data")
 

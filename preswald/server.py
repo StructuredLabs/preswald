@@ -9,7 +9,8 @@ from preswald.core import (
     get_component_state, 
     get_all_component_states,
     _rendered_html,
-    clear_component_states
+    clear_component_states,
+    connections
 )
 from typing import Dict, Any, Optional
 import os
@@ -411,3 +412,22 @@ def start_server(script=None, port=8501):
         print(f"Will run script: {SCRIPT_PATH}")
     
     uvicorn.run(app, host="0.0.0.0", port=port)
+
+
+@app.get("/api/connections")
+async def get_connections():
+    """Get all active connections"""
+    try:
+        connection_list = []
+        for name, conn in connections.items():
+            conn_type = type(conn).__name__
+            conn_info = {
+                "name": name,
+                "type": conn_type,
+                "details": str(conn)[:100] + "..." if len(str(conn)) > 100 else str(conn)
+            }
+            connection_list.append(conn_info)
+        return {"connections": connection_list}
+    except Exception as e:
+        logger.error(f"Error getting connections: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

@@ -9,6 +9,7 @@ import logging
 import uuid
 import threading
 from typing import Dict, List
+import asyncio
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -89,6 +90,28 @@ def track(func):
 
     return wrapper
 
+async def broadcast_connections():
+    """Broadcast current connections to all clients"""
+    try:
+        connection_list = []
+        for name, conn in connections.items():
+            conn_type = type(conn).__name__
+            conn_info = {
+                "name": name,
+                "type": conn_type,
+                "details": str(conn)[:100] + "..." if len(str(conn)) > 100 else str(conn)
+            }
+            connection_list.append(conn_info)
+        
+        # Import here to avoid circular imports
+        from preswald.server import broadcast_message
+        await broadcast_message({
+            "type": "connections_update",
+            "connections": connection_list
+        })
+    except Exception as e:
+        logger.error(f"Error broadcasting connections: {e}")
+
 def connect(source, name=None):
     """
     Connect to a data source such as a CSV, JSON, or database.
@@ -133,6 +156,9 @@ def connect(source, name=None):
             connections[name] = engine
         else:
             raise ValueError(f"Unsupported data source format: {source}")
+
+        # Broadcast connection updates
+        asyncio.create_task(broadcast_connections())
     except Exception as e:
         raise RuntimeError(f"Failed to connect to source '{source}': {e}")
 
