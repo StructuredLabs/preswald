@@ -105,13 +105,25 @@ def connect(source, name=None):
             # Get script directory and make path relative to it
             import os
             from preswald.server import SCRIPT_PATH
-            script_dir = os.path.dirname(SCRIPT_PATH)
-            # Make source path absolute if it's relative
-            if not os.path.isabs(source):
-                csv_path = os.path.join(script_dir, source)
+            import requests
+            
+            # Check if source is a URL
+            if source.startswith(("http://", "https://")):
+                response = requests.get(source)
+                response.raise_for_status()  # Raise error for bad status codes
+                # Create a StringIO object from the response content
+                from io import StringIO
+                csv_data = StringIO(response.text)
+                connections[name] = pd.read_csv(csv_data)
             else:
-                csv_path = source
-            connections[name] = pd.read_csv(csv_path)
+                # Handle local file path
+                script_dir = os.path.dirname(SCRIPT_PATH)
+                # Make source path absolute if it's relative
+                if not os.path.isabs(source):
+                    csv_path = os.path.join(script_dir, source)
+                else:
+                    csv_path = source
+                connections[name] = pd.read_csv(csv_path)
         elif source.endswith(".json"):
             connections[name] = pd.read_json(source)
         elif source.endswith(".parquet"):
