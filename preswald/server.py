@@ -19,8 +19,8 @@ from collections import defaultdict
 import logging
 import pkg_resources
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Configure logging with single line format
+logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
 
 # Initialize FastAPI app
@@ -222,7 +222,7 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
                 
                 if data.get("type") == "component_update":
                     logger.info(f"[Component Update] Received from client {client_id}:")
-                    logger.info(f"  - Raw data: {data}")
+                    # logger.info(f"  - Raw data: {data}")
                     states = data.get("states", {})
                     
                     if not states:
@@ -235,8 +235,8 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
                             # Store old state for logging
                             old_state = get_component_state(component_id)
                             logger.info(f"[Component Update] Processing {component_id}:")
-                            logger.info(f"  - Old value: {old_state}")
-                            logger.info(f"  - New value: {value}")
+                            # logger.info(f"  - Old value: {old_state}")
+                            # logger.info(f"  - New value: {value}")
                             
                             # Update both persistent and core states
                             component_states[component_id] = value
