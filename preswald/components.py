@@ -3,6 +3,7 @@ from preswald.core import _rendered_html, get_component_state
 import logging
 import numpy as np
 import json
+import pandas as pd
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -221,6 +222,83 @@ def plotly(fig):
             "type": "plot",
             "id": id,
             "error": f"Failed to create plot: {str(e)}"
+        }
+        _rendered_html.append(error_component)
+        return error_component
+
+def table(data, title=None):
+    """Create a table component that renders data using TableViewerWidget.
+    
+    Args:
+        data: List of dictionaries or pandas DataFrame to display
+        title: Optional title for the table
+    """
+    id = generate_id("table")
+    logger.debug(f"Creating table component with id {id}")
+    
+    try:
+        # Convert pandas DataFrame to list of dictionaries if needed
+        if hasattr(data, 'to_dict'):
+            # Reset index and drop it to avoid index column in output
+            if isinstance(data, pd.DataFrame):
+                data = data.reset_index(drop=True)
+            data = data.to_dict('records')
+        
+        # Ensure data is a list
+        if not isinstance(data, list):
+            data = [data] if data else []
+        
+        # Convert each row to ensure JSON serialization
+        processed_data = []
+        for row in data:
+            if isinstance(row, dict):
+                processed_row = {}
+                for key, value in row.items():
+                    # Convert key to string to ensure it's serializable
+                    key_str = str(key)
+                    # Handle special cases and convert value
+                    if pd.isna(value):
+                        processed_row[key_str] = None
+                    elif isinstance(value, (pd.Timestamp, pd.DatetimeTZDtype)):
+                        processed_row[key_str] = str(value)
+                    elif isinstance(value, (np.integer, np.floating)):
+                        processed_row[key_str] = value.item()
+                    elif isinstance(value, (list, np.ndarray)):
+                        processed_row[key_str] = convert_to_serializable(value)
+                    else:
+                        try:
+                            # Try to serialize to test if it's JSON-compatible
+                            json.dumps(value)
+                            processed_row[key_str] = value
+                        except:
+                            # If serialization fails, convert to string
+                            processed_row[key_str] = str(value)
+                processed_data.append(processed_row)
+            else:
+                # If row is not a dict, convert it to a simple dict
+                processed_data.append({"value": str(row)})
+        
+        component = {
+            "type": "table",
+            "id": id,
+            "data": processed_data,
+            "title": str(title) if title is not None else None
+        }
+        
+        # Verify JSON serialization before returning
+        json.dumps(component)
+        
+        logger.debug(f"Created table component: {component}")
+        _rendered_html.append(component)
+        return component
+        
+    except Exception as e:
+        logger.error(f"Error creating table component: {str(e)}")
+        error_component = {
+            "type": "table",
+            "id": id,
+            "data": [],
+            "title": f"Error: {str(e)}"
         }
         _rendered_html.append(error_component)
         return error_component
