@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { ChartBarIcon, ClockIcon, DocumentTextIcon, GlobeAltIcon, HomeIcon, MagnifyingGlassIcon, ServerIcon } from "@heroicons/react/24/solid";
+import { useEffect, useState } from 'react'
+
 import Content from "./Content";
 import Sidebar from "./Sidebar";
 import Topbar from "./TopBar";
-
-import { HomeIcon, ChartBarIcon, MagnifyingGlassIcon, ServerIcon, GlobeAltIcon, ClockIcon, DocumentTextIcon } from "@heroicons/react/24/solid";
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon, current: true },
@@ -19,6 +19,20 @@ const navigation = [
 
 export default function Example({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [branding, setBranding] = useState({
+    name: 'Preswald',
+    logo: '/assets/default-logo.png',
+    favicon: '/assets/favicon.ico'
+  });
+
+  useEffect(() => {
+    // Get branding from window object (set by server)
+    if (window.PRESWALD_BRANDING) {
+      setBranding(window.PRESWALD_BRANDING);
+      // Update document title
+      document.title = window.PRESWALD_BRANDING.name;
+    }
+  }, []);
 
   return (
     <>
@@ -26,9 +40,10 @@ export default function Example({ children }) {
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         navigation={navigation}
+        branding={branding}
       />
       <div className="lg:pl-80">
-        <Topbar setSidebarOpen={setSidebarOpen} />
+        <Topbar setSidebarOpen={setSidebarOpen} branding={branding} />
         <main>
           <Content>{children}</Content>
         </main>

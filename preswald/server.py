@@ -17,6 +17,9 @@ from preswald.core import (
     connections
 )
 from preswald.serializer import dumps as json_dumps, loads as json_loads
+import json
+import signal
+import sys
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +44,46 @@ script_runners: Dict[WebSocket, ScriptRunner] = {}
 
 # Store persistent component states
 component_states: Dict[str, Any] = {}
+
+# Global flag to track server shutdown state
+is_shutting_down = False
+
+def handle_shutdown(signum, frame):
+    """Handle shutdown signals gracefully"""
+    global is_shutting_down
+    logger.info("Received shutdown signal, cleaning up...")
+    is_shutting_down = True
+    
+    # Clean up WebSocket connections
+    async def cleanup():
+        for client_id, websocket in list(websocket_connections.items()):
+            try:
+                # Get the script runner for this websocket
+                runner = next((r for r in script_runners.values() if r.session_id == client_id), None)
+                if runner:
+                    await runner.stop()
+                    script_runners.pop(next(ws for ws, r in script_runners.items() if r == runner), None)
+                
+                # Close the websocket
+                await websocket.close(code=1000, reason="Server shutting down")
+                websocket_connections.pop(client_id, None)
+                logger.info(f"Cleaned up connection for client {client_id}")
+            except Exception as e:
+                logger.error(f"Error cleaning up connection for client {client_id}: {e}")
+    
+    # Run cleanup in event loop
+    loop = asyncio.get_event_loop()
+    if loop.is_running():
+        loop.create_task(cleanup())
+    else:
+        loop.run_until_complete(cleanup())
+    
+    # Exit gracefully
+    sys.exit(0)
+
+# Register signal handlers
+signal.signal(signal.SIGINT, handle_shutdown)
+signal.signal(signal.SIGTERM, handle_shutdown)
 
 try:
     # Get the package's static directory using pkg_resources
@@ -71,6 +114,12 @@ async def serve_index():
         if os.path.exists(index_path):
             # Load config if script path is set
             title = "Preswald"  # Default title
+            branding = {
+                "name": "Preswald",
+                "logo": "/assets/default-logo.png",
+                "favicon": "/assets/favicon.ico"
+            }
+            
             if SCRIPT_PATH:
                 try:
                     config_path = os.path.join(os.path.dirname(SCRIPT_PATH), "config.toml")
@@ -78,9 +127,55 @@ async def serve_index():
                     import toml
                     config = toml.load(config_path)
                     print(f"Loaded config in server.py: {config}")
-                    print(f"Loaded config in server.py title: {config.get('project', {}).get('title')}")
-                    if config.get("project", {}).get("title"):
-                        title = config["project"]["title"]
+                    
+                    # Get branding configuration
+                    if "branding" in config:
+                        branding_config = config["branding"]
+                        branding["name"] = branding_config.get("name", branding["name"])
+                        # Use branding name as the title
+                        title = branding["name"]
+                        
+                        # Handle logo
+                        logo = branding_config.get("logo")
+                        if logo:
+                            if logo.startswith(("http://", "https://")):
+                                branding["logo"] = logo
+                            else:
+                                # Copy local logo to assets directory
+                                logo_path = os.path.join(os.path.dirname(config_path), logo)
+                                if os.path.exists(logo_path):
+                                    from PIL import Image
+                                    import shutil
+                                    
+                                    # Process logo image (crop to square if needed)
+                                    img = Image.open(logo_path)
+                                    min_side = min(img.size)
+                                    # Calculate cropping box
+                                    left = (img.width - min_side) // 2
+                                    top = (img.height - min_side) // 2
+                                    right = left + min_side
+                                    bottom = top + min_side
+                                    # Crop to square
+                                    img = img.crop((left, top, right, bottom))
+                                    # Save to assets directory
+                                    processed_logo_path = os.path.join(ASSETS_DIR, "logo" + os.path.splitext(logo_path)[1])
+                                    img.save(processed_logo_path)
+                                    branding["logo"] = f"/assets/logo{os.path.splitext(logo_path)[1]}"
+                        
+                        # Handle favicon
+                        favicon = branding_config.get("favicon")
+                        if favicon:
+                            if favicon.startswith(("http://", "https://")):
+                                branding["favicon"] = favicon
+                            else:
+                                # Copy local favicon to assets directory
+                                favicon_path = os.path.join(os.path.dirname(config_path), favicon)
+                                if os.path.exists(favicon_path):
+                                    import shutil
+                                    dest_favicon_path = os.path.join(ASSETS_DIR, "favicon" + os.path.splitext(favicon_path)[1])
+                                    shutil.copy2(favicon_path, dest_favicon_path)
+                                    branding["favicon"] = f"/assets/favicon{os.path.splitext(favicon_path)[1]}"
+                    
                 except Exception as e:
                     logger.error(f"Error loading config for index: {e}")
 
@@ -89,6 +184,12 @@ async def serve_index():
                 content = f.read()
                 # Replace the title tag content
                 content = content.replace('<title>Vite + React</title>', f'<title>{title}</title>')
+                # Add favicon link
+                favicon_link = f'<link rel="icon" type="image/x-icon" href="{branding["favicon"]}">'
+                content = content.replace('</head>', f'{favicon_link}\n</head>')
+                # Add branding data
+                branding_script = f'<script>window.PRESWALD_BRANDING = {json.dumps(branding)};</script>'
+                content = content.replace('</head>', f'{branding_script}\n</head>')
             
             return HTMLResponse(content)
         else:
@@ -151,25 +252,29 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
                 await script_runner.start(SCRIPT_PATH)
             
             # Handle incoming messages
-            while True:
+            while not is_shutting_down:
                 try:
                     message = await websocket.receive_text()
                     await handle_websocket_message(websocket, message)
-                except json.JSONDecodeError as e:
-                    logger.error(f"[WebSocket] JSON decode error: {e}")
-                    await send_error(websocket, "Invalid message format")
+                except WebSocketDisconnect:
+                    logger.info(f"[WebSocket] Client disconnected: {client_id}")
+                    break
                 except Exception as e:
-                    logger.error(f"[WebSocket] Error handling message: {e}")
-                    await send_error(websocket, "Error processing message")
+                    if not is_shutting_down:
+                        logger.error(f"[WebSocket] Error handling message: {e}")
+                        await send_error(websocket, "Error processing message")
+                    break
                     
         except WebSocketDisconnect:
             logger.info(f"[WebSocket] Client disconnected: {client_id}")
         except Exception as e:
-            logger.error(f"[WebSocket] Error in connection handler: {e}")
-            await send_error(websocket, f"Connection error: {str(e)}")
+            if not is_shutting_down:
+                logger.error(f"[WebSocket] Error in connection handler: {e}")
+                await send_error(websocket, f"Connection error: {str(e)}")
     finally:
         # Clean up
-        websocket_connections.pop(client_id, None)
+        if client_id in websocket_connections:
+            websocket_connections.pop(client_id)
         if websocket in script_runners:
             runner = script_runners.pop(websocket)
             await runner.stop()
@@ -221,16 +326,17 @@ async def handle_websocket_message(websocket: WebSocket, message: str):
 
 async def send_error(websocket: WebSocket, message: str):
     """Send error message to client"""
-    try:
-        error_msg = {
-            "type": "error",
-            "content": {
-                "message": message
+    if not is_shutting_down:
+        try:
+            error_msg = {
+                "type": "error",
+                "content": {
+                    "message": message
+                }
             }
-        }
-        await websocket.send_json(error_msg)
-    except Exception as e:
-        logger.error(f"Error sending error message: {e}")
+            await websocket.send_json(error_msg)
+        except Exception as e:
+            logger.error(f"Error sending error message: {e}")
 
 async def broadcast_state_update(component_id: str, value: Any, exclude_client: WebSocket = None):
     """Broadcast state update to all clients except the sender"""
@@ -318,4 +424,7 @@ def start_server(script=None, port=8501):
         SCRIPT_PATH = os.path.abspath(script)
         print(f"Will run script: {SCRIPT_PATH}")
     
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    # Configure uvicorn to handle signals properly
+    config = uvicorn.Config(app, host="0.0.0.0", port=port, loop="asyncio")
+    server = uvicorn.Server(config)
+    server.run()

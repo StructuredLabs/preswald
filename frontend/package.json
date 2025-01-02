@@ -13,6 +13,7 @@
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
     "@tailwindcss/typography": "^0.5.10",
+    "classnames": "^2.5.1",
     "plotly.js": "^2.35.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

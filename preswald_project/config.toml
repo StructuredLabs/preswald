@@ -1,0 +1,47 @@
+[project]
+title = "Preswald Project"
+version = "0.1.0"
+port = 8501
+
+[theme.color]
+primary = "#4CAF50"
+secondary = "#FFC107"
+background = "#FFFFFF"
+text = "#000000"
+
+[theme.font]
+family = "Arial, sans-serif"
+size = "16px"
+
+[connections.postgres_main]
+type = "postgres"
+host = "localhost"
+port = 5432
+dbname = "mydb"
+user = "user"
+# password is stored in secrets.toml
+
+[connections.mysql_main]
+type = "mysql"
+host = "localhost"
+port = 3306
+dbname = "mydb"
+user = "user"
+# password is stored in secrets.toml
+
+[connections.sales_data]
+type = "csv"
+path = "data/sales.csv"
+
+[connections.api_data]
+type = "json"
+path = "https://api.example.com/data"
+# api_key is stored in secrets.toml
+
+[connections.analytics]
+type = "parquet"
+path = "data/sales.parquet"
+
+[connections.earthquake_data]
+type = "csv"
+path = "/Users/jayanth.kumar/Downloads/work/structuredLabs/preswald/examples/earthquake_data.csv"
