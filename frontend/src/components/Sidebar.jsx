@@ -1,12 +1,13 @@
 'use client';
 
-import { Fragment } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
-import { XMarkIcon } from '@heroicons/react/24/outline'
 import { Link, useLocation } from 'react-router-dom'
+
+import { Fragment } from 'react'
+import { XMarkIcon } from '@heroicons/react/24/outline'
 import classNames from 'classnames'
 
-export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation, branding }) {
+export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation, branding, isCollapsed }) {
   const location = useLocation();
 
   return (
@@ -100,7 +101,11 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation, brand
       </Transition.Root>
 
       {/* Static sidebar for desktop */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-80 lg:flex-col">
+      <div className={classNames(
+        'hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col',
+        isCollapsed ? 'lg:w-20' : 'lg:w-80',
+        'transition-all duration-300'
+      )}>
         <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4">
           <div className="flex h-16 shrink-0 items-center">
             <img
@@ -108,7 +113,9 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation, brand
               src={branding.logo}
               alt={branding.name}
             />
-            <span className="ml-4 text-lg font-semibold text-gray-900">{branding.name}</span>
+            {!isCollapsed && (
+              <span className="ml-4 text-lg font-semibold text-gray-900">{branding.name}</span>
+            )}
           </div>
           <nav className="flex flex-1 flex-col">
             <ul role="list" className="flex flex-1 flex-col gap-y-7">
@@ -122,8 +129,10 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation, brand
                           location.pathname === item.href
                             ? 'bg-gray-50 text-amber-600'
                             : 'text-gray-700 hover:text-amber-600 hover:bg-gray-50',
-                          'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
+                          'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold',
+                          isCollapsed && 'justify-center'
                         )}
+                        title={isCollapsed ? item.name : undefined}
                       >
                         <item.icon
                           className={classNames(
@@ -132,7 +141,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation, brand
                           )}
                           aria-hidden="true"
                         />
-                        {item.name}
+                        {!isCollapsed && item.name}
                       </Link>
                     </li>
                   ))}

@@ -19,6 +19,7 @@ const navigation = [
 
 export default function Example({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [branding, setBranding] = useState({
     name: 'Preswald',
     logo: '/assets/default-logo.png',
@@ -34,6 +35,10 @@ export default function Example({ children }) {
     }
   }, []);
 
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
   return (
     <>
       <Sidebar
@@ -41,9 +46,15 @@ export default function Example({ children }) {
         setSidebarOpen={setSidebarOpen}
         navigation={navigation}
         branding={branding}
+        isCollapsed={sidebarCollapsed}
       />
-      <div className="lg:pl-80">
-        <Topbar setSidebarOpen={setSidebarOpen} branding={branding} />
+      <div className={`transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-80'}`}>
+        <Topbar 
+          setSidebarOpen={setSidebarOpen} 
+          branding={branding} 
+          onToggleSidebar={toggleSidebar}
+          isCollapsed={sidebarCollapsed}
+        />
         <main>
           <Content>{children}</Content>
         </main>
