@@ -97,11 +97,28 @@ class ScriptRunner:
             self._state = ScriptState.ERROR
 
     async def stop(self):
-        """Safely stop the script runner."""
-        logger.info("[ScriptRunner] Stopping")
-        with self._lock:
+        """Stop the script and clean up resources."""
+        try:
+            logger.info(f"[ScriptRunner] Stopping script for session {self.session_id}")
+            
+            # Clean up any resources
+            clear_rendered_components()
+            clear_component_states()
+            
+            # Clean up connections created by this session
+            from preswald.core import connections, disconnect
+            for name in list(connections.keys()):
+                if name.startswith(f"connection_{self.session_id}"):
+                    try:
+                        disconnect(name)
+                    except Exception as e:
+                        logger.error(f"[ScriptRunner] Error cleaning up connection {name}: {e}")
+            
             self._state = ScriptState.STOPPED
-        await self._cleanup()
+            logger.info(f"[ScriptRunner] Script stopped for session {self.session_id}")
+        except Exception as e:
+            logger.error(f"[ScriptRunner] Error stopping script: {e}")
+            raise
 
     async def rerun(self, new_widget_states: Dict[str, Any] = None):
         """Rerun the script with new widget values and debouncing.

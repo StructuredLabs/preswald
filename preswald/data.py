@@ -14,7 +14,22 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def load_connection_config(config_path: str = "config.toml", secrets_path: str = "secrets.toml") -> Dict[str, Any]:
-    """Load connection configuration from config.toml and secrets.toml"""
+    """
+    Load connection configuration from config.toml and secrets.toml.
+    
+    The configuration format should be:
+    [connections.my_connection]
+    type = "postgres"  # or "mysql", "csv", "json", "parquet"
+    host = "localhost"
+    port = 5432
+    dbname = "mydb"
+    user = "user"
+    # password comes from secrets.toml
+    
+    [connections.my_csv]
+    type = "csv"
+    path = "data/myfile.csv"
+    """
     config = {}
     
     # Load main config
@@ -26,10 +41,16 @@ def load_connection_config(config_path: str = "config.toml", secrets_path: str =
     if os.path.exists(secrets_path):
         with open(secrets_path, 'r') as f:
             secrets = toml.load(f)
-            # Deep merge secrets into config
-            config = {**config, **secrets}
+            # Get connections section from secrets
+            secret_connections = secrets.get('connections', {})
+            config_connections = config.get('connections', {})
+            
+            # Merge secrets into each connection config
+            for conn_name, conn_secrets in secret_connections.items():
+                if conn_name in config_connections:
+                    config_connections[conn_name].update(conn_secrets)
     
-    return config.get('data', {})
+    return config.get('connections', {})
 
 def connect(source: str = None, name: Optional[str] = None, config_path: str = "config.toml") -> str:
     """

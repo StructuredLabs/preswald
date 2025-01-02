@@ -138,15 +138,62 @@ async def broadcast_connections():
 def connect(source, name=None):
     """
     Connect to a data source such as a CSV, JSON, or database.
+    If source is a connection name from config.toml, it will use that configuration.
+    Otherwise, it will treat source as a direct file path or connection string.
 
     Args:
-        source (str): Path to a file or database connection string.
-        name (str, optional): A unique name for the connection.
+        source (str): Either a connection name from config.toml or a direct path/connection string
+        name (str, optional): A unique name for the connection
     """
     if name is None:
         name = f"connection_{len(connections) + 1}"
 
+    # Check if connection with this name already exists
+    if name in connections:
+        logger.info(f"[CONNECT] Connection '{name}' already exists, reusing existing connection")
+        return name
+
     try:
+        # First try to load from config if it's a connection name
+        try:
+            from preswald.data import load_connection_config
+            from preswald.server import SCRIPT_PATH
+            import os
+            
+            if SCRIPT_PATH:
+                config_dir = os.path.dirname(SCRIPT_PATH)
+                config_path = os.path.join(config_dir, "config.toml")
+                secrets_path = os.path.join(config_dir, "secrets.toml")
+                
+                if os.path.exists(config_path):
+                    config = load_connection_config(config_path, secrets_path)
+                    if source in config:
+                        # Use the named connection from config
+                        conn_config = config[source]
+                        if conn_config.get('type') == 'postgres':
+                            user = conn_config.get('user', 'postgres')
+                            password = conn_config.get('password', '')
+                            host = conn_config.get('host', 'localhost')
+                            port = conn_config.get('port', 5432)
+                            dbname = conn_config.get('dbname', 'postgres')
+                            source = f"postgresql://{user}:{password}@{host}:{port}/{dbname}"
+                        elif conn_config.get('type') == 'mysql':
+                            user = conn_config.get('user', 'root')
+                            password = conn_config.get('password', '')
+                            host = conn_config.get('host', 'localhost')
+                            port = conn_config.get('port', 3306)
+                            dbname = conn_config.get('dbname', '')
+                            source = f"mysql://{user}:{password}@{host}:{port}/{dbname}"
+                        elif conn_config.get('type') in ['csv', 'json', 'parquet']:
+                            source = conn_config.get('path')
+                        else:
+                            raise ValueError(f"Unsupported connection type: {conn_config.get('type')}")
+        except Exception as e:
+            # If loading from config fails, continue with direct source
+            logger.warning(f"[CONNECT] Failed to load from config: {e}")
+            pass
+
+        # Process the source as a direct path/connection string
         if source.endswith(".csv"):
             # Get script directory and make path relative to it
             import os
@@ -182,11 +229,41 @@ def connect(source, name=None):
 
         # Broadcast connection updates
         asyncio.create_task(broadcast_connections())
+        logger.info(f"[CONNECT] Successfully created connection '{name}' to {source}")
     except Exception as e:
+        # Clean up if connection failed
+        if name in connections:
+            del connections[name]
         raise RuntimeError(f"Failed to connect to source '{source}': {e}")
 
     return name
 
+def disconnect(name: str):
+    """
+    Disconnect and clean up a connection.
+
+    Args:
+        name (str): The name of the connection to disconnect.
+    """
+    if name not in connections:
+        logger.warning(f"[DISCONNECT] No connection found with name '{name}'")
+        return
+
+    try:
+        connection = connections[name]
+        # Close database connections
+        if hasattr(connection, 'dispose'):
+            connection.dispose()
+        
+        # Remove from connections dict
+        del connections[name]
+        logger.info(f"[DISCONNECT] Successfully disconnected '{name}'")
+        
+        # Broadcast updated connections list
+        asyncio.create_task(broadcast_connections())
+    except Exception as e:
+        logger.error(f"[DISCONNECT] Error disconnecting '{name}': {e}")
+        raise
 
 def get_connection(name):
     """

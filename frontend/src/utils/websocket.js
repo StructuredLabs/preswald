@@ -9,7 +9,7 @@ class WebSocketClient {
         this.maxReconnectAttempts = 5;
         this.reconnectDelay = 1000; // Start with 1 second
         this.pendingMessages = [];
-        console.log("[WebSocket] Initialized with ID:", this.clientId);
+        this.connections = []; // Store current connections
     }
 
     connect() {
@@ -93,12 +93,17 @@ class WebSocketClient {
                         data.components.forEach(component => {
                             if (component.id && 'value' in component) {
                                 this.componentStates[component.id] = component.value;
-                                console.log("[WebSocket] Component state synced:", {
+                                console.log("[WebSocket] Component state updated:", {
                                     componentId: component.id,
                                     value: component.value
                                 });
                             }
                         });
+                    }
+                    else if (data.type === 'connections_update') {
+                        // Update the stored connections
+                        this.connections = data.connections || [];
+                        console.log("[WebSocket] Connections updated:", this.connections);
                     }
 
                     // Notify subscribers
@@ -157,6 +162,11 @@ class WebSocketClient {
         }, delay);
     }
 
+    subscribe(callback) {
+        this.callbacks.add(callback);
+        return () => this.callbacks.delete(callback);
+    }
+
     _notifySubscribers(message) {
         this.callbacks.forEach(callback => {
             try {
@@ -167,32 +177,15 @@ class WebSocketClient {
         });
     }
 
-    subscribe(callback) {
-        console.log("[WebSocket] New subscriber added");
-        this.callbacks.add(callback);
-        return () => {
-            console.log("[WebSocket] Subscriber removed");
-            this.callbacks.delete(callback);
-        };
+    getComponentState(componentId) {
+        return this.componentStates[componentId];
     }
 
     updateComponentState(componentId, value) {
-        if (!componentId) {
-            console.error("[WebSocket] Cannot update component state: missing componentId");
-            return;
+        if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+            throw new Error("WebSocket connection not open");
         }
 
-        console.log("[WebSocket] Updating component state:", {
-            componentId,
-            oldValue: this.componentStates[componentId],
-            newValue: value,
-            timestamp: new Date().toISOString()
-        });
-
-        // Update local state immediately
-        this.componentStates[componentId] = value;
-
-        // Prepare update message
         const message = {
             type: "component_update",
             states: {
@@ -200,50 +193,18 @@ class WebSocketClient {
             }
         };
 
-        console.log("[WebSocket] Sending component update to trigger script rerun:", {
-            componentId,
-            value,
-            timestamp: new Date().toISOString()
-        });
-
-        // Send or queue the message
-        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-            this.sendMessage(message);
-        } else {
-            console.log("[WebSocket] Connection not ready, queueing message");
-            this.pendingMessages.push(message);
-            this.connect(); // Attempt to connect if not already connected
-        }
-    }
-
-    sendMessage(message) {
-        if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
-            console.warn("[WebSocket] Cannot send message, connection not open");
-            this.pendingMessages.push(message);
-            this.connect();
-            return;
-        }
-
         try {
-            const messageStr = JSON.stringify(message);
-            console.log("[WebSocket] Sending message:", {
-                message,
-                timestamp: new Date().toISOString()
-            });
-            this.socket.send(messageStr);
+            this.socket.send(JSON.stringify(message));
+            console.log("[WebSocket] Sent component update:", message);
         } catch (error) {
-            console.error("[WebSocket] Error sending message:", error);
-            this.pendingMessages.push(message);
+            console.error("[WebSocket] Error sending component update:", error);
+            throw error;
         }
     }
 
-    getComponentState(componentId) {
-        return this.componentStates[componentId];
+    getConnections() {
+        return this.connections;
     }
 }
 
-// Create and export a singleton instance
-export const websocket = new WebSocketClient();
-
-// Also export the class for testing/mocking
-export { WebSocketClient }; 
+export const websocket = new WebSocketClient(); 
