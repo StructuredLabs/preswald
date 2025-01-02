@@ -15,14 +15,21 @@ def generate_id(prefix="component"):
     return f"{prefix}-{uuid.uuid4().hex[:8]}"
 
 def checkbox(label, default=False):
-    """Create a checkbox component."""
-    id = generate_id("checkbox")
-    logger.debug(f"Creating checkbox component with id {id}, label: {label}")
+    """Create a checkbox component with consistent ID based on label."""
+    # Create a consistent ID based on the label
+    component_id = f"checkbox-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+    
+    # Get current state or use default
+    current_value = get_component_state(component_id)
+    if current_value is None:
+        current_value = default
+    
+    logger.debug(f"Creating checkbox component with id {component_id}, label: {label}")
     component = {
         "type": "checkbox",
-        "id": id,
+        "id": component_id,
         "label": label,
-        "value": get_component_state(id, default)
+        "value": current_value
     }
     logger.debug(f"Created component: {component}")
     _rendered_html.append(component)
@@ -69,30 +76,44 @@ def button(label):
     return component
 
 def selectbox(label, options, default=None):
-    """Create a select component."""
-    id = generate_id("selectbox")
-    logger.debug(f"Creating selectbox component with id {id}, label: {label}")
+    """Create a select component with consistent ID based on label."""
+    # Create a consistent ID based on the label
+    component_id = f"selectbox-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+    
+    # Get current state or use default
+    current_value = get_component_state(component_id)
+    if current_value is None:
+        current_value = default if default is not None else (options[0] if options else None)
+    
+    logger.debug(f"Creating selectbox component with id {component_id}, label: {label}")
     component = {
         "type": "selectbox",
-        "id": id,
+        "id": component_id,
         "label": label,
         "options": options,
-        "value": get_component_state(id, default or options[0] if options else None)
+        "value": current_value
     }
     logger.debug(f"Created component: {component}")
     _rendered_html.append(component)
     return component
 
 def text_input(label, placeholder=""):
-    """Create a text input component."""
-    id = generate_id("text_input")
-    logger.debug(f"Creating text input component with id {id}, label: {label}")
+    """Create a text input component with consistent ID based on label."""
+    # Create a consistent ID based on the label
+    component_id = f"text_input-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+    
+    # Get current state or use default
+    current_value = get_component_state(component_id)
+    if current_value is None:
+        current_value = ""
+    
+    logger.debug(f"Creating text input component with id {component_id}, label: {label}")
     component = {
         "type": "text_input",
-        "id": id,
+        "id": component_id,
         "label": label,
         "placeholder": placeholder,
-        "value": get_component_state(id, "")
+        "value": current_value
     }
     logger.debug(f"Created component: {component}")
     _rendered_html.append(component)

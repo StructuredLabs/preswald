@@ -21,6 +21,14 @@ const DynamicComponents = ({ components, onComponentUpdate }) => {
       value,
       timestamp: new Date().toISOString()
     });
+
+    // Log that we're initiating a script rerun
+    console.log(`[DynamicComponents] Initiating script rerun for component:`, {
+      componentId,
+      value,
+      timestamp: new Date().toISOString()
+    });
+
     onComponentUpdate(componentId, value);
   };
 

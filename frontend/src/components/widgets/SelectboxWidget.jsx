@@ -9,10 +9,23 @@ const SelectboxWidget = ({ label, options, value, id, onChange }) => {
   const handleChange = (newValue) => {
     console.log("[SelectboxWidget] Change event:", {
       id,
-      value: newValue,
+      oldValue: value,
+      newValue: newValue,
       timestamp: new Date().toISOString()
     });
-    onChange?.(newValue);
+
+    try {
+      onChange?.(newValue);
+      console.log("[SelectboxWidget] State updated successfully:", {
+        id,
+        value: newValue
+      });
+    } catch (error) {
+      console.error("[SelectboxWidget] Error updating state:", {
+        id,
+        error: error.message
+      });
+    }
   };
 
   return (

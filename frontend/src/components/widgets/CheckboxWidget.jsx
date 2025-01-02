@@ -2,12 +2,26 @@ import React from "react";
 
 const CheckboxWidget = ({ label, checked, description, id, onChange }) => {
   const handleChange = (e) => {
+    const newValue = e.target.checked;
     console.log("[CheckboxWidget] Change event:", {
       id,
-      checked: e.target.checked,
+      oldValue: checked,
+      newValue: newValue,
       timestamp: new Date().toISOString()
     });
-    onChange?.(e.target.checked);
+    
+    try {
+      onChange?.(newValue);
+      console.log("[CheckboxWidget] State updated successfully:", {
+        id,
+        value: newValue
+      });
+    } catch (error) {
+      console.error("[CheckboxWidget] Error updating state:", {
+        id,
+        error: error.message
+      });
+    }
   };
 
   return (

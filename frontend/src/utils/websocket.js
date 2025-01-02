@@ -200,6 +200,12 @@ class WebSocketClient {
             }
         };
 
+        console.log("[WebSocket] Sending component update to trigger script rerun:", {
+            componentId,
+            value,
+            timestamp: new Date().toISOString()
+        });
+
         // Send or queue the message
         if (this.socket && this.socket.readyState === WebSocket.OPEN) {
             this.sendMessage(message);

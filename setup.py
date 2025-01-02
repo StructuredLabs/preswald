@@ -26,8 +26,7 @@ class BuildFrontendCommand(Command):
     def _build_frontend(self):
         frontend_dir = Path(__file__).parent / 'frontend'
         if not frontend_dir.exists():
-            print(f"Frontend directory not found at {
-                  frontend_dir}", file=sys.stderr)
+            print(f"Frontend directory not found at {frontend_dir}", file=sys.stderr)
             return
 
         print("Building frontend assets...")
@@ -53,8 +52,7 @@ class BuildFrontendCommand(Command):
             print(f"Failed to build frontend: {str(e)}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Unexpected error building frontend: {
-                  str(e)}", file=sys.stderr)
+            print(f"Unexpected error building frontend: {str(e)}", file=sys.stderr)
             raise
 
     def _copy_assets(self, frontend_dir):

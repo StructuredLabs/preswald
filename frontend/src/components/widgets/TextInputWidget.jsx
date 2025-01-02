@@ -2,12 +2,26 @@ import React from "react";
 
 const TextInputWidget = ({ label, placeholder, value = "", id = "text-input", onChange }) => {
   const handleChange = (e) => {
+    const newValue = e.target.value;
     console.log("[TextInputWidget] Change event:", {
       id,
-      value: e.target.value,
+      oldValue: value,
+      newValue: newValue,
       timestamp: new Date().toISOString()
     });
-    onChange?.(e.target.value);
+
+    try {
+      onChange?.(newValue);
+      console.log("[TextInputWidget] State updated successfully:", {
+        id,
+        value: newValue
+      });
+    } catch (error) {
+      console.error("[TextInputWidget] Error updating state:", {
+        id,
+        error: error.message
+      });
+    }
   };
 
   return (
