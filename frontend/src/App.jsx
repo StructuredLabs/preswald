@@ -1,17 +1,15 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
-import Layout from "./components/Layout";
 import { websocket } from "./utils/websocket";
-
+import Layout from "./components/Layout";
 import Dashboard from "./components/pages/Dashboard";
-import Connections from "./components/pages/Connections"; 
+import Connections from "./components/pages/Connections";
 import Metrics from "./components/pages/Metrics";
 import Entities from "./components/pages/Entities";
 import Schedules from "./components/pages/Schedules";
-import Queries from "./components/pages/Queries"
-import Definitions from "./components/pages/Definitions"
- 
+import Queries from "./components/pages/Queries";
+import Definitions from "./components/pages/Definitions";
+
 const App = () => {
   const [components, setComponents] = useState([]);
   const [error, setError] = useState(null);
@@ -19,12 +17,9 @@ const App = () => {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    // Connect to WebSocket and handle messages
     websocket.connect();
 
-    const unsubscribe = websocket.subscribe((message) => {
-      handleWebSocketMessage(message);
-    });
+    const unsubscribe = websocket.subscribe(handleWebSocketMessage);
 
     return () => {
       unsubscribe();
@@ -32,6 +27,7 @@ const App = () => {
     };
   }, []);
 
+  // TODO: where is this used, if at all?
   useEffect(() => {
     // Update document title based on config
     const updateTitle = () => {
@@ -50,22 +46,28 @@ const App = () => {
   const handleWebSocketMessage = (message) => {
     console.log("[App] Received WebSocket message:", message);
 
-    if (message.type === "components") {
-      updateComponents(message.components);
-    } else if (message.type === "error") {
-      handleError(message.content);
-    } else if (message.type === "config") {
-      setConfig(message.config);
-    } else if (message.type === "component_update") {
-      updateComponentState(message);
-    } else if (message.type === "connection_status") {
-      setIsConnected(message.connected);
-      if (!message.connected) setError("Lost connection to server. Attempting to reconnect...");
-      else setError(null);
+    switch (message.type) {
+      case "components":
+        refreshComponentsList(message.components);
+        break;
+
+      case "error":
+        handleError(message.content);
+        break;
+
+      case "connection_status":
+        updateConnectionStatus(message);
+        break;
+
+      case "config": // TODO: not used anywhere
+        setConfig(message.config);
+        break;
+
+      // state_update and initial_state are handled by websocket.js
     }
   };
 
-  const updateComponents = (components) => {
+  const refreshComponentsList = (components) => {
     const updatedComponents = components.map((component) => {
       if (component.id) {
         const currentState = websocket.getComponentState(component.id);
@@ -96,16 +98,6 @@ const App = () => {
     }
   };
 
-  const updateComponentState = (message) => {
-    setComponents((prevComponents) =>
-      prevComponents.map((component) =>
-        component.id === message.component_id
-          ? { ...component, value: message.value, error: null }
-          : component
-      )
-    );
-  };
-
   const handleComponentUpdate = (componentId, value) => {
     try {
       websocket.updateComponentState(componentId, value);
@@ -113,22 +105,37 @@ const App = () => {
       console.error("[App] Error updating component state:", error);
       setComponents((prevComponents) =>
         prevComponents.map((component) =>
-          component.id === componentId ? { ...component, error: error.message } : component
+          component.id === componentId
+            ? { ...component, error: error.message }
+            : component
         )
       );
     }
   };
 
+  const updateConnectionStatus = (message) => {
+    setIsConnected(message.connected);
+    setError(
+      message.connected
+        ? null
+        : "Lost connection to server. Attempting to reconnect..."
+    );
+  };
+
+  const renderLoadingState = () => (
+    <div className="flex items-center justify-center h-screen">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">Connecting to server...</p>
+      </div>
+    </div>
+  );
+
   return (
     <Router>
       <Layout>
         {!isConnected ? (
-          <div className="flex items-center justify-center h-screen">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Connecting to server...</p>
-            </div>
-          </div>
+          renderLoadingState
         ) : (
           <Routes>
             <Route

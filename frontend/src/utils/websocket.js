@@ -1,15 +1,15 @@
 class WebSocketClient {
     constructor() {
-        this.callbacks = new Set();
         this.socket = null;
+        this.callbacks = new Set();
         this.clientId = Math.random().toString(36).substring(7);
         this.isConnecting = false;
         this.componentStates = {};
         this.reconnectAttempts = 0;
         this.maxReconnectAttempts = 5;
-        this.reconnectDelay = 1000; // Start with 1 second
-        this.pendingMessages = [];
-        this.connections = []; // Store current connections
+        this.reconnectDelay = 1000;
+        this.connections = [];
+        this.pendingUpdates = {}; // Only store latest value for each component
     }
 
     connect() {
@@ -32,11 +32,10 @@ class WebSocketClient {
                 this.reconnectAttempts = 0;
                 this.reconnectDelay = 1000;
 
-                // Send any pending messages
-                while (this.pendingMessages.length > 0) {
-                    const msg = this.pendingMessages.shift();
-                    this.sendMessage(msg);
-                }
+                Object.entries(this.pendingUpdates).forEach(([componentId, value]) => {
+                    this._sendComponentUpdate(componentId, value);
+                });
+                this.pendingUpdates = {};
 
                 this._notifySubscribers({
                     type: "connection_status",
@@ -70,40 +69,42 @@ class WebSocketClient {
                 try {
                     const data = JSON.parse(event.data);
                     console.log("[WebSocket] Message received:", {
-                        type: data.type,
-                        data: data,
+                        ...data,
                         timestamp: new Date().toISOString()
                     });
 
-                    if (data.type === 'initial_state') {
-                        this.componentStates = { ...data.states };
-                        console.log("[WebSocket] Initial states loaded:", this.componentStates);
-                    }
-                    else if (data.type === 'state_update') {
-                        const { component_id, value } = data;
-                        if (component_id) {
-                            this.componentStates[component_id] = value;
-                            console.log("[WebSocket] Component state updated:", {
-                                componentId: component_id,
-                                value: value
-                            });
-                        }
-                    }
-                    else if (data.type === 'components') {
-                        data.components.forEach(component => {
-                            if (component.id && 'value' in component) {
-                                this.componentStates[component.id] = component.value;
-                                console.log("[WebSocket] Component state updated:", {
-                                    componentId: component.id,
-                                    value: component.value
-                                });
+                    switch (data.type) {
+                        case 'inital_state':
+                            this.componentStates = { ...data.states };
+                            console.log("[WebSocket] Initial states loaded:", this.componentStates);
+                            break;
+
+                        case 'state_update':
+                            if (data.component_id) {
+                                this.componentStates[data.component_id] = data.value;
                             }
-                        });
-                    }
-                    else if (data.type === 'connections_update') {
-                        // Update the stored connections
-                        this.connections = data.connections || [];
-                        console.log("[WebSocket] Connections updated:", this.connections);
+                            console.log("[WebSocket] Component state updated:", {
+                                componentId: data.component_id,
+                                value: data.value
+                            });
+                            break;
+
+                        case 'components':
+                            data.components.forEach(component => {
+                                if (component.id && 'value' in component) {
+                                    this.componentStates[component.id] = component.value;
+                                    console.log("[WebSocket] Component state updated:", {
+                                        componentId: component.id,
+                                        value: component.value
+                                    });
+                                }
+                            });
+                            break;
+
+                        case 'connections_update':
+                            this.connections = data.connections || [];
+                            console.log("[WebSocket] Connections updated:", this.connections);
+                            break;
                     }
 
                     // Notify subscribers
@@ -147,7 +148,6 @@ class WebSocketClient {
                     message: "Failed to reconnect after multiple attempts"
                 }
             });
-            return;
         }
 
         this.reconnectAttempts++;
@@ -183,11 +183,17 @@ class WebSocketClient {
 
     updateComponentState(componentId, value) {
         if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+            // Store update to send when connection is restored
+            this.pendingUpdates.set(componentId, value);
             throw new Error("WebSocket connection not open");
         }
 
+        return this._sendComponentUpdate(componentId, value);
+    }
+
+    _sendComponentUpdate(componentId, value) {
         const message = {
-            type: "component_update",
+            type: 'component_update',
             states: {
                 [componentId]: value
             }
@@ -195,6 +201,7 @@ class WebSocketClient {
 
         try {
             this.socket.send(JSON.stringify(message));
+            this.componentStates[componentId] = value;
             console.log("[WebSocket] Sent component update:", message);
         } catch (error) {
             console.error("[WebSocket] Error sending component update:", error);
