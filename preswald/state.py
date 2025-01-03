@@ -1,12 +1,15 @@
-import networkx as nx
 from typing import Any, Dict, List, Optional, Set, Callable, Union
 from dataclasses import dataclass, field
+from functools import wraps
+from enum import Enum
 import inspect
 import uuid
 import time
-from enum import Enum
+import random
 import logging
-from functools import wraps
+import hashlib
+import pickle
+import networkx as nx
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -109,6 +112,7 @@ class AtomStatus(Enum):
     COMPLETED = "completed"
     FAILED = "failed"
     RETRY = "retry"
+    SKIPPED = "skipped"
 
 
 @dataclass
@@ -121,6 +125,7 @@ class AtomResult:
     attempts: int = 0
     start_time: Optional[float] = None
     end_time: Optional[float] = None
+    input_hash: Optional[str] = None  # Hash of input parameters
 
     @property
     def execution_time(self) -> Optional[float]:
@@ -154,6 +159,53 @@ class RetryPolicy:
         return self.delay * (self.backoff_factor ** (attempt - 1))
 
 
+class AtomCache:
+    """Manages caching of atom results and determines when recomputation is needed."""
+
+    def __init__(self):
+        self.cache: Dict[str, AtomResult] = {}
+        self.hash_cache: Dict[str, str] = {}  # Stores input parameter hashes
+
+    def compute_input_hash(self, atom_name: str, kwargs: Dict[str, Any]) -> str:
+        """
+        Compute a hash of the input parameters to determine if recomputation is needed.
+        The hash includes:
+        1. The atom name (since different atoms with same inputs should have different hashes)
+        2. The input parameter values
+        3. The hashes of any dependent atoms (to capture changes in the dependency chain)
+        """
+        # Create a list of items to hash
+        hash_items = [
+            atom_name,
+            # Sort kwargs to ensure consistent ordering
+            sorted([(k, self._hash_value(v)) for k, v in kwargs.items()]),
+        ]
+
+        # Convert to bytes and hash
+        hash_str = str(hash_items).encode("utf-8")
+        return hashlib.sha256(hash_str).hexdigest()
+
+    def _hash_value(self, value: Any) -> str:
+        """
+        Create a hash for a value, handling different types appropriately.
+        For complex objects, we use their memory address as a proxy for identity.
+        """
+        try:
+            # Try to pickle the value first
+            return hashlib.sha256(pickle.dumps(value)).hexdigest()
+        except:
+            # If pickling fails, use the object's memory address
+            return str(id(value))
+
+    def should_recompute(self, atom_name: str, input_hash: str) -> bool:
+        """Determine if an atom needs to be recomputed based on its inputs."""
+        if atom_name not in self.cache:
+            return True
+
+        cached_result = self.cache[atom_name]
+        return cached_result.input_hash != input_hash
+
+
 @dataclass
 class Atom:
     """
@@ -165,6 +217,7 @@ class Atom:
     dependencies: Set[str] = field(default_factory=set)
     retry_policy: Optional[RetryPolicy] = None
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    force_recompute: bool = False  # Flag to force recomputation regardless of cache
 
     def __post_init__(self):
         # Extract function signature to understand inputs
@@ -176,8 +229,8 @@ class Atom:
         # Store the original function
         self._original_func = self.func
 
-        # Wrap the function to add logging and timing
-        @wraps(self.func)
+        # Create the wrapped function
+        @wraps(self._original_func)
         def wrapped_func(*args, **kwargs):
             logger.info(f"Executing atom: {self.name}")
             start_time = time.time()
@@ -186,13 +239,16 @@ class Atom:
                 logger.info(f"Atom {self.name} completed successfully")
                 return result
             except Exception as e:
-                logger.error(f"Atom {self.name} failed with error: {str(e)}", exc_info=True)
+                logger.error(
+                    f"Atom {self.name} failed with error: {str(e)}", exc_info=True
+                )
                 raise
             finally:
                 end_time = time.time()
                 execution_time = end_time - start_time
                 logger.info(f"Atom {self.name} execution time: {execution_time:.2f}s")
 
+        # Replace the function with the wrapped version
         self.func = wrapped_func
 
 
@@ -226,16 +282,21 @@ class Workflow:
         self.atoms: Dict[str, Atom] = {}
         self.context = WorkflowContext()
         self.default_retry_policy = default_retry_policy or RetryPolicy()
+        self.cache = AtomCache()
 
     def atom(
         self,
         dependencies: Optional[List[str]] = None,
         retry_policy: Optional[RetryPolicy] = None,
+        force_recompute: bool = False,
     ):
         """
         Decorator to create and register an atom in the workflow.
 
-        @workflow.atom(dependencies=['atom1', 'atom2'])
+        @workflow.atom(
+            dependencies=['atom1', 'atom2'],
+            force_recompute=True  # Force this atom to always recompute
+        )
         def my_atom(x, y):
             return x + y
         """
@@ -247,11 +308,34 @@ class Workflow:
                 func=func,
                 dependencies=set(dependencies or []),
                 retry_policy=retry_policy or self.default_retry_policy,
+                force_recompute=force_recompute,
             )
             self.atoms[atom_name] = atom
             return func
 
         return decorator
+
+    def _get_affected_atoms(self, changed_atoms: Set[str]) -> Set[str]:
+        """
+        Determine which atoms need to be recomputed based on changes.
+        Returns a set of atom names that need recomputation.
+        """
+        affected = set(changed_atoms)
+
+        # Repeatedly find atoms that depend on affected atoms until no new ones are found
+        while True:
+            new_affected = set()
+            for atom_name, atom in self.atoms.items():
+                if atom_name not in affected:  # Skip already affected atoms
+                    if any(dep in affected for dep in atom.dependencies):
+                        new_affected.add(atom_name)
+
+            if not new_affected:  # No new affected atoms found
+                break
+
+            affected.update(new_affected)
+
+        return affected
 
     def _validate_dependencies(self):
         """Validates that all dependencies exist and there are no cycles."""
@@ -309,7 +393,20 @@ class Workflow:
         return order
 
     def _execute_atom(self, atom: Atom, **kwargs) -> AtomResult:
-        """Execute a single atom with retry logic."""
+        """Execute a single atom with retry logic and caching."""
+        # Compute input hash
+        input_hash = self.cache.compute_input_hash(atom.name, kwargs)
+
+        # Check if we can use cached result
+        if not atom.force_recompute and not self.cache.should_recompute(
+            atom.name, input_hash
+        ):
+            logger.info(f"Using cached result for atom: {atom.name}")
+            cached_result = self.cache.cache[atom.name]
+            cached_result.status = AtomStatus.SKIPPED
+            return cached_result
+
+        # Execute the atom with retries
         attempts = 0
         start_time = time.time()
 
@@ -318,13 +415,17 @@ class Workflow:
             try:
                 result = atom.func(**kwargs)
                 end_time = time.time()
-                return AtomResult(
+                atom_result = AtomResult(
                     status=AtomStatus.COMPLETED,
                     value=result,
                     attempts=attempts,
                     start_time=start_time,
                     end_time=end_time,
+                    input_hash=input_hash,
                 )
+                # Cache the successful result
+                self.cache.cache[atom.name] = atom_result
+                return atom_result
             except Exception as e:
                 current_time = time.time()
                 if atom.retry_policy.should_retry(attempts, e):
@@ -341,14 +442,33 @@ class Workflow:
                         attempts=attempts,
                         start_time=start_time,
                         end_time=current_time,
+                        input_hash=input_hash,
                     )
 
-    def execute(self) -> Dict[str, AtomResult]:
-        """Executes all atoms in the workflow in the correct order."""
+    def execute(
+        self, recompute_atoms: Optional[Set[str]] = None
+    ) -> Dict[str, AtomResult]:
+        """
+        Executes atoms in the workflow, with selective recomputation.
+
+        Args:
+            recompute_atoms: Optional set of atom names to force recomputation,
+                           regardless of cache status
+        """
         execution_order = self._get_execution_order()
+
+        # Determine which atoms need recomputation
+        atoms_to_recompute = set()
+        if recompute_atoms:
+            atoms_to_recompute = self._get_affected_atoms(recompute_atoms)
+            logger.info(f"Atoms requiring recomputation: {atoms_to_recompute}")
 
         for atom_name in execution_order:
             atom = self.atoms[atom_name]
+
+            # Force recomputation if needed
+            if atom_name in atoms_to_recompute:
+                atom.force_recompute = True
 
             # Prepare arguments for the atom based on its signature
             kwargs = {}
@@ -356,11 +476,14 @@ class Workflow:
                 if param_name in self.context.variables:
                     kwargs[param_name] = self.context.variables[param_name]
 
-            # Execute the atom with retry logic
+            # Execute the atom
             result = self._execute_atom(atom, **kwargs)
 
             # Store the result in the context
             self.context.set_result(atom_name, result)
+
+            # Reset force_recompute flag
+            atom.force_recompute = False
 
             # If this atom failed and has dependencies, we should stop execution
             if result.status == AtomStatus.FAILED:
