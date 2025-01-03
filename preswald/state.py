@@ -1,8 +1,16 @@
 import networkx as nx
-from typing import Any, Dict, List, Optional, Set, Callable
+from typing import Any, Dict, List, Optional, Set, Callable, Union
 from dataclasses import dataclass, field
 import inspect
 import uuid
+import time
+from enum import Enum
+import logging
+from functools import wraps
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class StateManager:
@@ -93,6 +101,59 @@ class StateManager:
             self.cache.pop(node, None)
 
 
+class AtomStatus(Enum):
+    """Represents the current status of an atom's execution."""
+
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    RETRY = "retry"
+
+
+@dataclass
+class AtomResult:
+    """Represents the result of an atom's execution."""
+
+    status: AtomStatus
+    value: Any = None
+    error: Optional[Exception] = None
+    attempts: int = 0
+    start_time: Optional[float] = None
+    end_time: Optional[float] = None
+
+    @property
+    def execution_time(self) -> Optional[float]:
+        """Calculate the execution time if both start and end times are available."""
+        if self.start_time and self.end_time:
+            return self.end_time - self.start_time
+        return None
+
+
+class RetryPolicy:
+    """Defines how retries should be handled for failed atoms."""
+
+    def __init__(
+        self,
+        max_attempts: int = 3,
+        delay: float = 1.0,
+        backoff_factor: float = 2.0,
+        retry_exceptions: tuple = (Exception,),
+    ):
+        self.max_attempts = max_attempts
+        self.delay = delay
+        self.backoff_factor = backoff_factor
+        self.retry_exceptions = retry_exceptions
+
+    def should_retry(self, attempt: int, error: Exception) -> bool:
+        """Determine if another retry attempt should be made."""
+        return attempt < self.max_attempts and isinstance(error, self.retry_exceptions)
+
+    def get_delay(self, attempt: int) -> float:
+        """Calculate the delay before the next retry attempt."""
+        return self.delay * (self.backoff_factor ** (attempt - 1))
+
+
 @dataclass
 class Atom:
     """
@@ -102,11 +163,37 @@ class Atom:
     name: str
     func: Callable
     dependencies: Set[str] = field(default_factory=set)
+    retry_policy: Optional[RetryPolicy] = None
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
 
     def __post_init__(self):
         # Extract function signature to understand inputs
         self.signature = inspect.signature(self.func)
+        # Set default retry policy if none provided
+        if self.retry_policy is None:
+            self.retry_policy = RetryPolicy()
+
+        # Store the original function
+        self._original_func = self.func
+
+        # Wrap the function to add logging and timing
+        @wraps(self.func)
+        def wrapped_func(*args, **kwargs):
+            logger.info(f"Executing atom: {self.name}")
+            start_time = time.time()
+            try:
+                result = self._original_func(*args, **kwargs)
+                logger.info(f"Atom {self.name} completed successfully")
+                return result
+            except Exception as e:
+                logger.error(f"Atom {self.name} failed with error: {str(e)}", exc_info=True)
+                raise
+            finally:
+                end_time = time.time()
+                execution_time = end_time - start_time
+                logger.info(f"Atom {self.name} execution time: {execution_time:.2f}s")
+
+        self.func = wrapped_func
 
 
 class WorkflowContext:
@@ -116,6 +203,7 @@ class WorkflowContext:
 
     def __init__(self):
         self.variables: Dict[str, Any] = {}
+        self.results: Dict[str, AtomResult] = {}
 
     def get_variable(self, name: str) -> Any:
         return self.variables.get(name)
@@ -123,17 +211,27 @@ class WorkflowContext:
     def set_variable(self, name: str, value: Any):
         self.variables[name] = value
 
+    def set_result(self, atom_name: str, result: AtomResult):
+        self.results[atom_name] = result
+        if result.status == AtomStatus.COMPLETED:
+            self.variables[atom_name] = result.value
+
 
 class Workflow:
     """
     Main workflow class that manages atoms and their execution.
     """
 
-    def __init__(self):
+    def __init__(self, default_retry_policy: Optional[RetryPolicy] = None):
         self.atoms: Dict[str, Atom] = {}
         self.context = WorkflowContext()
+        self.default_retry_policy = default_retry_policy or RetryPolicy()
 
-    def atom(self, dependencies: Optional[List[str]] = None):
+    def atom(
+        self,
+        dependencies: Optional[List[str]] = None,
+        retry_policy: Optional[RetryPolicy] = None,
+    ):
         """
         Decorator to create and register an atom in the workflow.
 
@@ -144,7 +242,12 @@ class Workflow:
 
         def decorator(func):
             atom_name = func.__name__
-            atom = Atom(name=atom_name, func=func, dependencies=set(dependencies or []))
+            atom = Atom(
+                name=atom_name,
+                func=func,
+                dependencies=set(dependencies or []),
+                retry_policy=retry_policy or self.default_retry_policy,
+            )
             self.atoms[atom_name] = atom
             return func
 
@@ -205,11 +308,45 @@ class Workflow:
 
         return order
 
-    def execute(self):
+    def _execute_atom(self, atom: Atom, **kwargs) -> AtomResult:
+        """Execute a single atom with retry logic."""
+        attempts = 0
+        start_time = time.time()
+
+        while True:
+            attempts += 1
+            try:
+                result = atom.func(**kwargs)
+                end_time = time.time()
+                return AtomResult(
+                    status=AtomStatus.COMPLETED,
+                    value=result,
+                    attempts=attempts,
+                    start_time=start_time,
+                    end_time=end_time,
+                )
+            except Exception as e:
+                current_time = time.time()
+                if atom.retry_policy.should_retry(attempts, e):
+                    logger.warning(
+                        f"Atom {atom.name} failed (attempt {attempts}). "
+                        f"Retrying after {atom.retry_policy.get_delay(attempts)}s"
+                    )
+                    time.sleep(atom.retry_policy.get_delay(attempts))
+                    continue
+                else:
+                    return AtomResult(
+                        status=AtomStatus.FAILED,
+                        error=e,
+                        attempts=attempts,
+                        start_time=start_time,
+                        end_time=current_time,
+                    )
+
+    def execute(self) -> Dict[str, AtomResult]:
         """Executes all atoms in the workflow in the correct order."""
         execution_order = self._get_execution_order()
 
-        results = {}
         for atom_name in execution_order:
             atom = self.atoms[atom_name]
 
@@ -219,13 +356,15 @@ class Workflow:
                 if param_name in self.context.variables:
                     kwargs[param_name] = self.context.variables[param_name]
 
-            # Execute the atom
-            result = atom.func(**kwargs)
+            # Execute the atom with retry logic
+            result = self._execute_atom(atom, **kwargs)
 
-            # Store the result in the context if it's not None
-            if result is not None:
-                self.context.variables[atom_name] = result
+            # Store the result in the context
+            self.context.set_result(atom_name, result)
 
-            results[atom_name] = result
+            # If this atom failed and has dependencies, we should stop execution
+            if result.status == AtomStatus.FAILED:
+                logger.error(f"Workflow stopped due to failure in atom: {atom_name}")
+                break
 
-        return results
+        return self.context.results
