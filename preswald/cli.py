@@ -1,6 +1,7 @@
 import os
 import click
 from preswald.server import start_server
+import logging
 
 
 @click.group()
@@ -129,7 +130,11 @@ api_key = ""  # API key for JSON endpoint
 @cli.command()
 @click.argument("script", default="hello.py")
 @click.option("--port", default=8501, help="Port to run the server on.")
-def run(script, port):
+@click.option("--log-level", 
+              type=click.Choice(['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], case_sensitive=False),
+              default='DEBUG',
+              help="Set the logging level.")
+def run(script, port, log_level):
     """
     Run a Preswald app.
 
@@ -138,13 +143,19 @@ def run(script, port):
     if not os.path.exists(script):
         click.echo(f"Error: Script '{script}' not found.")
         return
+    
+    logging.basicConfig(level=getattr(logging, log_level.upper()))
 
-    click.echo(f"Running '{script}' on http://localhost:{port}")
+    click.echo(f"Running '{script}' on http://localhost:{port} with log level {log_level}")
     start_server(script=script, port=port)
 
 
 @cli.command()
 @click.option("--port", default=8501, help="Port for local deployment.")
+@click.option("--log-level", 
+              type=click.Choice(['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], case_sensitive=False),
+              default='INFO',
+              help="Set the logging level.")
 def deploy(port):
     """
     Deploy your Preswald app locally.
@@ -152,7 +163,9 @@ def deploy(port):
     This allows you to share the app within your local network.
     """
     try:
-        click.echo(f"Deploying app locally on http://localhost:{port}...")
+        logging.basicConfig(level=getattr(logging, log_level.upper()))
+        
+        click.echo(f"Deploying app locally on http://localhost:{port} with log level {log_level}...")
         start_server(port=port)
     except Exception as e:
         click.echo(f"Error deploying app: {e}")
