@@ -1,11 +1,15 @@
 import networkx as nx
+from typing import Any, Dict, List, Optional, Set, Callable
+from dataclasses import dataclass, field
+import inspect
+import uuid
 
 
 class StateManager:
     def __init__(self):
         # Core data structures
-        self.graph = nx.DiGraph() # Stores function dependencies
-        self.cache = {} # Stores function results
+        self.graph = nx.DiGraph()  # Stores function dependencies
+        self.cache = {}  # Stores function results
         self.data_to_node = {}  # Maps data objects to their source nodes
         self.current_execution = None  # Tracks currently executing function
 
@@ -87,3 +91,141 @@ class StateManager:
         # Remove them from cache
         for node in affected_nodes:
             self.cache.pop(node, None)
+
+
+@dataclass
+class Atom:
+    """
+    Represents a cell/atom in the workflow, containing code and its dependencies.
+    """
+
+    name: str
+    func: Callable
+    dependencies: Set[str] = field(default_factory=set)
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
+
+    def __post_init__(self):
+        # Extract function signature to understand inputs
+        self.signature = inspect.signature(self.func)
+
+
+class WorkflowContext:
+    """
+    Maintains the state and variables across atoms in the workflow.
+    """
+
+    def __init__(self):
+        self.variables: Dict[str, Any] = {}
+
+    def get_variable(self, name: str) -> Any:
+        return self.variables.get(name)
+
+    def set_variable(self, name: str, value: Any):
+        self.variables[name] = value
+
+
+class Workflow:
+    """
+    Main workflow class that manages atoms and their execution.
+    """
+
+    def __init__(self):
+        self.atoms: Dict[str, Atom] = {}
+        self.context = WorkflowContext()
+
+    def atom(self, dependencies: Optional[List[str]] = None):
+        """
+        Decorator to create and register an atom in the workflow.
+
+        @workflow.atom(dependencies=['atom1', 'atom2'])
+        def my_atom(x, y):
+            return x + y
+        """
+
+        def decorator(func):
+            atom_name = func.__name__
+            atom = Atom(name=atom_name, func=func, dependencies=set(dependencies or []))
+            self.atoms[atom_name] = atom
+            return func
+
+        return decorator
+
+    def _validate_dependencies(self):
+        """Validates that all dependencies exist and there are no cycles."""
+        for atom in self.atoms.values():
+            for dep in atom.dependencies:
+                if dep not in self.atoms:
+                    raise ValueError(
+                        f"Atom '{atom.name}' depends on non-existent atom '{dep}'"
+                    )
+
+        # Check for cycles using DFS
+        visited = set()
+        temp_visited = set()
+
+        def has_cycle(atom_name: str) -> bool:
+            if atom_name in temp_visited:
+                return True
+            if atom_name in visited:
+                return False
+
+            temp_visited.add(atom_name)
+
+            for dep in self.atoms[atom_name].dependencies:
+                if has_cycle(dep):
+                    return True
+
+            temp_visited.remove(atom_name)
+            visited.add(atom_name)
+            return False
+
+        for atom_name in self.atoms:
+            if has_cycle(atom_name):
+                raise ValueError("Circular dependency detected in workflow")
+
+    def _get_execution_order(self) -> List[str]:
+        """Returns a valid execution order for atoms based on dependencies."""
+        self._validate_dependencies()
+
+        visited = set()
+        order = []
+
+        def visit(atom_name: str):
+            if atom_name in visited:
+                return
+
+            for dep in self.atoms[atom_name].dependencies:
+                visit(dep)
+
+            visited.add(atom_name)
+            order.append(atom_name)
+
+        for atom_name in self.atoms:
+            visit(atom_name)
+
+        return order
+
+    def execute(self):
+        """Executes all atoms in the workflow in the correct order."""
+        execution_order = self._get_execution_order()
+
+        results = {}
+        for atom_name in execution_order:
+            atom = self.atoms[atom_name]
+
+            # Prepare arguments for the atom based on its signature
+            kwargs = {}
+            for param_name in atom.signature.parameters:
+                if param_name in self.context.variables:
+                    kwargs[param_name] = self.context.variables[param_name]
+
+            # Execute the atom
+            result = atom.func(**kwargs)
+
+            # Store the result in the context if it's not None
+            if result is not None:
+                self.context.variables[atom_name] = result
+
+            results[atom_name] = result
+
+        return results
