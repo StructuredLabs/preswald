@@ -1,15 +1,16 @@
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Set, Callable, Union
 from dataclasses import dataclass, field
 from functools import wraps
 from enum import Enum
+import networkx as nx
+import plotly.graph_objects as go
 import inspect
 import uuid
 import time
-import random
 import logging
 import hashlib
 import pickle
-import networkx as nx
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -491,3 +492,253 @@ class Workflow:
                 break
 
         return self.context.results
+
+
+class WorkflowAnalyzer:
+    """
+    Provides visualization and analysis capabilities for workflow structures.
+    Uses Plotly for interactive visualization and NetworkX for graph algorithms.
+    """
+
+    def __init__(self, workflow):
+        self.workflow = workflow
+        self.graph = nx.DiGraph()
+        self._last_analysis_time = None
+
+        # Define color scheme for different atom statuses
+        self.status_colors = {
+            "pending": "#E8E8E8",  # Light Gray
+            "running": "#72B0DD",  # Blue
+            "completed": "#72B7B7",  # Teal
+            "failed": "#B76E79",  # Rose
+            "retry": "#FFB347",  # Orange
+            "skipped": "#D7BDE2",  # Light Purple
+            "not_executed": "#C8C8C8",  # Gray
+        }
+
+    def build_graph(self) -> nx.DiGraph:
+        """
+        Constructs a NetworkX graph representation of the workflow.
+        Includes rich metadata for visualization and analysis.
+        """
+        self.graph.clear()
+
+        # Add nodes (atoms) with their metadata
+        for atom_name, atom in self.workflow.atoms.items():
+            result = self.workflow.context.results.get(atom_name)
+
+            # Prepare node metadata with rich information for tooltips
+            node_data = {
+                "name": atom_name,
+                "status": result.status.value if result else "not_executed",
+                "execution_time": (
+                    f"{result.execution_time:.2f}s"
+                    if result and result.execution_time
+                    else "N/A"
+                ),
+                "attempts": result.attempts if result else 0,
+                "error": str(result.error) if result and result.error else None,
+                "dependencies": list(atom.dependencies),
+                "force_recompute": atom.force_recompute,
+            }
+
+            self.graph.add_node(atom_name, **node_data)
+
+            # Add edges for dependencies
+            for dep in atom.dependencies:
+                self.graph.add_edge(dep, atom_name)
+
+        self._last_analysis_time = datetime.now()
+        return self.graph
+
+    def get_critical_path(self) -> List[str]:
+        """
+        Identifies the critical path through the workflow - the longest dependency chain
+        that must be executed sequentially.
+        """
+        if not self._is_graph_current():
+            self.build_graph()
+
+        try:
+            # Find all paths and their total execution times
+            paths = []
+            for source in (n for n, d in self.graph.in_degree() if d == 0):
+                for target in (n for n, d in self.graph.out_degree() if d == 0):
+                    paths.extend(nx.all_simple_paths(self.graph, source, target))
+
+            if not paths:
+                return []
+
+            # Calculate path weights based on execution times
+            path_weights = []
+            for path in paths:
+                weight = sum(
+                    (
+                        float(self.graph.nodes[node]["execution_time"].rstrip("s"))
+                        if self.graph.nodes[node]["execution_time"] != "N/A"
+                        else 1.0
+                    )
+                    for node in path
+                )
+                path_weights.append((weight, path))
+
+            return max(path_weights, key=lambda x: x[0])[1]
+
+        except nx.NetworkXException as e:
+            print(f"Error finding critical path: {e}")
+            return []
+
+    def get_parallel_groups(self) -> List[Set[str]]:
+        """
+        Identifies groups of atoms that could potentially be executed in parallel.
+        """
+        if not self._is_graph_current():
+            self.build_graph()
+
+        try:
+            return list(nx.topological_generations(self.graph))
+        except nx.NetworkXException as e:
+            print(f"Error finding parallel groups: {e}")
+            return []
+
+    def visualize(
+        self,
+        highlight_path: Optional[List[str]] = None,
+        title: str = "Workflow Dependency Graph",
+    ):
+        """
+        Creates an interactive visualization of the workflow using Plotly.
+
+        Args:
+            highlight_path: Optional list of atom names to highlight (e.g., critical path)
+            title: Title for the visualization
+        """
+        if not self._is_graph_current():
+            self.build_graph()
+
+        # Calculate layout using NetworkX
+        pos = nx.spring_layout(self.graph, k=1, iterations=50)
+
+        # Prepare node trace
+        node_x, node_y = [], []
+        node_colors, node_sizes = [], []
+        node_texts = []
+
+        for node in self.graph.nodes():
+            x, y = pos[node]
+            node_x.append(x)
+            node_y.append(y)
+
+            # Get node status and set color
+            status = self.graph.nodes[node]["status"]
+            node_colors.append(
+                self.status_colors.get(status, self.status_colors["not_executed"])
+            )
+
+            # Set node size (larger for highlighted path)
+            size = 40 if highlight_path and node in highlight_path else 30
+            node_sizes.append(size)
+
+            # Create rich hover text
+            hover_text = [
+                f"Atom: {node}",
+                f"Status: {status}",
+                f"Execution Time: {self.graph.nodes[node]['execution_time']}",
+                f"Attempts: {self.graph.nodes[node]['attempts']}",
+            ]
+
+            if self.graph.nodes[node]["error"]:
+                hover_text.append(f"Error: {self.graph.nodes[node]['error']}")
+
+            if self.graph.nodes[node]["dependencies"]:
+                hover_text.append(
+                    f"Dependencies: {', '.join(self.graph.nodes[node]['dependencies'])}"
+                )
+
+            node_texts.append("<br>".join(hover_text))
+
+        nodes_trace = go.Scatter(
+            x=node_x,
+            y=node_y,
+            mode="markers+text",
+            hoverinfo="text",
+            text=list(self.graph.nodes()),
+            textposition="bottom center",
+            hovertext=node_texts,
+            marker=dict(
+                color=node_colors, size=node_sizes, line_width=2, line_color="white"
+            ),
+            name="Atoms",
+        )
+
+        # Prepare edge traces
+        edge_traces = []
+
+        for edge in self.graph.edges():
+            x0, y0 = pos[edge[0]]
+            x1, y1 = pos[edge[1]]
+
+            # Determine if this edge is part of the highlighted path
+            is_highlighted = (
+                highlight_path
+                and edge[0] in highlight_path
+                and edge[1] in highlight_path
+            )
+
+            edge_trace = go.Scatter(
+                x=[x0, x1, None],
+                y=[y0, y1, None],
+                mode="lines",
+                line=dict(
+                    width=3 if is_highlighted else 1,
+                    color="#d62728" if is_highlighted else "#888",
+                ),
+                hoverinfo="none",
+                showlegend=False,
+            )
+            edge_traces.append(edge_trace)
+
+        # Create the figure
+        fig = go.Figure(
+            data=edge_traces + [nodes_trace],
+            layout=go.Layout(
+                title=dict(text=title, x=0.5, y=0.95),
+                showlegend=False,
+                hovermode="closest",
+                margin=dict(b=20, l=5, r=5, t=40),
+                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                plot_bgcolor="white",
+            ),
+        )
+
+        # Add a legend for node status colors
+        for status, color in self.status_colors.items():
+            fig.add_trace(
+                go.Scatter(
+                    x=[None],
+                    y=[None],
+                    mode="markers",
+                    marker=dict(size=10, color=color),
+                    name=status.replace("_", " ").title(),
+                    showlegend=True,
+                )
+            )
+
+        return fig
+
+    def _is_graph_current(self) -> bool:
+        """
+        Checks if the current graph representation is up to date with the workflow state.
+        """
+        if self._last_analysis_time is None:
+            return False
+
+        for result in self.workflow.context.results.values():
+            if (
+                result.end_time
+                and datetime.fromtimestamp(result.end_time) > self._last_analysis_time
+            ):
+                return False
+
+        return True
