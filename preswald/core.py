@@ -1,8 +1,6 @@
 from markdown import markdown
 import pandas as pd
 from sqlalchemy import create_engine
-from preswald.state import StateManager
-from functools import wraps
 from typing import Dict, Any, Optional, Callable
 import json
 import logging
@@ -23,8 +21,6 @@ _component_states: Dict[str, Any] = {}
 _component_callbacks: Dict[str, List[Callable]] = {}
 _state_lock = threading.Lock()
 
-# Create a global state manager
-state_manager = StateManager()
 
 def register_component_callback(component_id: str, callback: Callable):
     """Register a callback for component state changes"""
@@ -99,19 +95,6 @@ def clear_component_states():
         logger.debug("[STATE] Clearing component callbacks")
         _component_callbacks.clear()
         # Do not clear _component_states as we want to preserve values between reruns
-
-def track(func):
-    """Decorator to track function calls and their dependencies"""
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        # Register this function call
-        node_id = state_manager.track_function_call(func, args, kwargs)
-
-        # Get or compute the result
-        return state_manager.get_or_compute(node_id)
-
-    return wrapper
 
 async def broadcast_connections():
     """Broadcast current connections to all clients"""
