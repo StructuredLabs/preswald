@@ -10,7 +10,6 @@ from preswald.core import connections, get_connection
 from preswald.components import table
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def load_connection_config(config_path: str = "config.toml", secrets_path: str = "secrets.toml") -> Dict[str, Any]:

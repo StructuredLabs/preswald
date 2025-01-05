@@ -1,7 +1,7 @@
 import os
 import click
 from preswald.server import start_server
-import logging
+from preswald.logging import configure_logging
 
 
 @click.group()
@@ -26,7 +26,7 @@ def init(name):
         # Create boilerplate files
         with open(os.path.join(name, "hello.py"), "w") as f:
             f.write(
-                '''from preswald import text, connect, view
+                """from preswald import text, connect, view
 
 # Connect to data sources
 # You can use the config.toml file to configure your connections
@@ -45,12 +45,12 @@ text("This is your first app. 🎉")
 
 # Example: View data from a connection
 # view("connection_name", limit=50)
-'''
+"""
             )
 
         with open(os.path.join(name, "config.toml"), "w") as f:
             f.write(
-                '''[project]
+                """[project]
 title = "Preswald Project"
 version = "0.1.0"
 port = 8501
@@ -92,11 +92,12 @@ url = "https://api.example.com/data"  # URL for JSON data
 
 [data.parquet]
 path = "data/sales.parquet"  # Path to Parquet file
-'''
+"""
             )
 
         with open(os.path.join(name, "secrets.toml"), "w") as f:
-            f.write('''# Add your secrets here (DO NOT commit this file)
+            f.write(
+                """# Add your secrets here (DO NOT commit this file)
 
 [data.postgres]
 password = ""  # PostgreSQL password
@@ -106,20 +107,25 @@ password = ""  # MySQL password
 
 [data.json]
 api_key = ""  # API key for JSON endpoint
-'''
+                    
+[logging]
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+"""
             )
 
         with open(os.path.join(name, ".gitignore"), "w") as f:
             f.write("secrets.toml\n")
 
         with open(os.path.join(name, "README.md"), "w") as f:
-            f.write('''# Preswald Project
+            f.write(
+                """# Preswald Project
 
 ## Setup
 1. Configure your data connections in `config.toml`
 2. Add sensitive information (passwords, API keys) to `secrets.toml`
 3. Run your app with `preswald run hello.py`
-'''
+"""
             )
 
         click.echo(f"Initialized a new Preswald project in '{name}/'")
@@ -130,10 +136,14 @@ api_key = ""  # API key for JSON endpoint
 @cli.command()
 @click.argument("script", default="hello.py")
 @click.option("--port", default=8501, help="Port to run the server on.")
-@click.option("--log-level", 
-              type=click.Choice(['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], case_sensitive=False),
-              default='DEBUG',
-              help="Set the logging level.")
+@click.option(
+    "--log-level",
+    type=click.Choice(
+        ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], case_sensitive=False
+    ),
+    default=None,  # This makes it truly optional
+    help="Set the logging level (overrides config file)",
+)
 def run(script, port, log_level):
     """
     Run a Preswald app.
@@ -143,29 +153,39 @@ def run(script, port, log_level):
     if not os.path.exists(script):
         click.echo(f"Error: Script '{script}' not found.")
         return
-    
-    logging.basicConfig(level=getattr(logging, log_level.upper()))
 
-    click.echo(f"Running '{script}' on http://localhost:{port} with log level {log_level}")
+    config_path = os.path.join(os.path.dirname(script), "config.toml")
+    log_level = configure_logging(config_path=config_path, level=log_level)
+
+    click.echo(
+        f"Running '{script}' on http://localhost:{port} with log level {log_level}"
+    )
     start_server(script=script, port=port)
 
 
 @cli.command()
 @click.option("--port", default=8501, help="Port for local deployment.")
-@click.option("--log-level", 
-              type=click.Choice(['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], case_sensitive=False),
-              default='INFO',
-              help="Set the logging level.")
-def deploy(port):
+@click.option(
+    "--log-level",
+    type=click.Choice(
+        ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], case_sensitive=False
+    ),
+    default=None,  # This makes it truly optional
+    help="Set the logging level (overrides config file)",
+)
+def deploy(script, port, log_level):
     """
     Deploy your Preswald app locally.
 
     This allows you to share the app within your local network.
     """
     try:
-        logging.basicConfig(level=getattr(logging, log_level.upper()))
-        
-        click.echo(f"Deploying app locally on http://localhost:{port} with log level {log_level}...")
+        config_path = os.path.join(os.path.dirname(script), "config.toml")
+        log_level = configure_logging(config_path=config_path, level=log_level)
+
+        click.echo(
+            f"Deploying app locally on http://localhost:{port} with log level {log_level}..."
+        )
         start_server(port=port)
     except Exception as e:
         click.echo(f"Error deploying app: {e}")

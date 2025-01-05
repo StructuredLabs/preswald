@@ -7,7 +7,6 @@ import pandas as pd
 import hashlib
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 def generate_id(prefix="component"):

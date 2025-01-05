@@ -15,11 +15,6 @@ from preswald.core import (
     clear_component_states
 )
 
-# Configure logging with more structured format
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
 logger = logging.getLogger(__name__)
 
 class ScriptState:

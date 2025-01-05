@@ -11,7 +11,6 @@ import asyncio
 import numpy as np
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # Global store for connections and rendered components
