@@ -126,16 +126,36 @@ except Exception as e:
 # Add explicit route for favicon.ico
 @app.get("/favicon.ico")
 async def get_favicon():
-    """Serve favicon.ico from assets directory"""
+    """Serve favicon.ico from config.toml branding or fallback to assets directory"""
+    if SCRIPT_PATH:
+        try:
+            script_dir = os.path.dirname(SCRIPT_PATH)
+            config_path = os.path.join(script_dir, "config.toml")
+            import toml
+            config = toml.load(config_path)
+            
+            if "branding" in config and "favicon" in config["branding"]:
+                favicon = config["branding"]["favicon"]
+                favicon_path = os.path.join(script_dir, favicon)
+                logger.info(f"Using favicon from config: {favicon_path}")
+                if os.path.exists(favicon_path):
+                    return FileResponse(favicon_path)
+        except Exception as e:
+            logger.warning(f"Error loading favicon from config: {e}")
+    
+    # Fallback to assets directory
     favicon_path = os.path.join(ASSETS_DIR, "favicon.ico")
+    logger.info(f"Using favicon from assets: {favicon_path}")
     if os.path.exists(favicon_path):
         return FileResponse(favicon_path)
-    else:
-        # Try default favicon
-        default_favicon = os.path.join(STATIC_DIR, "favicon.ico")
-        if os.path.exists(default_favicon):
-            return FileResponse(default_favicon)
-        raise HTTPException(status_code=404, detail="Favicon not found")
+    
+    # Try default favicon as last resort
+    default_favicon = os.path.join(STATIC_DIR, "favicon.ico")
+    if os.path.exists(default_favicon):
+        logger.info(f"Using default favicon: {default_favicon}")
+        return FileResponse(default_favicon)
+        
+    raise HTTPException(status_code=404, detail="Favicon not found")
 
 # Add explicit route for static files that aren't in assets
 @app.get("/static/{path:path}")
@@ -250,11 +270,16 @@ async def serve_index():
                 content = f.read()
                 # Replace the title tag content
                 content = content.replace('<title>Vite + React</title>', f'<title>{title}</title>')
-                # Replace the existing favicon link
-                content = content.replace(
-                    '<link rel="icon" type="image/svg+xml" href="/preswald.svg" />',
-                    f'<link rel="icon" type="image/x-icon" href="{branding["favicon"]}" />'
-                )
+                
+                # Add both ICO and SVG favicon links to ensure compatibility
+                favicon_links = f'''    <link rel="icon" type="image/x-icon" href="{branding["favicon"]}" />
+    <link rel="shortcut icon" type="image/x-icon" href="{branding["favicon"]}" />'''
+                
+                # Remove existing favicon link and add new ones
+                import re
+                content = re.sub(r'<link[^>]*rel="icon"[^>]*>', '', content)
+                content = content.replace('<meta charset="UTF-8" />', f'<meta charset="UTF-8" />\n{favicon_links}')
+                
                 # Add branding data
                 branding_script = f'<script>window.PRESWALD_BRANDING = {json.dumps(branding)};</script>'
                 content = content.replace('</head>', f'{branding_script}\n</head>')
