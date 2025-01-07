@@ -10,6 +10,7 @@ import asyncio
 import numpy as np
 import os
 import toml
+import time
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -126,12 +127,16 @@ def connect(source, name=None):
     """
     Connect to a data source such as a CSV, JSON, or database.
     If source is a connection name from config.toml, it will use that configuration.
-    Otherwise, it will treat source as a direct file path or connection string.
+    Otherwise, it will treat source as a direct path or connection string.
 
     Args:
         source (str): Either a connection name from config.toml or a direct path/connection string
         name (str, optional): A unique name for the connection
     """
+    import time
+    start_time = time.time()
+    logger.info(f"[CONNECT] Starting connection to {source}")
+
     if name is None:
         name = f"connection_{len(connections) + 1}"
 
@@ -155,16 +160,18 @@ def connect(source, name=None):
                 
                 # Load main config
                 if os.path.exists(config_path):
+                    config_start = time.time()
                     with open(config_path, 'r') as f:
                         config = toml.load(f)
-                    logger.info(f"[CONNECT] Loaded config: {config}")
+                    logger.info(f"[CONNECT] Loaded config in {time.time() - config_start:.3f}s")
                     
                     # Load secrets if available
                     secrets = {}
                     if os.path.exists(secrets_path):
+                        secrets_start = time.time()
                         with open(secrets_path, 'r') as f:
                             secrets = toml.load(f)
-                        logger.info("[CONNECT] Loaded secrets file")
+                        logger.info(f"[CONNECT] Loaded secrets in {time.time() - secrets_start:.3f}s")
                     
                     # Handle nested data section
                     if source.startswith("data."):
@@ -221,6 +228,28 @@ def connect(source, name=None):
             raise  # Re-raise the exception to handle it properly
 
         logger.info(f"[CONNECT] Final source path: {source}")
+        
+        # Function to optimize large dataframes
+        def optimize_dataframe(df, max_rows=10000):
+            """Optimize dataframe by sampling and converting types"""
+            if len(df) > max_rows:
+                logger.info(f"[CONNECT] Sampling large dataframe from {len(df)} to {max_rows} rows")
+                df = df.sample(n=max_rows, random_state=42)
+            
+            # Optimize numeric columns
+            for col in df.select_dtypes(include=['float64']).columns:
+                if df[col].nunique() < 1000:  # If column has few unique values
+                    df[col] = df[col].astype('float32')
+            
+            # Optimize integer columns
+            for col in df.select_dtypes(include=['int64']).columns:
+                if df[col].min() >= -32768 and df[col].max() <= 32767:
+                    df[col] = df[col].astype('int16')
+                elif df[col].min() >= -2147483648 and df[col].max() <= 2147483647:
+                    df[col] = df[col].astype('int32')
+            
+            return df
+        
         # Process the source as a direct path/connection string
         if source.endswith(".csv"):
             logger.info(f"[CONNECT] Reading CSV from: {source}")
@@ -233,7 +262,9 @@ def connect(source, name=None):
                 # Create a StringIO object from the response content
                 from io import StringIO
                 csv_data = StringIO(response.text)
-                connections[name] = pd.read_csv(csv_data)
+                read_start = time.time()
+                df = pd.read_csv(csv_data)
+                logger.info(f"[CONNECT] CSV read from URL took {time.time() - read_start:.3f}s")
             else:
                 # Handle local file path
                 script_path = get_script_path()
@@ -244,13 +275,36 @@ def connect(source, name=None):
                 else:
                     csv_path = source
                 logger.info(f"[CONNECT] Reading CSV from: {csv_path}")
-                connections[name] = pd.read_csv(csv_path)
+                read_start = time.time()
+                df = pd.read_csv(csv_path)
+                logger.info(f"[CONNECT] CSV read from file took {time.time() - read_start:.3f}s")
+            
+            # Optimize the dataframe
+            optimize_start = time.time()
+            df = optimize_dataframe(df)
+            logger.info(f"[CONNECT] Dataframe optimization took {time.time() - optimize_start:.3f}s")
+            connections[name] = df
+            
         elif source.endswith(".json"):
             logger.info(f"[CONNECT] Reading JSON from: {source}")
-            connections[name] = pd.read_json(source)
+            read_start = time.time()
+            df = pd.read_json(source)
+            logger.info(f"[CONNECT] JSON read took {time.time() - read_start:.3f}s")
+            optimize_start = time.time()
+            df = optimize_dataframe(df)
+            logger.info(f"[CONNECT] Dataframe optimization took {time.time() - optimize_start:.3f}s")
+            connections[name] = df
+            
         elif source.endswith(".parquet"):
             logger.info(f"[CONNECT] Reading Parquet from: {source}")
-            connections[name] = pd.read_parquet(source)
+            read_start = time.time()
+            df = pd.read_parquet(source)
+            logger.info(f"[CONNECT] Parquet read took {time.time() - read_start:.3f}s")
+            optimize_start = time.time()
+            df = optimize_dataframe(df)
+            logger.info(f"[CONNECT] Dataframe optimization took {time.time() - optimize_start:.3f}s")
+            connections[name] = df
+            
         elif any(source.startswith(prefix) for prefix in ["postgresql://", "postgres://", "mysql://"]):
             logger.info(f"[CONNECT] Creating database engine")
             engine = create_engine(source)
@@ -267,7 +321,7 @@ def connect(source, name=None):
 
         # Broadcast connection updates
         asyncio.create_task(broadcast_connections())
-        logger.info(f"[CONNECT] Successfully created connection '{name}' to {source}")
+        logger.info(f"[CONNECT] Successfully created connection '{name}' to {source} in {time.time() - start_time:.3f}s")
     except Exception as e:
         # Clean up if connection failed
         if name in connections:
@@ -393,7 +447,8 @@ def convert_to_serializable(obj):
 
 def get_rendered_components():
     """Get all rendered components as JSON"""
-    logger.debug(f"[CORE] Getting rendered components, count: {len(_rendered_html)}")
+    start_time = time.time()
+    logger.debug(f"[RENDER] Getting rendered components, count: {len(_rendered_html)}")
     components = []
     
     # Create a set to track unique component IDs
@@ -403,7 +458,9 @@ def get_rendered_components():
         try:
             if isinstance(item, dict):
                 # Clean any NaN values in the component
+                clean_start = time.time()
                 cleaned_item = _clean_nan_values(item)
+                logger.debug(f"[RENDER] NaN cleanup took {time.time() - clean_start:.3f}s")
                 
                 # Ensure component has current state
                 if 'id' in cleaned_item:
@@ -414,14 +471,14 @@ def get_rendered_components():
                             current_state = get_component_state(component_id)
                             if current_state is not None:
                                 cleaned_item['value'] = _clean_nan_values(current_state)
-                                logger.debug(f"[CORE] Updated component {component_id} with state: {current_state}")
+                                logger.debug(f"[RENDER] Updated component {component_id} with state: {current_state}")
                         components.append(cleaned_item)
                         seen_ids.add(component_id)
-                        logger.debug(f"[CORE] Added component with state: {cleaned_item}")
+                        logger.debug(f"[RENDER] Added component with state: {cleaned_item}")
                 else:
                     # Components without IDs are added as-is
                     components.append(cleaned_item)
-                    logger.debug(f"[CORE] Added component without ID: {cleaned_item}")
+                    logger.debug(f"[RENDER] Added component without ID: {cleaned_item}")
             else:
                 # Convert HTML string to component data
                 component = {
@@ -429,9 +486,10 @@ def get_rendered_components():
                     "content": str(item)
                 }
                 components.append(component)
-                logger.debug(f"[CORE] Added HTML component: {component}")
+                logger.debug(f"[RENDER] Added HTML component: {component}")
         except Exception as e:
-            logger.error(f"[CORE] Error processing component: {e}", exc_info=True)
+            logger.error(f"[RENDER] Error processing component: {e}", exc_info=True)
             continue
     
+    logger.debug(f"[RENDER] Total rendering took {time.time() - start_time:.3f}s")
     return components

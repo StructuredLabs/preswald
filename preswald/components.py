@@ -5,6 +5,7 @@ import numpy as np
 import json
 import pandas as pd
 import hashlib
+import time
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -217,13 +218,59 @@ def plotly(fig):
         fig: A Plotly figure object.
     """
     try:
+        import time
+        start_time = time.time()
+        logger.debug(f"[PLOTLY] Starting plotly render")
+
         id = generate_id("plot")
-        logger.debug(f"Creating plot component with id {id}")
+        logger.debug(f"[PLOTLY] Created plot component with id {id}")
+        
+        # Optimize the figure for web rendering
+        optimize_start = time.time()
+        
+        # Reduce precision of numeric values
+        for trace in fig.data:
+            for attr in ['x', 'y', 'z', 'lat', 'lon']:
+                if hasattr(trace, attr):
+                    values = getattr(trace, attr)
+                    if isinstance(values, (list, np.ndarray)):
+                        if np.issubdtype(np.array(values).dtype, np.floating):
+                            setattr(trace, attr, np.round(values, decimals=4))
+            
+            # Optimize marker sizes
+            if hasattr(trace, 'marker') and hasattr(trace.marker, 'size'):
+                if isinstance(trace.marker.size, (list, np.ndarray)):
+                    # Scale marker sizes to a reasonable range
+                    sizes = np.array(trace.marker.size)
+                    if len(sizes) > 0:
+                        min_size, max_size = 5, 20  # Reasonable size range for web rendering
+                        normalized_sizes = (sizes - sizes.min()) / (sizes.max() - sizes.min())
+                        scaled_sizes = min_size + normalized_sizes * (max_size - min_size)
+                        trace.marker.size = scaled_sizes.tolist()
+        
+        # Optimize layout
+        if hasattr(fig, 'layout'):
+            # Set reasonable margins
+            fig.update_layout(
+                margin=dict(l=50, r=50, t=50, b=50),
+                autosize=True
+            )
+            
+            # Optimize font sizes
+            fig.update_layout(
+                font=dict(size=12),
+                title=dict(font=dict(size=14))
+            )
+        
+        logger.debug(f"[PLOTLY] Figure optimization took {time.time() - optimize_start:.3f}s")
         
         # Convert the figure to JSON-serializable format
+        fig_dict_start = time.time()
         fig_dict = fig.to_dict()
+        logger.debug(f"[PLOTLY] Figure to dict conversion took {time.time() - fig_dict_start:.3f}s")
         
         # Clean up any NaN values in the data
+        clean_start = time.time()
         for trace in fig_dict.get('data', []):
             if isinstance(trace.get('marker'), dict):
                 marker = trace['marker']
@@ -236,9 +283,12 @@ def plotly(fig):
                     trace[key] = [None if isinstance(x, (float, np.floating)) and np.isnan(x) else x for x in value]
                 elif isinstance(value, (float, np.floating)) and np.isnan(value):
                     trace[key] = None
+        logger.debug(f"[PLOTLY] NaN cleanup took {time.time() - clean_start:.3f}s")
         
         # Convert to JSON-serializable format
+        serialize_start = time.time()
         serializable_fig_dict = convert_to_serializable(fig_dict)
+        logger.debug(f"[PLOTLY] Serialization took {time.time() - serialize_start:.3f}s")
         
         component = {
             "type": "plot",
@@ -250,20 +300,25 @@ def plotly(fig):
                     "responsive": True,
                     "displayModeBar": True,
                     "modeBarButtonsToRemove": ["lasso2d", "select2d"],
-                    "displaylogo": False
+                    "displaylogo": False,
+                    "scrollZoom": True,  # Enable scroll zoom for better interaction
+                    "showTips": False,  # Disable hover tips for better performance
                 }
             }
         }
         
         # Verify JSON serialization
+        json_start = time.time()
         json.dumps(component)
+        logger.debug(f"[PLOTLY] JSON verification took {time.time() - json_start:.3f}s")
         
-        logger.debug(f"Plot data created successfully for id {id}")
+        logger.debug(f"[PLOTLY] Plot data created successfully for id {id}")
+        logger.debug(f"[PLOTLY] Total plotly render took {time.time() - start_time:.3f}s")
         _rendered_html.append(component)
         return component
         
     except Exception as e:
-        logger.error(f"Error creating plot: {str(e)}", exc_info=True)
+        logger.error(f"[PLOTLY] Error creating plot: {str(e)}", exc_info=True)
         error_component = {
             "type": "plot",
             "id": id,

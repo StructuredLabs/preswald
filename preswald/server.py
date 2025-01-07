@@ -20,6 +20,7 @@ from preswald.serializer import dumps as json_dumps, loads as json_loads
 import json
 import signal
 import sys
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -359,6 +360,7 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
 
 async def handle_websocket_message(websocket: WebSocket, message: str):
     """Handle incoming WebSocket messages"""
+    start_time = time.time()
     try:
         data = json_loads(message)
         logger.debug(f"[WebSocket] Received message: {data}")
@@ -377,6 +379,7 @@ async def handle_websocket_message(websocket: WebSocket, message: str):
                 return
                 
             logger.info("[Component Update] Processing updates:")
+            update_start = time.time()
             for component_id, value in states.items():
                 try:
                     # Update component state
@@ -390,10 +393,13 @@ async def handle_websocket_message(websocket: WebSocket, message: str):
                     logger.error(f"Error updating component {component_id}: {e}")
                     await send_error(websocket, f"Failed to update component {component_id}")
                     continue
+            logger.info(f"[Component Update] State updates took {time.time() - update_start:.3f}s")
 
             # Trigger script rerun with all states
             logger.info(f"[Script Rerun] Triggering with states: {states}")
+            rerun_start = time.time()
             await rerun_script(websocket, states)
+            logger.info(f"[Script Rerun] Script rerun took {time.time() - rerun_start:.3f}s")
 
     except json.JSONDecodeError as e:
         logger.error(f"[WebSocket] Error decoding message: {e}")
@@ -401,6 +407,8 @@ async def handle_websocket_message(websocket: WebSocket, message: str):
     except Exception as e:
         logger.error(f"[WebSocket] Error processing message: {e}")
         await send_error(websocket, f"Error processing message: {str(e)}")
+    finally:
+        logger.info(f"[WebSocket] Total message handling took {time.time() - start_time:.3f}s")
 
 async def send_error(websocket: WebSocket, message: str):
     """Send error message to client"""
