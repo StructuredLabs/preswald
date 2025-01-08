@@ -44,7 +44,181 @@ def stop_existing_container(container_name: str) -> None:
         logger.warning(f"Error cleaning up container: {e}")
 
 
-def deploy(script_path: str) -> str:
+def check_gcloud_installation() -> bool:
+    """
+    Check if the Google Cloud SDK is installed and accessible.
+    Returns True if gcloud is installed, False otherwise.
+    """
+    try:
+        subprocess.run(["gcloud", "--version"], check=True, capture_output=True)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+
+def check_gcloud_auth() -> bool:
+    """
+    Check if the user is authenticated with Google Cloud.
+    Returns True if authenticated, False otherwise.
+    """
+    try:
+        # Try to get the current account
+        result = subprocess.run(
+            ["gcloud", "auth", "list", "--format=value(account)"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return bool(result.stdout.strip())
+    except subprocess.CalledProcessError:
+        return False
+
+
+def setup_gcloud() -> None:
+    """
+    Guide the user through setting up Google Cloud SDK and authentication.
+    Raises an exception if setup fails.
+    """
+    if not check_gcloud_installation():
+        print(
+            "\nGoogle Cloud SDK not found. You'll need to install it to deploy to Cloud Run."
+        )
+        print("\nInstallation instructions:")
+        print("1. Visit https://cloud.google.com/sdk/docs/install")
+        print("2. Follow the installation steps for your operating system")
+        print("3. Run this deployment command again")
+        raise Exception("Please install Google Cloud SDK first")
+
+    if not check_gcloud_auth():
+        print("\nYou need to authenticate with Google Cloud.")
+        print("Opening browser for authentication...")
+
+        try:
+            # Run authentication command
+            subprocess.run(["gcloud", "auth", "login"], check=True)
+
+            # Configure Docker auth
+            print("\nConfiguring Docker authentication...")
+            subprocess.run(["gcloud", "auth", "configure-docker"], check=True)
+        except subprocess.CalledProcessError as e:
+            raise Exception(f"Authentication failed: {str(e)}")
+
+
+def ensure_project_selected() -> str:
+    """
+    Ensure a Google Cloud project is selected.
+    Returns the project ID.
+    """
+    try:
+        project_id = subprocess.check_output(
+            ["gcloud", "config", "get-value", "project"], text=True
+        ).strip()
+
+        if not project_id:
+            print("\nNo Google Cloud project selected.")
+            print("Available projects:")
+
+            # List available projects
+            subprocess.run(["gcloud", "projects", "list"], check=True)
+
+            # Prompt for project ID
+            project_id = input("\nEnter the project ID you want to use: ").strip()
+
+            # Set the project
+            subprocess.run(
+                ["gcloud", "config", "set", "project", project_id], check=True
+            )
+
+        return project_id
+
+    except subprocess.CalledProcessError as e:
+        raise Exception(f"Failed to get or set project: {str(e)}")
+
+
+def deploy_to_cloud_run(deploy_dir: Path, container_name: str) -> str:
+    """
+    Deploy a Preswald app to Google Cloud Run.
+
+    Args:
+        deploy_dir: Path to the deployment directory containing the Docker context
+        container_name: Name to use for the container
+
+    Returns:
+        str: The URL where the app is deployed
+    """
+    try:
+        # First, ensure Google Cloud SDK is set up properly
+        setup_gcloud()
+
+        # Ensure a project is selected
+        project_id = ensure_project_selected()
+
+        region = "us-west1"  # Default region, could be made configurable
+        gcr_image = f"gcr.io/{project_id}/{container_name}"
+
+        print(f"Pushing image to Google Container Registry...")
+
+        # Tag and push the image
+        subprocess.run(
+            ["docker", "tag", container_name, gcr_image], check=True, cwd=deploy_dir
+        )
+        subprocess.run(["docker", "push", gcr_image], check=True, cwd=deploy_dir)
+
+        print(f"Deploying to Cloud Run...")
+
+        # Deploy to Cloud Run
+        subprocess.run(
+            [
+                "gcloud",
+                "run",
+                "deploy",
+                container_name,
+                "--image",
+                gcr_image,
+                "--platform",
+                "managed",
+                "--region",
+                region,
+                "--allow-unauthenticated",  # Makes the service publicly accessible
+                "--port",
+                "8501",  # Match the port your app uses
+            ],
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+
+        url_result = subprocess.run(
+            [
+                "gcloud",
+                "run",
+                "services",
+                "describe",
+                container_name,  # Same name used in deployment
+                "--platform",
+                "managed",
+                "--region",
+                region,
+                "--format=value(status.url)",
+            ],
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+
+        return url_result.stdout.strip()
+    except subprocess.CalledProcessError as e:
+        if "not installed" in str(e):
+            raise Exception(
+                "Google Cloud SDK not found. Please install from: "
+                "https://cloud.google.com/sdk/docs/install"
+            )
+        raise Exception(f"Cloud Run deployment failed: {str(e)}")
+    except Exception as e:
+        raise Exception(f"Deployment failed: {str(e)}")
+
+
+def deploy(script_path: str, platform: str = "local") -> str:
     """
     Deploy a Preswald app locally using Docker.
 
@@ -77,18 +251,18 @@ def deploy(script_path: str) -> str:
     # Copy everything from the script's directory to the deployment directory
     for item in script_dir.iterdir():
         # Skip the deployment directory itself to avoid recursive copying
-        if item.name == '.preswald_deploy':
+        if item.name == ".preswald_deploy":
             continue
-            
+
         # Copy files and directories
         if item.is_file():
             shutil.copy2(item, deploy_dir / item.name)
         elif item.is_dir():
             shutil.copytree(item, deploy_dir / item.name)
-            
+
     # Rename the main script to app.py if it's not already named that
-    if Path(script_path).name != 'app.py':
-        shutil.move(deploy_dir / Path(script_path).name, deploy_dir / 'app.py')
+    if Path(script_path).name != "app.py":
+        shutil.move(deploy_dir / Path(script_path).name, deploy_dir / "app.py")
 
     # Create startup script
     startup_script = """
@@ -147,28 +321,48 @@ CMD ["python", "run.py"]
 
         # Build the Docker image
         print(f"Building Docker image {container_name}...")
-        subprocess.run(
-            ["docker", "build", "-t", container_name, "."], check=True, cwd=deploy_dir
-        )
 
-        # Start the container
-        print("Starting container...")
-        subprocess.run(
-            [
-                "docker",
-                "run",
-                "-d",
-                "--name",
-                container_name,
-                "-p",
-                "8501:8501",
-                container_name,
-            ],
-            check=True,
-            cwd=deploy_dir,
-        )
+        if platform == "cloud-run":
+            subprocess.run(
+                [
+                    "docker",
+                    "build",
+                    "--platform",
+                    "linux/amd64",
+                    "-t",
+                    container_name,
+                    ".",
+                ],
+                check=True,
+                cwd=deploy_dir,
+            )
 
-        return "http://localhost:8501"
+            return deploy_to_cloud_run(deploy_dir, container_name)
+        else:  # local
+            subprocess.run(
+                ["docker", "build", "-t", container_name, "."],
+                check=True,
+                cwd=deploy_dir,
+            )
+
+            # Start the container
+            print("Starting container...")
+            subprocess.run(
+                [
+                    "docker",
+                    "run",
+                    "-d",
+                    "--name",
+                    container_name,
+                    "-p",
+                    "8501:8501",
+                    container_name,
+                ],
+                check=True,
+                cwd=deploy_dir,
+            )
+
+            return "http://localhost:8501"
 
     except subprocess.CalledProcessError as e:
         raise Exception(f"Docker operation failed: {str(e)}")
