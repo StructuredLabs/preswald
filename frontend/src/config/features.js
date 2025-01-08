@@ -1,6 +1,17 @@
 export const FEATURES = {
-    OPTIMIZED_VISUALIZATION: true, // Toggle for visualization optimizations
-    DATA_SAMPLING_THRESHOLD: 100, // Number of points above which to apply sampling
-    PROGRESSIVE_LOADING_CHUNK_SIZE: 100, // Number of points to load in each chunk
-    RESIZE_DEBOUNCE_MS: 10, // Debounce time for resize events in milliseconds
+    OPTIMIZED_VISUALIZATION: false,
+    DATA_SAMPLING_THRESHOLD: 5000,
+    INITIAL_POINTS_THRESHOLD: 1000,
+    PROGRESSIVE_LOADING_CHUNK_SIZE: 500,
+    ENABLE_COMPRESSION: true,
+    ENABLE_VIRTUALIZATION: false,
+    VIRTUALIZATION_THRESHOLD: 1000,
+    DEBOUNCE_MS: 150,
+    ANIMATION_FRAME_ENABLED: true,
+    GARBAGE_COLLECTION_INTERVAL: 60000, // 1 minute
+    MAX_CACHED_POINTS: 100000,
+    BATCH_UPDATES: true,
+    BATCH_INTERVAL_MS: 100,
+    MAX_RETRY_ATTEMPTS: 3,
+    RETRY_DELAY_MS: 1000,
 }; 

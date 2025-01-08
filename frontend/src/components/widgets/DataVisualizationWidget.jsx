@@ -1,115 +1,138 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { debounce, processDataInChunks, sampleData } from "../../utils/dataProcessing";
-
+import { debounce, processDataInChunks, sampleData, decompressData } from "../../utils/dataProcessing";
 import { FEATURES } from "../../config/features";
 import Plot from "react-plotly.js";
+import { useInView } from "react-intersection-observer";
 
-const DataVisualizationWidget = ({ id, data, content, error }) => {
+const INITIAL_POINTS_THRESHOLD = 1000;
+const PROGRESSIVE_LOADING_CHUNK_SIZE = 500;
+
+const DataVisualizationWidget = ({ id, data: rawData, content, error }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [plotError, setPlotError] = useState(null);
-  const [isVisible, setIsVisible] = useState(false);
   const [processedData, setProcessedData] = useState(null);
   const plotContainerRef = useRef(null);
-  const observerRef = useRef(null);
+  const [loadedDataPercentage, setLoadedDataPercentage] = useState(0);
+  
+  const { ref: inViewRef, inView } = useInView({
+    threshold: 0.1,
+    triggerOnce: true,
+  });
 
-  // Memoize the plot data processing
-  const processPlotData = useCallback((plotData) => {
+  // Set refs for both intersection observer and plot container
+  const setRefs = useCallback(
+    (node) => {
+      plotContainerRef.current = node;
+      inViewRef(node);
+    },
+    [inViewRef]
+  );
+
+  // Decompress and process data if needed
+  const data = useMemo(() => {
+    if (!rawData) return null;
+    
+    try {
+      // Check if data is compressed
+      if (rawData.compressed) {
+        return decompressData(rawData.value);
+      }
+      return rawData;
+    } catch (error) {
+      console.error("Error processing data:", error);
+      setPlotError("Failed to process data");
+      return null;
+    }
+  }, [rawData]);
+
+  // Memoize the plot data processing with progressive loading
+  const processPlotData = useCallback((plotData, isInitialLoad = false) => {
     if (!plotData?.data || !Array.isArray(plotData.data)) return plotData;
+
+    const threshold = isInitialLoad ? INITIAL_POINTS_THRESHOLD : FEATURES.DATA_SAMPLING_THRESHOLD;
 
     return {
       ...plotData,
-      data: plotData.data.map(trace => ({
-        ...trace,
-        x: FEATURES.OPTIMIZED_VISUALIZATION 
-          ? sampleData(trace.x, FEATURES.DATA_SAMPLING_THRESHOLD)
-          : trace.x,
-        y: FEATURES.OPTIMIZED_VISUALIZATION 
-          ? sampleData(trace.y, FEATURES.DATA_SAMPLING_THRESHOLD)
-          : trace.y,
-      }))
-    };
-  }, []);
+      data: plotData.data.map(trace => {
+        // Deep clone the trace to avoid mutations
+        const processedTrace = { ...trace };
+        
+        // Process numerical arrays for optimization
+        ['x', 'y', 'lat', 'lon'].forEach(key => {
+          if (Array.isArray(trace[key])) {
+            processedTrace[key] = sampleData(trace[key], threshold);
+          }
+        });
 
-  // Memoize the processed data
-  const memoizedData = useMemo(() => {
-    if (!data) return null;
-    return processPlotData(data);
-  }, [data, processPlotData]);
-
-  // Setup Intersection Observer for lazy loading
-  useEffect(() => {
-    if (!FEATURES.OPTIMIZED_VISUALIZATION) {
-      setIsVisible(true);
-      return;
-    }
-
-    const options = {
-      root: null,
-      rootMargin: '50px',
-      threshold: 0.1
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
+        // Handle marker properties
+        if (trace.marker) {
+          processedTrace.marker = { ...trace.marker };
+          ['size', 'color'].forEach(key => {
+            if (Array.isArray(trace.marker[key])) {
+              processedTrace.marker[key] = sampleData(trace.marker[key], threshold);
+            }
+          });
         }
-      });
-    }, options);
 
-    if (plotContainerRef.current) {
-      observer.observe(plotContainerRef.current);
-    }
-
-    observerRef.current = observer;
-    return () => observer.disconnect();
+        return processedTrace;
+      })
+    };
   }, []);
 
   // Handle data processing and loading
   useEffect(() => {
-    if (!isVisible) return;
+    if (!inView || !data) return;
 
     setIsLoading(true);
     setPlotError(null);
+    setLoadedDataPercentage(0);
 
-    if (typeof content === 'string' && content.includes('<div id="plotly">')) {
-      try {
-        if (plotContainerRef.current) {
-          plotContainerRef.current.innerHTML = content;
-          const scripts = plotContainerRef.current.getElementsByTagName('script');
-          Array.from(scripts).forEach(script => {
-            const newScript = document.createElement('script');
-            Array.from(script.attributes).forEach(attr => {
-              newScript.setAttribute(attr.name, attr.value);
-            });
-            newScript.appendChild(document.createTextNode(script.innerHTML));
-            script.parentNode.replaceChild(newScript, script);
-          });
-        }
-      } catch (err) {
-        setPlotError("Failed to render Plotly visualization");
-        console.error("Plot rendering error:", err);
-      }
-    } else if (memoizedData?.data) {
+    try {
+      // Initial load with fewer points
+      const initialData = processPlotData(data, true);
+      setProcessedData(initialData);
+      setIsLoading(false);
+
+      // Progressive load for full resolution
       if (FEATURES.OPTIMIZED_VISUALIZATION) {
+        const traces = data.data || [];
+        let totalPoints = 0;
+        let processedPoints = 0;
+
+        traces.forEach(trace => {
+          ['x', 'y', 'lat', 'lon'].forEach(key => {
+            if (Array.isArray(trace[key])) {
+              totalPoints += trace[key].length;
+            }
+          });
+        });
+
         processDataInChunks(
-          memoizedData.data,
-          FEATURES.PROGRESSIVE_LOADING_CHUNK_SIZE,
-          (chunk) => {
+          traces,
+          PROGRESSIVE_LOADING_CHUNK_SIZE,
+          (chunk, index, total) => {
             setProcessedData(prevData => ({
-              ...memoizedData,
-              data: [...(prevData?.data || []), ...chunk]
+              ...data,
+              data: [
+                ...prevData.data.slice(0, index),
+                ...chunk,
+                ...prevData.data.slice(index + chunk.length)
+              ]
             }));
+
+            processedPoints += chunk.reduce((acc, trace) => {
+              return acc + (Array.isArray(trace.x) ? trace.x.length : 0);
+            }, 0);
+
+            setLoadedDataPercentage((processedPoints / totalPoints) * 100);
           }
         );
-      } else {
-        setProcessedData(memoizedData);
       }
+    } catch (err) {
+      console.error("Error processing plot data:", err);
+      setPlotError("Failed to process visualization data");
     }
-
-    setIsLoading(false);
-  }, [isVisible, content, memoizedData]);
+  }, [inView, data, processPlotData]);
 
   // Handle resize events with debouncing
   const debouncedResize = useMemo(() => 
@@ -117,15 +140,13 @@ const DataVisualizationWidget = ({ id, data, content, error }) => {
       if (plotContainerRef.current) {
         window.Plotly.Plots.resize(plotContainerRef.current);
       }
-    }, FEATURES.RESIZE_DEBOUNCE_MS),
+    }, 150),
     []
   );
 
   useEffect(() => {
-    if (FEATURES.OPTIMIZED_VISUALIZATION) {
-      window.addEventListener('resize', debouncedResize);
-      return () => window.removeEventListener('resize', debouncedResize);
-    }
+    window.addEventListener('resize', debouncedResize);
+    return () => window.removeEventListener('resize', debouncedResize);
   }, [debouncedResize]);
 
   if (error || plotError) {
@@ -136,69 +157,56 @@ const DataVisualizationWidget = ({ id, data, content, error }) => {
     );
   }
 
-  if (!isVisible || isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64" ref={plotContainerRef}>
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (processedData?.data) {
-    const { layout = {}, config = {} } = processedData;
-    
-    const defaultConfig = {
-      responsive: true,
-      displayModeBar: true,
-      modeBarButtonsToRemove: ['lasso2d', 'select2d'],
-      displaylogo: false,
-      ...config
-    };
-
-    const enhancedLayout = {
-      font: { family: 'Inter, system-ui, sans-serif' },
-      paper_bgcolor: 'transparent',
-      plot_bgcolor: 'transparent',
-      margin: { t: 40, r: 10, l: 60, b: 40 },
-      ...layout
-    };
-
-    try {
-      return (
-        <div className="w-full h-full" ref={plotContainerRef}>
-          <div className="relative w-full" style={{ minHeight: '400px' }}>
-            <Plot
-              key={id}
-              data={processedData.data}
-              layout={enhancedLayout}
-              config={defaultConfig}
-              className="w-full h-full"
-              useResizeHandler={true}
-              style={{ width: '100%', height: '100%' }}
-              onError={(err) => {
-                console.error("Plotly rendering error:", err);
-                setPlotError("Failed to render plot");
-              }}
-            />
-          </div>
-        </div>
-      );
-    } catch (err) {
-      console.error("Error rendering Plotly component:", err);
-      return (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-600 font-medium">Error rendering plot: {err.message}</p>
-        </div>
-      );
-    }
-  }
-
   return (
-    <div className="w-full h-full">
-      <div 
-        ref={plotContainerRef}
-        className="relative w-full min-h-[400px] plotly-container"
-      />
+    <div className="w-full h-full" ref={setRefs}>
+      {(!inView || isLoading) ? (
+        <div className="flex flex-col items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+          <p className="text-sm text-gray-600">Loading visualization...</p>
+        </div>
+      ) : processedData?.data ? (
+        <div className="relative w-full" style={{ minHeight: '400px' }}>
+          {loadedDataPercentage > 0 && loadedDataPercentage < 100 && (
+            <div className="absolute top-0 left-0 right-0 z-10 bg-blue-50 px-4 py-2">
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div
+                  className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                  style={{ width: `${loadedDataPercentage}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
+          <Plot
+            key={id}
+            data={processedData.data}
+            layout={{
+              ...processedData.layout,
+              font: { family: 'Inter, system-ui, sans-serif' },
+              paper_bgcolor: 'transparent',
+              plot_bgcolor: 'transparent',
+              margin: { t: 40, r: 10, l: 60, b: 40 },
+              showlegend: true,
+              hovermode: 'closest'
+            }}
+            config={{
+              responsive: true,
+              displayModeBar: true,
+              modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+              displaylogo: false,
+              ...processedData.config
+            }}
+            className="w-full h-full"
+            useResizeHandler={true}
+            style={{ width: '100%', height: '100%' }}
+            onError={(err) => {
+              console.error("Plotly rendering error:", err);
+              setPlotError("Failed to render plot");
+            }}
+          />
+        </div>
+      ) : (
+        <div className="w-full h-full" ref={plotContainerRef} />
+      )}
     </div>
   );
 };

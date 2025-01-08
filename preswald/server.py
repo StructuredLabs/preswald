@@ -7,7 +7,7 @@ import os
 import pkg_resources
 import logging
 import uvicorn
-from typing import Dict, Any, Optional, Set
+from typing import Dict, Any, Optional, Set, List, Union
 from preswald.scriptrunner import ScriptRunner
 from preswald.core import (
     get_all_component_states,
@@ -21,6 +21,8 @@ import json
 import signal
 import sys
 import time
+import zlib
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -424,20 +426,77 @@ async def send_error(websocket: WebSocket, message: str):
         except Exception as e:
             logger.error(f"Error sending error message: {e}")
 
+def optimize_plotly_data(data: Dict[str, Any], max_points: int = 5000) -> Dict[str, Any]:
+    """Optimize Plotly data for large datasets."""
+    if not isinstance(data, dict) or 'data' not in data:
+        return data
+    
+    optimized_data = {'data': [], 'layout': data.get('layout', {})}
+    
+    for trace in data['data']:
+        if not isinstance(trace, dict):
+            continue
+            
+        # Handle scatter/scattergeo traces
+        if trace.get('type') in ['scatter', 'scattergeo']:
+            points = len(trace.get('x', [])) if 'x' in trace else len(trace.get('lat', []))
+            if points > max_points:
+                # Calculate sampling rate
+                sample_rate = max(1, points // max_points)
+                
+                # Sample the data
+                if 'x' in trace and 'y' in trace:
+                    trace['x'] = trace['x'][::sample_rate]
+                    trace['y'] = trace['y'][::sample_rate]
+                elif 'lat' in trace and 'lon' in trace:
+                    trace['lat'] = trace['lat'][::sample_rate]
+                    trace['lon'] = trace['lon'][::sample_rate]
+                
+                # Sample other array attributes
+                for key in ['text', 'marker.size', 'marker.color']:
+                    if key in trace:
+                        if isinstance(trace[key], list):
+                            trace[key] = trace[key][::sample_rate]
+        
+        optimized_data['data'].append(trace)
+    
+    return optimized_data
+
+def compress_data(data: Union[Dict, List, str]) -> bytes:
+    """Compress data using zlib."""
+    json_str = json_dumps(data)
+    return zlib.compress(json_str.encode('utf-8'))
+
+def decompress_data(compressed_data: bytes) -> Union[Dict, List, str]:
+    """Decompress zlib compressed data."""
+    decompressed = zlib.decompress(compressed_data)
+    return json_loads(decompressed.decode('utf-8'))
+
 async def broadcast_state_update(component_id: str, value: Any, exclude_client: WebSocket = None):
-    """Broadcast state update to all clients except the sender"""
-    update_msg = {
-        "type": "state_update",
-        "component_id": component_id,
-        "value": value
+    """Broadcast state updates to all connected clients with optimizations."""
+    if not websocket_connections:
+        return
+
+    # Optimize plotly data if it's a visualization component
+    if isinstance(value, dict) and 'data' in value and 'layout' in value:
+        value = optimize_plotly_data(value)
+    
+    # Compress the data
+    compressed_value = compress_data(value)
+    
+    message = {
+        'type': 'state_update',
+        'component_id': component_id,
+        'value': compressed_value,
+        'compressed': True
     }
     
-    try:
-        for client in websocket_connections.values():
-            if client != exclude_client:
-                await client.send_json(update_msg)
-    except Exception as e:
-        logger.error(f"Error broadcasting state update: {e}")
+    for client_id, websocket in websocket_connections.items():
+        if websocket != exclude_client:
+            try:
+                await websocket.send_bytes(compress_data(message))
+            except Exception as e:
+                logger.error(f"Error sending message to client {client_id}: {e}")
 
 async def rerun_script(websocket: WebSocket, states: Dict[str, Any]):
     """Rerun the script with updated states"""
