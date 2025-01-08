@@ -1,7 +1,9 @@
 import os
 import click
+import sys
 from preswald.server import start_server
 from preswald.logging import configure_logging
+from preswald.deploy import deploy as deploy_app, stop as stop_app
 
 
 @click.group()
@@ -29,9 +31,9 @@ def init(name):
         import shutil
 
         # Copy default branding files
-        default_static_dir = pkg_resources.resource_filename('preswald', 'static')
-        default_favicon = os.path.join(default_static_dir, 'favicon.ico')
-        default_logo = os.path.join(default_static_dir, 'logo.png')
+        default_static_dir = pkg_resources.resource_filename("preswald", "static")
+        default_favicon = os.path.join(default_static_dir, "favicon.ico")
+        default_logo = os.path.join(default_static_dir, "logo.png")
 
         # Copy to project's images directory
         shutil.copy2(default_favicon, os.path.join(name, "images", "favicon.ico"))
@@ -183,6 +185,7 @@ def run(script, port, log_level):
 
 
 @cli.command()
+@click.argument("script", default="app.py")
 @click.option("--port", default=8501, help="Port for local deployment.")
 @click.option(
     "--log-level",
@@ -199,15 +202,40 @@ def deploy(script, port, log_level):
     This allows you to share the app within your local network.
     """
     try:
+        if not os.path.exists(script):
+            click.echo(f"Error: Script '{script}' not found.")
+            return
+
         config_path = os.path.join(os.path.dirname(script), "config.toml")
         log_level = configure_logging(config_path=config_path, level=log_level)
 
-        click.echo(
-            f"Deploying app locally on http://localhost:{port} with log level {log_level}..."
-        )
-        start_server(port=port)
+        # click.echo(f"Deploying '{script}' to {platform}...")
+
+        url = deploy_app(script)
+        click.echo(f"\nDeployment successful! 🎉")
+        click.echo(f"Your app is running at: {url}")
+
     except Exception as e:
         click.echo(f"Error deploying app: {e}")
+
+
+@cli.command()
+@click.argument("script", default="app.py")
+def stop(script):
+    """
+    Stop the currently running deployment.
+
+    This command must be run from the same directory as your Preswald app.
+    """
+    try:
+        if not os.path.exists(script):
+            click.echo(f"Error: Script '{script}' not found.")
+            return
+        stop_app(script)
+        click.echo("Deployment stopped successfully.")
+    except Exception as e:
+        click.echo(f"Error stopping deployment: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
