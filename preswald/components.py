@@ -403,3 +403,26 @@ def table(data, title=None):
         }
         _rendered_html.append(error_component)
         return error_component
+
+def workflow_dag(workflow, title="Workflow Dependency Graph"):
+    """
+    Render the workflow's DAG visualization.
+
+    Args:
+        workflow: The workflow object to visualize
+        title: Optional title for the visualization
+    """
+    try:
+        from .state import WorkflowAnalyzer
+        analyzer = WorkflowAnalyzer(workflow)
+        fig = analyzer.visualize(title=title)
+        return plotly(fig)
+    except Exception as e:
+        logger.error(f"[WORKFLOW_DAG] Error creating DAG visualization: {str(e)}", exc_info=True)
+        error_component = {
+            "type": "plot",
+            "id": generate_id("dag"),
+            "error": f"Failed to create DAG visualization: {str(e)}"
+        }
+        _rendered_html.append(error_component)
+        return error_component

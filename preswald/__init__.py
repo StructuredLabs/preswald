@@ -14,6 +14,7 @@ from .components import (
     alert,
     image,
     plotly,
+    workflow_dag
 )
 from .data import view, query, summary, save, load
 from .server import start_server
