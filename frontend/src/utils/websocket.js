@@ -1,10 +1,11 @@
+import { componentStore } from './componentStore';
+
 class WebSocketClient {
     constructor() {
         this.socket = null;
         this.callbacks = new Set();
         this.clientId = Math.random().toString(36).substring(7);
         this.isConnecting = false;
-        this.componentStates = {};
         this.reconnectAttempts = 0;
         this.maxReconnectAttempts = 5;
         this.reconnectDelay = 1000;
@@ -75,13 +76,15 @@ class WebSocketClient {
 
                     switch (data.type) {
                         case 'inital_state':
-                            this.componentStates = { ...data.states };
-                            console.log("[WebSocket] Initial states loaded:", this.componentStates);
+                            Object.entries(data.states).forEach(([id, value]) => {
+                                componentStore.updateComponent(id, value);
+                            });
+                            console.log("[WebSocket] Initial states loaded:", componentStore.getAllComponents());
                             break;
 
                         case 'state_update':
                             if (data.component_id) {
-                                this.componentStates[data.component_id] = data.value;
+                                componentStore.updateComponent(data.component_id, data.value);
                             }
                             console.log("[WebSocket] Component state updated:", {
                                 componentId: data.component_id,
@@ -90,20 +93,22 @@ class WebSocketClient {
                             break;
 
                         case 'components':
-                            data.components.forEach(component => {
-                                if (component.id && 'value' in component) {
-                                    this.componentStates[component.id] = component.value;
-                                    console.log("[WebSocket] Component state updated:", {
-                                        componentId: component.id,
-                                        value: component.value
-                                    });
-                                }
-                            });
+                            componentStore.setComponents(data.components);
                             break;
 
                         case 'connections_update':
                             this.connections = data.connections || [];
                             console.log("[WebSocket] Connections updated:", this.connections);
+                            break;
+
+                        case 'error':
+                            if (data.content.componentId) {
+                                // Component-specific error goes to ComponentStore
+                                componentStore.setError(data.content.componentId, data.content.message);
+                            } else {
+                                // General errors get passed to subscribers (App.jsx)
+                                this._notifySubscribers(data);
+                            }
                             break;
                     }
 
@@ -177,15 +182,13 @@ class WebSocketClient {
         });
     }
 
-    getComponentState(componentId) {
-        return this.componentStates[componentId];
-    }
-
     updateComponentState(componentId, value) {
         if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
             // Store update to send when connection is restored
-            this.pendingUpdates.set(componentId, value);
-            throw new Error("WebSocket connection not open");
+            this.pendingUpdates[componentId] = value;
+            const error = new Error("WebSocket connection not open");
+            componentStore.setError(componentId, error.message);
+            throw error;
         }
 
         return this._sendComponentUpdate(componentId, value);
@@ -201,10 +204,11 @@ class WebSocketClient {
 
         try {
             this.socket.send(JSON.stringify(message));
-            this.componentStates[componentId] = value;
+            componentStore.updateComponent(componentId, value);
             console.log("[WebSocket] Sent component update:", message);
         } catch (error) {
             console.error("[WebSocket] Error sending component update:", error);
+            componentStore.setError(componentId, error.message);
             throw error;
         }
     }

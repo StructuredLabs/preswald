@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { websocket } from "./utils/websocket";
+import { componentStore } from "./utils/componentStore";
 import Layout from "./components/Layout";
 import Dashboard from "./components/pages/Dashboard";
 import Connections from "./components/pages/Connections";
@@ -17,12 +18,18 @@ const App = () => {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
+    const unsubscribeStore = componentStore.subscribe((components) => {
+      setComponents(components);
+      setError(null); // Clear errors when component list refreshes
+    });
+
+    const unsubscribeWebSocket = websocket.subscribe(handleWebSocketMessage);
+
     websocket.connect();
 
-    const unsubscribe = websocket.subscribe(handleWebSocketMessage);
-
     return () => {
-      unsubscribe();
+      unsubscribeStore();
+      unsubscribeWebSocket();
       websocket.disconnect();
     };
   }, []);
@@ -47,54 +54,28 @@ const App = () => {
     console.log("[App] Received WebSocket message:", message);
 
     switch (message.type) {
-      case "components":
-        refreshComponentsList(message.components);
-        break;
-
       case "error":
-        handleError(message.content);
+        console.error("[App] Received error:", message.content);
+        if (!message.content.componentId) {
+          // Only handle non-component errors
+          setError(message.content.message);
+        }
         break;
 
       case "connection_status":
-        updateConnectionStatus(message);
+        setIsConnected(message.connected);
+        setError(
+          message.connected
+            ? null
+            : "Lost connection to server. Attempting to reconnect..."
+        );
         break;
 
       case "config": // TODO: not used anywhere
         setConfig(message.config);
         break;
 
-      // state_update and initial_state are handled by websocket.js
-    }
-  };
-
-  const refreshComponentsList = (components) => {
-    const updatedComponents = components.map((component) => {
-      if (component.id) {
-        const currentState = websocket.getComponentState(component.id);
-        return {
-          ...component,
-          value: currentState !== undefined ? currentState : component.value,
-          error: null,
-        };
-      }
-      return component;
-    });
-    setComponents(updatedComponents);
-    setError(null);
-  };
-
-  const handleError = (errorContent) => {
-    console.error("[App] Received error:", errorContent);
-    setError(errorContent.message);
-
-    if (errorContent.componentId) {
-      setComponents((prevComponents) =>
-        prevComponents.map((component) =>
-          component.id === errorContent.componentId
-            ? { ...component, error: errorContent.message }
-            : component
-        )
-      );
+      // components, state_update and initial_state are handled by websocket.js
     }
   };
 
@@ -103,23 +84,7 @@ const App = () => {
       websocket.updateComponentState(componentId, value);
     } catch (error) {
       console.error("[App] Error updating component state:", error);
-      setComponents((prevComponents) =>
-        prevComponents.map((component) =>
-          component.id === componentId
-            ? { ...component, error: error.message }
-            : component
-        )
-      );
     }
-  };
-
-  const updateConnectionStatus = (message) => {
-    setIsConnected(message.connected);
-    setError(
-      message.connected
-        ? null
-        : "Lost connection to server. Attempting to reconnect..."
-    );
   };
 
   const renderLoadingState = () => (
