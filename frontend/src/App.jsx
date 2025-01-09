@@ -1,14 +1,15 @@
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { websocket } from "./utils/websocket";
-import Layout from "./components/Layout";
-import Dashboard from "./components/pages/Dashboard";
+
 import Connections from "./components/pages/Connections";
-import Metrics from "./components/pages/Metrics";
-import Entities from "./components/pages/Entities";
-import Schedules from "./components/pages/Schedules";
-import Queries from "./components/pages/Queries";
+import Dashboard from "./components/pages/Dashboard";
 import Definitions from "./components/pages/Definitions";
+import Entities from "./components/pages/Entities";
+import Layout from "./components/Layout";
+import Metrics from "./components/pages/Metrics";
+import Queries from "./components/pages/Queries";
+import Schedules from "./components/pages/Schedules";
+import { websocket } from "./utils/websocket";
 
 const App = () => {
   const [components, setComponents] = useState([]);

@@ -415,12 +415,49 @@ def workflow_dag(workflow, title="Workflow Dependency Graph"):
     try:
         from .state import WorkflowAnalyzer
         analyzer = WorkflowAnalyzer(workflow)
-        fig = analyzer.visualize(title=title)
-        return plotly(fig)
+        analyzer.build_graph()  # Ensure graph is built
+        
+        # Get node data
+        nodes_data = []
+        for node, data in analyzer.graph.nodes(data=True):
+            nodes_data.append({
+                "name": node,
+                "status": data["status"],
+                "execution_time": data["execution_time"],
+                "attempts": data["attempts"],
+                "error": data["error"],
+                "dependencies": data["dependencies"],
+                "force_recompute": data["force_recompute"]
+            })
+
+        # Create the component with the correct type and data structure
+        id = generate_id("dag")
+        component = {
+            "type": "dag",  # Changed from "plot" to "dag"
+            "id": id,
+            "data": {
+                "data": [{
+                    "type": "scatter",
+                    "customdata": nodes_data,
+                    "node": {
+                        "positions": []  # Will be calculated by react-flow
+                    }
+                }],
+                "layout": {
+                    "title": {"text": title},
+                    "showlegend": True
+                }
+            }
+        }
+        
+        logger.debug(f"[WORKFLOW_DAG] Created DAG component with id {id}")
+        _rendered_html.append(component)
+        return component
+        
     except Exception as e:
         logger.error(f"[WORKFLOW_DAG] Error creating DAG visualization: {str(e)}", exc_info=True)
         error_component = {
-            "type": "plot",
+            "type": "dag",  # Changed from "plot" to "dag"
             "id": generate_id("dag"),
             "error": f"Failed to create DAG visualization: {str(e)}"
         }

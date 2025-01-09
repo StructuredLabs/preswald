@@ -2,6 +2,7 @@ import AlertWidget from "./widgets/AlertWidget";
 import ButtonWidget from "./widgets/ButtonWidget";
 import CheckboxWidget from "./widgets/CheckboxWidget";
 import ConnectionInterfaceWidget from "./widgets/ConnectionInterfaceWidget";
+import DAGVisualizationWidget from "./widgets/DAGVisualizationWidget";
 import DataVisualizationWidget from "./widgets/DataVisualizationWidget";
 import ImageWidget from "./widgets/ImageWidget";
 import MarkdownRendererWidget from "./widgets/MarkdownRendererWidget";
@@ -146,6 +147,14 @@ const DynamicComponents = ({ components, onComponentUpdate }) => {
               data={component.data || {}}
               layout={component.layout || {}}
               config={component.config || {}}
+            />
+          );
+
+        case "dag":
+          return (
+            <DAGVisualizationWidget
+              {...commonProps}
+              data={component.data || {}}
             />
           );
 
