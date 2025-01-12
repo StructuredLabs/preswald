@@ -1,6 +1,7 @@
 import os
 import click
 import sys
+import webbrowser
 from preswald.server import start_server
 from preswald.logging import configure_logging
 from preswald.deploy import deploy as deploy_app, stop as stop_app
@@ -30,16 +31,13 @@ def init(name):
         import pkg_resources
         import shutil
 
-        # Copy default branding files
         default_static_dir = pkg_resources.resource_filename("preswald", "static")
         default_favicon = os.path.join(default_static_dir, "favicon.ico")
         default_logo = os.path.join(default_static_dir, "logo.png")
 
-        # Copy to project's images directory
         shutil.copy2(default_favicon, os.path.join(name, "images", "favicon.ico"))
         shutil.copy2(default_logo, os.path.join(name, "images", "logo.png"))
 
-        # Create boilerplate files
         with open(os.path.join(name, "hello.py"), "w") as f:
             f.write(
                 """from preswald import text
@@ -76,10 +74,10 @@ user = "user"                # Username
                 """# Add your secrets here (DO NOT commit this file)
 
 [data.postgres]
-password = ""  # PostgreSQL password
+password = ""
 
 [data.mysql]
-password = ""  # MySQL password
+password = ""
 
 [data.json]
 api_key = ""  # API key for JSON endpoint
@@ -117,7 +115,7 @@ format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     type=click.Choice(
         ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], case_sensitive=False
     ),
-    default=None,  # This makes it truly optional
+    default=None,
     help="Set the logging level (overrides config file)",
 )
 def run(script, port, log_level):
@@ -133,9 +131,12 @@ def run(script, port, log_level):
     config_path = os.path.join(os.path.dirname(script), "config.toml")
     log_level = configure_logging(config_path=config_path, level=log_level)
 
-    click.echo(
-        f"Running '{script}' on http://localhost:{port} with log level {log_level}"
-    )
+    url = f"http://localhost:{port}"
+    click.echo(f"Running '{script}' on {url} with log level {log_level}")
+
+    # Open the URL in the default web browser
+    webbrowser.open(url)
+
     start_server(script=script, port=port)
 
 
@@ -155,7 +156,7 @@ def run(script, port, log_level):
     type=click.Choice(
         ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], case_sensitive=False
     ),
-    default=None,  # This makes it truly optional
+    default=None,
     help="Set the logging level (overrides config file)",
 )
 def deploy(script, platform, port, log_level):
@@ -204,4 +205,4 @@ def stop(script):
 
 
 if __name__ == "__main__":
-    cli()  # Ensures the CLI is callable when executed directly
+    cli()
