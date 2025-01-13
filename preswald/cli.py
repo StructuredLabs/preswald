@@ -89,7 +89,7 @@ format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
             )
 
         with open(os.path.join(name, ".gitignore"), "w") as f:
-            f.write("secrets.toml\n")
+            f.write("secrets.toml\n.preswald_deploy\n")
 
         with open(os.path.join(name, "README.md"), "w") as f:
             f.write(
