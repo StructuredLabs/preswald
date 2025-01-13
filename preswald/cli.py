@@ -143,12 +143,10 @@ def run(script, port, log_level):
 @cli.command()
 @click.argument("script", default="app.py")
 @click.option(
-    "--platform",
-    type=click.Choice(
-        ["local", "cloud-run", "aws"], case_sensitive=False
-    ),
+    "--target",
+    type=click.Choice(["local", "gcp", "aws"], case_sensitive=False),
     default="local",
-    help="Platform for deployment.",
+    help="Target platform for deployment.",
 )
 @click.option("--port", default=8501, help="Port for deployment.")
 @click.option(
@@ -159,15 +157,17 @@ def run(script, port, log_level):
     default=None,
     help="Set the logging level (overrides config file)",
 )
-def deploy(script, platform, port, log_level):
+def deploy(script, target, port, log_level):
     """
     Deploy your Preswald app locally.
 
     This allows you to share the app within your local network.
     """
     try:
-        if platform == "aws":
-            click.echo(f"\nWe're working on supporting AWS soon! Please enjoy some coffee and bananas in the meantime")
+        if target == "aws":
+            click.echo(
+                f"\nWe're working on supporting AWS soon! Please enjoy some coffee and bananas in the meantime"
+            )
             return
 
         if not os.path.exists(script):
@@ -177,7 +177,7 @@ def deploy(script, platform, port, log_level):
         config_path = os.path.join(os.path.dirname(script), "config.toml")
         log_level = configure_logging(config_path=config_path, level=log_level)
 
-        url = deploy_app(script, platform)
+        url = deploy_app(script, target)
         click.echo(f"\nDeployment successful! 🎉")
         click.echo(f"Your app is running at: {url}")
 

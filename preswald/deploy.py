@@ -218,7 +218,7 @@ def deploy_to_cloud_run(deploy_dir: Path, container_name: str) -> str:
         raise Exception(f"Deployment failed: {str(e)}")
 
 
-def deploy(script_path: str, platform: str = "local") -> str:
+def deploy(script_path: str, target: str = "local") -> str:
     """
     Deploy a Preswald app locally using Docker.
 
@@ -322,7 +322,7 @@ CMD ["python", "run.py"]
         # Build the Docker image
         print(f"Building Docker image {container_name}...")
 
-        if platform == "cloud-run":
+        if target == "gcp":
             subprocess.run(
                 [
                     "docker",
