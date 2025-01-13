@@ -66,6 +66,10 @@ port = 5432                   # PostgreSQL port
 dbname = "mydb"              # Database name
 user = "user"                # Username
 # password is stored in secrets.toml
+
+[logging]
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 """
             )
 
@@ -81,10 +85,6 @@ password = ""
 
 [data.json]
 api_key = ""  # API key for JSON endpoint
-                    
-[logging]
-level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
-format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 """
             )
 
