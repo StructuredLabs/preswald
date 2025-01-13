@@ -135,7 +135,7 @@ def ensure_project_selected() -> str:
         raise Exception(f"Failed to get or set project: {str(e)}")
 
 
-def deploy_to_cloud_run(deploy_dir: Path, container_name: str) -> str:
+def deploy_to_cloud_run(deploy_dir: Path, container_name: str, port: int = 8501) -> str:
     """
     Deploy a Preswald app to Google Cloud Run.
 
@@ -181,7 +181,7 @@ def deploy_to_cloud_run(deploy_dir: Path, container_name: str) -> str:
                 region,
                 "--allow-unauthenticated",  # Makes the service publicly accessible
                 "--port",
-                "8501",  # Match the port your app uses
+                f"{port}",  # Match the port your app uses
             ],
             check=True,
             text=True,
@@ -218,7 +218,7 @@ def deploy_to_cloud_run(deploy_dir: Path, container_name: str) -> str:
         raise Exception(f"Deployment failed: {str(e)}")
 
 
-def deploy(script_path: str, target: str = "local") -> str:
+def deploy(script_path: str, target: str = "local", port: int = 8501) -> str:
     """
     Deploy a Preswald app locally using Docker.
 
@@ -265,12 +265,12 @@ def deploy(script_path: str, target: str = "local") -> str:
         shutil.move(deploy_dir / Path(script_path).name, deploy_dir / "app.py")
 
     # Create startup script
-    startup_script = """
+    startup_script = f"""
 from preswald.server import start_server
 import os
 
 script_path = os.environ.get('SCRIPT_PATH', '/app/app.py')
-port = int(os.environ.get('PORT', 8501))
+port = int(os.environ.get('PORT', {port}))
 
 start_server(script=script_path, port=port)
 """
@@ -293,11 +293,11 @@ RUN pip install setuptools
 # Copy app and assets
 COPY . .
 
-EXPOSE 8501
+EXPOSE {port}
 
 ENV PYTHONPATH=/app
 ENV SCRIPT_PATH=/app/app.py
-ENV PORT=8501
+ENV PORT={port}
 
 # Use startup script that calls start_server
 CMD ["python", "run.py"]
@@ -337,7 +337,7 @@ CMD ["python", "run.py"]
                 cwd=deploy_dir,
             )
 
-            return deploy_to_cloud_run(deploy_dir, container_name)
+            return deploy_to_cloud_run(deploy_dir, container_name, port=port)
         else:  # local
             subprocess.run(
                 ["docker", "build", "-t", container_name, "."],
@@ -355,14 +355,14 @@ CMD ["python", "run.py"]
                     "--name",
                     container_name,
                     "-p",
-                    "8501:8501",
+                    f"{port}:{port}",
                     container_name,
                 ],
                 check=True,
                 cwd=deploy_dir,
             )
 
-            return "http://localhost:8501"
+            return f"http://localhost:{port}"
 
     except subprocess.CalledProcessError as e:
         raise Exception(f"Docker operation failed: {str(e)}")

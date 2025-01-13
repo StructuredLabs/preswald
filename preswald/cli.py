@@ -177,7 +177,7 @@ def deploy(script, target, port, log_level):
         config_path = os.path.join(os.path.dirname(script), "config.toml")
         log_level = configure_logging(config_path=config_path, level=log_level)
 
-        url = deploy_app(script, target)
+        url = deploy_app(script, target, port=port)
         click.echo(f"\nDeployment successful! 🎉")
         click.echo(f"Your app is running at: {url}")
 
