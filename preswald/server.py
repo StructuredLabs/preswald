@@ -302,6 +302,91 @@ async def serve_index():
         logger.error(f"Error serving index: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
+@app.get("/api/connections")
+async def get_connections():
+    """Get all active connections and config-defined connections"""
+    try:
+        connection_list = []
+        
+        # Add active connections
+        for name, conn in connections.items():
+            conn_type = type(conn).__name__
+            conn_info = {
+                "name": name,
+                "type": conn_type,
+                "details": str(conn)[:100] + "..." if len(str(conn)) > 100 else str(conn),
+                "status": "active"
+            }
+            connection_list.append(conn_info)
+            
+        # Add connections from config.toml
+        if SCRIPT_PATH:
+            try:
+                script_dir = os.path.dirname(SCRIPT_PATH)
+                config_path = os.path.join(script_dir, "config.toml")
+                if os.path.exists(config_path):
+                    import toml
+                    config = toml.load(config_path)
+                    
+                    # Extract data connections
+                    if "data" in config:
+                        for key, value in config["data"].items():
+                            # Skip non-connection entries like default_source and cache
+                            if not isinstance(value, dict):
+                                continue
+                                
+                            # Determine connection type based on fields
+                            conn_type = ""
+                            details = {}
+                            
+                            # Check for PostgreSQL connection
+                            if all(field in value for field in ["host", "port", "dbname"]):
+                                if value.get("port") == 5432:
+                                    conn_type = "PostgreSQL"
+                                    details = {
+                                        "host": value.get("host", ""),
+                                        "port": value.get("port", ""),
+                                        "dbname": value.get("dbname", ""),
+                                        "user": value.get("user", "")
+                                    }
+                                elif value.get("port") == 3306:
+                                    conn_type = "MySQL"
+                                    details = {
+                                        "host": value.get("host", ""),
+                                        "port": value.get("port", ""),
+                                        "dbname": value.get("dbname", ""),
+                                        "user": value.get("user", "")
+                                    }
+                            # Check for CSV connection
+                            elif "path" in value and str(value["path"]).endswith(".csv"):
+                                conn_type = "CSV"
+                                details = {"path": value.get("path", "")}
+                            # Check for Parquet connection
+                            elif "path" in value and str(value["path"]).endswith(".parquet"):
+                                conn_type = "Parquet"
+                                details = {"path": value.get("path", "")}
+                            # Check for JSON connection
+                            elif "url" in value:
+                                conn_type = "JSON"
+                                details = {"url": value.get("url", "")}
+                                
+                            if conn_type:  # Only add if we identified the connection type
+                                conn_info = {
+                                    "name": key,
+                                    "type": conn_type,
+                                    "details": ", ".join(f"{k}: {v}" for k, v in details.items() if v),
+                                    "status": "configured"
+                                }
+                                connection_list.append(conn_info)
+            
+            except Exception as e:
+                logger.error(f"Error reading config.toml: {e}")
+                
+        return {"connections": connection_list}
+    except Exception as e:
+        logger.error(f"Error getting connections: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Add catch-all route for SPA routing
 @app.get("/{path:path}")
 async def serve_spa(path: str):
@@ -541,24 +626,6 @@ def _send_message_callback(msg: dict):
     else:
         loop.run_until_complete(_send())
     return None  # Return None to avoid awaiting this callback
-
-@app.get("/api/connections")
-async def get_connections():
-    """Get all active connections"""
-    try:
-        connection_list = []
-        for name, conn in connections.items():
-            conn_type = type(conn).__name__
-            conn_info = {
-                "name": name,
-                "type": conn_type,
-                "details": str(conn)[:100] + "..." if len(str(conn)) > 100 else str(conn)
-            }
-            connection_list.append(conn_info)
-        return {"connections": connection_list}
-    except Exception as e:
-        logger.error(f"Error getting connections: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 def start_server(script=None, port=8501):
     """

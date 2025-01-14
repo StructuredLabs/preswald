@@ -1,74 +1,71 @@
 import React, { useEffect, useState } from 'react';
 
-import { FaRegTrashAlt } from 'react-icons/fa';
-import { FiRefreshCw } from 'react-icons/fi';
-import { HiDotsVertical } from 'react-icons/hi';
-import { MdOutlineViewList } from 'react-icons/md';
-import { Menu } from '@headlessui/react';
 import { websocket } from '../../utils/websocket';
 
-function formatDate(dateString) {
-  const months = [
-    'January',
-    'February', 
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ];
-
-  const date = new Date(dateString);
-  const month = months[date.getMonth()];
-  const day = date.getDate();
-  const year = date.getFullYear();
-
-  return `${month} ${day}, ${year}`;
-}
-
 function ConnectionCard({ connection }) {
-  const handleMenuClick = (event) => {
-    event.stopPropagation();
-  };
-
   const handleOnClickConnectionCard = async (e) => {
     e.stopPropagation();
     e.preventDefault();
     // Handle view modal
   };
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'configured':
+        return 'bg-blue-100 text-blue-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getConnectionIcon = (type) => {
+    switch (type.toLowerCase()) {
+      case 'postgresql':
+        return '🐘';
+      case 'mysql':
+        return '🐬';
+      case 'csv':
+        return '📄';
+      case 'parquet':
+        return '📦';
+      case 'json':
+        return '🔗';
+      default:
+        return '🔌';
+    }
+  };
+
   return (
     <div
-      className="p-4 border rounded-lg flex items-center justify-between mb-2 cursor-pointer"
+      className="p-4 border rounded-lg flex items-center justify-between mb-2 cursor-pointer hover:bg-gray-50"
       onClick={handleOnClickConnectionCard}
     >
       <div className="flex items-center">
-        <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-4">
-          <span className="text-lg font-semibold">
-            {/* Icon placeholder */}
+        <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mr-4">
+          <span className="text-lg" role="img" aria-label={connection.type}>
+            {getConnectionIcon(connection.type)}
           </span>
         </div>
-        <div className="flex flex-wrap items-center">
-          <p className="text-sm font-semibold text-gray-700 mr-2">
-            {connection.name}
-          </p>
-          <p className="text-sm text-gray-500 mr-2">
-            • Details: {connection.details}
-          </p>
-          <p className="text-sm text-gray-500 mr-2">
-            • {formatDate(new Date())}
-          </p>
+        <div>
+          <div className="flex items-center">
+            <p className="text-sm font-semibold text-gray-700 mr-2">
+              {connection.name}
+            </p>
+            <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full capitalize ${getStatusColor(connection.status)}`}>
+              {connection.status}
+            </span>
+          </div>
+          <div className="mt-1">
+            <p className="text-sm text-gray-500">
+              Type: {connection.type}
+            </p>
+            <p className="text-sm text-gray-500">
+              {connection.details}
+            </p>
+          </div>
         </div>
-      </div>
-      <div className="flex items-center">
-        <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full mr-4 capitalize">
-          Active
-        </span>
       </div>
     </div>
   );
@@ -76,29 +73,59 @@ function ConnectionCard({ connection }) {
 
 function Connections() {
   const [connections, setConnections] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Initial fetch of connections
-    fetch('/api/connections')
-      .then(response => response.json())
-      .then(data => {
+    const fetchConnections = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/connections');
+        if (!response.ok) {
+          throw new Error('Failed to fetch connections');
+        }
+        const data = await response.json();
         setConnections(data.connections || []);
-      })
-      .catch(error => console.error('Error fetching connections:', error));
+      } catch (error) {
+        console.error('Error fetching connections:', error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Subscribe to websocket updates
+    fetchConnections();
+
     const unsubscribe = websocket.subscribe((message) => {
       if (message.type === 'connections_update') {
-        // Replace all connections with the new list
         setConnections(message.connections || []);
       }
     });
 
-    // Cleanup subscription
     return () => {
       unsubscribe();
     };
   }, []);
+
+  if (loading) {
+    return (
+      <div className="p-4">
+        <div className="text-center text-gray-500 py-8">
+          Loading connections...
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4">
+        <div className="text-center text-red-500 py-8">
+          Error: {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4">
@@ -109,7 +136,7 @@ function Connections() {
         ))}
         {connections.length === 0 && (
           <div className="text-center text-gray-500 py-8">
-            No active connections. Create a connection to get started.
+            No connections found. Add connections in your config.toml file to get started.
           </div>
         )}
       </div>
