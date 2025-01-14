@@ -160,17 +160,21 @@ def connect(source: str = None, name: Optional[str] = None, config_path: str = "
         logger.error(f"[CONNECT] Failed to connect to source '{source}': {e}")
         raise RuntimeError(f"Connection failed: {str(e)}")
 
-def view(connection_name: str, limit: int = 100):
+def view(data_or_connection_name, limit: int = 100):
     """
-    Render a preview of the data from a connection using the table component.
+    Render a preview of the data using the table component.
     
     Args:
-        connection_name (str): The name of the data connection.
+        data_or_connection_name: Either a pandas DataFrame or a connection name string.
         limit (int): Maximum number of rows to display in the table.
     """
-    connection = get_connection(connection_name)
-    
     try:
+        if isinstance(data_or_connection_name, pd.DataFrame):
+            return table(data_or_connection_name.head(limit))
+            
+        # If it's a connection name string
+        connection = get_connection(data_or_connection_name)
+        
         if isinstance(connection, pd.DataFrame):
             return table(connection.head(limit))
             
@@ -210,9 +214,9 @@ def view(connection_name: str, limit: int = 100):
                         logger.error(f"Error testing connection: {e}")
                         return table([], title=f"Error connecting to database: {str(e)}")
         else:
-            raise TypeError(f"Connection '{connection_name}' does not contain viewable data")
+            raise TypeError(f"Input does not contain viewable data")
     except Exception as e:
-        logger.error(f"Error viewing connection '{connection_name}': {e}")
+        logger.error(f"Error viewing data: {e}")
         return table([], title=f"Error: {str(e)}")
 
 def query(connection_name: str, sql_query: str) -> pd.DataFrame:
