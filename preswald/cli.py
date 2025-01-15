@@ -51,9 +51,9 @@ def init(name):
             with open(os.path.join(name, file_name), "w") as f:
                 f.write(content)
 
-        click.echo(f"Initialized a new Preswald project in '{name}/'")
+        click.echo(f"Initialized a new Preswald project in '{name}/' 🎉!")
     except Exception as e:
-        click.echo(f"Error initializing project: {e}")
+        click.echo(f"Error initializing project: {e} ❌")
 
 
 @cli.command()
@@ -74,14 +74,14 @@ def run(script, port, log_level):
     By default, it runs the `hello.py` script on localhost:8501.
     """
     if not os.path.exists(script):
-        click.echo(f"Error: Script '{script}' not found.")
+        click.echo(f"Error: Script '{script}' not found. ❌")
         return
 
     config_path = os.path.join(os.path.dirname(script), "config.toml")
     log_level = configure_logging(config_path=config_path, level=log_level)
 
     url = f"http://localhost:{port}"
-    click.echo(f"Running '{script}' on {url} with log level {log_level}")
+    click.echo(f"Running '{script}' on {url} with log level {log_level}  🎉!")
 
     # Open the URL in the default web browser
     webbrowser.open(url)
@@ -115,12 +115,12 @@ def deploy(script, target, port, log_level):
     try:
         if target == "aws":
             click.echo(
-                f"\nWe're working on supporting AWS soon! Please enjoy some coffee and bananas in the meantime"
+                f"\nWe're working on supporting AWS soon! Please enjoy some ☕ and 🍌 in the meantime"
             )
             return
 
         if not os.path.exists(script):
-            click.echo(f"Error: Script '{script}' not found.")
+            click.echo(f"Error: Script '{script}' not found. ❌")
             return
 
         config_path = os.path.join(os.path.dirname(script), "config.toml")
@@ -131,7 +131,7 @@ def deploy(script, target, port, log_level):
         click.echo(f"Your app is running at: {url}")
 
     except Exception as e:
-        click.echo(f"Error deploying app: {e}")
+        click.echo(f"Error deploying app: {e} ❌")
 
 
 @cli.command()
@@ -144,12 +144,12 @@ def stop(script):
     """
     try:
         if not os.path.exists(script):
-            click.echo(f"Error: Script '{script}' not found.")
+            click.echo(f"Error: Script '{script}' not found. ❌")
             return
         stop_app(script)
-        click.echo("Deployment stopped successfully.")
+        click.echo("Deployment stopped successfully. 🛑 ")
     except Exception as e:
-        click.echo(f"Error stopping deployment: {e}")
+        click.echo(f"Error stopping deployment: {e} ❌")
         sys.exit(1)
 
 
