@@ -23,6 +23,9 @@ import sys
 import time
 import zlib
 import numpy as np
+import pandas as pd
+import psycopg2
+from sqlalchemy import create_engine, inspect
 
 logger = logging.getLogger(__name__)
 
@@ -304,44 +307,57 @@ async def serve_index():
 
 @app.get("/api/connections")
 async def get_connections():
-    """Get all active connections and config-defined connections"""
+    """Get all active connections and config-defined connections with metadata"""
     try:
         connection_list = []
         
         # Add active connections
         for name, conn in connections.items():
-            conn_type = type(conn).__name__
-            conn_info = {
-                "name": name,
-                "type": conn_type,
-                "details": str(conn)[:100] + "..." if len(str(conn)) > 100 else str(conn),
-                "status": "active"
-            }
-            connection_list.append(conn_info)
+            try:
+                conn_type = type(conn).__name__
+                conn_info = {
+                    "name": name,
+                    "type": conn_type,
+                    "details": str(conn)[:100] + "..." if len(str(conn)) > 100 else str(conn),
+                    "status": "active",
+                    "metadata": {}  # Will be populated based on connection type
+                }
+                connection_list.append(conn_info)
+            except Exception as e:
+                logger.error(f"Error processing active connection {name}: {e}")
+                continue
             
         # Add connections from config.toml
         if SCRIPT_PATH:
             try:
                 script_dir = os.path.dirname(SCRIPT_PATH)
                 config_path = os.path.join(script_dir, "config.toml")
+                secrets_path = os.path.join(script_dir, "secrets.toml")
+                
                 if os.path.exists(config_path):
                     import toml
+                    import pandas as pd
+                    import psycopg2
+                    from sqlalchemy import create_engine, inspect
+                    
                     config = toml.load(config_path)
+                    secrets = {}
+                    if os.path.exists(secrets_path):
+                        secrets = toml.load(secrets_path)
                     
                     # Extract data connections
                     if "data" in config:
                         for key, value in config["data"].items():
-                            # Skip non-connection entries like default_source and cache
                             if not isinstance(value, dict):
                                 continue
                                 
-                            # Determine connection type based on fields
-                            conn_type = ""
-                            details = {}
-                            
-                            # Check for PostgreSQL connection
-                            if all(field in value for field in ["host", "port", "dbname"]):
-                                if value.get("port") == 5432:
+                            try:
+                                conn_type = ""
+                                details = {}
+                                metadata = {}
+                                
+                                # PostgreSQL Connection
+                                if all(field in value for field in ["host", "port", "dbname"]) and value.get("port") == 5432:
                                     conn_type = "PostgreSQL"
                                     details = {
                                         "host": value.get("host", ""),
@@ -349,43 +365,136 @@ async def get_connections():
                                         "dbname": value.get("dbname", ""),
                                         "user": value.get("user", "")
                                     }
-                                elif value.get("port") == 3306:
-                                    conn_type = "MySQL"
-                                    details = {
-                                        "host": value.get("host", ""),
-                                        "port": value.get("port", ""),
-                                        "dbname": value.get("dbname", ""),
-                                        "user": value.get("user", "")
-                                    }
-                            # Check for CSV connection
-                            elif "path" in value and str(value["path"]).endswith(".csv"):
-                                conn_type = "CSV"
-                                details = {"path": value.get("path", "")}
-                            # Check for Parquet connection
-                            elif "path" in value and str(value["path"]).endswith(".parquet"):
-                                conn_type = "Parquet"
-                                details = {"path": value.get("path", "")}
-                            # Check for JSON connection
-                            elif "url" in value:
-                                conn_type = "JSON"
-                                details = {"url": value.get("url", "")}
+                                    
+                                    # Get PostgreSQL metadata
+                                    try:
+                                        # Get password from secrets if available
+                                        password = None
+                                        secret_key = f"{key}"
+                                        logger.info(f"Looking for password with key: {secret_key} {secrets}")
+                                        if secret_key in secrets['data']:  # Check directly in secrets, not in secrets['data']
+                                            password = secrets['data'][secret_key].get("password")
+                                            if password:
+                                                logger.info(f"Found password in secrets.toml for {key}")
+                                            else:
+                                                logger.warning(f"Password field is empty in secrets.toml for {key}")
+                                                metadata = {"error": "Password field is empty in secrets.toml"}
+                                                continue
+                                        else:
+                                            logger.warning(f"No password entry found in secrets.toml for {key}")
+                                            metadata = {"error": "No password entry found in secrets.toml"}
+                                            continue
+
+                                        if password:
+                                            # Create connection URL with proper URL encoding for special characters
+                                            from urllib.parse import quote_plus
+                                            password = quote_plus(password)  # URL encode the password
+                                            conn_str = f"postgresql://{details['user']}:{password}@{details['host']}:{details['port']}/{details['dbname']}"
+                                            
+                                            # Test connection before proceeding
+                                            engine = create_engine(conn_str)
+                                            with engine.connect() as connection:
+                                                # Get schema information
+                                                inspector = inspect(engine)
+                                                schemas = inspector.get_schema_names()
+                                                tables_info = {}
+                                                
+                                                for schema in schemas:
+                                                    tables = inspector.get_table_names(schema=schema)
+                                                    tables_info[schema] = {}
+                                                    
+                                                    for table in tables:
+                                                        columns = inspector.get_columns(table, schema=schema)
+                                                        tables_info[schema][table] = {
+                                                            "columns": [
+                                                                {
+                                                                    "name": col["name"],
+                                                                    "type": str(col["type"]),
+                                                                    "nullable": col["nullable"]
+                                                                }
+                                                                for col in columns
+                                                            ]
+                                                        }
+                                                
+                                                metadata = {
+                                                    "database_name": details["dbname"],
+                                                    "schemas": tables_info,
+                                                    "total_tables": sum(len(tables) for tables in tables_info.values())
+                                                }
+                                                logger.info(f"Successfully connected to PostgreSQL database for {key}")
+                                    except Exception as e:
+                                        error_msg = str(e)
+                                        logger.warning(f"Could not fetch PostgreSQL metadata: {error_msg}")
+                                        if "password" in error_msg.lower():
+                                            metadata = {"error": "Invalid password. Please check your credentials in secrets.toml"}
+                                        else:
+                                            metadata = {"error": f"Could not connect to database: {error_msg}"}
                                 
-                            if conn_type:  # Only add if we identified the connection type
-                                conn_info = {
-                                    "name": key,
-                                    "type": conn_type,
-                                    "details": ", ".join(f"{k}: {v}" for k, v in details.items() if v),
-                                    "status": "configured"
-                                }
-                                connection_list.append(conn_info)
+                                # CSV Connection
+                                elif "path" in value and str(value["path"]).endswith(".csv"):
+                                    conn_type = "CSV"
+                                    file_path = value.get("path", "")
+                                    if file_path.startswith("./"):
+                                        file_path = os.path.join(script_dir, file_path[2:])
+                                    details = {"path": file_path}
+                                    
+                                    # Get CSV metadata
+                                    try:
+                                        if os.path.exists(file_path):
+                                            df = pd.read_csv(file_path, nrows=5)  # Read just first 5 rows for schema
+                                            total_rows = sum(1 for _ in open(file_path)) - 1  # Count total rows (-1 for header)
+                                            file_size_mb = os.path.getsize(file_path) / (1024*1024)
+                                            
+                                            # Convert sample values to strings to ensure JSON serialization
+                                            metadata = {
+                                                "columns": [
+                                                    {
+                                                        "name": col,
+                                                        "type": str(df[col].dtype),
+                                                        "sample_values": [str(val) for val in df[col].head().tolist()]
+                                                    }
+                                                    for col in df.columns
+                                                ],
+                                                "total_rows": total_rows,
+                                                "total_columns": len(df.columns),
+                                                "file_size": f"{file_size_mb:.2f} MB"
+                                            }
+                                        else:
+                                            metadata = {"error": "File not found"}
+                                    except Exception as e:
+                                        logger.warning(f"Could not read CSV metadata: {str(e)}")
+                                        metadata = {"error": "Could not read file"}
+                                
+                                if conn_type:  # Only add if we identified the connection type
+                                    conn_info = {
+                                        "name": key,
+                                        "type": conn_type,
+                                        "details": ", ".join(f"{k}: {v}" for k, v in details.items() if v),
+                                        "status": "configured",
+                                        "metadata": metadata
+                                    }
+                                    connection_list.append(conn_info)
+                                    
+                            except Exception as e:
+                                logger.error(f"Error processing connection {key}: {str(e)}")
+                                # Still add the connection but with error metadata
+                                if conn_type:
+                                    conn_info = {
+                                        "name": key,
+                                        "type": conn_type,
+                                        "details": ", ".join(f"{k}: {v}" for k, v in details.items() if v),
+                                        "status": "configured",
+                                        "metadata": {"error": str(e)}
+                                    }
+                                    connection_list.append(conn_info)
             
             except Exception as e:
-                logger.error(f"Error reading config.toml: {e}")
+                logger.error(f"Error reading config files: {str(e)}")
                 
         return {"connections": connection_list}
     except Exception as e:
-        logger.error(f"Error getting connections: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error getting connections: {str(e)}")
+        return {"connections": [], "error": str(e)}
 
 # Add catch-all route for SPA routing
 @app.get("/{path:path}")
