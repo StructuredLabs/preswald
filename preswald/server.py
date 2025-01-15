@@ -26,7 +26,8 @@ import numpy as np
 import pandas as pd
 import psycopg2
 from sqlalchemy import create_engine, inspect
-
+import toml
+                    
 logger = logging.getLogger(__name__)
 
 # Initialize FastAPI app
@@ -335,10 +336,6 @@ async def get_connections():
                 secrets_path = os.path.join(script_dir, "secrets.toml")
                 
                 if os.path.exists(config_path):
-                    import toml
-                    import pandas as pd
-                    import psycopg2
-                    from sqlalchemy import create_engine, inspect
                     
                     config = toml.load(config_path)
                     secrets = {}
@@ -434,18 +431,27 @@ async def get_connections():
                                 elif "path" in value and str(value["path"]).endswith(".csv"):
                                     conn_type = "CSV"
                                     file_path = value.get("path", "")
-                                    if file_path.startswith("./"):
-                                        file_path = os.path.join(script_dir, file_path[2:])
                                     details = {"path": file_path}
                                     
                                     # Get CSV metadata
                                     try:
-                                        if os.path.exists(file_path):
-                                            df = pd.read_csv(file_path, nrows=5)  # Read just first 5 rows for schema
-                                            total_rows = sum(1 for _ in open(file_path)) - 1  # Count total rows (-1 for header)
-                                            file_size_mb = os.path.getsize(file_path) / (1024*1024)
+                                        if file_path.startswith(("http://", "https://")):
+                                            # Handle remote CSV file
+                                            import requests
+                                            from io import StringIO
                                             
-                                            # Convert sample values to strings to ensure JSON serialization
+                                            logger.info(f"Fetching remote CSV file: {file_path}")
+                                            response = requests.get(file_path)
+                                            response.raise_for_status()  # Raise exception for bad status codes
+                                            
+                                            # Read CSV content into DataFrame
+                                            csv_content = StringIO(response.text)
+                                            df = pd.read_csv(csv_content, nrows=5)  # Read just first 5 rows for schema
+                                            
+                                            # Count total rows by reading lines from response content
+                                            total_rows = len(response.text.splitlines()) - 1  # -1 for header
+                                            file_size_mb = len(response.content) / (1024*1024)
+                                            
                                             metadata = {
                                                 "columns": [
                                                     {
@@ -457,13 +463,44 @@ async def get_connections():
                                                 ],
                                                 "total_rows": total_rows,
                                                 "total_columns": len(df.columns),
-                                                "file_size": f"{file_size_mb:.2f} MB"
+                                                "file_size": f"{file_size_mb:.2f} MB",
+                                                "source": "remote"
                                             }
+                                            logger.info(f"Successfully read remote CSV file: {file_path}")
+                                            
                                         else:
-                                            metadata = {"error": "File not found"}
+                                            # Handle local CSV file
+                                            if file_path.startswith("./"):
+                                                file_path = os.path.join(script_dir, file_path[2:])
+                                                
+                                            if os.path.exists(file_path):
+                                                df = pd.read_csv(file_path, nrows=5)  # Read just first 5 rows for schema
+                                                total_rows = sum(1 for _ in open(file_path)) - 1  # Count total rows (-1 for header)
+                                                file_size_mb = os.path.getsize(file_path) / (1024*1024)
+                                                
+                                                metadata = {
+                                                    "columns": [
+                                                        {
+                                                            "name": col,
+                                                            "type": str(df[col].dtype),
+                                                            "sample_values": [str(val) for val in df[col].head().tolist()]
+                                                        }
+                                                        for col in df.columns
+                                                    ],
+                                                    "total_rows": total_rows,
+                                                    "total_columns": len(df.columns),
+                                                    "file_size": f"{file_size_mb:.2f} MB",
+                                                    "source": "local"
+                                                }
+                                                logger.info(f"Successfully read local CSV file: {file_path}")
+                                            else:
+                                                metadata = {"error": "File not found", "source": "local"}
+                                    except requests.exceptions.RequestException as e:
+                                        logger.warning(f"Could not fetch remote CSV file: {str(e)}")
+                                        metadata = {"error": f"Could not fetch remote file: {str(e)}", "source": "remote"}
                                     except Exception as e:
                                         logger.warning(f"Could not read CSV metadata: {str(e)}")
-                                        metadata = {"error": "Could not read file"}
+                                        metadata = {"error": f"Could not read file: {str(e)}", "source": "unknown"}
                                 
                                 if conn_type:  # Only add if we identified the connection type
                                     conn_info = {
