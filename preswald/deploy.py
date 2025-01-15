@@ -1,12 +1,12 @@
 import os
 import shutil
-import tempfile
 import subprocess
 from pathlib import Path
 import logging
-import toml
 import pkg_resources
 import json
+
+from preswald.utils import read_template
 
 logger = logging.getLogger(__name__)
 
@@ -265,43 +265,16 @@ def deploy(script_path: str, target: str = "local", port: int = 8501) -> str:
         shutil.move(deploy_dir / Path(script_path).name, deploy_dir / "app.py")
 
     # Create startup script
-    startup_script = f"""
-from preswald.server import start_server
-import os
-
-script_path = os.environ.get('SCRIPT_PATH', '/app/app.py')
-port = int(os.environ.get('PORT', {port}))
-
-start_server(script=script_path, port=port)
-"""
+    startup_template = read_template("run.py")
+    startup_script = startup_template.format(port=port)
     with open(deploy_dir / "run.py", "w") as f:
         f.write(startup_script)
 
     # Create Dockerfile
-    dockerfile_content = f"""
-FROM python:3.12-slim
-
-WORKDIR /app
-
-# Install nodejs and npm (needed for frontend)
-RUN apt-get update && apt-get install -y nodejs npm
-
-# Install preswald with exact version
-RUN pip install preswald=={preswald_version}
-RUN pip install setuptools
-
-# Copy app and assets
-COPY . .
-
-EXPOSE {port}
-
-ENV PYTHONPATH=/app
-ENV SCRIPT_PATH=/app/app.py
-ENV PORT={port}
-
-# Use startup script that calls start_server
-CMD ["python", "run.py"]
-"""
+    dockerfile_template = read_template("Dockerfile")
+    dockerfile_content = dockerfile_template.format(
+        port=port, preswald_version=preswald_version
+    )
     with open(deploy_dir / "Dockerfile", "w") as f:
         f.write(dockerfile_content)
 

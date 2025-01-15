@@ -1,0 +1,22 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install nodejs and npm (needed for frontend)
+RUN apt-get update && apt-get install -y nodejs npm
+
+# Install preswald with exact version
+RUN pip install preswald=={preswald_version}
+RUN pip install setuptools
+
+# Copy app and assets
+COPY . .
+
+EXPOSE {port}
+
+ENV PYTHONPATH=/app
+ENV SCRIPT_PATH=/app/app.py
+ENV PORT={port}
+
+# Use startup script that calls start_server
+CMD ["python", "run.py"]

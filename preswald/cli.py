@@ -2,9 +2,10 @@ import os
 import click
 import sys
 import webbrowser
+import pkg_resources
 from preswald.server import start_server
-from preswald.logging import configure_logging
 from preswald.deploy import deploy as deploy_app, stop as stop_app
+from preswald.utils import read_template, configure_logging
 
 
 @click.group()
@@ -28,7 +29,6 @@ def init(name):
         os.makedirs(os.path.join(name, "images"), exist_ok=True)
 
         # Copy default branding files from package resources
-        import pkg_resources
         import shutil
 
         default_static_dir = pkg_resources.resource_filename("preswald", "static")
@@ -38,69 +38,18 @@ def init(name):
         shutil.copy2(default_favicon, os.path.join(name, "images", "favicon.ico"))
         shutil.copy2(default_logo, os.path.join(name, "images", "logo.png"))
 
-        with open(os.path.join(name, "hello.py"), "w") as f:
-            f.write(
-                """from preswald import text
+        file_templates = {
+            "hello.py": "hello.py",
+            "config.toml": "config.toml",
+            "secrets.toml": "secrets.toml",
+            ".gitignore": "gitignore",
+            "README.md": "readme.md",
+        }
 
-text("# Welcome to Preswald!")
-text("This is your first app. 🎉")
-"""
-            )
-
-        with open(os.path.join(name, "config.toml"), "w") as f:
-            f.write(
-                """[project]
-title = "Preswald Project"
-version = "0.1.0"
-port = 8501
-
-[branding]
-name = "Preswald Project"
-logo = "images/logo.png"
-favicon = "images/favicon.ico"
-primaryColor = "#F89613"
-
-[data.postgres]
-host = "localhost"            # PostgreSQL host
-port = 5432                   # PostgreSQL port
-dbname = "mydb"              # Database name
-user = "user"                # Username
-# password is stored in secrets.toml
-
-[logging]
-level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
-format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-"""
-            )
-
-        with open(os.path.join(name, "secrets.toml"), "w") as f:
-            f.write(
-                """# Add your secrets here (DO NOT commit this file)
-
-[data.postgres]
-password = ""
-
-[data.mysql]
-password = ""
-
-[data.json]
-api_key = ""  # API key for JSON endpoint
-"""
-            )
-
-        with open(os.path.join(name, ".gitignore"), "w") as f:
-            f.write("secrets.toml\n.preswald_deploy\n")
-
-        with open(os.path.join(name, "README.md"), "w") as f:
-            f.write(
-                """# Preswald Project
-
-## Setup
-1. Configure your data connections in `config.toml`
-2. Add sensitive information (passwords, API keys) to `secrets.toml`
-3. Run your app with `preswald run hello.py`
-"""
-            )
+        for file_name, template_name in file_templates.items():
+            content = read_template(template_name)
+            with open(os.path.join(name, file_name), "w") as f:
+                f.write(content)
 
         click.echo(f"Initialized a new Preswald project in '{name}/'")
     except Exception as e:
