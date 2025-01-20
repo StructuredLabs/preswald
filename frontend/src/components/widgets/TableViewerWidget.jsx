@@ -1,50 +1,98 @@
-import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
-const TableViewerWidget = ({ data }) => {
+import React from "react";
+import { cn } from "@/lib/utils";
+
+const TableViewerWidget = ({ 
+  data = [], 
+  title = "Table Viewer",
+  className,
+  variant = "default", // default, card
+  showTitle = true,
+  striped = true,
+  dense = false,
+  hoverable = true
+}) => {
   if (!data || data.length === 0) {
     return (
-      <div className="p-4 bg-white ">
-        <p className="text-sm font-medium text-gray-500">No data available</p>
-      </div>
+      <Card className={cn("w-full", className)}>
+        <CardContent className="flex items-center justify-center py-6">
+          <p className="text-sm text-muted-foreground">No data available</p>
+        </CardContent>
+      </Card>
     );
   }
 
-  return (
-    <div className="p-4 bg-white  overflow-x-auto">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">Table Viewer</h3>
-      <table className="min-w-full table-auto border-collapse border border-gray-300">
-        <thead className="bg-gray-50">
-          <tr>
+  const TableContent = (
+    <div className={cn("w-full overflow-auto", className)}>
+      {showTitle && (
+        <h3 className="text-lg font-medium mb-4">{title}</h3>
+      )}
+      <Table>
+        <TableHeader>
+          <TableRow>
             {Object.keys(data[0]).map((key) => (
-              <th
+              <TableHead
                 key={key}
-                className="px-4 py-2 text-left text-sm font-medium text-gray-900 border border-gray-300"
+                className="font-medium"
               >
                 {key}
-              </th>
+              </TableHead>
             ))}
-          </tr>
-        </thead>
-        <tbody>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {data.map((row, index) => (
-            <tr
+            <TableRow
               key={index}
-              className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+              className={cn(
+                hoverable && "cursor-pointer hover:bg-muted/50",
+                striped && index % 2 === 0 && "bg-muted/50",
+                dense ? "h-8" : "h-12"
+              )}
             >
               {Object.values(row).map((value, idx) => (
-                <td
+                <TableCell
                   key={idx}
-                  className="px-4 py-2 text-sm text-gray-700 border border-gray-300"
+                  className={cn(
+                    "p-2 md:p-4",
+                    dense && "py-1 text-sm"
+                  )}
                 >
                   {value !== null && value !== undefined ? value : "N/A"}
-                </td>
+                </TableCell>
               ))}
-            </tr>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
+
+  if (variant === "card") {
+    return (
+      <Card className={cn("w-full", className)}>
+        {showTitle && (
+          <CardHeader>
+            <CardTitle>{title}</CardTitle>
+          </CardHeader>
+        )}
+        <CardContent className="p-0">
+          {TableContent}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return TableContent;
 };
 
 export default TableViewerWidget;

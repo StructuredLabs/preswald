@@ -1,12 +1,35 @@
-const ButtonWidget = ({ label, onClick }) => {
+import { Button } from "@/components/ui/button";
+import React from "react";
+import { cn } from "@/lib/utils";
+
+const ButtonWidget = ({ 
+  label, 
+  onClick, 
+  variant = "outline",
+  size = "default",
+  className,
+  disabled = false,
+  loading = false,
+  ...props 
+}) => {
   return (
-    <button
-      type="button"
+    <Button
+      variant={variant}
+      size={size}
       onClick={onClick || (() => alert("Button clicked!"))}
-      className="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+      className={cn(className)}
+      disabled={disabled || loading}
+      {...props}
     >
-      {label}
-    </button>
+      {loading ? (
+        <div className="flex items-center gap-2">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          {label}
+        </div>
+      ) : (
+        label
+      )}
+    </Button>
   );
 };
 

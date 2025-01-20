@@ -1,12 +1,49 @@
-const SpinnerWidget = ({ label = "Loading..." }) => {
-  return (
-    <div className="flex flex-col items-center justify-center p-4">
-      {label && (
-        <p className="mb-3 text-sm font-medium text-gray-900">{label}</p>
+import { Card, CardContent } from "@/components/ui/card";
+
+import React from "react";
+import { cn } from "@/lib/utils";
+
+const SpinnerWidget = ({ 
+  label = "Loading...", 
+  size = "default", // "sm", "default", "lg"
+  variant = "default", // "default", "card"
+  className,
+  showLabel = true
+}) => {
+  // Size variants for the spinner
+  const sizeVariants = {
+    sm: "w-4 h-4 border-2",
+    default: "w-8 h-8 border-3",
+    lg: "w-12 h-12 border-4"
+  };
+
+  const SpinnerContent = (
+    <div className={cn(
+      "flex flex-col items-center justify-center gap-3 p-4",
+      className
+    )}>
+      {showLabel && label && (
+        <p className="text-sm font-medium text-muted-foreground">{label}</p>
       )}
-      <div className="w-6 h-6 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+      <div className={cn(
+        "rounded-full animate-spin",
+        "border-primary/30 border-t-primary",
+        sizeVariants[size]
+      )}/>
     </div>
   );
+
+  if (variant === "card") {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          {SpinnerContent}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return SpinnerContent;
 };
 
 export default SpinnerWidget;

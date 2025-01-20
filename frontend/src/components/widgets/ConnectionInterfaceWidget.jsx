@@ -1,67 +1,87 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import React, { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-const ConnectionInterfaceWidget = () => {
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+
+const CONNECTION_TYPES = [
+  { value: "csv", label: "CSV File" },
+  { value: "json", label: "JSON File" },
+  { value: "parquet", label: "Parquet File" },
+  { value: "postgres", label: "PostgreSQL Database" },
+];
+
+const ConnectionInterfaceWidget = ({ 
+  className,
+  onConnect,
+  disabled = false 
+}) => {
   const [source, setSource] = useState("");
   const [type, setType] = useState("csv");
 
   const handleConnect = () => {
-    alert(`Connecting to ${source} as ${type}`);
+    if (onConnect) {
+      onConnect({ source, type });
+    } else {
+      alert(`Connecting to ${source} as ${type}`);
+    }
   };
 
   return (
-    <div className="p-6 bg-white">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Connection Interface</h3>
-      <div className="space-y-4">
-        {/* Source Input */}
-        <div>
-          <label
-            htmlFor="source"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Data Source
-          </label>
-          <input
+    <Card className={cn("w-full", className)}>
+      <CardHeader>
+        <CardTitle>Connection Interface</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="source">Data Source</Label>
+          <Input
             id="source"
-            type="text"
             value={source}
             onChange={(e) => setSource(e.target.value)}
-            placeholder="Enter data source"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            placeholder="Enter data source path or URL"
+            disabled={disabled}
           />
         </div>
 
-        {/* Type Select */}
-        <div>
-          <label
-            htmlFor="type"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Connection Type
-          </label>
-          <select
-            id="type"
+        <div className="space-y-2">
+          <Label htmlFor="type">Connection Type</Label>
+          <Select
             value={type}
-            onChange={(e) => setType(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            onValueChange={setType}
+            disabled={disabled}
           >
-            <option value="csv">CSV</option>
-            <option value="json">JSON</option>
-            <option value="parquet">Parquet</option>
-            <option value="postgres">Postgres</option>
-          </select>
+            <SelectTrigger id="type">
+              <SelectValue placeholder="Select connection type" />
+            </SelectTrigger>
+            <SelectContent>
+              {CONNECTION_TYPES.map(({ value, label }) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
-        {/* Connect Button */}
-        <div>
-          <button
-            onClick={handleConnect}
-            className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-          >
-            Connect
-          </button>
-        </div>
-      </div>
-    </div>
+        <Button
+          className="w-full"
+          onClick={handleConnect}
+          disabled={!source.trim() || disabled}
+        >
+          Connect
+        </Button>
+      </CardContent>
+    </Card>
   );
 };
 

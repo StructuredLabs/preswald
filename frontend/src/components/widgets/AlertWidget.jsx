@@ -1,53 +1,49 @@
-import React from "react";
-import { ExclamationTriangleIcon } from "@heroicons/react/20/solid";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Info,
+  XCircle
+} from "lucide-react";
 
-const levelStyles = {
+import React from "react";
+import { cn } from "@/lib/utils";
+
+const levelConfig = {
   success: {
-    background: "bg-green-50",
-    text: "text-green-800",
-    icon: "text-green-400",
-    description: "text-green-700",
+    icon: CheckCircle2,
+    variant: "success",
+    title: "Success",
   },
   warning: {
-    background: "bg-yellow-50",
-    text: "text-yellow-800",
-    icon: "text-yellow-400",
-    description: "text-yellow-700",
+    icon: AlertTriangle,
+    variant: "warning",
+    title: "Warning",
   },
   error: {
-    background: "bg-red-50",
-    text: "text-red-800",
-    icon: "text-red-400",
-    description: "text-red-700",
+    icon: XCircle,
+    variant: "destructive",
+    title: "Error",
   },
   info: {
-    background: "bg-blue-50",
-    text: "text-blue-800",
-    icon: "text-blue-400",
-    description: "text-blue-700",
+    icon: Info,
+    variant: "default",
+    title: "Information",
   },
 };
 
-const AlertWidget = ({ message, level = "info" }) => {
-  const styles = levelStyles[level] || levelStyles.info;
+const AlertWidget = ({ message, level = "info", className }) => {
+  const config = levelConfig[level] || levelConfig.info;
+  const Icon = config.icon;
 
   return (
-    <div className={`rounded-md p-4 ${styles.background}`}>
-      <div className="flex">
-        <div className="shrink-0">
-          <ExclamationTriangleIcon
-            aria-hidden="true"
-            className={`size-5 ${styles.icon}`}
-          />
-        </div>
-        <div className="ml-3">
-          <h3 className={`text-sm font-medium ${styles.text}`}>Attention Needed</h3>
-          <div className={`mt-2 text-sm ${styles.description}`}>
-            <p>{message}</p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <Alert variant={config.variant} className={cn("relative flex gap-x-4 items-center p-4", className)}>
+      <Icon className="h-4 w-4" />
+      <AlertTitle>{config.title}</AlertTitle>
+      <AlertDescription>
+        {message}
+      </AlertDescription>
+    </Alert>
   );
 };
 

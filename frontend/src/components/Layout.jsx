@@ -1,34 +1,30 @@
 'use client'
 
-import { ChartBarIcon, ClockIcon, DocumentTextIcon, GlobeAltIcon, HomeIcon, MagnifyingGlassIcon, ServerIcon } from "@heroicons/react/24/solid";
-import { useEffect, useState } from 'react'
+import { ChartBarIcon, ClockIcon, DocumentTextIcon, GlobeAltIcon, HomeIcon, MagnifyingGlassIcon, ServerIcon, Squares2X2Icon } from "@heroicons/react/24/solid";
+import React, { useState } from 'react';
 
-import Content from "./Content";
-import Sidebar from "./Sidebar";
-import Topbar from "./TopBar";
+import { Outlet } from 'react-router-dom';
+import Sidebar from './Sidebar';
+import TopBar from './TopBar';
+import { cn } from "@/lib/utils";
+import { useEffect } from 'react'
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: HomeIcon, current: true },
-  { name: 'Connections', href: '/connections', icon: ServerIcon, current: false },
-  { name: 'Definitions', href: '/definitions', icon: DocumentTextIcon, current: false },
+  { name: 'Dashboard', href: '/', icon: HomeIcon },
+  { name: 'Connections', href: '/connections', icon: ServerIcon },
+  { name: 'Definitions', href: '/definitions', icon: DocumentTextIcon },
+  { name: 'Components', href: '/components', icon: Squares2X2Icon },
 ];
 
-export default function Example({ children }) {
+export default function Layout({ branding, children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [branding, setBranding] = useState({
-    name: 'Preswald',
-    logo: '/assets/logo.png',
-    favicon: '/assets/favicon.ico',
-    primaryColor: window.PRESWALD_BRANDING.primaryColor || '#FF0000'
-  });
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [faviconLoaded, setFaviconLoaded] = useState(false);
 
   useEffect(() => {
     // Get branding from window object (set by server)
     if (window.PRESWALD_BRANDING) {
       console.log('Received branding:', window.PRESWALD_BRANDING);
-      setBranding(window.PRESWALD_BRANDING);
       
       // Update document title
       document.title = window.PRESWALD_BRANDING.name;
@@ -78,30 +74,40 @@ export default function Example({ children }) {
     }
   }, []);
 
-  const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
+  const handleToggleSidebar = () => {
+    setIsCollapsed(!isCollapsed);
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-background">
+      {/* Mobile Sidebar */}
       <Sidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         navigation={navigation}
-        branding={branding}
-        isCollapsed={sidebarCollapsed}
+        branding={branding || window.PRESWALD_BRANDING}
+        isCollapsed={isCollapsed}
       />
-      <div className={`transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-80'}`}>
-        <Topbar 
-          setSidebarOpen={setSidebarOpen} 
-          branding={branding} 
-          onToggleSidebar={toggleSidebar}
-          isCollapsed={sidebarCollapsed}
+
+      {/* Main Content */}
+      <div className={cn(
+        "flex flex-col min-h-screen",
+        "lg:pl-80 transition-all duration-300",
+        isCollapsed && "lg:pl-20"
+      )}>
+        <TopBar
+          setSidebarOpen={setSidebarOpen}
+          onToggleSidebar={handleToggleSidebar}
+          isCollapsed={isCollapsed}
+          branding={branding || window.PRESWALD_BRANDING}
         />
-        <main>
-          <Content>{children}</Content>
+
+        <main className="flex-1 py-10">
+          <div className="px-4 sm:px-6 lg:px-8">
+            {children}
+          </div>
         </main>
       </div>
-    </>
+    </div>
   );
 }

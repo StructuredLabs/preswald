@@ -1,5 +1,11 @@
 import 'reactflow/dist/style.css';
 
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { FiInfo, FiLock, FiMaximize2, FiMinimize2, FiUnlock } from 'react-icons/fi';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ReactFlow, {
@@ -10,8 +16,16 @@ import ReactFlow, {
   useEdgesState,
   useNodesState,
 } from 'reactflow';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-import { Tooltip } from '../common/Tooltip';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { useInView } from 'react-intersection-observer';
 
 // Custom node styles
@@ -50,6 +64,19 @@ const DAGVisualizationWidget = ({ id, data: rawData, content, error }) => {
 
   const getStatusColor = (status) => {
     const colors = {
+      pending: 'bg-gray-200 text-gray-700',
+      running: 'bg-blue-500 text-white',
+      completed: 'bg-teal-500 text-white',
+      failed: 'bg-red-500 text-white',
+      retry: 'bg-orange-400 text-white',
+      skipped: 'bg-purple-400 text-white',
+      not_executed: 'bg-gray-300 text-gray-700',
+    };
+    return colors[status] || colors.not_executed;
+  };
+
+  const getStatusBgColor = (status) => {
+    const colors = {
       pending: '#E8E8E8',
       running: '#72B0DD',
       completed: '#72B7B7',
@@ -82,7 +109,7 @@ const DAGVisualizationWidget = ({ id, data: rawData, content, error }) => {
         },
         style: {
           ...nodeStyles,
-          background: getStatusColor(data.status),
+          background: getStatusBgColor(data.status),
           color: data.status === 'pending' ? '#666' : '#fff',
         },
       }));
@@ -130,58 +157,83 @@ const DAGVisualizationWidget = ({ id, data: rawData, content, error }) => {
 
   if (error) {
     return (
-      <div className="p-4 bg-red-50 text-red-700 rounded-lg">
-        <h3 className="font-semibold">Error Loading DAG</h3>
-        <p>{error}</p>
-      </div>
+      <Card className="border-red-200 bg-red-50">
+        <CardHeader>
+          <CardTitle className="text-red-700">Error Loading DAG</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-red-600">{error}</p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div
-      className={`relative rounded-lg bg-white transition-all duration-300 ${
-        isFullscreen ? 'fixed inset-0 z-50 m-4' : ''
-      }`}
+    <Card
+      className={cn(
+        "relative transition-all duration-300",
+        isFullscreen ? "fixed inset-0 z-50 m-4" : ""
+      )}
       ref={setRefs}
     >
       {/* Header Controls */}
       <div className="absolute top-2 right-2 z-10 flex items-center gap-2">
-        <Tooltip content="Toggle MiniMap">
-          <button
-            onClick={() => setShowMiniMap(prev => !prev)}
-            className="p-2 rounded-full hover:bg-gray-100"
-          >
-            <FiInfo className="w-5 h-5" />
-          </button>
-        </Tooltip>
-        <Tooltip content={isLocked ? "Unlock Nodes" : "Lock Nodes"}>
-          <button
-            onClick={toggleLock}
-            className="p-2 rounded-full hover:bg-gray-100"
-          >
-            {isLocked ? (
-              <FiLock className="w-5 h-5" />
-            ) : (
-              <FiUnlock className="w-5 h-5" />
-            )}
-          </button>
-        </Tooltip>
-        <Tooltip content={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}>
-          <button
-            onClick={toggleFullscreen}
-            className="p-2 rounded-full hover:bg-gray-100"
-          >
-            {isFullscreen ? (
-              <FiMinimize2 className="w-5 h-5" />
-            ) : (
-              <FiMaximize2 className="w-5 h-5" />
-            )}
-          </button>
-        </Tooltip>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowMiniMap(prev => !prev)}
+              >
+                <FiInfo className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Toggle MiniMap</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleLock}
+              >
+                {isLocked ? (
+                  <FiLock className="h-4 w-4" />
+                ) : (
+                  <FiUnlock className="h-4 w-4" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {isLocked ? "Unlock Nodes" : "Lock Nodes"}
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleFullscreen}
+              >
+                {isFullscreen ? (
+                  <FiMinimize2 className="h-4 w-4" />
+                ) : (
+                  <FiMaximize2 className="h-4 w-4" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       {/* Main Content */}
-      <div className={`w-full ${isFullscreen ? 'h-full' : 'h-[600px]'}`}>
+      <CardContent className={cn("p-0", isFullscreen ? "h-full" : "h-[600px]")}>
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
@@ -198,8 +250,8 @@ const DAGVisualizationWidget = ({ id, data: rawData, content, error }) => {
           >
             {showMiniMap && (
               <MiniMap
-                nodeStrokeColor={(n) => getStatusColor(n.data?.status)}
-                nodeColor={(n) => getStatusColor(n.data?.status)}
+                nodeStrokeColor={(n) => getStatusBgColor(n.data?.status)}
+                nodeColor={(n) => getStatusBgColor(n.data?.status)}
                 nodeBorderRadius={8}
               />
             )}
@@ -207,45 +259,40 @@ const DAGVisualizationWidget = ({ id, data: rawData, content, error }) => {
             <Background color="#aaa" gap={16} />
           </ReactFlow>
         )}
-      </div>
+      </CardContent>
 
       {/* Node Details Panel */}
       {selectedNode && (
-        <div
-          className="absolute bottom-4 left-4 right-4 bg-white rounded-lg p-4 max-w-md mx-auto shadow-lg transition-all duration-300 opacity-100 translate-y-0"
-          style={{
-            transform: selectedNode ? 'translateY(0)' : 'translateY(20px)',
-            opacity: selectedNode ? 1 : 0,
-          }}
-        >
-          <div className="flex justify-between items-start">
-            <h3 className="text-lg font-semibold">{selectedNode.label}</h3>
-            <button
-              onClick={() => setSelectedNode(null)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              ×
-            </button>
-          </div>
-          <div className="mt-2 space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-500">Status:</span>
-              <span
-                className="px-2 py-1 rounded-full text-xs"
-                style={{
-                  backgroundColor: getStatusColor(selectedNode.status),
-                  color: selectedNode.status === 'pending' ? '#666' : '#fff',
-                }}
+        <Card className={cn(
+          "absolute bottom-4 left-4 right-4 max-w-md mx-auto transition-all duration-300",
+          selectedNode ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"
+        )}>
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-lg">{selectedNode.label}</CardTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSelectedNode(null)}
               >
+                <span className="sr-only">Close</span>
+                ×
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground">Status:</span>
+              <Badge variant="secondary" className={getStatusColor(selectedNode.status)}>
                 {selectedNode.status}
-              </span>
+              </Badge>
             </div>
             <div>
-              <span className="text-sm font-medium text-gray-500">Execution Time:</span>
+              <span className="text-sm font-medium text-muted-foreground">Execution Time:</span>
               <span className="ml-2 text-sm">{selectedNode.executionTime}</span>
             </div>
             <div>
-              <span className="text-sm font-medium text-gray-500">Attempts:</span>
+              <span className="text-sm font-medium text-muted-foreground">Attempts:</span>
               <span className="ml-2 text-sm">{selectedNode.attempts}</span>
             </div>
             {selectedNode.error && (
@@ -258,23 +305,24 @@ const DAGVisualizationWidget = ({ id, data: rawData, content, error }) => {
             )}
             {selectedNode.dependencies?.length > 0 && (
               <div>
-                <span className="text-sm font-medium text-gray-500">Dependencies:</span>
+                <span className="text-sm font-medium text-muted-foreground">Dependencies:</span>
                 <div className="mt-1 flex flex-wrap gap-1">
                   {selectedNode.dependencies.map((dep) => (
-                    <span
+                    <Badge
                       key={dep}
-                      className="px-2 py-1 bg-gray-100 rounded-full text-xs text-gray-700"
+                      variant="outline"
+                      className="text-xs"
                     >
                       {dep}
-                    </span>
+                    </Badge>
                   ))}
                 </div>
               </div>
             )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
-    </div>
+    </Card>
   );
 };
 

@@ -1,11 +1,13 @@
-import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
-import { useEffect, useState } from "react";
+import {Route, Routes} from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
-import Connections from "./components/pages/Connections";
-import Dashboard from "./components/pages/Dashboard";
-import Definitions from "./components/pages/Definitions";
-import Layout from "./components/Layout";
-import { websocket } from "./utils/websocket";
+import ComponentShowcase from './components/pages/ComponentShowcase';
+import Connections from './components/pages/Connections';
+import Dashboard from './components/pages/Dashboard';
+import Definitions from './components/pages/Definitions';
+import Layout from './components/Layout';
+import { BrowserRouter as Router } from 'react-router-dom';
+import { websocket } from './utils/websocket';
 
 const App = () => {
   const [components, setComponents] = useState([]);
@@ -60,12 +62,15 @@ const App = () => {
         setConfig(message.config);
         break;
 
-      // state_update and initial_state are handled by websocket.js
+      case "initial_state":
+        // Handle initial state
+        console.log("[App] Received initial state:", message);
+        break;
     }
   };
 
   const refreshComponentsList = (components) => {
-    const updatedComponents = components.map((component) => {
+    const updatedComponents = components?.map((component) => {
       if (component.id) {
         const currentState = websocket.getComponentState(component.id);
         return {
@@ -76,7 +81,7 @@ const App = () => {
       }
       return component;
     });
-    setComponents(updatedComponents);
+    setComponents(updatedComponents || []);
     setError(null);
   };
 
@@ -86,7 +91,7 @@ const App = () => {
 
     if (errorContent.componentId) {
       setComponents((prevComponents) =>
-        prevComponents.map((component) =>
+        prevComponents?.map((component) =>
           component.id === errorContent.componentId
             ? { ...component, error: errorContent.message }
             : component
@@ -101,7 +106,7 @@ const App = () => {
     } catch (error) {
       console.error("[App] Error updating component state:", error);
       setComponents((prevComponents) =>
-        prevComponents.map((component) =>
+        prevComponents?.map((component) =>
           component.id === componentId
             ? { ...component, error: error.message }
             : component
@@ -119,7 +124,7 @@ const App = () => {
     );
   };
 
-  const renderLoadingState = () => (
+  const LoadingState = () => (
     <div className="flex items-center justify-center h-screen">
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -128,11 +133,12 @@ const App = () => {
     </div>
   );
 
+  console.log("components123", {components}, {isConnected}, {error});
   return (
     <Router>
       <Layout>
         {!isConnected ? (
-          renderLoadingState
+          <LoadingState />
         ) : (
           <Routes>
             <Route
@@ -147,11 +153,23 @@ const App = () => {
             />
             <Route path="/connections" element={<Connections />} />
             <Route path="/definitions" element={<Definitions />} />
+            <Route path="/components" element={<ComponentShowcase />} />
           </Routes>
         )}
       </Layout>
     </Router>
+    // <Layout>
+    //    {!isConnected ? (
+    //       <LoadingState />
+    //     ) : (
+    //       <Dashboard
+    //         components={components}
+    //         error={error}
+    //         handleComponentUpdate={handleComponentUpdate}
+    //       />
+    //     )}
+    // </Layout>
   );
-};
+}
 
 export default App;

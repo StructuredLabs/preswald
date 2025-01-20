@@ -1,13 +1,18 @@
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent } from "@/components/ui/card";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { debounce, processDataInChunks, sampleData, decompressData } from "../../utils/dataProcessing";
+import { debounce, decompressData, processDataInChunks, sampleData } from "../../utils/dataProcessing";
+
 import { FEATURES } from "../../config/features";
 import Plot from "react-plotly.js";
+import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 import { useInView } from "react-intersection-observer";
 
 const INITIAL_POINTS_THRESHOLD = 1000;
 const PROGRESSIVE_LOADING_CHUNK_SIZE = 500;
 
-const DataVisualizationWidget = ({ id, data: rawData, content, error }) => {
+const DataVisualizationWidget = ({ id, data: rawData, content, error, className }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [plotError, setPlotError] = useState(null);
   const [processedData, setProcessedData] = useState(null);
@@ -151,63 +156,62 @@ const DataVisualizationWidget = ({ id, data: rawData, content, error }) => {
 
   if (error || plotError) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-600 font-medium">Error: {error || plotError}</p>
-      </div>
+      <Alert variant="destructive">
+        <AlertDescription>
+          Error: {error || plotError}
+        </AlertDescription>
+      </Alert>
     );
   }
 
   return (
-    <div className="w-full h-full" ref={setRefs}>
-      {(!inView || isLoading) ? (
-        <div className="flex flex-col items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
-          <p className="text-sm text-gray-600">Loading visualization...</p>
-        </div>
-      ) : processedData?.data ? (
-        <div className="relative w-full" style={{ minHeight: '400px' }}>
-          {loadedDataPercentage > 0 && loadedDataPercentage < 100 && (
-            <div className="absolute top-0 left-0 right-0 z-10 bg-blue-50 px-4 py-2">
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div
-                  className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
-                  style={{ width: `${loadedDataPercentage}%` }}
-                ></div>
+    <Card className={cn("w-full h-full", className)} ref={setRefs}>
+      <CardContent className="p-0">
+        {(!inView || isLoading) ? (
+          <div className="flex flex-col items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+            <p className="text-sm text-muted-foreground">Loading visualization...</p>
+          </div>
+        ) : processedData?.data ? (
+          <div className="relative w-full" style={{ minHeight: '400px' }}>
+            {loadedDataPercentage > 0 && loadedDataPercentage < 100 && (
+              <div className="absolute top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm px-4 py-2">
+                <Progress value={loadedDataPercentage} className="w-full h-2" />
               </div>
-            </div>
-          )}
-          <Plot
-            key={id}
-            data={processedData.data}
-            layout={{
-              ...processedData.layout,
-              font: { family: 'Inter, system-ui, sans-serif' },
-              paper_bgcolor: 'transparent',
-              plot_bgcolor: 'transparent',
-              margin: { t: 40, r: 10, l: 60, b: 40 },
-              showlegend: true,
-              hovermode: 'closest'
-            }}
-            config={{
-              responsive: true,
-              displayModeBar: true,
-              modeBarButtonsToRemove: ['lasso2d', 'select2d'],
-              displaylogo: false,
-              ...processedData.config
-            }}
-            className="w-full h-full"
-            useResizeHandler={true}
-            style={{ width: '100%', height: '100%' }}
-            onError={(err) => {
-              console.error("Plotly rendering error:", err);
-              setPlotError("Failed to render plot");
-            }}
-          />
-        </div>
-      ) : (
-        <div className="w-full h-full" ref={plotContainerRef} />
-      )}
-    </div>
+            )}
+            <Plot
+              key={id}
+              data={processedData.data}
+              layout={{
+                ...processedData.layout,
+                font: { family: 'Inter, system-ui, sans-serif' },
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent',
+                margin: { t: 40, r: 10, l: 60, b: 40 },
+                showlegend: true,
+                hovermode: 'closest'
+              }}
+              config={{
+                responsive: true,
+                displayModeBar: true,
+                modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+                displaylogo: false,
+                ...processedData.config
+              }}
+              className="w-full h-full"
+              useResizeHandler={true}
+              style={{ width: '100%', height: '100%' }}
+              onError={(err) => {
+                console.error("Plotly rendering error:", err);
+                setPlotError("Failed to render plot");
+              }}
+            />
+          </div>
+        ) : (
+          <div className="w-full h-full" ref={plotContainerRef} />
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

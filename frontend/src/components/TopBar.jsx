@@ -1,44 +1,54 @@
 'use client';
 
-import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from '@heroicons/react/24/solid';
+import { Menu, PanelLeft, PanelLeftClose } from "lucide-react";
 
-import { Bars3Icon } from '@heroicons/react/24/outline';
+import { Button } from "@/components/ui/button";
+import React from 'react';
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 export default function Topbar({ setSidebarOpen, branding, onToggleSidebar, isCollapsed }) {
   return (
-    <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
-      <button type="button" className="-m-2.5 p-2.5 text-gray-700 lg:hidden" onClick={() => setSidebarOpen(true)}>
-        <span className="sr-only">Open sidebar</span>
-        <Bars3Icon className="h-6 w-6" aria-hidden="true" />
-      </button>
+    <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-background px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+      {/* Mobile menu button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="lg:hidden"
+        onClick={() => setSidebarOpen(true)}
+        aria-label="Open sidebar"
+      >
+        <Menu className="h-6 w-6" />
+      </Button>
 
       {/* Desktop collapse button */}
-      <button
-        type="button"
-        className="hidden lg:flex -m-2.5 p-2.5 text-gray-700 hover:text-gray-900 transition-colors duration-200"
+      <Button
+        variant="ghost"
+        size="icon"
+        className="hidden lg:flex"
         onClick={onToggleSidebar}
+        aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
-        <span className="sr-only">{isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}</span>
         {isCollapsed ? (
-          <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+          <PanelLeft className="h-6 w-6 transition-transform duration-200" />
         ) : (
-          <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+          <PanelLeftClose className="h-6 w-6 transition-transform duration-200" />
         )}
-      </button>
+      </Button>
 
       {/* Separator */}
-      <div className="h-6 w-px bg-gray-200 lg:hidden" aria-hidden="true" />
+      <Separator orientation="vertical" className="h-6 lg:hidden" />
 
       <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
         <div className="flex items-center gap-x-4 lg:gap-x-6">
           {/* Mobile branding */}
-          <div className="flex lg:hidden">
+          <div className="flex lg:hidden items-center">
             <img
               className="h-8 w-8"
-              src={branding.logo}
-              alt={branding.name}
+              src={branding?.logo}
+              alt={branding?.name}
             />
-            <span className="ml-3 text-lg font-semibold text-gray-900">{branding.name}</span>
+            <span className="ml-3 text-lg font-semibold">{branding?.name}</span>
           </div>
         </div>
       </div>

@@ -1,11 +1,25 @@
+import {
+  Card,
+  CardContent,
+  CardHeader,
+} from "@/components/ui/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import React, { useEffect, useState } from 'react';
 
-import { websocket } from '../../utils/websocket';
+import { Badge } from "@/components/ui/badge";
+import { ChevronDown } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import { websocket } from '@/utils/websocket';
 
 function MetadataView({ metadata, type }) {
   if (!metadata || metadata.error) {
     return (
-      <div className="text-sm text-red-500">
+      <div className="text-sm text-destructive">
         {metadata?.error || 'No metadata available'}
       </div>
     );
@@ -14,33 +28,36 @@ function MetadataView({ metadata, type }) {
   switch (type.toLowerCase()) {
     case 'postgresql':
       return (
-        <div className="space-y-2">
-          <div className="text-sm">
-            <span className="font-medium">Database:</span> {metadata.database_name}
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="text-sm">
+              <span className="font-medium">Database:</span> {metadata.database_name}
+            </div>
+            <div className="text-sm">
+              <span className="font-medium">Total Tables:</span> {metadata.total_tables}
+            </div>
           </div>
-          <div className="text-sm">
-            <span className="font-medium">Total Tables:</span> {metadata.total_tables}
-          </div>
-          <div className="mt-2">
-            <div className="font-medium text-sm mb-1">Schemas:</div>
+          <div>
+            <div className="font-medium text-sm mb-2">Schemas:</div>
             {Object.entries(metadata.schemas).map(([schema, tables]) => (
-              <div key={schema} className="ml-2">
-                <div className="text-sm font-medium text-gray-600">{schema}</div>
-                <div className="ml-2">
+              <div key={schema} className="mb-4">
+                <div className="text-sm font-medium text-muted-foreground mb-2">{schema}</div>
+                <div className="space-y-2">
                   {Object.entries(tables).map(([table, info]) => (
-                    <details key={table} className="mb-1">
-                      <summary className="text-sm text-blue-600 cursor-pointer">
-                        {table} ({info.columns.length} columns)
-                      </summary>
-                      <div className="ml-4 mt-1">
+                    <Collapsible key={table}>
+                      <CollapsibleTrigger className="flex items-center text-sm text-primary hover:text-primary/90 cursor-pointer">
+                        <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                        <span className="ml-2">{table} ({info.columns.length} columns)</span>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="ml-6 mt-2">
                         {info.columns.map((col) => (
-                          <div key={col.name} className="text-sm">
-                            <span className="text-gray-600">{col.name}</span>
-                            <span className="text-gray-400 ml-1">({col.type})</span>
+                          <div key={col.name} className="text-sm py-1">
+                            <span className="text-muted-foreground">{col.name}</span>
+                            <span className="text-muted-foreground/60 ml-1">({col.type})</span>
                           </div>
                         ))}
-                      </div>
-                    </details>
+                      </CollapsibleContent>
+                    </Collapsible>
                   ))}
                 </div>
               </div>
@@ -51,33 +68,36 @@ function MetadataView({ metadata, type }) {
 
     case 'csv':
       return (
-        <div className="space-y-2">
-          <div className="text-sm">
-            <span className="font-medium">File Size:</span> {metadata.file_size}
+        <div className="space-y-3">
+          <div className="grid grid-cols-3 gap-2">
+            <div className="text-sm">
+              <span className="font-medium">File Size:</span> {metadata.file_size}
+            </div>
+            <div className="text-sm">
+              <span className="font-medium">Total Rows:</span> {metadata.total_rows}
+            </div>
+            <div className="text-sm">
+              <span className="font-medium">Total Columns:</span> {metadata.total_columns}
+            </div>
           </div>
-          <div className="text-sm">
-            <span className="font-medium">Total Rows:</span> {metadata.total_rows}
-          </div>
-          <div className="text-sm">
-            <span className="font-medium">Total Columns:</span> {metadata.total_columns}
-          </div>
-          <div className="mt-2">
-            <div className="font-medium text-sm mb-1">Columns:</div>
-            <div className="grid grid-cols-1 gap-2">
+          <div>
+            <div className="font-medium text-sm mb-2">Columns:</div>
+            <div className="space-y-2">
               {metadata.columns.map((col) => (
-                <details key={col.name} className="text-sm">
-                  <summary className="cursor-pointer text-blue-600">
-                    {col.name} ({col.type})
-                  </summary>
-                  <div className="ml-4 mt-1">
-                    <div className="text-gray-600">Sample Values:</div>
-                    <div className="text-gray-500">
+                <Collapsible key={col.name}>
+                  <CollapsibleTrigger className="flex items-center text-sm text-primary hover:text-primary/90 cursor-pointer">
+                    <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                    <span className="ml-2">{col.name} ({col.type})</span>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="ml-6 mt-2">
+                    <div className="text-muted-foreground">Sample Values:</div>
+                    <div className="text-muted-foreground/60 space-y-1">
                       {col.sample_values.map((val, i) => (
                         <div key={i}>{String(val)}</div>
                       ))}
                     </div>
-                  </div>
-                </details>
+                  </CollapsibleContent>
+                </Collapsible>
               ))}
             </div>
           </div>
@@ -86,7 +106,7 @@ function MetadataView({ metadata, type }) {
 
     default:
       return (
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-muted-foreground">
           No metadata display configured for this connection type
         </div>
       );
@@ -96,20 +116,14 @@ function MetadataView({ metadata, type }) {
 function ConnectionCard({ connection }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const handleOnClickConnectionCard = async (e) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setIsExpanded(!isExpanded);
-  };
-
-  const getStatusColor = (status) => {
+  const getStatusVariant = (status) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800';
+        return 'success';
       case 'configured':
-        return 'bg-blue-100 text-blue-800';
+        return 'default';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'secondary';
     }
   };
 
@@ -131,59 +145,51 @@ function ConnectionCard({ connection }) {
   };
 
   return (
-    <div className="border rounded-lg overflow-hidden">
-      <div
-        className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50"
-        onClick={handleOnClickConnectionCard}
-      >
-        <div className="flex items-center">
-          <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mr-4">
-            <span className="text-lg" role="img" aria-label={connection.type}>
-              {getConnectionIcon(connection.type)}
-            </span>
-          </div>
-          <div>
+    <Card>
+      <CardHeader className="p-4">
+        <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+          <CollapsibleTrigger className="flex w-full items-center justify-between">
             <div className="flex items-center">
-              <p className="text-sm font-semibold text-gray-700 mr-2">
-                {connection.name}
-              </p>
-              <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full capitalize ${getStatusColor(connection.status)}`}>
-                {connection.status}
-              </span>
+              <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center mr-4">
+                <span className="text-lg" role="img" aria-label={connection.type}>
+                  {getConnectionIcon(connection.type)}
+                </span>
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-semibold">
+                    {connection.name}
+                  </h3>
+                  <Badge variant={getStatusVariant(connection.status)}>
+                    {connection.status}
+                  </Badge>
+                </div>
+                <div className="mt-1 space-y-1">
+                  <p className="text-sm text-muted-foreground">
+                    Type: {connection.type}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {connection.details}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="mt-1">
-              <p className="text-sm text-gray-500">
-                Type: {connection.type}
-              </p>
-              <p className="text-sm text-gray-500">
-                {connection.details}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="text-gray-400">
-          <svg
-            className={`w-5 h-5 transform transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 9l-7 7-7-7"
+            <ChevronDown
+              className={cn(
+                "h-4 w-4 shrink-0 transition-transform duration-200",
+                isExpanded && "rotate-180"
+              )}
             />
-          </svg>
-        </div>
-      </div>
-      {isExpanded && (
-        <div className="px-4 py-3 bg-gray-50 border-t">
-          <div className="text-sm font-medium text-gray-700 mb-2">Metadata</div>
-          <MetadataView metadata={connection.metadata} type={connection.type} />
-        </div>
-      )}
-    </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-4">
+            <CardContent className="p-0">
+              <div className="text-sm font-medium mb-2">Metadata</div>
+              <MetadataView metadata={connection.metadata} type={connection.type} />
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
+      </CardHeader>
+    </Card>
   );
 }
 
@@ -225,10 +231,20 @@ function Connections() {
 
   if (loading) {
     return (
-      <div className="p-4">
-        <div className="text-center text-gray-500 py-8">
-          Loading connections...
-        </div>
+      <div className="p-4 space-y-4">
+        {[1, 2, 3].map((i) => (
+          <Card key={i}>
+            <CardHeader className="p-4">
+              <div className="flex items-center">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="ml-4 space-y-2">
+                  <Skeleton className="h-4 w-[200px]" />
+                  <Skeleton className="h-4 w-[150px]" />
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+        ))}
       </div>
     );
   }
@@ -236,24 +252,28 @@ function Connections() {
   if (error) {
     return (
       <div className="p-4">
-        <div className="text-center text-red-500 py-8">
-          Error: {error}
-        </div>
+        <Card className="border-destructive">
+          <CardContent className="p-6 text-center text-destructive">
+            Error: {error}
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Connections</h1>
+      <h1 className="text-2xl font-bold mb-6">Connections</h1>
       <div className="space-y-4">
         {connections.map((connection, index) => (
           <ConnectionCard key={`${connection.name}-${index}`} connection={connection} />
         ))}
         {connections.length === 0 && (
-          <div className="text-center text-gray-500 py-8">
-            No connections found. Add connections in your config.toml file to get started.
-          </div>
+          <Card>
+            <CardContent className="p-6 text-center text-muted-foreground">
+              No connections found. Add connections in your config.toml file to get started.
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
