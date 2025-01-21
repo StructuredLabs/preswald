@@ -256,7 +256,7 @@ const DynamicComponents = ({ components, onComponentUpdate }) => {
         <div
           key={component.id || `component-${index}`}
           className={cn(
-            "w-full p-4 bg-background rounded-lg border",
+            "w-full p-4 bg-background rounded-lg",
             "transition-all duration-200 hover:border-muted-foreground/20"
           )}
         >

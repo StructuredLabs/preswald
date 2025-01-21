@@ -70,9 +70,6 @@ const SliderWidget = ({
         className="w-full text-black"
       /> */}
       <div className="p-4 bg-white">
-      <label htmlFor={id} className="block text-sm font-medium text-gray-900">
-        {label}
-      </label>
       <div className="mt-2">
         <input
           id={id}
