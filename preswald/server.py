@@ -28,6 +28,8 @@ import pandas as pd
 import psycopg2
 from sqlalchemy import create_engine, inspect
 import toml
+from preswald.celery_app import parse_connections_task
+from celery.result import AsyncResult
                     
 logger = logging.getLogger(__name__)
 
@@ -52,6 +54,15 @@ script_runners: Dict[WebSocket, ScriptRunner] = {}
 
 # Store persistent component states
 component_states: Dict[str, Any] = {}
+
+# Global variables for connections cache and parsing status
+connections_cache: Dict[str, List] = {"connections": []}
+connections_parsing_status = {
+    "is_parsing": False,
+    "last_parsed": None,
+    "error": None,
+    "task_id": None  # Add task_id tracking
+}
 
 # Global flag to track server shutdown state
 is_shutting_down = False
@@ -310,312 +321,65 @@ async def serve_index():
 @app.get("/api/connections")
 async def get_connections():
     """Get all active connections and config-defined connections with metadata"""
+    # Try to get latest results before returning
+    await update_connections_from_celery()
+    
+    return {
+        "connections": connections_cache["connections"],
+        "status": {
+            "is_parsing": connections_parsing_status["is_parsing"],
+            "last_parsed": connections_parsing_status["last_parsed"],
+            "error": connections_parsing_status["error"]
+        }
+    }
+
+async def update_connections_from_celery():
+    """Update connections cache from Celery task result"""
     try:
-        connection_list = []
-        
-        # Add active connections
-        for name, conn in connections.items():
-            try:
-                conn_type = type(conn).__name__
-                conn_info = {
-                    "name": name,
-                    "type": conn_type,
-                    "details": str(conn)[:100] + "..." if len(str(conn)) > 100 else str(conn),
-                    "status": "active",
-                    "metadata": {}  # Will be populated based on connection type
-                }
-                connection_list.append(conn_info)
-            except Exception as e:
-                logger.error(f"Error processing active connection {name}: {e}")
-                continue
+        task_id = connections_parsing_status.get("task_id")
+        if not task_id:
+            logger.warning("No task ID available for checking results")
+            return
 
-        # Use LLM to analyze script for connections if script exists
-        if SCRIPT_PATH and os.path.exists(SCRIPT_PATH):
-            try:
-                # Read the script content
-                with open(SCRIPT_PATH, 'r') as f:
-                    script_content = f.read()
-
-                # Get OpenAI API key from secrets.toml
-                script_dir = os.path.dirname(SCRIPT_PATH)
-                secrets_path = os.path.join(script_dir, "secrets.toml")
-                secrets = toml.load(secrets_path)
-                openai_api_key = secrets.get('openai', {}).get('api_key')
-                
-                if not openai_api_key:
-                    raise ValueError("OpenAI API key not found in secrets.toml")
-
-                # Initialize OpenAI service
-                llm = OpenAIService(api_key=openai_api_key)
-                
-                # Call LLM to analyze connections
-                llm_response = await llm.call_gpt_api_non_streamed(
-                    text=f"Below is a python code. Please go through the code and give me the file or data connections that are being made/created in the code.\n\n{script_content}",
-                    model=llm.GPT_4_TURBO,
-                    sys_prompt=llm.ASSISTANT_SYS_PROMPT,
-                    response_type="json_object",
-                    tools=[
-                        {
-                            "type": "function",
-                            "function": {
-                                "name": "extract_connections",
-                                "description": "Extract the file or data connections that are being made/created in the code",
-                                "parameters": {
-                                    "type": "object",
-                                    "properties": {
-                                        "connections": {
-                                            "type": "array",
-                                            "description": "The connections that are being made/created in the code",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "name": {
-                                                        "type": "string",
-                                                        "description": "The name of the connection"
-                                                    },
-                                                    "type": {
-                                                        "type": "string", 
-                                                        "description": "The type of the connection"
-                                                    },
-                                                    "details": {
-                                                        "type": "string",
-                                                        "description": "Additional details about the connection"
-                                                    }
-                                                },
-                                                "required": ["name", "type", "details"]
-                                            }
-                                        }
-                                    },
-                                    "required": ["connections"]
-                                }
-                            }
-                        }
-                    ],
-                    tool_choice={
-                        "type": "function",
-                        "function": {"name": "extract_connections"}
-                    }
-                )
-
-                # Parse the LLM response and add to connection list
-                llm_connections = json.loads(llm_response.arguments).get('connections', [])
-                for conn in llm_connections:
-                    conn_info = {
-                        "name": conn["name"],
-                        "type": conn["type"],
-                        "details": conn["details"],
-                        "status": "detected",
-                        "metadata": {"source": "llm_analysis"}
-                    }
-                    connection_list.append(conn_info)
-
-            except Exception as e:
-                logger.error(f"Error analyzing script with LLM: {str(e)}")
-            
-        # Add connections from config.toml
-        if SCRIPT_PATH:
-            try:
-                script_dir = os.path.dirname(SCRIPT_PATH)
-                config_path = os.path.join(script_dir, "config.toml")
-                secrets_path = os.path.join(script_dir, "secrets.toml")
-                
-                if os.path.exists(config_path):
-                    
-                    config = toml.load(config_path)
-                    secrets = {}
-                    if os.path.exists(secrets_path):
-                        secrets = toml.load(secrets_path)
-                    
-                    # Extract data connections
-                    if "data" in config:
-                        for key, value in config["data"].items():
-                            if not isinstance(value, dict):
-                                continue
-                                
-                            try:
-                                conn_type = ""
-                                details = {}
-                                metadata = {}
-                                
-                                # PostgreSQL Connection
-                                if all(field in value for field in ["host", "port", "dbname"]) and value.get("port") == 5432:
-                                    conn_type = "PostgreSQL"
-                                    details = {
-                                        "host": value.get("host", ""),
-                                        "port": value.get("port", ""),
-                                        "dbname": value.get("dbname", ""),
-                                        "user": value.get("user", "")
-                                    }
-                                    
-                                    # Get PostgreSQL metadata
-                                    try:
-                                        # Get password from secrets if available
-                                        password = None
-                                        secret_key = f"{key}"
-                                        logger.info(f"Looking for password with key: {secret_key} {secrets}")
-                                        if secret_key in secrets['data']:  # Check directly in secrets, not in secrets['data']
-                                            password = secrets['data'][secret_key].get("password")
-                                            if password:
-                                                logger.info(f"Found password in secrets.toml for {key}")
-                                            else:
-                                                logger.warning(f"Password field is empty in secrets.toml for {key}")
-                                                metadata = {"error": "Password field is empty in secrets.toml"}
-                                                continue
-                                        else:
-                                            logger.warning(f"No password entry found in secrets.toml for {key}")
-                                            metadata = {"error": "No password entry found in secrets.toml"}
-                                            continue
-
-                                        if password:
-                                            # Create connection URL with proper URL encoding for special characters
-                                            from urllib.parse import quote_plus
-                                            password = quote_plus(password)  # URL encode the password
-                                            conn_str = f"postgresql://{details['user']}:{password}@{details['host']}:{details['port']}/{details['dbname']}"
-                                            
-                                            # Test connection before proceeding
-                                            engine = create_engine(conn_str)
-                                            with engine.connect() as connection:
-                                                # Get schema information
-                                                inspector = inspect(engine)
-                                                schemas = inspector.get_schema_names()
-                                                tables_info = {}
-                                                
-                                                for schema in schemas:
-                                                    tables = inspector.get_table_names(schema=schema)
-                                                    tables_info[schema] = {}
-                                                    
-                                                    for table in tables:
-                                                        columns = inspector.get_columns(table, schema=schema)
-                                                        tables_info[schema][table] = {
-                                                            "columns": [
-                                                                {
-                                                                    "name": col["name"],
-                                                                    "type": str(col["type"]),
-                                                                    "nullable": col["nullable"]
-                                                                }
-                                                                for col in columns
-                                                            ]
-                                                        }
-                                                
-                                                metadata = {
-                                                    "database_name": details["dbname"],
-                                                    "schemas": tables_info,
-                                                    "total_tables": sum(len(tables) for tables in tables_info.values())
-                                                }
-                                                logger.info(f"Successfully connected to PostgreSQL database for {key}")
-                                    except Exception as e:
-                                        error_msg = str(e)
-                                        logger.warning(f"Could not fetch PostgreSQL metadata: {error_msg}")
-                                        if "password" in error_msg.lower():
-                                            metadata = {"error": "Invalid password. Please check your credentials in secrets.toml"}
-                                        else:
-                                            metadata = {"error": f"Could not connect to database: {error_msg}"}
-                                
-                                # CSV Connection
-                                elif "path" in value and str(value["path"]).endswith(".csv"):
-                                    conn_type = "CSV"
-                                    file_path = value.get("path", "")
-                                    details = {"path": file_path}
-                                    
-                                    # Get CSV metadata
-                                    try:
-                                        if file_path.startswith(("http://", "https://")):
-                                            # Handle remote CSV file
-                                            import requests
-                                            from io import StringIO
-                                            
-                                            logger.info(f"Fetching remote CSV file: {file_path}")
-                                            response = requests.get(file_path)
-                                            response.raise_for_status()  # Raise exception for bad status codes
-                                            
-                                            # Read CSV content into DataFrame
-                                            csv_content = StringIO(response.text)
-                                            df = pd.read_csv(csv_content, nrows=5)  # Read just first 5 rows for schema
-                                            
-                                            # Count total rows by reading lines from response content
-                                            total_rows = len(response.text.splitlines()) - 1  # -1 for header
-                                            file_size_mb = len(response.content) / (1024*1024)
-                                            
-                                            metadata = {
-                                                "columns": [
-                                                    {
-                                                        "name": col,
-                                                        "type": str(df[col].dtype),
-                                                        "sample_values": [str(val) for val in df[col].head().tolist()]
-                                                    }
-                                                    for col in df.columns
-                                                ],
-                                                "total_rows": total_rows,
-                                                "total_columns": len(df.columns),
-                                                "file_size": f"{file_size_mb:.2f} MB",
-                                                "source": "remote"
-                                            }
-                                            logger.info(f"Successfully read remote CSV file: {file_path}")
-                                            
-                                        else:
-                                            # Handle local CSV file
-                                            if file_path.startswith("./"):
-                                                file_path = os.path.join(script_dir, file_path[2:])
-                                                
-                                            if os.path.exists(file_path):
-                                                df = pd.read_csv(file_path, nrows=5)  # Read just first 5 rows for schema
-                                                total_rows = sum(1 for _ in open(file_path)) - 1  # Count total rows (-1 for header)
-                                                file_size_mb = os.path.getsize(file_path) / (1024*1024)
-                                                
-                                                metadata = {
-                                                    "columns": [
-                                                        {
-                                                            "name": col,
-                                                            "type": str(df[col].dtype),
-                                                            "sample_values": [str(val) for val in df[col].head().tolist()]
-                                                        }
-                                                        for col in df.columns
-                                                    ],
-                                                    "total_rows": total_rows,
-                                                    "total_columns": len(df.columns),
-                                                    "file_size": f"{file_size_mb:.2f} MB",
-                                                    "source": "local"
-                                                }
-                                                logger.info(f"Successfully read local CSV file: {file_path}")
-                                            else:
-                                                metadata = {"error": "File not found", "source": "local"}
-                                    except requests.exceptions.RequestException as e:
-                                        logger.warning(f"Could not fetch remote CSV file: {str(e)}")
-                                        metadata = {"error": f"Could not fetch remote file: {str(e)}", "source": "remote"}
-                                    except Exception as e:
-                                        logger.warning(f"Could not read CSV metadata: {str(e)}")
-                                        metadata = {"error": f"Could not read file: {str(e)}", "source": "unknown"}
-                                
-                                if conn_type:  # Only add if we identified the connection type
-                                    conn_info = {
-                                        "name": key,
-                                        "type": conn_type,
-                                        "details": ", ".join(f"{k}: {v}" for k, v in details.items() if v),
-                                        "status": "configured",
-                                        "metadata": metadata
-                                    }
-                                    connection_list.append(conn_info)
-                                    
-                            except Exception as e:
-                                logger.error(f"Error processing connection {key}: {str(e)}")
-                                # Still add the connection but with error metadata
-                                if conn_type:
-                                    conn_info = {
-                                        "name": key,
-                                        "type": conn_type,
-                                        "details": ", ".join(f"{k}: {v}" for k, v in details.items() if v),
-                                        "status": "configured",
-                                        "metadata": {"error": str(e)}
-                                    }
-                                    connection_list.append(conn_info)
-            
-            except Exception as e:
-                logger.error(f"Error reading config files: {str(e)}")
-                
-        return {"connections": connection_list}
+        task_result = AsyncResult(task_id)
+        if task_result and task_result.ready():
+            result = task_result.get()
+            if result:
+                connections_cache["connections"] = result["connections"]
+                connections_parsing_status["error"] = result["error"]
+                connections_parsing_status["last_parsed"] = result["timestamp"]
+                connections_parsing_status["is_parsing"] = False
+                logger.info("Updated connections cache from Celery task result")
     except Exception as e:
-        logger.error(f"Error getting connections: {str(e)}")
-        return {"connections": [], "error": str(e)}
+        logger.error(f"Error updating connections from Celery task: {e}")
+        connections_parsing_status["error"] = str(e)
+        connections_parsing_status["is_parsing"] = False
+
+async def run_server():
+    """Run the FastAPI server with Celery background task"""
+    try:
+        connections_parsing_status["is_parsing"] = True
+        connections_parsing_status["error"] = None
+        
+        task = parse_connections_task.delay()
+        connections_parsing_status["task_id"] = task.id
+        logger.info(f"Started background connections parsing task with ID: {task.id}")
+        
+        async def check_celery_results():
+            while True:
+                await update_connections_from_celery()
+                await asyncio.sleep(5)  # Check every 5 seconds
+        
+        asyncio.create_task(check_celery_results())
+        
+        config = uvicorn.Config(app, host="0.0.0.0", port=8501, loop="asyncio")
+        server = uvicorn.Server(config)
+        await server.serve()
+    except Exception as e:
+        logger.error(f"Error in server startup: {e}")
+        connections_parsing_status["is_parsing"] = False
+        connections_parsing_status["error"] = str(e)
+        raise
 
 # Add catch-all route for SPA routing
 @app.get("/{path:path}")
@@ -870,9 +634,19 @@ def start_server(script=None, port=8501):
 
     if script:
         SCRIPT_PATH = os.path.abspath(script)
+        script_dir = os.path.dirname(SCRIPT_PATH)
+        config_path = os.path.join(script_dir, "config.toml")
+        
+        # Load config if it exists
+        if os.path.exists(config_path):
+            try:
+                config = toml.load(config_path)
+                if "project" in config and "port" in config["project"]:
+                    port = config["project"]["port"]
+                    print(f"Using port {port} from config.toml")
+            except Exception as e:
+                logger.error(f"Error loading config.toml: {e}")
+        
         print(f"Will run script: {SCRIPT_PATH}")
-    
-    # Configure uvicorn to handle signals properly
-    config = uvicorn.Config(app, host="0.0.0.0", port=port, loop="asyncio")
-    server = uvicorn.Server(config)
-    server.run()
+
+    asyncio.run(run_server())
