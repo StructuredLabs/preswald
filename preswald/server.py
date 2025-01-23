@@ -5,7 +5,6 @@ from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
 import asyncio
 import os
 import pkg_resources
-import logging
 import uvicorn
 from typing import Dict, Any, Optional, Set, List, Union
 from preswald.scriptrunner import ScriptRunner
@@ -30,8 +29,7 @@ from sqlalchemy import create_engine, inspect
 import toml
 from preswald.celery_app import parse_connections_task
 from celery.result import AsyncResult
-                    
-logger = logging.getLogger(__name__)
+from preswald.utils import logger
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -334,24 +332,55 @@ async def get_connections():
     }
 
 async def update_connections_from_celery():
-    """Update connections cache from Celery task result"""
+    """Update connections cache from Celery task result and IPC file"""
     try:
+        latest_result = None
+        latest_timestamp = 0
+        
         task_id = connections_parsing_status.get("task_id")
-        if not task_id:
-            logger.warning("No task ID available for checking results")
-            return
+        if task_id:
+            logger.info(f"Checking Celery task result for ID: {task_id}")
+            task_result = AsyncResult(task_id)
+            logger.info(f"Task status: {task_result.status}")
+            
+            if task_result and task_result.ready():
+                logger.info("Task is ready, getting result")
+                result = task_result.get()
+                logger.info(f"Raw result from Celery: {result}")
+                
+                if result and isinstance(result, dict):
+                    logger.info(f"Processing Celery result with keys: {result.keys()}")
+                    celery_timestamp = result.get("timestamp", 0)
+                    if celery_timestamp > latest_timestamp:
+                        latest_timestamp = celery_timestamp
+                        latest_result = result
 
-        task_result = AsyncResult(task_id)
-        if task_result and task_result.ready():
-            result = task_result.get()
-            if result:
-                connections_cache["connections"] = result["connections"]
-                connections_parsing_status["error"] = result["error"]
-                connections_parsing_status["last_parsed"] = result["timestamp"]
-                connections_parsing_status["is_parsing"] = False
-                logger.info("Updated connections cache from Celery task result")
+        ipc_file = os.environ.get("PRESWALD_IPC_FILE")
+        if ipc_file and os.path.exists(ipc_file):
+            logger.info(f"Checking IPC file: {ipc_file}")
+            try:
+                with open(ipc_file, 'r') as f:
+                    result = json.load(f)
+                    logger.info(f"Read from IPC file: {result}")
+                    if result and isinstance(result, dict):
+                        logger.info(f"Processing IPC result with keys: {result.keys()}")
+                        ipc_timestamp = result.get("timestamp", 0)
+                        if ipc_timestamp > latest_timestamp:
+                            latest_timestamp = ipc_timestamp
+                            latest_result = result
+            except Exception as e:
+                logger.error(f"Error reading IPC file: {e}", exc_info=True)
+
+        if latest_result:
+            logger.info(f"Updating state with result from timestamp: {latest_timestamp}")
+            connections_cache["connections"] = latest_result.get("connections", [])
+            connections_parsing_status["error"] = latest_result.get("error")
+            connections_parsing_status["last_parsed"] = latest_result.get("timestamp")
+            connections_parsing_status["is_parsing"] = latest_result.get("is_parsing", False)
+            logger.info("Updated connections cache with latest result")
+
     except Exception as e:
-        logger.error(f"Error updating connections from Celery task: {e}")
+        logger.error(f"Error updating connections from Celery/IPC: {e}", exc_info=True)
         connections_parsing_status["error"] = str(e)
         connections_parsing_status["is_parsing"] = False
 
