@@ -1,7 +1,7 @@
 ![Banner](assets/banner.png)
 
 <p align="center">
-    <em>Your lightweight companion for building simple, interactive, and dynamic data apps in Python.</em>
+    <em>🐵 Your lightweight companion for building simple, interactive, and dynamic data apps in Python.</em>
 </p>
 <p align="center">
     <a href="LICENSE">
