@@ -103,8 +103,12 @@ signal.signal(signal.SIGINT, handle_shutdown)
 signal.signal(signal.SIGTERM, handle_shutdown)
 
 try:
-    # Get the package's static directory using pkg_resources
-    BASE_DIR = pkg_resources.resource_filename('preswald', '')
+    try:
+        # Get the package's static directory using pkg_resources
+        BASE_DIR = pkg_resources.resource_filename('preswald', '')
+    except Exception as e:
+        # Fallback to current directory if resource filename fails
+        BASE_DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
     STATIC_DIR = os.path.join(BASE_DIR, "static")
     ASSETS_DIR = os.path.join(STATIC_DIR, "assets")
 
