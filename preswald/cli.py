@@ -15,6 +15,7 @@ TEMP_DIR = os.path.join(tempfile.gettempdir(), "preswald")
 os.makedirs(TEMP_DIR, exist_ok=True)
 
 @click.group()
+@click.version_option()
 def cli():
     """
     Preswald CLI - A lightweight framework for interactive data apps.
