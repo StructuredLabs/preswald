@@ -1,6 +1,5 @@
 from typing import Dict, Any, Callable, List
 import logging
-import uuid
 import threading
 import asyncio
 import time
@@ -279,9 +278,4 @@ def get_rendered_components():
     return {"rows": rows}
 
 
-# Add separator component function
-def separator():
-    """Create a separator component that forces a new row."""
-    component = {"type": "separator", "id": str(uuid.uuid4())}
-    _rendered_html.append(component)
-    return component
+

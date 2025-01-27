@@ -14,6 +14,7 @@ from .components import (
     image,
     plotly,
     workflow_dag,
+    separator,
 )
 from .data import view, query, summary, save, load
 from .state import Workflow, RetryPolicy, WorkflowAnalyzer

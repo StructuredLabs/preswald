@@ -473,3 +473,10 @@ def workflow_dag(workflow, title="Workflow Dependency Graph"):
         }
         _rendered_html.append(error_component)
         return error_component
+    
+# Add separator component function
+def separator():
+    """Create a separator component that forces a new row."""
+    component = {"type": "separator", "id": str(uuid.uuid4())}
+    _rendered_html.append(component)
+    return component
