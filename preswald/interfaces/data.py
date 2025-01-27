@@ -7,7 +7,7 @@ import json
 from typing import Dict, Any, Optional
 import logging
 from preswald.core import connections, get_connection
-from preswald.components import table
+from preswald.interfaces.components import table
 
 # Configure logging
 logger = logging.getLogger(__name__)

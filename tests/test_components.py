@@ -1,5 +1,5 @@
 import pytest
-from preswald.components import button, slider, checkbox, text_input, selectbox, progress
+from preswald.interfaces.components import button, slider, checkbox, text_input, selectbox, progress
 
 
 def test_button():

@@ -1,6 +1,6 @@
 import pytest
 import pandas as pd
-from preswald.data import view, summary, save, load
+from preswald.interfaces.data import view, summary, save, load
 
 
 def test_view(tmpdir):
