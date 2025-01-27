@@ -1,0 +1,14 @@
+[project]
+title = "Network Topology | Preswald"
+version = "0.1.0"
+port = 8501
+
+[branding]
+name = "Network Topology"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#00cccc"
+
+[logging]
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
