@@ -17,4 +17,4 @@ from .components import (
     separator,
 )
 from .data import view, query, summary, save, load
-from .state import Workflow, RetryPolicy, WorkflowAnalyzer
+from .workflow import Workflow, RetryPolicy, WorkflowAnalyzer

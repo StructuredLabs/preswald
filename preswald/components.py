@@ -423,7 +423,7 @@ def workflow_dag(workflow, title="Workflow Dependency Graph"):
         title: Optional title for the visualization
     """
     try:
-        from .state import WorkflowAnalyzer
+        from .workflow import WorkflowAnalyzer
         analyzer = WorkflowAnalyzer(workflow)
         analyzer.build_graph()  # Ensure graph is built
         
