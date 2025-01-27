@@ -10,7 +10,6 @@ from typing import Dict, Callable, Optional, Any
 from preswald.core import (
     update_component_state, 
     get_component_state, 
-    get_all_component_states, 
     clear_rendered_components,
     clear_component_states
 )
@@ -156,16 +155,6 @@ class ScriptRunner:
             await self._send_error(error_msg)
             self._state = ScriptState.ERROR
 
-    async def _cleanup(self):
-        """Clean up resources when stopping the script."""
-        try:
-            clear_rendered_components()
-            clear_component_states()
-            self._script_globals.clear()
-            self.session_state.clear()
-            logger.info("[ScriptRunner] Cleanup completed")
-        except Exception as e:
-            logger.error(f"[ScriptRunner] Error during cleanup: {e}")
 
     async def _send_error(self, message: str, include_traceback: bool = True):
         """Send error message to frontend.
@@ -247,7 +236,7 @@ class ScriptRunner:
         }
 
         try:
-            from preswald.core import _rendered_html, get_rendered_components
+            from preswald.core import get_rendered_components
             
             # Capture script output
             with self._redirect_stdout():

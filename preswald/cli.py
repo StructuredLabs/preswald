@@ -3,9 +3,7 @@ import click
 import sys
 import webbrowser
 import pkg_resources
-import subprocess
 import tempfile
-import json
 from preswald.server import start_server
 from preswald.deploy import deploy as deploy_app, stop as stop_app
 from preswald.utils import read_template, configure_logging
