@@ -5,6 +5,12 @@ WORKDIR /app
 # Install nodejs and npm (needed for frontend)
 RUN apt-get update && apt-get install -y nodejs npm
 
+# Copy pyproject.toml
+COPY pyproject.toml .
+
+# Install dependencies from pyproject.toml
+RUN pip install .
+
 # Install preswald with exact version
 RUN pip install preswald=={preswald_version}
 RUN pip install setuptools
