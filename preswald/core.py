@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 connections = {}
 _rendered_html = []
 _component_states: Dict[str, Any] = {}
-_component_callbacks: Dict[str, List[Callable]] = {}
 _state_lock = threading.Lock()
 
 
@@ -57,22 +56,6 @@ def update_component_state(component_id: str, value: Any):
             logger.debug(f"  - Old value: {cleaned_old_value}")
             logger.debug(f"  - New value: {cleaned_value}")
 
-            # Trigger callbacks if any
-            if component_id in _component_callbacks:
-                logger.debug(
-                    f"[STATE] Triggering {len(_component_callbacks[component_id])} callbacks for {component_id}"
-                )
-                for callback in _component_callbacks[component_id]:
-                    try:
-                        callback(cleaned_value)
-                        logger.debug(
-                            f"[STATE] Successfully executed callback for {component_id}"
-                        )
-                    except Exception as e:
-                        logger.error(
-                            f"[STATE] Error in callback for component {component_id}: {e}"
-                        )
-
 
 def get_component_state(component_id: str, default: Any = None) -> Any:
     """Get the current state of a component"""
@@ -88,14 +71,6 @@ def get_all_component_states() -> Dict[str, Any]:
         states = dict(_component_states)
         logger.debug(f"[STATE] Getting all states: {states}")
         return states
-
-
-def clear_component_states():
-    """Clear all component states"""
-    with _state_lock:
-        logger.debug("[STATE] Clearing component callbacks")
-        _component_callbacks.clear()
-        # Do not clear _component_states as we want to preserve values between reruns
 
 
 async def broadcast_connections():
@@ -276,6 +251,3 @@ def get_rendered_components():
     rows = layout_manager.get_layout()
     logger.debug(f"[RENDER] Total rendering took {time.time() - start_time:.3f}s")
     return {"rows": rows}
-
-
-

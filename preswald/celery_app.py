@@ -1,3 +1,4 @@
+import logging
 from celery import Celery
 import os
 import toml
@@ -11,7 +12,9 @@ import time
 import json
 import asyncio
 import tempfile
-from preswald.utils import logger  # Use the shared logger from utils
+
+logger = logging.getLogger(__name__)
+
 
 celery_app = Celery('preswald',
                     broker='redis://localhost:6379/0',

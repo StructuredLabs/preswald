@@ -126,6 +126,7 @@ CORE_DEPENDENCIES = [
 DEV_DEPENDENCIES = [
     "pytest>=8.3",
     "build",
+    "isort",
 ]
 
 setup(

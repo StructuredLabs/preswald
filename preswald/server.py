@@ -1,3 +1,4 @@
+import logging
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,7 +22,9 @@ import zlib
 import toml
 from preswald.celery_app import parse_connections_task
 from celery.result import AsyncResult
-from preswald.utils import logger
+
+logger = logging.getLogger(__name__)
+
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -39,12 +42,9 @@ SCRIPT_PATH: Optional[str] = None
 
 # Store active websocket connections and their states
 websocket_connections: Dict[str, WebSocket] = {}
-client_states: Dict[str, Dict[str, Any]] = {}
 script_runners: Dict[WebSocket, ScriptRunner] = {}
 
-# Store persistent component states
-component_states: Dict[str, Any] = {}
-
+# NOTE: these can be left alone for now - this will come in with connections
 # Global variables for connections cache and parsing status
 connections_cache: Dict[str, List] = {"connections": []}
 connections_parsing_status = {

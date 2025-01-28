@@ -5,7 +5,6 @@ import pkg_resources
 from typing import Optional
 import logging
 
-logger = logging.getLogger(__name__)
 
 def read_template(template_name):
     """Read content from a template file."""

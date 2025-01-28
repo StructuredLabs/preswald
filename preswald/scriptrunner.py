@@ -1,18 +1,15 @@
-import sys
-import traceback
-import logging
-import threading
 import asyncio
+import logging
+import sys
+import threading
 import time
-from pathlib import Path
+import traceback
 from contextlib import contextmanager
-from typing import Dict, Callable, Optional, Any
-from preswald.core import (
-    update_component_state, 
-    get_component_state, 
-    clear_rendered_components,
-    clear_component_states
-)
+from pathlib import Path
+from typing import Any, Callable, Dict, Optional
+
+from preswald.core import (clear_rendered_components, get_component_state,
+                           update_component_state)
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +94,6 @@ class ScriptRunner:
             
             # Clean up any resources
             clear_rendered_components()
-            clear_component_states()
             
             # Clean up connections created by this session
             from preswald.core import connections, disconnect
@@ -146,7 +142,6 @@ class ScriptRunner:
             
             # Clear components before rerun
             clear_rendered_components()
-            clear_component_states()
             await self.run_script()
             
         except Exception as e:
@@ -231,13 +226,13 @@ class ScriptRunner:
         
         # Set up script environment
         self._script_globals = {
-            "session_state": self.session_state,
+            "session_state": self.session_state, # TODO: this is not being used at all
             "widget_states": self.widget_states,
         }
 
         try:
             from preswald.core import get_rendered_components
-            
+
             # Capture script output
             with self._redirect_stdout():
                 # Execute script
@@ -248,10 +243,11 @@ class ScriptRunner:
                     logger.debug("[ScriptRunner] Script executed")
 
                 # Process rendered components
-                components = get_rendered_components()
+                components = get_rendered_components() # NOTE now this returns a dictionary of rows
                 logger.info(f"[ScriptRunner] Rendered {len(components)} components")
 
                 if components:
+                    # NOTE this is just rows now, so the below for loop is not actually going to do anything
                     # Update component states
                     for component in components:
                         if 'id' in component:
