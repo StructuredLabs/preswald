@@ -12,9 +12,9 @@ from preswald.components import table
 # Configure logging
 logger = logging.getLogger(__name__)
 
-def load_connection_config(config_path: str = "config.toml", secrets_path: str = "secrets.toml") -> Dict[str, Any]:
+def load_connection_config(config_path: str = "preswald.toml", secrets_path: str = "secrets.toml") -> Dict[str, Any]:
     """
-    Load connection configuration from config.toml and secrets.toml.
+    Load connection configuration from preswald.toml and secrets.toml.
     
     The configuration format should be:
     [connections.my_connection]
@@ -51,14 +51,14 @@ def load_connection_config(config_path: str = "config.toml", secrets_path: str =
     
     return config.get('connections', {})
 
-def connect(source: str = None, name: Optional[str] = None, config_path: str = "config.toml") -> str:
+def connect(source: str = None, name: Optional[str] = None, config_path: str = "preswald.toml") -> str:
     """
-    Connect to a data source using configuration from config.toml.
+    Connect to a data source using configuration from preswald.toml.
     
     Args:
         source (str, optional): Direct source path or connection string. If None, uses config.
         name (str, optional): Name for the connection. If None, auto-generated.
-        config_path (str): Path to config file. Defaults to "config.toml".
+        config_path (str): Path to config file. Defaults to "preswald.toml".
     
     Returns:
         str: Name of the created connection

@@ -28,7 +28,7 @@ def init(name):
     """
     Initialize a new Preswald project.
 
-    This creates a directory with boilerplate files like `hello.py` and `config.toml`.
+    This creates a directory with boilerplate files like `hello.py` and `preswald.toml`.
     """
     try:
         os.makedirs(name, exist_ok=True)
@@ -46,7 +46,7 @@ def init(name):
 
         file_templates = {
             "hello.py": "hello.py",
-            "config.toml": "config.toml",
+            "preswald.toml": "preswald.toml",
             "secrets.toml": "secrets.toml",
             ".gitignore": "gitignore",
             "README.md": "readme.md",
@@ -84,7 +84,7 @@ def run(script, port, log_level):
         click.echo(f"Error: Script '{script}' not found. ❌")
         return
 
-    config_path = os.path.join(os.path.dirname(script), "config.toml")
+    config_path = os.path.join(os.path.dirname(script), "preswald.toml")
     log_level = configure_logging(config_path=config_path, level=log_level)
 
     url = f"http://localhost:{port}"
@@ -182,7 +182,7 @@ def deploy(script, target, port, log_level):
             click.echo(f"Error: Script '{script}' not found. ❌")
             return
 
-        config_path = os.path.join(os.path.dirname(script), "config.toml")
+        config_path = os.path.join(os.path.dirname(script), "preswald.toml")
         log_level = configure_logging(config_path=config_path, level=log_level)
 
         url = deploy_app(script, target, port=port)

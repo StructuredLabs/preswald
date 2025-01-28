@@ -139,11 +139,11 @@ except Exception as e:
 # Add explicit route for favicon.ico
 @app.get("/favicon.ico")
 async def get_favicon():
-    """Serve favicon.ico from config.toml branding or fallback to assets directory"""
+    """Serve favicon.ico from preswald.toml branding or fallback to assets directory"""
     if SCRIPT_PATH:
         try:
             script_dir = os.path.dirname(SCRIPT_PATH)
-            config_path = os.path.join(script_dir, "config.toml")
+            config_path = os.path.join(script_dir, "preswald.toml")
             import toml
             config = toml.load(config_path)
             
@@ -187,7 +187,7 @@ async def serve_index():
         if os.path.exists(index_path):
             import toml
             script_dir = os.path.dirname(SCRIPT_PATH)
-            config_path = os.path.join(script_dir, "config.toml")
+            config_path = os.path.join(script_dir, "preswald.toml")
             config = toml.load(config_path)
             branding_config = config["branding"]
             # Load config if script path is set
@@ -202,7 +202,7 @@ async def serve_index():
             if SCRIPT_PATH:
                 try:
                     script_dir = os.path.dirname(SCRIPT_PATH)
-                    config_path = os.path.join(script_dir, "config.toml")
+                    config_path = os.path.join(script_dir, "preswald.toml")
                     logger.info(f"Loading config from {config_path}")
                     import toml
                     config = toml.load(config_path)
@@ -660,7 +660,7 @@ def start_server(script=None, port=8501):
     if script:
         SCRIPT_PATH = os.path.abspath(script)
         script_dir = os.path.dirname(SCRIPT_PATH)
-        config_path = os.path.join(script_dir, "config.toml")
+        config_path = os.path.join(script_dir, "preswald.toml")
         
         # Load config if it exists
         if os.path.exists(config_path):
@@ -668,9 +668,9 @@ def start_server(script=None, port=8501):
                 config = toml.load(config_path)
                 if "project" in config and "port" in config["project"]:
                     port = config["project"]["port"]
-                    print(f"Using port {port} from config.toml")
+                    print(f"Using port {port} from preswald.toml")
             except Exception as e:
-                logger.error(f"Error loading config.toml: {e}")
+                logger.error(f"Error loading preswald.toml: {e}")
         
         print(f"Will run script: {SCRIPT_PATH}")
 

@@ -200,9 +200,9 @@ def parse_connections_task(self):
             
         if script_path:
             try:
-                logger.info("[Celery] ====== Processing config.toml ======")
+                logger.info("[Celery] ====== Processing preswald.toml ======")
                 script_dir = os.path.dirname(script_path)
-                config_path = os.path.join(script_dir, "config.toml")
+                config_path = os.path.join(script_dir, "preswald.toml")
                 secrets_path = os.path.join(script_dir, "secrets.toml")
                 
                 logger.info("[Celery] Config path: %s", config_path)
@@ -211,7 +211,7 @@ def parse_connections_task(self):
                 
                 if os.path.exists(config_path):
                     config = toml.load(config_path)
-                    logger.info("[Celery] Successfully loaded config.toml")
+                    logger.info("[Celery] Successfully loaded preswald.toml")
                     logger.info("[Celery] Config sections: %s", list(config.keys()))
                     
                     secrets = {}

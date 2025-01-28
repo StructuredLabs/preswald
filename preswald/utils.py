@@ -21,7 +21,7 @@ def configure_logging(config_path: Optional[str] = None, level: Optional[str] = 
     Configure logging globally for the application.
 
     Args:
-        config_path: Path to config.toml file. If None, will look in current directory
+        config_path: Path to preswald.toml file. If None, will look in current directory
         level: Directly specified logging level, overrides config file if provided
     """
     # Default configuration
@@ -32,7 +32,7 @@ def configure_logging(config_path: Optional[str] = None, level: Optional[str] = 
 
     # Try to load from config file
     if config_path is None:
-        config_path = "config.toml"
+        config_path = "preswald.toml"
 
     if os.path.exists(config_path):
         try:
