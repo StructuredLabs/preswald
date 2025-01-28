@@ -50,6 +50,7 @@ def init(name):
             "secrets.toml": "secrets.toml",
             ".gitignore": "gitignore",
             "README.md": "readme.md",
+            "pyproject.toml": "pyproject.toml",
         }
 
         for file_name, template_name in file_templates.items():
