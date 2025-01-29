@@ -1,12 +1,15 @@
 import os
-import click
 import sys
-import webbrowser
-import pkg_resources
 import tempfile
-from preswald.server import start_server
-from preswald.deploy import deploy as deploy_app, stop as stop_app
-from preswald.utils import read_template, configure_logging
+import webbrowser
+
+import click
+import pkg_resources
+
+from preswald.deploy import deploy as deploy_app
+from preswald.deploy import stop as stop_app
+from preswald.main import start_server
+from preswald.utils import configure_logging, read_template
 
 # Create a temporary directory for IPC
 TEMP_DIR = os.path.join(tempfile.gettempdir(), "preswald")
