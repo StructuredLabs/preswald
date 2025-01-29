@@ -5,14 +5,14 @@ import threading
 import time
 import traceback
 from contextlib import contextmanager
+from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
 
-# TODO: make ScriptState an enum
-class ScriptState:
+class ScriptState(Enum):
     """Manages the state of a running script."""
 
     INITIAL = "INITIAL"
