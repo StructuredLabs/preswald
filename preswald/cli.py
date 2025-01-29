@@ -152,7 +152,7 @@ def run(script, port, log_level):
 @click.argument("script", default="app.py")
 @click.option(
     "--target",
-    type=click.Choice(["local", "gcp", "aws"], case_sensitive=False),
+    type=click.Choice(["local", "gcp", "aws", "prod"], case_sensitive=False),
     default="local",
     help="Target platform for deployment.",
 )
@@ -167,9 +167,9 @@ def run(script, port, log_level):
 )
 def deploy(script, target, port, log_level):
     """
-    Deploy your Preswald app locally.
+    Deploy your Preswald app.
 
-    This allows you to share the app within your local network.
+    This allows you to share the app within your local network or deploy to production.
     """
     try:
         if target == "aws":
@@ -185,29 +185,48 @@ def deploy(script, target, port, log_level):
         config_path = os.path.join(os.path.dirname(script), "preswald.toml")
         log_level = configure_logging(config_path=config_path, level=log_level)
 
-        url = deploy_app(script, target, port=port)
+        if target == "prod":
+            click.echo("Starting production deployment... 🚀")
+            try:
+                for status_update in deploy_app(script, target, port=port):
+                    status = status_update.get('status', '')
+                    message = status_update.get('message', '')
+                    timestamp = status_update.get('timestamp', '')
+                    
+                    if status == 'error':
+                        click.echo(click.style(f"❌ {message}", fg='red'))
+                    elif status == 'success':
+                        click.echo(click.style(f"✅ {message}", fg='green'))
+                    else:
+                        click.echo(f"ℹ️  {message}")
+                        
+            except Exception as e:
+                click.echo(click.style(f"Deployment failed: {str(e)} ❌", fg='red'))
+                return
+        else:
+            url = deploy_app(script, target, port=port)
+            
+            ## Deployment Success Message
+            success_message = """
+            
+            ===========================================================\n
+            🎉 Deployment successful! ✅
 
-        ## Deployment Sucess Message
-        success_message = """
-        
-        ===========================================================\n
-        🎉 Deployment successful! ✅
+            🌐 Your app is live and running at:
+            {url}
 
-        🌐 Your app is live and running at:
-        {url}
+            💡 Next Steps:
+                - Open the URL above in your browser to view your app
 
-        💡 Next Steps:
-            - Open the URL above in your browser to view your app
+            🚀 Deployment Summary:
+                - App: {script}
+                - Environment: {target}
+                - Port: {port}
+            """.format(
+                script=script, url=url, target=target, port=port
+            )
 
-        🚀 Deployment Summary:
-            - App: {script}
-            - Environment: {target}
-            - Port: {port}
-        """.format(
-            script=script, url=url, target=target, port=port
-        )
-
-        click.echo(click.style(success_message, fg="green"))
+            click.echo(click.style(success_message, fg="green"))
 
     except Exception as e:
         click.echo(f"Error deploying app: {e} ❌")

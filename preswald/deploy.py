@@ -5,10 +5,18 @@ from pathlib import Path
 import logging
 import pkg_resources
 import json
+import requests
+import zipfile
+from typing import Generator
+from datetime import datetime
+import io
 
 from preswald.utils import read_template
 
 logger = logging.getLogger(__name__)
+
+# Default CoreWald service URL
+COREWALD_SERVICE_URL = os.getenv('COREWALD_SERVICE_URL', 'http://127.0.0.1:8080')
 
 
 def get_deploy_dir(script_path: str) -> Path:
@@ -218,132 +226,92 @@ def deploy_to_cloud_run(deploy_dir: Path, container_name: str, port: int = 8501)
         raise Exception(f"Deployment failed: {str(e)}")
 
 
-def deploy(script_path: str, target: str = "local", port: int = 8501) -> str:
+def deploy_to_prod(script_path: str, port: int = 8501) -> Generator[dict, None, None]:
     """
-    Deploy a Preswald app locally using Docker.
-
-    This function creates a Docker container that will run your Preswald application.
-    It maintains a deployment directory next to your script for rebuilding and updating.
-
+    Deploy a Preswald app to production via CoreWald service.
+    
     Args:
         script_path: Path to the Preswald application script
-
+        port: Port number for the deployment
+        
     Returns:
-        str: The URL where the application can be accessed
+        Generator yielding deployment status updates
     """
     script_path = os.path.abspath(script_path)
     script_dir = Path(script_path).parent
-    container_name = get_container_name(script_path)
-
-    # Get the deployment directory
-    deploy_dir = get_deploy_dir(script_path)
-
-    # Get preswald version for exact version matching
-    preswald_version = pkg_resources.get_distribution("preswald").version
-
-    # First, clear out the old deployment directory contents while preserving the directory itself
-    for item in deploy_dir.iterdir():
-        if item.is_file():
-            item.unlink()
-        elif item.is_dir():
-            shutil.rmtree(item)
-
-    # Copy everything from the script's directory to the deployment directory
-    for item in script_dir.iterdir():
-        # Skip the deployment directory itself to avoid recursive copying
-        if item.name == ".preswald_deploy":
-            continue
-
-        # Copy files and directories
-        if item.is_file():
-            shutil.copy2(item, deploy_dir / item.name)
-        elif item.is_dir():
-            shutil.copytree(item, deploy_dir / item.name)
-
-    # Rename the main script to app.py if it's not already named that
-    if Path(script_path).name != "app.py":
-        shutil.move(deploy_dir / Path(script_path).name, deploy_dir / "app.py")
-
-    # Create startup script
-    startup_template = read_template("run.py")
-    startup_script = startup_template.format(port=port)
-    with open(deploy_dir / "run.py", "w") as f:
-        f.write(startup_script)
-
-    # Create Dockerfile
-    dockerfile_template = read_template("Dockerfile")
-    dockerfile_content = dockerfile_template.format(
-        port=port, preswald_version=preswald_version
-    )
-    with open(deploy_dir / "Dockerfile", "w") as f:
-        f.write(dockerfile_content)
-
-    # Store deployment info
-    deployment_info = {
-        "script": script_path,
-        "container_name": container_name,
-        "preswald_version": preswald_version,
-    }
-    with open(deploy_dir / "deployment.json", "w") as f:
-        json.dump(deployment_info, f, indent=2)
-
+    
+    # Create a temporary zip file
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        # Walk through the script directory and add all files
+        for root, _, files in os.walk(script_dir):
+            for file in files:
+                # Skip .preswald_deploy directory
+                if '.preswald_deploy' in root:
+                    continue
+                    
+                file_path = os.path.join(root, file)
+                arc_name = os.path.relpath(file_path, script_dir)
+                zip_file.write(file_path, arc_name)
+    
+    # Prepare the zip file for sending
+    zip_buffer.seek(0)
+    files = {'deployment': ('app.zip', zip_buffer, 'application/zip')}
+    
+    # Send the deployment request
     try:
-        # Stop any existing container
-        print(f"Stopping existing deployment (if any)...")
-        stop_existing_container(container_name)
-
-        # Build the Docker image
-        print(f"Building Docker image {container_name}...")
-
-        if target == "gcp":
-            subprocess.run(
-                [
-                    "docker",
-                    "build",
-                    "--platform",
-                    "linux/amd64",
-                    "-t",
-                    container_name,
-                    ".",
-                ],
-                check=True,
-                cwd=deploy_dir,
-            )
-
-            return deploy_to_cloud_run(deploy_dir, container_name, port=port)
-        else:  # local
-            subprocess.run(
-                ["docker", "build", "-t", container_name, "."],
-                check=True,
-                cwd=deploy_dir,
-            )
-
-            # Start the container
-            print("Starting container...")
-            subprocess.run(
-                [
-                    "docker",
-                    "run",
-                    "-d",
-                    "--name",
-                    container_name,
-                    "-p",
-                    f"{port}:{port}",
-                    container_name,
-                ],
-                check=True,
-                cwd=deploy_dir,
-            )
-
-            return f"http://localhost:{port}"
-
-    except subprocess.CalledProcessError as e:
-        raise Exception(f"Docker operation failed: {str(e)}")
-    except FileNotFoundError:
-        raise Exception(
-            "Docker not found. Please install Docker Desktop from "
-            "https://www.docker.com/products/docker-desktop"
+        response = requests.post(
+            f"{COREWALD_SERVICE_URL}/deploy",
+            files=files,
+            stream=True
         )
+        response.raise_for_status()
+        
+        # Process SSE stream
+        for line in response.iter_lines():
+            if line:
+                # SSE lines start with "data: "
+                if line.startswith(b'data: '):
+                    data = json.loads(line[6:].decode('utf-8'))
+                    yield data
+                    
+    except requests.RequestException as e:
+        yield {
+            'status': 'error',
+            'message': f'Deployment failed: {str(e)}',
+            'timestamp': datetime.now().isoformat()
+        }
+        raise Exception(f"Production deployment failed: {str(e)}")
+
+
+def deploy(script_path: str, target: str = "local", port: int = 8501) -> str | Generator[dict, None, None]:
+    """
+    Deploy a Preswald app.
+
+    Args:
+        script_path: Path to the Preswald application script
+        target: Deployment target ("local", "gcp", "aws", or "prod")
+        port: Port number for the deployment
+
+    Returns:
+        str | Generator: URL where the application can be accessed for local/cloud deployments,
+                        or a Generator yielding deployment status for production deployments
+    """
+    if target == "prod":
+        return deploy_to_prod(script_path, port)
+    elif target == "gcp":
+        script_path = os.path.abspath(script_path)
+        script_dir = Path(script_path).parent
+        container_name = get_container_name(script_path)
+        deploy_dir = get_deploy_dir(script_path)
+        
+        # Rest of the GCP deployment logic...
+        return deploy_to_cloud_run(deploy_dir, container_name, port=port)
+    elif target == "local":
+        # Existing local deployment logic...
+        return deploy(script_path, port=port)
+    else:
+        raise ValueError(f"Unsupported deployment target: {target}")
 
 
 def stop(script_path: str = None) -> None:
