@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from "react-router-dom";
 import {
   Sheet,
   SheetContent,
@@ -9,26 +9,34 @@ import {
 } from "@/components/ui/sheet";
 
 import { Button } from "@/components/ui/button";
-import React from 'react';
+import React from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation, branding, isCollapsed }) {
+export default function Sidebar({
+  sidebarOpen,
+  setSidebarOpen,
+  navigation,
+  branding,
+  isCollapsed,
+}) {
   const location = useLocation();
-  const primaryColor = branding?.primaryColor || '#000000';
+  const primaryColor = branding?.primaryColor || "#000000";
 
   const NavContent = ({ isMobile = false }) => (
     <ScrollArea className="flex grow flex-col gap-y-5 overflow-y-auto">
       {!isMobile && (
         <div className="flex h-16 shrink-0 items-center">
           <img
-            className="h-8 w-8"
+            className="h-8 w-8 rounded-lg"
             src={branding?.logo}
             alt={branding?.name}
           />
           {!isCollapsed && (
-            <span className="ml-4 text-lg font-semibold transition-opacity duration-200">{branding?.name}</span>
+            <span className="ml-4 text-lg font-semibold transition-opacity duration-200">
+              {branding?.name}
+            </span>
           )}
         </div>
       )}
@@ -59,12 +67,17 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation, brand
                         isCollapsed && !isMobile && "transform-gpu"
                       )}
                       style={{
-                        color: location.pathname === item.href ? primaryColor : undefined,
+                        color:
+                          location.pathname === item.href
+                            ? primaryColor
+                            : undefined,
                       }}
                       aria-hidden="true"
                     />
                     {(!isCollapsed || isMobile) && (
-                      <span className="transition-opacity duration-200">{item.name}</span>
+                      <span className="transition-opacity duration-200">
+                        {item.name}
+                      </span>
                     )}
                   </Link>
                 </li>
@@ -80,8 +93,8 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation, brand
     <>
       {/* Mobile Sidebar */}
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent 
-          side="left" 
+        <SheetContent
+          side="left"
           className={cn(
             "fixed inset-y-0 left-0",
             "flex w-[280px] flex-col",
@@ -95,7 +108,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation, brand
             <div className="flex items-center justify-between">
               <SheetTitle className="flex items-center gap-2">
                 <img
-                  className="h-8 w-8"
+                  className="h-8 w-8 rounded-lg"
                   src={branding?.logo}
                   alt={branding?.name}
                 />
@@ -110,11 +123,13 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, navigation, brand
       </Sheet>
 
       {/* Desktop Sidebar */}
-      <div className={cn(
-        'hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col',
-        isCollapsed ? 'lg:w-20' : 'lg:w-80',
-        'border-r bg-background transition-all duration-300 ease-in-out transform-gpu'
-      )}>
+      <div
+        className={cn(
+          "hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col",
+          isCollapsed ? "lg:w-20" : "lg:w-80",
+          "border-r bg-background transition-all duration-300 ease-in-out transform-gpu"
+        )}
+      >
         <div className="flex-1 overflow-hidden px-4 py-2">
           <NavContent />
         </div>
