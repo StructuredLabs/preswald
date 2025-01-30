@@ -152,7 +152,7 @@ def run(script, port, log_level):
 @click.argument("script", default="app.py")
 @click.option(
     "--target",
-    type=click.Choice(["local", "gcp", "aws", "prod"], case_sensitive=False),
+    type=click.Choice(["local", "gcp", "aws", "structured"], case_sensitive=False),
     default="local",
     help="Target platform for deployment.",
 )
@@ -185,7 +185,7 @@ def deploy(script, target, port, log_level):
         config_path = os.path.join(os.path.dirname(script), "preswald.toml")
         log_level = configure_logging(config_path=config_path, level=log_level)
 
-        if target == "prod":
+        if target == "structured":
             click.echo("Starting production deployment... 🚀")
             try:
                 for status_update in deploy_app(script, target, port=port):
