@@ -135,7 +135,7 @@ setup(
     author="Structured",
     author_email="founders@structuredlabs.com",
     description="A lightweight data workflow SDK.",
-    long_description=open("README.md").read(),
+    long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/StructuredLabs/preswald",
     license="Apache License 2.0",
