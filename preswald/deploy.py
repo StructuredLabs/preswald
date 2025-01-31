@@ -15,8 +15,8 @@ from preswald.utils import read_template
 
 logger = logging.getLogger(__name__)
 
-# Default CoreWald service URL
-COREWALD_SERVICE_URL = os.getenv('COREWALD_SERVICE_URL', 'http://127.0.0.1:8080')
+# Default Structured Cloud service URL
+STRUCTURED_CLOUD_SERVICE_URL = os.getenv('STRUCTURED_CLOUD_SERVICE_URL', 'http://127.0.0.1:8080')
 
 
 def get_deploy_dir(script_path: str) -> Path:
@@ -228,7 +228,7 @@ def deploy_to_cloud_run(deploy_dir: Path, container_name: str, port: int = 8501)
 
 def deploy_to_prod(script_path: str, port: int = 8501) -> Generator[dict, None, None]:
     """
-    Deploy a Preswald app to production via CoreWald service.
+    Deploy a Preswald app to production via Structured Cloud service.
     
     Args:
         script_path: Path to the Preswald application script
@@ -286,7 +286,7 @@ def deploy_to_prod(script_path: str, port: int = 8501) -> Generator[dict, None, 
     # Send the deployment request with credentials
     try:
         response = requests.post(
-            f"{COREWALD_SERVICE_URL}/deploy",
+            f"{STRUCTURED_CLOUD_SERVICE_URL}/deploy",
             files=files,
             data={
                 'github_username': github_username,
