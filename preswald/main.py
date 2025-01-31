@@ -12,12 +12,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
-from preswald.connections_manager import ConnectionsManager
 from preswald.engine.branding import BrandingManager
 from preswald.engine.service import PreswaldService
+from preswald.engine.celery_engine import CeleryEngine
 
 logger = logging.getLogger(__name__)
 
+# Global celery engine instance
+celery_engine = None
 
 def create_app(script_path: Optional[str] = None) -> FastAPI:
     """Create and configure the FastAPI application"""
@@ -39,9 +41,15 @@ def create_app(script_path: Optional[str] = None) -> FastAPI:
     # Store service instance
     app.state.service = service
 
+    # Initialize CeleryEngine
+    global celery_engine
+    celery_engine = CeleryEngine()
+
     # Set script path if provided
     if script_path:
         service.script_path = script_path
+        # Start celery worker and trigger initial connection parsing
+        celery_engine.start_worker(script_path)
 
     # Register routes
     _register_routes(app)
@@ -73,9 +81,14 @@ def _register_routes(app: FastAPI):
     @app.get("/api/connections")
     async def get_connections():
         """Get all active connections and their states"""
-        # TODO need to properly implement as in server.py
+        global celery_engine
+        if celery_engine:
+            return celery_engine.get_latest_result()
         return {
-            "connections": {}  # app.state.service.connection_manager.get_all_connections(),
+            "connections": [],
+            "error": "Celery engine not initialized",
+            "timestamp": 0,
+            "is_parsing": False
         }
 
     @app.websocket("/ws/{client_id}")
@@ -125,42 +138,32 @@ def start_server(script: Optional[str] = None, port: int = 8501):
             config_path = os.path.join(script_dir, "config.toml")
             if os.path.exists(config_path):
                 import toml
-
                 config = toml.load(config_path)
                 if "project" in config and "port" in config["project"]:
                     port = config["project"]["port"]
         except Exception as e:
             logger.error(f"Error loading config: {e}")
-
-    # manager = ConnectionsManager(
-    #     config_path=os.path.join(os.path.dirname(script), "config.toml"),
-    #     secrets_path=os.path.join(os.path.dirname(script), "secrets.toml")
-    # )
-
-    # # Get all connections with their metadata
-    # connections = manager.get_connections()
-
-    # # Process the connections
-    # for conn in connections:
-    #     print(f"Connection: {conn['name']}")
-    #     print(f"Type: {conn['type']}")
-    #     print(f"Status: {conn['status']}")
-    #     print(f"Metadata: {conn['metadata']}")
     
     config = uvicorn.Config(app, host="0.0.0.0", port=port, loop="asyncio")
     server = uvicorn.Server(config)
 
-    signal.signal(signal.SIGINT, app.state.service.shutdown)
-    signal.signal(signal.SIGTERM, app.state.service.shutdown)
+    # Handle shutdown signals
+    def handle_shutdown(signum, frame):
+        logger.info("Shutting down server...")
+        global celery_engine
+        if celery_engine:
+            celery_engine.stop_worker()
+        app.state.service.shutdown()
+
+    signal.signal(signal.SIGINT, handle_shutdown)
+    signal.signal(signal.SIGTERM, handle_shutdown)
 
     try:
         import asyncio
-
         asyncio.run(server.serve())
 
     except KeyboardInterrupt:
-        logger.info("Shutting down server...")
-        asyncio.run(app.state.service.shutdown())
+        handle_shutdown(None, None)
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         raise

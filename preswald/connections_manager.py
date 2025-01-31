@@ -84,7 +84,7 @@ class ConnectionsManager:
                     })
         
         return connection_list
-    
+
     def _parse_connection(self, key: str, value: Dict) -> Optional[Dict[str, Any]]:
         """
         Parse a single connection configuration.

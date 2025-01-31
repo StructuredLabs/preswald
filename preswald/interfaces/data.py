@@ -6,8 +6,8 @@ import os
 import json
 from typing import Dict, Any, Optional
 import logging
-from preswald.core import connections, get_connection
 from preswald.interfaces.components import table
+from preswald.core import get_connection
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -62,7 +62,6 @@ def view(data_or_connection_name, limit: int = 100):
     try:
         if isinstance(data_or_connection_name, pd.DataFrame):
             return table(data_or_connection_name.head(limit))
-            
         # If it's a connection name string
         connection = get_connection(data_or_connection_name)
         
@@ -181,15 +180,3 @@ def save(connection_name: str, file_path: str, format: str = "csv") -> str:
     except Exception as e:
         logger.error(f"Error saving data from '{connection_name}' to {file_path}: {e}")
         raise
-
-def load(file_path: str, name: Optional[str] = None) -> str:
-    """
-    Load data from a file and store it as a new connection.
-    
-    Args:
-        file_path (str): Path to the file.
-        name (str, optional): Name for the new connection.
-    Returns:
-        str: The name of the created connection.
-    """
-    return connect(source=file_path, name=name)
