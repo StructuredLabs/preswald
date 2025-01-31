@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
+from preswald.connections_manager import ConnectionsManager
 from preswald.engine.branding import BrandingManager
 from preswald.engine.service import PreswaldService
 
@@ -131,6 +132,21 @@ def start_server(script: Optional[str] = None, port: int = 8501):
         except Exception as e:
             logger.error(f"Error loading config: {e}")
 
+    # manager = ConnectionsManager(
+    #     config_path=os.path.join(os.path.dirname(script), "config.toml"),
+    #     secrets_path=os.path.join(os.path.dirname(script), "secrets.toml")
+    # )
+
+    # # Get all connections with their metadata
+    # connections = manager.get_connections()
+
+    # # Process the connections
+    # for conn in connections:
+    #     print(f"Connection: {conn['name']}")
+    #     print(f"Type: {conn['type']}")
+    #     print(f"Status: {conn['status']}")
+    #     print(f"Metadata: {conn['metadata']}")
+    
     config = uvicorn.Config(app, host="0.0.0.0", port=port, loop="asyncio")
     server = uvicorn.Server(config)
 

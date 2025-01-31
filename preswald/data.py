@@ -7,7 +7,7 @@ import json
 from typing import Dict, Any, Optional
 import logging
 from preswald.core import connections, get_connection
-from preswald.interfaces.components import table
+from preswald.components import table
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ def load_connection_config(config_path: str = "preswald.toml", secrets_path: str
     Load connection configuration from preswald.toml and secrets.toml.
     
     The configuration format should be:
-    [data.my_connection]
+    [connections.my_connection]
     type = "postgres"  # or "mysql", "csv", "json", "parquet"
     host = "localhost"
     port = 5432
@@ -25,7 +25,7 @@ def load_connection_config(config_path: str = "preswald.toml", secrets_path: str
     user = "user"
     # password comes from secrets.toml
     
-    [data.my_csv]
+    [connections.my_csv]
     type = "csv"
     path = "data/myfile.csv"
     """
@@ -41,8 +41,8 @@ def load_connection_config(config_path: str = "preswald.toml", secrets_path: str
         with open(secrets_path, 'r') as f:
             secrets = toml.load(f)
             # Get connections section from secrets
-            secret_connections = secrets.get('data', {})
-            config_connections = config.get('data', {})
+            secret_connections = secrets.get('connections', {})
+            config_connections = config.get('connections', {})
             
             # Merge secrets into each connection config
             for conn_name, conn_secrets in secret_connections.items():

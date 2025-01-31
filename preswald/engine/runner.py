@@ -92,18 +92,6 @@ class ScriptRunner:
         try:
             logger.info(f"[ScriptRunner] Stopping script for session {self.session_id}")
 
-            # Clean up connections created by this session
-            from preswald.core import connections, disconnect
-
-            for name in list(connections.keys()):
-                if name.startswith(f"connection_{self.session_id}"):
-                    try:
-                        disconnect(name)
-                    except Exception as e:
-                        logger.error(
-                            f"[ScriptRunner] Error cleaning up connection {name}: {e}"
-                        )
-
             self._state = ScriptState.STOPPED
             logger.info(f"[ScriptRunner] Script stopped for session {self.session_id}")
         except Exception as e:
