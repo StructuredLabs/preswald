@@ -1,5 +1,4 @@
 import Dashboard from './Dashboard';
-import DynamicComponents from '../DynamicComponents';
 import React from 'react';
 
 const ComponentShowcase = () => {

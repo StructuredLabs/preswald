@@ -87,7 +87,7 @@ const MarkdownRendererWidget = ({
         "prose-headings:scroll-m-20",
         "prose-p:leading-7",
         "prose-li:marker:text-muted-foreground",
-        variant === "ghost" ? "p-0" : "p-6"
+        variant === "ghost" ? "p-0" : "p-2"
       )}>
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}

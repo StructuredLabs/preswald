@@ -73,11 +73,6 @@ We recommend using Conda to manage dependencies:
    ```bash
    python -m build
    ```
-3. Install the local package:
-   ```bash
-   pip install dist/preswald-0.xx.xx.tar.gz
-   ```
-   Replace `0.xx.xx` with the current version number from [PyPI](https://pypi.org/project/preswald/).
 
 ### 4. Run the Example App
 

@@ -33,7 +33,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Added
 
-- Set log levels via config.toml + CLI
+- Set log levels via preswald.toml + CLI
 
 ## [0.1.22] - 2025-01-03
 

@@ -156,7 +156,7 @@ def run(script, port, log_level):
 @click.argument("script", default="app.py")
 @click.option(
     "--target",
-    type=click.Choice(["local", "gcp", "aws", "prod"], case_sensitive=False),
+    type=click.Choice(["local", "gcp", "aws", "structured"], case_sensitive=False),
     default="local",
     help="Target platform for deployment.",
 )
@@ -193,37 +193,25 @@ def deploy(script, target, port, log_level):
         config_path = os.path.join(os.path.dirname(script), "preswald.toml")
         log_level = configure_logging(config_path=config_path, level=log_level)
 
-        if target == "prod":
-            console.print(Panel(
-                "[bold green]Starting production deployment... 🚀[/bold green]",
-                title="[bold]Production Deployment[/bold]",
-                expand=False
-            ))
-            
-            with Progress(
-                SpinnerColumn(),
-                TextColumn("[progress.description]{task.description}"),
-                console=console
-            ) as progress:
-                try:
-                    for status_update in deploy_app(script, target, port=port):
-                        if isinstance(status_update, dict):
-                            status = status_update.get('status', '')
-                            message = status_update.get('message', '')
-                            
-                            if status == 'error':
-                                console.print(f"[red]❌ {message}[/red]")
-                            elif status == 'success':
-                                console.print(f"[green]✅ {message}[/green]")
-                            else:
-                                progress.update(progress.add_task(message, total=None))
-                        else:
-                            # Handle case where status_update is a string
-                            progress.update(progress.add_task(str(status_update), total=None))
-                            
-                except Exception as e:
-                    console.print(f"[red bold]Deployment failed: {str(e)} ❌[/red bold]")
-                    return
+        if target == "structured":
+            click.echo("Starting production deployment... 🚀")
+            try:
+                for status_update in deploy_app(script, target, port=port):
+                    status = status_update.get('status', '')
+                    message = status_update.get('message', '')
+                    timestamp = status_update.get('timestamp', '')
+                    
+                    if status == 'error':
+                        click.echo(click.style(f"❌ {message}", fg='red'))
+                    elif status == 'success':
+                        click.echo(click.style(f"✅ {message}", fg='green'))
+                    else:
+                        click.echo(f"ℹ️  {message}")
+                        
+            except Exception as e:
+                click.echo(click.style(f"Deployment failed: {str(e)} ❌", fg='red'))
+                return
+
         else:
             url = deploy_app(script, target, port=port)
             

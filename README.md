@@ -42,7 +42,7 @@ Preswald is a full-stack platform for building, deploying, and managing interact
 - End-to-End Coverage. Handle ingestion, ETL, and visualization in one platform
 - Efficient by Design. Avoid the sprawling complexity of the modern data stack while keeping what works.
 - Connect to CSV, JSON, Parquet, or SQL databases in seconds.
-- Fully Customizable Themes. Your app, your brand—just tweak images and names in `config.toml`.
+- Fully Customizable Themes. Your app, your brand—just tweak images and names in `preswald.toml`.
 - Go live on your machine with a single command.
 
 <br>
@@ -75,7 +75,7 @@ cd my_project
 This will create a folder called `my_project` with all the basics you need:
 
 - `hello.py`: Your first Preswald app.
-- `config.toml`: Customize your app’s settings and style.
+- `preswald.toml`: Customize your app’s settings and style.
 - `secrets.toml`: Keep your API keys and sensitive information safe.
 - `.gitignore`: Preconfigured to keep `secrets.toml` out of your Git repository.
 
@@ -85,16 +85,17 @@ This will create a folder called `my_project` with all the basics you need:
 Time to make something magical! Open up `hello.py` and write:
 
 ```python
-from preswald import text, connect, view
+from preswald import text, view
+import pandas as pd
 
 # Render Markdown content
 text("# Welcome to Preswald")
 
 # Connect to a CSV file
-data_conn = connect("example.csv", "my_data")
+df = pd.read_csv("data.csv")
 
 # Display the data as a table
-view(data_conn)
+view(df)
 ```
 ![Demo GIF](assets/demo2.gif)
 
@@ -141,32 +142,24 @@ from preswald import text
 text("# Hello, World!")
 ```
 
-### **Example 2: Data Viewer**
+### **Example 2: Interactive Dashboard**
 
 ```python
-from preswald import connect, view
+from preswald import text, slider, view
+import pandas as pd
 
-data_conn = connect("example.csv", "example_data")
-view(data_conn)
-```
-
-### **Example 3: Interactive Dashboard**
-
-```python
-from preswald import text, slider, view, connect
 
 text("# Interactive Dashboard")
-
 slider_value = slider("Rows to Display", min_val=10, max_val=100, step=10, default=50)
-data_conn = connect("example.csv", "data")
+data_conn = pd.read_csv("data.csv")
 view(data_conn, limit=slider_value)
 ```
 
 ## **🔧 Configuration**
 
-Preswald uses `config.toml` for project settings and theming. It’s straightforward, and it makes your app look polished.
+Preswald uses `preswald.toml` for project settings and theming. It’s straightforward, and it makes your app look polished.
 
-### **Sample `config.toml`:**
+### **Sample `preswald.toml`:**
 
 ```
 [project]
@@ -175,22 +168,14 @@ version = "0.1.0"
 port = 8501
 
 [branding]
-logo = "thumbnail.png"
-favicon = "favicon.ico"
-name = "My app"
+name = "Preswald Project"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#4CAF50"
 
-[theme.color]
-primary = "#4CAF50"
-font = "Arial, sans-serif"
-
-[connections.postgres]
-type = "postgres"
-host = "localhost"
-port = 5432
-dbname = "mydb"
-user = "user"
-
-# password is stored in secrets.toml
+[logging]
+level = "INFO" # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 ```
 
 <br>

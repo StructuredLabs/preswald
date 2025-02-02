@@ -193,8 +193,8 @@ const DataVisualizationWidget = ({ id, data: rawData, content, error, className 
               }}
               config={{
                 responsive: true,
-                displayModeBar: true,
-                modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+                scrollZoom: false,
+                displayModeBar: false,
                 displaylogo: false,
                 ...processedData.config
               }}

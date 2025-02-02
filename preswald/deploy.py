@@ -15,8 +15,8 @@ from preswald.utils import read_template
 
 logger = logging.getLogger(__name__)
 
-# Default CoreWald service URL
-COREWALD_SERVICE_URL = os.getenv('COREWALD_SERVICE_URL', 'http://127.0.0.1:8080')
+# Default Structured Cloud service URL
+STRUCTURED_CLOUD_SERVICE_URL = os.getenv('STRUCTURED_CLOUD_SERVICE_URL', 'http://127.0.0.1:8080')
 
 
 def get_deploy_dir(script_path: str) -> Path:
@@ -228,7 +228,7 @@ def deploy_to_cloud_run(deploy_dir: Path, container_name: str, port: int = 8501)
 
 def deploy_to_prod(script_path: str, port: int = 8501) -> Generator[dict, None, None]:
     """
-    Deploy a Preswald app to production via CoreWald service.
+    Deploy a Preswald app to production via Structured Cloud service.
     
     Args:
         script_path: Path to the Preswald application script
@@ -239,6 +239,31 @@ def deploy_to_prod(script_path: str, port: int = 8501) -> Generator[dict, None, 
     """
     script_path = os.path.abspath(script_path)
     script_dir = Path(script_path).parent
+    env_file = script_dir / '.env.structured'
+    
+    if not env_file.exists():
+        # Get GitHub credentials from user
+        github_username = input("Enter your GitHub username: ")
+        structured_cloud_api_key = input("Enter your Structured Cloud API key: ")
+        
+        # Generate a unique app ID (using timestamp)
+        app_id = f"app_{int(datetime.now().timestamp())}"
+        
+        # Create and populate .env.structured file
+        with open(env_file, 'w') as f:
+            f.write(f"GITHUB_USERNAME={github_username}\n")
+            f.write(f"STRUCTURED_CLOUD_API_KEY={structured_cloud_api_key}\n") 
+            f.write(f"APP_ID={app_id}\n")
+    else:
+        # Read credentials from existing env file
+        credentials = {}
+        with open(env_file, 'r') as f:
+            for line in f:
+                key, value = line.strip().split('=')
+                credentials[key] = value
+        github_username = credentials['GITHUB_USERNAME']
+        structured_cloud_api_key = credentials['STRUCTURED_CLOUD_API_KEY']
+        app_id = credentials['APP_ID']
     
     # Create a temporary zip file
     zip_buffer = io.BytesIO()
@@ -258,11 +283,16 @@ def deploy_to_prod(script_path: str, port: int = 8501) -> Generator[dict, None, 
     zip_buffer.seek(0)
     files = {'deployment': ('app.zip', zip_buffer, 'application/zip')}
     
-    # Send the deployment request
+    # Send the deployment request with credentials
     try:
         response = requests.post(
-            f"{COREWALD_SERVICE_URL}/deploy",
+            f"{STRUCTURED_CLOUD_SERVICE_URL}/deploy",
             files=files,
+            data={
+                'github_username': github_username,
+                'structured_cloud_api_key': structured_cloud_api_key,
+                'app_id': app_id
+            },
             stream=True
         )
         response.raise_for_status()
@@ -297,7 +327,7 @@ def deploy(script_path: str, target: str = "local", port: int = 8501) -> str | G
         str | Generator: URL where the application can be accessed for local/cloud deployments,
                         or a Generator yielding deployment status for production deployments
     """
-    if target == "prod":
+    if target == "structured":
         return deploy_to_prod(script_path, port)
     elif target == "gcp":
         script_path = os.path.abspath(script_path)

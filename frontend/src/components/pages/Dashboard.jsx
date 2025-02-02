@@ -52,7 +52,7 @@ const Dashboard = ({ components, error, handleComponentUpdate }) => {
   };
 
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen">
       {renderContent()}
     </div>
   );

@@ -2,7 +2,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from preswald import plotly, text, view
 
-text("# Network Topology Visializer")
+text("# Network Topology Visualizer")
 text("Visualize the topology of a network.")
 
 df = pd.read_csv("data.csv")
@@ -19,7 +19,8 @@ layer_spacing = 2  # spacing between layers
 
 # Place devices along the x-axis with layers for the connections
 for i, device in enumerate(devices):
-    device_positions[device] = (x_offset, y_offset - (0.25 if x_offset % 4 == 0 else -0.25))
+    device_positions[device] = (
+        x_offset, y_offset - (0.25 if x_offset % 4 == 0 else -0.25))
     y_offset -= layer_spacing  # Adjust vertical spacing between layers
     if i % 3 == 2:  # Every 3 devices, move to the next column
         x_offset += 2
@@ -33,9 +34,10 @@ edges = []
 for idx, row in df.iterrows():
     from_device = row['Device Name']
     to_device = row['Connected To']
-    
+
     if to_device in device_name_to_id:
-        edges.append((device_name_to_id[from_device], device_name_to_id[to_device]))
+        edges.append(
+            (device_name_to_id[from_device], device_name_to_id[to_device]))
 
 # Extract node positions and labels
 node_x = [device_positions[device][0] for device in devices]
@@ -78,9 +80,9 @@ fig.update_layout(
     title="Network Topology",
     showlegend=False,
     xaxis=dict(showgrid=False, zeroline=False, range=[-1, x_offset + 1]),
-    yaxis=dict(showgrid=False, zeroline=False, range=[-len(devices) / 3 - 1, 2]),
+    yaxis=dict(showgrid=False, zeroline=False,
+               range=[-len(devices) / 3 - 1, 2]),
     plot_bgcolor="white"
 )
 
 plotly(fig)
-
