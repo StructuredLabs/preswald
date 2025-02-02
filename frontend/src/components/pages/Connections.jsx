@@ -271,7 +271,7 @@ function Connections() {
         {connections.length === 0 && (
           <Card>
             <CardContent className="p-6 text-center text-muted-foreground">
-              No connections found. Add connections in your config.toml file to get started.
+              No connections found. Add connections in your preswald.toml file to get started.
             </CardContent>
           </Card>
         )}

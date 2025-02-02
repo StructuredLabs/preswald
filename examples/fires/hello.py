@@ -1,23 +1,24 @@
 import pandas as pd
 import plotly.express as px
-from preswald import text, connect, plotly
+from preswald import text, plotly
 
 # Display the dashboard title
 text("# Fire Incident Analytics Dashboard 🔥")
 
 # Connect to the data
-connection_name = connect("mapdataall.csv", "data_alias")
 
 # Load and preprocess the data
 data = pd.read_csv("mapdataall.csv")
-data['incident_acres_burned'] = pd.to_numeric(data['incident_acres_burned'], errors='coerce')
+data['incident_acres_burned'] = pd.to_numeric(
+    data['incident_acres_burned'], errors='coerce')
 
 # Ensure the 'incident_dateonly_created' column is in datetime format
-data['incident_dateonly_created'] = pd.to_datetime(data['incident_dateonly_created'], errors='coerce')
+data['incident_dateonly_created'] = pd.to_datetime(
+    data['incident_dateonly_created'], errors='coerce')
 
 # Filter data for Los Angeles County in 2025
 filtered_data = data[
-    (data['incident_county'] == 'Los Angeles') & 
+    (data['incident_county'] == 'Los Angeles') &
     (data['incident_dateonly_created'].dt.year == 2025)
 ]
 
@@ -76,13 +77,16 @@ plotly(fig_bar)
 text("## Fire Trends Over Time")
 
 # Ensure there are valid dates and filter for data from 2000 onwards
-data = data[data['incident_dateonly_created'].dt.year >= 2000]  # Filter for 2000 and later
-data['incident_month'] = data['incident_dateonly_created'].dt.to_period('M').astype(str)
+# Filter for 2000 and later
+data = data[data['incident_dateonly_created'].dt.year >= 2000]
+data['incident_month'] = data['incident_dateonly_created'].dt.to_period(
+    'M').astype(str)
 
 # Group by month
 trend_data = data.groupby('incident_month', as_index=False).agg({
     'incident_acres_burned': 'sum',  # Total acres burned per month
-    'incident_id': 'count' if 'incident_id' in data.columns else None  # Number of incidents per month
+    # Number of incidents per month
+    'incident_id': 'count' if 'incident_id' in data.columns else None
 })
 
 # Check if trend_data has values
@@ -99,7 +103,8 @@ if not trend_data.empty:
         markers=True
     )
 
-    fig_line.update_traces(line=dict(width=3), marker=dict(size=8))  # Enhance line and marker visibility
+    fig_line.update_traces(line=dict(width=3), marker=dict(
+        size=8))  # Enhance line and marker visibility
     fig_line.update_layout(
         xaxis_title="Month",
         yaxis_title="Total Acres Burned",
