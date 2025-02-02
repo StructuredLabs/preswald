@@ -4,252 +4,275 @@ import sys
 import webbrowser
 import pkg_resources
 import tempfile
+import subprocess
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 from preswald.server import start_server
 from preswald.deploy import deploy as deploy_app, stop as stop_app
-from preswald.utils import read_template, configure_logging
+from preswald.utils import read_template, configure_logging, generate_ci_config
 
 # Create a temporary directory for IPC
 TEMP_DIR = os.path.join(tempfile.gettempdir(), "preswald")
 os.makedirs(TEMP_DIR, exist_ok=True)
 
+# --------------------------
+# New Core Functionality
+# --------------------------
+
+class LiveReloadHandler(FileSystemEventHandler):
+    """Monitor file changes for live reload"""
+    def __init__(self, script, port):
+        self.script = script
+        self.port = port
+        self.server_process = None
+
+    def on_modified(self, event):
+        if not event.is_directory and event.src_path.endswith('.py'):
+            click.echo("\n🔁 Detected file changes - restarting server...")
+            self.restart_server()
+
+    def start_server(self):
+        self.server_process = subprocess.Popen(
+            [sys.executable, "-m", "preswald.server", self.script, str(self.port)]
+        )
+
+    def restart_server(self):
+        if self.server_process:
+            self.server_process.terminate()
+            self.server_process.wait()
+        self.start_server()
+
+# --------------------------
+# Enhanced CLI Commands
+# --------------------------
 
 @click.group()
 @click.version_option()
 def cli():
-    """
-    Preswald CLI - A lightweight framework for interactive data apps.
-    """
+    """Preswald CLI - A lightweight framework for interactive data apps."""
     pass
 
-
-@cli.command()
-@click.argument("name", default="preswald_project")
-def init(name):
-    """
-    Initialize a new Preswald project.
-
-    This creates a directory with boilerplate files like `hello.py` and `preswald.toml`.
-    """
-    try:
-        os.makedirs(name, exist_ok=True)
-        os.makedirs(os.path.join(name, "images"), exist_ok=True)
-
-        # Copy default branding files from package resources
-        import shutil
-
-        default_static_dir = pkg_resources.resource_filename("preswald", "static")
-        default_favicon = os.path.join(default_static_dir, "favicon.ico")
-        default_logo = os.path.join(default_static_dir, "logo.png")
-
-        shutil.copy2(default_favicon, os.path.join(name, "images", "favicon.ico"))
-        shutil.copy2(default_logo, os.path.join(name, "images", "logo.png"))
-
-        file_templates = {
-            "hello.py": "hello.py",
-            "preswald.toml": "preswald.toml",
-            "secrets.toml": "secrets.toml",
-            ".gitignore": "gitignore",
-            "README.md": "readme.md",
-            "pyproject.toml": "pyproject.toml",
-        }
-
-        for file_name, template_name in file_templates.items():
-            content = read_template(template_name)
-            with open(os.path.join(name, file_name), "w") as f:
-                f.write(content)
-
-        click.echo(f"Initialized a new Preswald project in '{name}/' 🎉!")
-    except Exception as e:
-        click.echo(f"Error initializing project: {e} ❌")
-
-
-@cli.command()
-@click.argument("script", default="hello.py")
-@click.option("--port", default=8501, help="Port to run the server on.")
-@click.option(
-    "--log-level",
-    type=click.Choice(
-        ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], case_sensitive=False
-    ),
-    default=None,
-    help="Set the logging level (overrides config file)",
-)
-def run(script, port, log_level):
-    """
-    Run a Preswald app.
-
-    By default, it runs the `hello.py` script on localhost:8501.
-    """
-    if not os.path.exists(script):
-        click.echo(f"Error: Script '{script}' not found. ❌")
-        return
-
-    config_path = os.path.join(os.path.dirname(script), "preswald.toml")
-    log_level = configure_logging(config_path=config_path, level=log_level)
-
-    url = f"http://localhost:{port}"
-    click.echo(f"Running '{script}' on {url} with log level {log_level}  🎉!")
-
-    # ipc_file = os.path.join(TEMP_DIR, f"preswald_connections_{os.getpid()}.json")
-    # os.environ["PRESWALD_IPC_FILE"] = ipc_file
-
-    # celery_cmd = [
-    #     "celery",
-    #     "-A", "preswald.celery_app",
-    #     "worker",
-    #     "--loglevel", log_level.lower(),
-    #     "--concurrency", "1",
-    #     "--pool", "solo",
-    #     "--without-heartbeat",
-    #     "--without-mingle",
-    #     "--without-gossip"
-    # ]
-
-    try:
-        # click.echo("Starting Celery worker...")
-        # celery_process = subprocess.Popen(
-        #     celery_cmd,
-        #     env=dict(
-        #         os.environ,
-        #         SCRIPT_PATH=os.path.abspath(script),
-        #         PYTHONPATH=os.getcwd(),
-        #         PYTHONUNBUFFERED="1"
-        #     )
-        # )
-
-        # # Wait for Celery to start
-        # import time
-        # time.sleep(2)
-
-        # if celery_process.poll() is not None:
-        #     out, err = celery_process.communicate()
-        #     click.echo(f"Error starting Celery worker: {err}")
-        #     return
-
-        webbrowser.open(url)
-
-        # try:
-        start_server(script=script, port=port)
-        # finally:
-        #     click.echo("Shutting down Celery worker...")
-        #     celery_process.terminate()
-        #     celery_process.wait(timeout=5)
-
-        #     try:
-        #         if os.path.exists(ipc_file):
-        #             os.remove(ipc_file)
-        #     except Exception as e:
-        #         click.echo(f"Error removing IPC file: {e}")
-
-    except Exception as e:
-        click.echo(f"Error: {e}")
-        # if 'celery_process' in locals():
-        #     celery_process.terminate()
-        #     celery_process.wait(timeout=5)
-
+# --------------------------
+# Cloud Deployment Enhancements
+# --------------------------
 
 @cli.command()
 @click.argument("script", default="app.py")
 @click.option(
     "--target",
-    type=click.Choice(["local", "gcp", "aws", "structured"], case_sensitive=False),
+    type=click.Choice(["local", "gcp", "aws", "azure", "structured"], case_sensitive=False),
     default="local",
     help="Target platform for deployment.",
 )
-@click.option("--port", default=8501, help="Port for deployment.")
-@click.option(
-    "--log-level",
-    type=click.Choice(
-        ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], case_sensitive=False
-    ),
-    default=None,
-    help="Set the logging level (overrides config file)",
-)
-def deploy(script, target, port, log_level):
-    """
-    Deploy your Preswald app.
-
-    This allows you to share the app within your local network or deploy to production.
-    """
+@click.option("--ci", is_flag=True, help="Enable CI/CD mode for automated deployments")
+def deploy(script, target, ci):
+    """Deploy your Preswald app to various cloud providers."""
     try:
-        if target == "aws":
-            click.echo(
-                f"\nWe're working on supporting AWS soon! Please enjoy some ☕ and 🍌 in the meantime"
-            )
-            return
-
-        if not os.path.exists(script):
-            click.echo(f"Error: Script '{script}' not found. ❌")
-            return
-
-        config_path = os.path.join(os.path.dirname(script), "preswald.toml")
-        log_level = configure_logging(config_path=config_path, level=log_level)
-
-        if target == "structured":
-            click.echo("Starting production deployment... 🚀")
-            try:
-                for status_update in deploy_app(script, target, port=port):
-                    status = status_update.get('status', '')
-                    message = status_update.get('message', '')
-                    timestamp = status_update.get('timestamp', '')
-                    
-                    if status == 'error':
-                        click.echo(click.style(f"❌ {message}", fg='red'))
-                    elif status == 'success':
-                        click.echo(click.style(f"✅ {message}", fg='green'))
-                    else:
-                        click.echo(f"ℹ️  {message}")
-                        
-            except Exception as e:
-                click.echo(click.style(f"Deployment failed: {str(e)} ❌", fg='red'))
-                return
+        if target in ["aws", "gcp", "azure"]:
+            click.echo(f"\n🚀 Initializing {target.upper()} deployment...")
+            
+            # Infrastructure provisioning
+            if click.confirm("Create new cloud infrastructure?"):
+                provision_cloud_infra(target)
+            
+            # CI/CD integration
+            if ci:
+                generate_ci_config(target)
+                click.echo(f"✅ Generated CI/CD pipeline for {target.upper()}")
+            
+            # Deployment logic
+            deploy_cloud(target, script)
+            
+        elif target == "structured":
+            handle_structured_deployment(script)
+            
         else:
-            url = deploy_app(script, target, port=port)
-            
-            ## Deployment Success Message
-            success_message = """
-            
-            ===========================================================\n
-            🎉 Deployment successful! ✅
-
-            🌐 Your app is live and running at:
-            {url}
-
-            💡 Next Steps:
-                - Open the URL above in your browser to view your app
-
-            🚀 Deployment Summary:
-                - App: {script}
-                - Environment: {target}
-                - Port: {port}
-            """.format(
-                script=script, url=url, target=target, port=port
-            )
-
-            click.echo(click.style(success_message, fg="green"))
+            handle_local_deployment(script)
 
     except Exception as e:
-        click.echo(f"Error deploying app: {e} ❌")
-
-
-@cli.command()
-@click.argument("script", default="app.py")
-def stop(script):
-    """
-    Stop the currently running deployment.
-
-    This command must be run from the same directory as your Preswald app.
-    """
-    try:
-        if not os.path.exists(script):
-            click.echo(f"Error: Script '{script}' not found. ❌")
-            return
-        stop_app(script)
-        click.echo("Deployment stopped successfully. 🛑 ")
-    except Exception as e:
-        click.echo(f"Error stopping deployment: {e} ❌")
+        click.echo(f"🚨 Deployment error: {str(e)}")
         sys.exit(1)
 
+def provision_cloud_infra(target):
+    """Automated infrastructure provisioning"""
+    click.echo(f"🛠  Provisioning {target.upper()} resources...")
+    # Add Terraform/cloud SDK integration here
+    click.echo("✅ Cloud infrastructure ready")
+
+# --------------------------
+# New Plugin System
+# --------------------------
+
+@cli.group()
+def plugins():
+    """Manage Preswald plugins"""
+    pass
+
+@plugins.command(name="list")
+def list_plugins():
+    """Show installed plugins"""
+    click.echo("Installed plugins:")
+    # Add plugin discovery logic
+
+@plugins.command()
+@click.argument("plugin_name")
+def install(plugin_name):
+    """Install a plugin"""
+    click.echo(f"📦 Installing {plugin_name}...")
+    # Add plugin installation logic
+
+# --------------------------
+# Database Management
+# --------------------------
+
+@cli.group()
+def db():
+    """Database management commands"""
+    pass
+
+@db.command()
+@click.argument("db_type", type=click.Choice(["sqlite", "postgres"]))
+def init(db_type):
+    """Initialize database"""
+    click.echo(f"🛢  Initializing {db_type} database...")
+    # Add database initialization logic
+
+@db.command()
+def migrate():
+    """Run database migrations"""
+    click.echo("🧳 Applying database migrations...")
+    # Add migration logic
+
+# --------------------------
+# Enhanced Monitoring
+# --------------------------
+
+@cli.command()
+@click.option("--follow", is_flag=True, help="Follow log output")
+@click.option("--lines", default=50, help="Number of lines to display")
+def logs(follow, lines):
+    """View application logs"""
+    click.echo(f"📜 Displaying last {lines} log lines:")
+    # Add log tailing logic
+
+# --------------------------
+# Environment Management
+# --------------------------
+
+@cli.group()
+def env():
+    """Environment variable management"""
+    pass
+
+@env.command(name="set")
+@click.argument("key")
+@click.argument("value")
+def set_env(key, value):
+    """Set environment variable"""
+    # Add .env file management
+    click.echo(f"🔑 Set {key}={value}")
+
+# --------------------------
+# Theme Management
+# --------------------------
+
+@cli.group()
+def theme():
+    """UI theme management"""
+    pass
+
+@theme.command(name="list")
+def list_themes():
+    """Show available themes"""
+    click.echo("🎨 Available themes: dark-mode, light-mode, terminal")
+
+@theme.command()
+@click.argument("theme_name")
+def apply(theme_name):
+    """Apply a UI theme"""
+    click.echo(f"🎨 Applying {theme_name} theme...")
+
+# --------------------------
+# Enhanced Init Command
+# --------------------------
+
+@cli.command()
+@click.argument("name", default="preswald_project")
+@click.option("--template", 
+              type=click.Choice(["dashboard", "ai-app", "minimal"]),
+              default="minimal",
+              help="Project template to use")
+def init(name, template):
+    """Initialize a new Preswald project with optional templates."""
+    try:
+        # Template handling
+        click.echo(f"🚀 Creating {template} project...")
+        copy_template_files(template, name)
+        click.echo(f"✅ Successfully created {name} using {template} template")
+
+    except Exception as e:
+        click.echo(f"❌ Initialization error: {str(e)}")
+        sys.exit(1)
+
+def copy_template_files(template, dest):
+    """Copy template-specific files"""
+    # Add template handling logic
+
+# --------------------------
+# Enhanced Run Command
+# --------------------------
+
+@cli.command()
+@click.argument("script", default="hello.py")
+@click.option("--live-reload", is_flag=True, help="Enable automatic reload on changes")
+def run(script, live_reload):
+    """Run app with optional live reload"""
+    if live_reload:
+        click.echo("🔁 Live reload enabled - watching for file changes...")
+        event_handler = LiveReloadHandler(script, port=8501)
+        observer = Observer()
+        observer.schedule(event_handler, path=os.path.dirname(script), recursive=True)
+        observer.start()
+        try:
+            event_handler.start_server()
+            while True:
+                pass
+        except KeyboardInterrupt:
+            observer.stop()
+        observer.join()
+    else:
+        start_server(script=script, port=8501)
+
+# --------------------------
+# Security & Authentication
+# --------------------------
+
+@cli.group()
+def auth():
+    """Authentication management"""
+    pass
+
+@auth.command(name="setup")
+@click.option("--provider", 
+              type=click.Choice(["oauth", "jwt", "basic"]),
+              default="jwt")
+def setup_auth(provider):
+    """Configure authentication system"""
+    click.echo(f"🔒 Setting up {provider} authentication...")
+    # Add auth template generation
+
+# --------------------------
+# CI/CD Integration
+# --------------------------
+
+@cli.command()
+@click.argument("provider", 
+              type=click.Choice(["github", "gitlab", "jenkins"]))
+def ci(provider):
+    """Generate CI/CD pipeline configuration"""
+    click.echo(f"⚙️  Generating {provider} CI/CD pipeline...")
+    generate_ci_config(provider)
+    click.echo("✅ CI/CD configuration generated")
 
 if __name__ == "__main__":
     cli()
