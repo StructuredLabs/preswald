@@ -4,6 +4,10 @@ import sys
 import webbrowser
 import pkg_resources
 import tempfile
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+from rich.progress import Progress, SpinnerColumn, TextColumn
 from preswald.server import start_server
 from preswald.deploy import deploy as deploy_app, stop as stop_app
 from preswald.utils import read_template, configure_logging
@@ -171,15 +175,19 @@ def deploy(script, target, port, log_level):
 
     This allows you to share the app within your local network or deploy to production.
     """
+    console = Console()
+    
     try:
         if target == "aws":
-            click.echo(
-                f"\nWe're working on supporting AWS soon! Please enjoy some ☕ and 🍌 in the meantime"
-            )
+            console.print(Panel(
+                "[yellow]Currently working on supporting AWS. Please enjoy some ☕ and 🍌 in the meantime.[/yellow]",
+                title="[bold yellow]AWS Deployment Support[/bold yellow]",
+                expand=False
+            ))
             return
 
         if not os.path.exists(script):
-            click.echo(f"Error: Script '{script}' not found. ❌")
+            console.print(f"[red]Error: Script '{script}' not found. ❌[/red]")
             return
 
         config_path = os.path.join(os.path.dirname(script), "preswald.toml")
@@ -203,33 +211,38 @@ def deploy(script, target, port, log_level):
             except Exception as e:
                 click.echo(click.style(f"Deployment failed: {str(e)} ❌", fg='red'))
                 return
+
         else:
             url = deploy_app(script, target, port=port)
             
-            ## Deployment Success Message
-            success_message = """
+            # Create a table for deployment details
+            table = Table(show_header=False, box=None)
+            table.add_row("[bold cyan]App[/bold cyan]", script)
+            table.add_row("[bold cyan]Environment[/bold cyan]", target)
+            table.add_row("[bold cyan]Port[/bold cyan]", str(port))
+            table.add_row("[bold cyan]URL[/bold cyan]", str(url))
             
-            ===========================================================\n
-            🎉 Deployment successful! ✅
-
-            🌐 Your app is live and running at:
-            {url}
-
-            💡 Next Steps:
-                - Open the URL above in your browser to view your app
-
-            🚀 Deployment Summary:
-                - App: {script}
-                - Environment: {target}
-                - Port: {port}
-            """.format(
-                script=script, url=url, target=target, port=port
-            )
-
-            click.echo(click.style(success_message, fg="green"))
+            # Convert table to string representation for joining
+            table_str = str(table)
+            
+            console.print(Panel(
+                "\n".join([
+                    "[bold green]🎉 Deployment Successful! ✅[/bold green]",
+                    "",
+                    "[cyan]Your app is live and running at:[/cyan]",
+                    f"[link={url}]{url}[/link]",
+                    "",
+                    "[bold]Deployment Details:[/bold]",
+                    table_str,
+                    "",
+                    "[dim]💡 Open the URL above in your browser to view your app[/dim]"
+                ]),
+                title="[bold green]Deployment Summary[/bold green]",
+                expand=False
+            ))
 
     except Exception as e:
-        click.echo(f"Error deploying app: {e} ❌")
+        console.print(f"[red bold]Error deploying app: {e} ❌[/red bold]")
 
 
 @cli.command()

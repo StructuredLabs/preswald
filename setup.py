@@ -5,6 +5,19 @@ import shutil
 import sys
 from pathlib import Path
 
+def get_npm_path():
+    """Get the full path to npm executable based on the OS."""
+    if sys.platform == "win32":
+        # Try multiple possible locations on Windows
+        npm_paths = [
+            r"C:\Program Files\nodejs\npm.cmd",
+            os.path.expanduser(r"~\AppData\Roaming\npm\npm.cmd"),
+            "npm.cmd",  # fallback to PATH
+        ]
+        for path in npm_paths:
+            if os.path.exists(path):
+                return path
+    return "npm"  # fallback to PATH lookup for non-Windows or if not found
 
 class BuildFrontendCommand(Command):
     description = "build frontend assets"
@@ -29,14 +42,17 @@ class BuildFrontendCommand(Command):
             print(f"Frontend directory not found at {frontend_dir}", file=sys.stderr)
             return
 
+        npm_path = get_npm_path()
+        print(f"Using npm from: {npm_path}")
         print("Building frontend assets...")
         try:
             # Run npm install with error handling
             result = subprocess.run(
-                ["npm", "install"],
+                [npm_path, "install"],
                 cwd=frontend_dir,
                 capture_output=True,
                 text=True,
+                shell=True,  # Add shell=True for Windows
                 check=False,
             )
             if result.returncode != 0:
@@ -45,10 +61,11 @@ class BuildFrontendCommand(Command):
 
             # Run npm build with error handling
             result = subprocess.run(
-                ["npm", "run", "build"],
+                [npm_path, "run", "build"],
                 cwd=frontend_dir,
                 capture_output=True,
                 text=True,
+                shell=True,  # Add shell=True for Windows
                 check=False,
             )
             if result.returncode != 0:
@@ -120,6 +137,7 @@ CORE_DEPENDENCIES = [
     "psycopg2-binary>=2.9.10",
     "openai==1.59.7",
     "celery>=5.4.0",
+    "rich>=13.7.0",
 ]
 
 # Define additional dependencies for development
@@ -135,7 +153,7 @@ setup(
     author="Structured",
     author_email="founders@structuredlabs.com",
     description="A lightweight data workflow SDK.",
-    long_description=open("README.md").read(),
+    long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/StructuredLabs/preswald",
     license="Apache License 2.0",
