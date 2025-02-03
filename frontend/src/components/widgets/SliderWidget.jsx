@@ -10,7 +10,7 @@ const SliderWidget = ({
   min = 0, 
   max = 100, 
   value = 50, 
-  step = 1,
+  step = 1.0,
   id, 
   onChange,
   className,
@@ -22,7 +22,7 @@ const SliderWidget = ({
   const [localValue, setLocalValue] = React.useState(value);
 
   const handleChange = (e) => {
-    const newValue = parseInt(e.target.value, 10);
+    const newValue = parseFloat(e.target.value, 10);
     setLocalValue(newValue);
   };
 
@@ -77,6 +77,7 @@ const SliderWidget = ({
           type="range"
           min={min}
           max={max}
+          step={step}
           value={localValue}
           onChange={handleChange}
           onMouseUp={handleMouseUp}
