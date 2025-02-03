@@ -1,3 +1,4 @@
+import os
 import sys
 import traceback
 import logging
@@ -241,11 +242,18 @@ class ScriptRunner:
             # Capture script output
             with self._redirect_stdout():
                 # Execute script
-                with open(self.script_path, "r") as f:
+                with open(self.script_path, "r", encoding='utf-8') as f:
+                    # Save current cwd
+                    current_working_dir = os.getcwd()
+                    # Execute script with script directory set as cwd
+                    script_dir = os.path.dirname(os.path.realpath(self.script_path))
+                    os.chdir(script_dir)
                     code = compile(f.read(), self.script_path, "exec")
                     logger.debug("[ScriptRunner] Script compiled")
                     exec(code, self._script_globals)
                     logger.debug("[ScriptRunner] Script executed")
+                    # Change back to original working dir
+                    os.chdir(current_working_dir)
 
                 # Process rendered components
                 components = get_rendered_components()

@@ -32,8 +32,9 @@ class BuildFrontendCommand(Command):
         print("Building frontend assets...")
         try:
             # Run npm install with error handling
+            npm_path = shutil.which("npm")
             result = subprocess.run(
-                ["npm", "install"],
+                [npm_path, "install"],
                 cwd=frontend_dir,
                 capture_output=True,
                 text=True,
@@ -45,7 +46,7 @@ class BuildFrontendCommand(Command):
 
             # Run npm build with error handling
             result = subprocess.run(
-                ["npm", "run", "build"],
+                [npm_path, "run", "build"],
                 cwd=frontend_dir,
                 capture_output=True,
                 text=True,
@@ -135,7 +136,7 @@ setup(
     author="Structured",
     author_email="founders@structuredlabs.com",
     description="A lightweight data workflow SDK.",
-    long_description=open("README.md").read(),
+    long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/StructuredLabs/preswald",
     license="Apache License 2.0",
