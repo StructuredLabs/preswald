@@ -71,7 +71,7 @@ def _register_routes(app: FastAPI):
 
     @app.get("/favicon.ico")
     async def serve_favicon():
-        """Serve favicon.ico from config.toml branding or fallback to assets directory"""
+        """Serve favicon.ico from preswald.toml branding or fallback to assets directory"""
         try:
             return _handle_favicon_request(app.state.service)
         except Exception as e:
@@ -135,7 +135,7 @@ def start_server(script: Optional[str] = None, port: int = 8501):
     if script:
         try:
             script_dir = os.path.dirname(script)
-            config_path = os.path.join(script_dir, "config.toml")
+            config_path = os.path.join(script_dir, "preswald.toml")
             if os.path.exists(config_path):
                 import toml
                 config = toml.load(config_path)

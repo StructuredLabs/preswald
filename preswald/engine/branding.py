@@ -30,7 +30,7 @@ class BrandingManager:
         if script_path:
             try:
                 script_dir = os.path.dirname(script_path)
-                config_path = os.path.join(script_dir, "config.toml")
+                config_path = os.path.join(script_dir, "preswald.toml")
                 if os.path.exists(config_path):
                     config = toml.load(config_path)
                     logger.info(f"Loading config from {config_path}")

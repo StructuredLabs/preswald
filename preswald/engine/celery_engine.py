@@ -90,7 +90,7 @@ class CeleryEngine:
         try:
             # Initialize ConnectionsManager
             script_dir = os.path.dirname(script_path)
-            config_path = os.path.join(script_dir, "config.toml")
+            config_path = os.path.join(script_dir, "preswald.toml")
             secrets_path = os.path.join(script_dir, "secrets.toml")
             
             manager = ConnectionsManager(

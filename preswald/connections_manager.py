@@ -22,7 +22,7 @@ class ConnectionsManager:
         Initialize the ConnectionsManager.
         
         Args:
-            config_path (str): Path to the config.toml file
+            config_path (str): Path to the preswald.toml file
             secrets_path (Optional[str]): Path to the secrets.toml file
         """
         self.config_path = config_path
@@ -38,7 +38,7 @@ class ConnectionsManager:
                 raise FileNotFoundError(f"Config file not found at: {self.config_path}")
             
             self.config = toml.load(self.config_path)
-            logger.info("Successfully loaded config.toml")
+            logger.info("Successfully loaded preswald.toml")
             
             if self.secrets_path and os.path.exists(self.secrets_path):
                 self.secrets = toml.load(self.secrets_path)

@@ -314,6 +314,102 @@ def deploy_to_prod(script_path: str, port: int = 8501) -> Generator[dict, None, 
         raise Exception(f"Production deployment failed: {str(e)}")
 
 
+def deploy_to_gcp(script_path: str, port: int = 8501) -> str:
+    """
+    Deploy a Preswald app to Google Cloud Run.
+    This function creates a Docker container locally and deploys it to Cloud Run.
+
+    Args:
+        script_path: Path to the Preswald application script
+        port: Port number for the deployment
+
+    Returns:
+        str: The URL where the application is deployed on Cloud Run
+    """
+    script_path = os.path.abspath(script_path)
+    script_dir = Path(script_path).parent
+    container_name = get_container_name(script_path)
+    deploy_dir = get_deploy_dir(script_path)
+    
+    # Get preswald version for exact version matching
+    preswald_version = pkg_resources.get_distribution("preswald").version
+    
+    # Clear out old deployment directory contents while preserving the directory itself
+    for item in deploy_dir.iterdir():
+        if item.is_file():
+            item.unlink()
+        elif item.is_dir():
+            shutil.rmtree(item)
+            
+    # Copy everything from script's directory to deployment directory
+    for item in script_dir.iterdir():
+        if item.name == ".preswald_deploy":
+            continue
+        if item.is_file():
+            shutil.copy2(item, deploy_dir / item.name)
+        elif item.is_dir():
+            shutil.copytree(item, deploy_dir / item.name)
+            
+    # Rename main script to app.py if needed
+    if Path(script_path).name != "app.py":
+        shutil.move(deploy_dir / Path(script_path).name, deploy_dir / "app.py")
+        
+    # Create startup script
+    startup_template = read_template("run.py")
+    startup_script = startup_template.format(port=port)
+    with open(deploy_dir / "run.py", "w") as f:
+        f.write(startup_script)
+        
+    # Create Dockerfile
+    dockerfile_template = read_template("Dockerfile")
+    dockerfile_content = dockerfile_template.format(
+        port=port, preswald_version=preswald_version
+    )
+    with open(deploy_dir / "Dockerfile", "w") as f:
+        f.write(dockerfile_content)
+        
+    # Store deployment info
+    deployment_info = {
+        "script": script_path,
+        "container_name": container_name,
+        "preswald_version": preswald_version,
+    }
+    with open(deploy_dir / "deployment.json", "w") as f:
+        json.dump(deployment_info, f, indent=2)
+        
+    try:
+        # Stop any existing container
+        print(f"Stopping existing deployment (if any)...")
+        stop_existing_container(container_name)
+        
+        # Build the Docker image for GCP (using linux/amd64 platform)
+        print(f"Building Docker image {container_name} for GCP deployment...")
+        subprocess.run(
+            [
+                "docker",
+                "build",
+                "--platform",
+                "linux/amd64",
+                "-t",
+                container_name,
+                ".",
+            ],
+            check=True,
+            cwd=deploy_dir,
+        )
+        
+        # Deploy to Cloud Run
+        return deploy_to_cloud_run(deploy_dir, container_name, port=port)
+        
+    except subprocess.CalledProcessError as e:
+        raise Exception(f"Docker operation failed: {str(e)}")
+    except FileNotFoundError:
+        raise Exception(
+            "Docker not found. Please install Docker Desktop from "
+            "https://www.docker.com/products/docker-desktop"
+        )
+
+
 def deploy(script_path: str, target: str = "local", port: int = 8501) -> str | Generator[dict, None, None]:
     """
     Deploy a Preswald app.
@@ -330,16 +426,88 @@ def deploy(script_path: str, target: str = "local", port: int = 8501) -> str | G
     if target == "structured":
         return deploy_to_prod(script_path, port)
     elif target == "gcp":
+        return deploy_to_gcp(script_path, port)
+    elif target == "local":
         script_path = os.path.abspath(script_path)
         script_dir = Path(script_path).parent
         container_name = get_container_name(script_path)
         deploy_dir = get_deploy_dir(script_path)
-        
-        # Rest of the GCP deployment logic...
-        return deploy_to_cloud_run(deploy_dir, container_name, port=port)
-    elif target == "local":
-        # Existing local deployment logic...
-        return deploy(script_path, port=port)
+        # Get preswald version for exact version matching
+        preswald_version = pkg_resources.get_distribution("preswald").version
+        # First, clear out the old deployment directory contents while preserving the directory itself
+        for item in deploy_dir.iterdir():
+            if item.is_file():
+                item.unlink()
+            elif item.is_dir():
+                shutil.rmtree(item)
+        # Copy everything from the script's directory to the deployment directory
+        for item in script_dir.iterdir():
+            # Skip the deployment directory itself to avoid recursive copying
+            if item.name == ".preswald_deploy":
+                continue
+            # Copy files and directories
+            if item.is_file():
+                shutil.copy2(item, deploy_dir / item.name)
+            elif item.is_dir():
+                shutil.copytree(item, deploy_dir / item.name)
+        # Rename the main script to app.py if it's not already named that
+        if Path(script_path).name != "app.py":
+            shutil.move(deploy_dir / Path(script_path).name, deploy_dir / "app.py")
+        # Create startup script
+        startup_template = read_template("run.py")
+        startup_script = startup_template.format(port=port)
+        with open(deploy_dir / "run.py", "w") as f:
+            f.write(startup_script)
+        # Create Dockerfile
+        dockerfile_template = read_template("Dockerfile")
+        dockerfile_content = dockerfile_template.format(
+            port=port, preswald_version=preswald_version
+        )
+        with open(deploy_dir / "Dockerfile", "w") as f:
+            f.write(dockerfile_content)
+        # Store deployment info
+        deployment_info = {
+            "script": script_path,
+            "container_name": container_name,
+            "preswald_version": preswald_version,
+        }
+        with open(deploy_dir / "deployment.json", "w") as f:
+            json.dump(deployment_info, f, indent=2)
+        try:
+            # Stop any existing container
+            print(f"Stopping existing deployment (if any)...")
+            stop_existing_container(container_name)
+            # Build the Docker image
+            print(f"Building Docker image {container_name}...")
+            subprocess.run(
+                ["docker", "build", "-t", container_name, "."],
+                check=True,
+                cwd=deploy_dir,
+            )
+            # Start the container
+            print("Starting container...")
+            subprocess.run(
+                [
+                    "docker",
+                    "run",
+                    "-d",
+                    "--name",
+                    container_name,
+                    "-p",
+                    f"{port}:{port}",
+                    container_name,
+                ],
+                check=True,
+                cwd=deploy_dir,
+            )
+            return f"http://localhost:{port}"
+        except subprocess.CalledProcessError as e:
+            raise Exception(f"Docker operation failed: {str(e)}")
+        except FileNotFoundError:
+            raise Exception(
+                "Docker not found. Please install Docker Desktop from "
+                "https://www.docker.com/products/docker-desktop"
+            )
     else:
         raise ValueError(f"Unsupported deployment target: {target}")
 

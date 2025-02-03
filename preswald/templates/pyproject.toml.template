@@ -11,6 +11,9 @@ dependencies = [
     "preswald"
 ]
 
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+
 [tool.black]
 line-length = 88
 target-version = ['py38']
