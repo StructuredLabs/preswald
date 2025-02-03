@@ -284,12 +284,13 @@ def plotly(fig):
                             5,
                             20,
                         )  # Reasonable size range for web rendering
-                        normalized_sizes = (sizes - sizes.min()) / (
-                            sizes.max() - sizes.min()
-                        )
-                        scaled_sizes = min_size + normalized_sizes * (
-                            max_size - min_size
-                        )
+                        with np.errstate(divide='ignore', invalid='ignore'):
+                            scaled_sizes = (sizes / max_size) * max_size
+                            scaled_sizes = np.nan_to_num(scaled_sizes, nan=0.0, posinf=0.0, neginf=0.0)
+
+                        # Ensure there's a minimum size if needed
+                        scaled_sizes = np.clip(scaled_sizes, 1, max_size)
+
                         trace.marker.size = scaled_sizes.tolist()
 
         # Optimize layout
