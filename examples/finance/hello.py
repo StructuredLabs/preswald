@@ -7,9 +7,6 @@ import numpy as np
 text("# Analyzing Stock Data Cleaning and Volatility")
 text("Here we will explore how standardization can effect the analysis of financial data.")
 
-min_magnitude = slider("Minimum Magnitude", min_val=-10.0,
-                       max_val=10.0, default=0.0, step=0.1)
-
 # 2. Stock Price Comparison Plot
 # load data
 df = pd.read_csv("data/stock_data.csv")
