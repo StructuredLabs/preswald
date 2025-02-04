@@ -1,4 +1,4 @@
-from preswald.server import start_server
+from preswald.main import start_server
 import os
 
 script_path = os.environ.get('SCRIPT_PATH', '/app/app.py')
