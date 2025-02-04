@@ -540,3 +540,46 @@ def stop(script_path: str = None) -> None:
 
     except Exception as e:
         raise Exception(f"Failed to stop deployment: {e}")
+
+
+def stop_structured_deployment(script_path: str) -> dict:
+    """
+    Stop a Preswald app deployed to Structured Cloud service.
+    
+    Args:
+        script_path: Path to the Preswald application script
+        
+    Returns:
+        dict: Status of the stop operation
+    """
+    script_dir = Path(script_path).parent
+    env_file = script_dir / '.env.structured'
+    
+    if not env_file.exists():
+        raise Exception("No deployment found. The .env.structured file is missing.")
+    
+    # Read credentials from existing env file
+    credentials = {}
+    with open(env_file, 'r') as f:
+        for line in f:
+            key, value = line.strip().split('=')
+            credentials[key] = value
+            
+    github_username = credentials['GITHUB_USERNAME']
+    structured_cloud_api_key = credentials['STRUCTURED_CLOUD_API_KEY']
+    app_id = credentials['APP_ID']
+    
+    try:
+        response = requests.post(
+            f"{STRUCTURED_CLOUD_SERVICE_URL}/stop",
+            json={
+                'github_username': github_username,
+                'structured_cloud_api_key': structured_cloud_api_key,
+                'app_id': app_id
+            }
+        )
+        response.raise_for_status()
+        return response.json()
+        
+    except requests.RequestException as e:
+        raise Exception(f"Failed to stop production deployment: {str(e)}")
