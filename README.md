@@ -33,7 +33,6 @@
 </a>
 </p>
 
-
 ## **What is Preswald?**
 
 Preswald is a full-stack platform for building, deploying, and managing interactive data applications. It combines ingestion, storage, transformation, and visualization into one lightweight and powerful SDK. Whether you're prototyping internal tools or deploying production-grade apps, Preswald reduces complexity and cost without compromising flexibility.
@@ -53,7 +52,7 @@ Preswald is a full-stack platform for building, deploying, and managing interact
 
 ## **Installation**
 
-First, install Preswald using pip. https://pypi.org/project/preswald/ 
+First, install Preswald using pip. https://pypi.org/project/preswald/
 
 ```bash
 pip install preswald
@@ -79,7 +78,6 @@ This will create a folder called `my_project` with all the basics you need:
 - `secrets.toml`: Keep your API keys and sensitive information safe.
 - `.gitignore`: Preconfigured to keep `secrets.toml` out of your Git repository.
 
-
 ### **2. Write Your First App**
 
 Time to make something magical! Open up `hello.py` and write:
@@ -97,8 +95,8 @@ df = pd.read_csv("data.csv")
 # Display the data as a table
 view(df)
 ```
-![Demo GIF](assets/demo2.gif)
 
+![Demo GIF](assets/demo2.gif)
 
 ### **3. Run Your App**
 
@@ -199,6 +197,7 @@ Preswald thrives on community contributions! Here’s how you can help:
 
    ```
    pip install -e ".[dev]"
+   pre-commit install
    python setup.py build_frontend
    python -m build
    pip install dist/preswald-0.xx.xx.tar.gz
@@ -209,9 +208,22 @@ Preswald thrives on community contributions! Here’s how you can help:
    preswald run examples/earthquakes.py
    ```
 
+### Code Quality
+
+Preswald maintains high code quality standards through automated tools:
+
+- All code is formatted with Black for consistent style
+- Imports are organized with isort
+- Code is linted with Ruff to catch potential issues
+
+If you're using Preswald in your project, you might want to adopt similar standards. You can use our configuration files as a starting point:
+
+- `.pre-commit-config.yaml` for pre-commit configuration
+- `pyproject.toml` for tool settings
+
+These configurations ensure your code remains consistent with our standards when contributing back to the project.
 
 For details, check out [CONTRIBUTING.md](CONTRIBUTING.md).
-
 
 <br>
 
@@ -221,7 +233,6 @@ For details, check out [CONTRIBUTING.md](CONTRIBUTING.md).
 - **Community Forum**: Reach out [here](https://structured-users.slack.com/join/shared_invite/zt-265ong01f-UHP6BP3FzvOmMQDIKty_JQ#/shared-invite/email)
 - **Discussions**: Share your ideas and ask questions in our [discussion forum](https://github.com/StructuredLabs/preswald/discussions).
 - **Contributors**: Meet the awesome people who make Preswald better [here](https://github.com/StructuredLabs/preswald/graphs/contributors).
-
 
 <br>
 
@@ -236,8 +247,6 @@ For details, check out [CONTRIBUTING.md](CONTRIBUTING.md).
     </a>
 </p>
 
-
 ## **📄 License**
 
 Preswald is licensed under the [Apache 2.0 License](LICENSE).
-

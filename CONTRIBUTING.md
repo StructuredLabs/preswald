@@ -2,8 +2,6 @@
 
 Thank you for your interest in contributing to **Preswald**! This document outlines the project structure, how to set up your development environment, and the guidelines for contributing. Whether you’re fixing bugs, adding new features, or improving documentation, we appreciate your time and effort.
 
-
-
 ## Table of Contents
 
 1. [Project Structure](#project-structure)
@@ -14,8 +12,6 @@ Thank you for your interest in contributing to **Preswald**! This document outli
 6. [Issue Reporting Guidelines](#issue-reporting-guidelines)
 7. [Community Support](#community-support)
 8. [Acknowledgments](#acknowledgments)
-
-
 
 ## Project Structure
 
@@ -35,8 +31,6 @@ preswald/
 ├── setup.py        # Python package configuration
 └── README.md       # Project overview
 ```
-
-
 
 ## Setup Guide
 
@@ -62,6 +56,10 @@ We recommend using Conda to manage dependencies:
    ```bash
    pip install -e ".[dev]"
    ```
+3. Set up pre-commit hooks:
+   ```
+   pre-commit install
+   ```
 
 ### 3. Build the Frontend and Backend
 
@@ -82,8 +80,6 @@ Verify your setup by running the sample app:
 preswald run examples/earthquakes.py
 ```
 
-
-
 ## Development Workflow
 
 Here’s a quick summary of the contributing workflow:
@@ -100,26 +96,24 @@ Here’s a quick summary of the contributing workflow:
    ```
 5. **Open a Pull Request** on the main repository.
 
-
-
-
 ## Style Guide
 
 Follow these style guidelines to maintain consistency:
 
 - **Python**: Use [PEP 8](https://peps.python.org/pep-0008/).
 - **React**: Follow [React Best Practices](https://react.dev/learn).
-- **Linting**:
-  - Python: Use `flake8` and `black`.
+- **Formatting/Linting**:
+  - Python: Use `black`, `isort`, and `ruff`.
     ```bash
-    black . && flake8
+    black .
+    isort .
+    ruff .
     ```
+    These are set up in the pre-commit hook - will run upon `git commit` on staged files
   - JavaScript: Use ESLint with the provided configuration.
     ```bash
     npm run lint
     ```
-
-
 
 ## Pull Request Guidelines
 
@@ -145,8 +139,6 @@ This PR adds user authentication via JWT tokens. Includes:
 
 Fixes #42
 ```
-
-
 
 ## Issue Reporting Guidelines
 
@@ -182,8 +174,6 @@ If applicable, add screenshots to help explain the issue.
 - Browser: [e.g., Chrome, Firefox]
 ```
 
-
-
 ## Community Support
 
 If you have questions or need help:
@@ -191,8 +181,6 @@ If you have questions or need help:
 - Email us at **[founders@structuredlabs.com](mailto:founders@structuredlabs.com)**.
 - Join the **Structured Users Slack** for discussions and support:  
   [Structured Users Slack Invite](https://structured-users.slack.com/join/shared_invite/zt-265ong01f-UHP6BP3FzvOmMQDIKty_JQ#/shared-invite/email).
-
-
 
 ## Acknowledgments
 
