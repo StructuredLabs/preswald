@@ -169,3 +169,7 @@ preswald_project/
 notes.md
 
 .DS_Store
+
+# Tool cache directories
+.pre-commit/
+.ruff_cache/

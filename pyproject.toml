@@ -1,5 +1,82 @@
 [build-system]
-# We specify setuptools as our build system - this is what pip will use to build your package
-# The version requirement ensures we have new enough setuptools to handle modern Python packaging
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
+
+# Black configuration
+[tool.black]
+line-length = 88
+target-version = ['py37']  # Matching your python_requires=">=3.7"
+include = '\.pyi?$'
+extend-exclude = '''
+# Exclude the frontend-related files and build artifacts
+(
+    frontend/
+    | dist/
+    | build/
+    | \.eggs/
+)
+'''
+
+# isort configuration - made compatible with Black
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+force_grid_wrap = 0
+include_trailing_comma = true
+use_parentheses = true
+ensure_newline_before_comments = true
+split_on_trailing_comma = true
+# Skip frontend-related directories
+skip = ["frontend", "dist", "build", ".eggs"]
+
+# Ruff configuration
+[tool.ruff]
+line-length = 88
+target-version = "py37"
+
+# Enable specific rule sets
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "B",   # flake8-bugbear
+    "C",   # flake8-comprehensions
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "PT",  # pytest
+    "RUF", # Ruff-specific rules
+    "W",   # pycodestyle warnings
+]
+
+# Ignore specific rules that don't fit your codebase
+ignore = [
+    "E501",    # Line length (handled by Black)
+    "B008",    # Do not perform function call in argument defaults (common in FastAPI)
+]
+
+# Exclude directories that shouldn't be linted
+exclude = [
+    ".git",
+    ".ruff_cache",
+    "__pycache__",
+    "build",
+    "dist",
+    "frontend",
+    "*.egg-info",
+]
+
+# Allow automatic fixes
+fix = true
+unsafe-fixes = false
+
+# Configure specific rules
+[tool.ruff.per-file-ignores]
+"setup.py" = ["E402"]  # Module level import not at top of file
+"tests/*" = ["PLR2004"]  # Magic numbers in tests are fine
+
+[tool.ruff.mccabe]
+max-complexity = 12  # Slightly higher than default to accommodate your build commands
+
+[tool.ruff.pydocstyle]
+convention = "google"  # Using Google style docstrings

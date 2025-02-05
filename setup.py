@@ -1,9 +1,9 @@
-from setuptools import setup, find_packages, Command
-import subprocess
-import os
 import shutil
+import subprocess
 import sys
 from pathlib import Path
+
+from setuptools import Command, find_packages, setup
 
 
 class BuildFrontendCommand(Command):
@@ -128,6 +128,9 @@ DEV_DEPENDENCIES = [
     "build",
     "isort",
     "twine",
+    "black>=23.12.1",
+    "ruff>=0.1.11",
+    "pre-commit>=3.5.0",
 ]
 
 setup(
