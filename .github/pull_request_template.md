@@ -29,4 +29,5 @@ Please describe the tests that you ran to verify your changes. Include screensho
 - [ ] I have commented my code, particularly in hard-to-understand areas
 - [ ] I have made corresponding changes to the documentation
 - [ ] My changes generate no new warnings
+- [ ] I have run my code against examples and ensured no errors
 - [ ] Any dependent changes have been merged and published in downstream modules
