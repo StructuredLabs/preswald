@@ -536,7 +536,6 @@ def stop(script_path: str = None) -> None:
 
         print(f"Stopping deployment {container_name}...")
         stop_existing_container(container_name)
-        print("Deployment stopped successfully")
 
     except Exception as e:
         raise Exception(f"Failed to stop deployment: {e}")
@@ -583,3 +582,46 @@ def stop_structured_deployment(script_path: str) -> dict:
         
     except requests.RequestException as e:
         raise Exception(f"Failed to stop production deployment: {str(e)}")
+
+
+def get_structured_deployments(script_path: str) -> dict:
+    """
+    Get deployments from Structured Cloud service.
+    
+    Args:
+        script_path: Path to the Preswald application script
+        
+    Returns:
+        dict: Deployment information including user, organization, and deployments list
+    """
+    script_dir = Path(script_path).parent
+    env_file = script_dir / '.env.structured'
+    
+    if not env_file.exists():
+        raise Exception("No deployment found. The .env.structured file is missing.")
+    
+    # Read credentials from existing env file
+    credentials = {}
+    with open(env_file, 'r') as f:
+        for line in f:
+            key, value = line.strip().split('=')
+            credentials[key] = value
+            
+    github_username = credentials['GITHUB_USERNAME']
+    structured_cloud_api_key = credentials['STRUCTURED_CLOUD_API_KEY']
+    app_id = credentials['APP_ID']
+    
+    try:
+        response = requests.post(
+            f"{STRUCTURED_CLOUD_SERVICE_URL}/deployments",
+            json={
+                'github_username': github_username,
+                'structured_cloud_api_key': structured_cloud_api_key,
+                'app_id': app_id
+            }
+        )
+        response.raise_for_status()
+        return response.json()
+        
+    except requests.RequestException as e:
+        raise Exception(f"Failed to fetch deployments: {str(e)}")
