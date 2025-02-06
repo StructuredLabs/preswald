@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 
 from celery import Celery
 
-from .connections_manager import ConnectionsManager
+from .managers.connections import ConnectionsManager
 
 logger = logging.getLogger(__name__)
 

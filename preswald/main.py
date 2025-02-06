@@ -12,14 +12,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
-from preswald.engine.branding import BrandingManager
+from preswald.engine.celery import CeleryEngine
+from preswald.engine.managers.branding import BrandingManager
 from preswald.engine.service import PreswaldService
-from preswald.engine.celery_engine import CeleryEngine
 
 logger = logging.getLogger(__name__)
 
 # Global celery engine instance
 celery_engine = None
+
 
 def create_app(script_path: Optional[str] = None) -> FastAPI:
     """Create and configure the FastAPI application"""
@@ -57,8 +58,8 @@ def create_app(script_path: Optional[str] = None) -> FastAPI:
     return app
 
 
-def _register_routes(app: FastAPI):
-    """Register all application routes"""
+def _register_static_routes(app: FastAPI):
+    """Register routes for static file serving"""
 
     @app.get("/")
     async def serve_index():
@@ -67,7 +68,7 @@ def _register_routes(app: FastAPI):
             return _handle_index_request(app.state.service)
         except Exception as e:
             logger.error(f"Error serving index: {e}")
-            raise HTTPException(status_code=500, detail="Internal server error")
+            raise HTTPException(status_code=500, detail="Internal server error") from e
 
     @app.get("/favicon.ico")
     async def serve_favicon():
@@ -76,42 +77,7 @@ def _register_routes(app: FastAPI):
             return _handle_favicon_request(app.state.service)
         except Exception as e:
             logger.error(f"Error serving favicon: {e}")
-            raise HTTPException(status_code=500, detail="Internal server error")
-
-    @app.get("/api/connections")
-    async def get_connections():
-        """Get all active connections and their states"""
-        global celery_engine
-        if celery_engine:
-            return celery_engine.get_latest_result()
-        return {
-            "connections": [],
-            "error": "Celery engine not initialized",
-            "timestamp": 0,
-            "is_parsing": False
-        }
-
-    @app.websocket("/ws/{client_id}")
-    async def websocket_endpoint(websocket: WebSocket, client_id: str):
-        """Handle WebSocket connections"""
-        try:
-            # Register client and get script runner
-            await app.state.service.register_client(client_id, websocket)
-
-            # Handle messages until disconnection
-            try:
-                while not app.state.service._is_shutting_down:
-                    message = await websocket.receive_json()
-                    await app.state.service.handle_client_message(client_id, message)
-            except WebSocketDisconnect:
-                logger.info(f"Client disconnected: {client_id}")
-            finally:
-                await app.state.service.unregister_client(client_id)
-
-        except Exception as e:
-            logger.error(f"Error in websocket endpoint: {e}")
-            if not app.state.service._is_shutting_down:
-                await websocket.close(code=1011, reason=str(e))
+            raise HTTPException(status_code=500, detail="Internal server error") from e
 
     @app.get("/static/{path:path}")
     async def get_static(path: str):
@@ -127,6 +93,53 @@ def _register_routes(app: FastAPI):
         return await serve_index()
 
 
+def _register_api_routes(app: FastAPI):
+    """Register API routes"""
+
+    @app.get("/api/connections")
+    async def get_connections():
+        """Get all active connections and their states"""
+        global celery_engine
+        if celery_engine:
+            return celery_engine.get_latest_result()
+        return {
+            "connections": [],
+            "error": "Celery engine not initialized",
+            "timestamp": 0,
+            "is_parsing": False,
+        }
+
+
+def _register_websocket_routes(app: FastAPI):
+    """Register WebSocket routes"""
+
+    @app.websocket("/ws/{client_id}")
+    async def websocket_endpoint(websocket: WebSocket, client_id: str):
+        """Handle WebSocket connections"""
+        try:
+            await app.state.service.register_client(client_id, websocket)
+            try:
+                while not app.state.service._is_shutting_down:
+                    message = await websocket.receive_json()
+                    await app.state.service.handle_client_message(client_id, message)
+            except WebSocketDisconnect:
+                logger.info(f"Client disconnected: {client_id}")
+            finally:
+                await app.state.service.unregister_client(client_id)
+        except Exception as e:
+            logger.error(f"Error in websocket endpoint: {e}")
+            if not app.state.service._is_shutting_down:
+                await websocket.close(code=1011, reason=str(e))
+
+
+def _register_routes(app: FastAPI):
+    """Register all application routes"""
+
+    _register_api_routes(app)
+    _register_websocket_routes(app)
+    _register_static_routes(app)  # order matters for static routes
+
+
 def start_server(script: Optional[str] = None, port: int = 8501):
     """Start the FastAPI server"""
     app = create_app(script)
@@ -138,12 +151,13 @@ def start_server(script: Optional[str] = None, port: int = 8501):
             config_path = os.path.join(script_dir, "preswald.toml")
             if os.path.exists(config_path):
                 import toml
+
                 config = toml.load(config_path)
                 if "project" in config and "port" in config["project"]:
                     port = config["project"]["port"]
         except Exception as e:
             logger.error(f"Error loading config: {e}")
-    
+
     config = uvicorn.Config(app, host="0.0.0.0", port=port, loop="asyncio")
     server = uvicorn.Server(config)
 
@@ -160,6 +174,7 @@ def start_server(script: Optional[str] = None, port: int = 8501):
 
     try:
         import asyncio
+
         asyncio.run(server.serve())
 
     except KeyboardInterrupt:
@@ -205,7 +220,7 @@ def _handle_index_request(service: PreswaldService) -> HTMLResponse:
         branding = service.branding_manager.get_branding_config(service.script_path)
 
         # Read and modify index.html
-        with open(index_path, "r") as f:
+        with open(index_path) as f:
             content = f.read()
 
         # Replace title
@@ -232,7 +247,7 @@ def _handle_index_request(service: PreswaldService) -> HTMLResponse:
 
     except Exception as e:
         logger.error(f"Error serving index: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from e
 
 
 def _handle_favicon_request(service: PreswaldService) -> HTMLResponse:
@@ -243,4 +258,4 @@ def _handle_favicon_request(service: PreswaldService) -> HTMLResponse:
         return FileResponse(branding["favicon"])
     except Exception as e:
         logger.error(f"Error serving index: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from e

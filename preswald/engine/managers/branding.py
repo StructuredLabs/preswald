@@ -1,7 +1,7 @@
 import logging
 import os
 import shutil
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import toml
 
@@ -18,7 +18,7 @@ class BrandingManager:
         self.static_dir = static_dir
         self.assets_dir = assets_dir
 
-    def get_branding_config(self, script_path: str = None) -> Dict[str, Any]:
+    def get_branding_config(self, script_path: Optional[str] = None) -> Dict[str, Any]:
         """Get branding configuration from config file or defaults"""
         branding = {
             "name": "Preswald",

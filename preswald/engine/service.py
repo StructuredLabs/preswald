@@ -7,7 +7,7 @@ from typing import Any, Callable, Dict, Optional
 
 from fastapi import WebSocket, WebSocketDisconnect
 
-from .layout import LayoutManager
+from .managers.layout import LayoutManager
 from .runner import ScriptRunner
 from .utils import clean_nan_values, compress_data, optimize_plotly_data
 
@@ -124,7 +124,7 @@ class PreswaldService:
             # for connection in self.connection_manager.get_all_connections():
             #     self.connection_manager.close_connection(connection.name)
 
-            asyncio.create_task(self._broadcast_connections())
+            asyncio.create_task(self._broadcast_connections())  # noqa: RUF006
         except Exception as e:
             logger.error(f"Error unregistering client {client_id}: {e}")
 
@@ -213,7 +213,7 @@ class PreswaldService:
     def _update_component_states(self, states: Dict[str, Any]):
         """Update the state of a component and trigger callbacks"""
         with self._lock:
-            logger.debug(f"[STATE] Updating states")
+            logger.debug("[STATE] Updating states")
             for component_id, new_value in states.items():
                 old_value = self._component_states.get(component_id)
 
