@@ -6,6 +6,7 @@ import webbrowser
 import click
 import pkg_resources
 
+from preswald.deploy import cleanup_gcp_deployment, stop_structured_deployment
 from preswald.deploy import deploy as deploy_app
 from preswald.deploy import stop as stop_app
 from preswald.main import start_server
@@ -177,7 +178,7 @@ def deploy(script, target, port, log_level):
     try:
         if target == "aws":
             click.echo(
-                f"\nWe're working on supporting AWS soon! Please enjoy some ☕ and 🍌 in the meantime"
+                "\nWe're working on supporting AWS soon! Please enjoy some ☕ and 🍌 in the meantime"
             )
             return
 
@@ -192,26 +193,25 @@ def deploy(script, target, port, log_level):
             click.echo("Starting production deployment... 🚀")
             try:
                 for status_update in deploy_app(script, target, port=port):
-                    status = status_update.get('status', '')
-                    message = status_update.get('message', '')
-                    timestamp = status_update.get('timestamp', '')
-                    
-                    if status == 'error':
-                        click.echo(click.style(f"❌ {message}", fg='red'))
-                    elif status == 'success':
-                        click.echo(click.style(f"✅ {message}", fg='green'))
+                    status = status_update.get("status", "")
+                    message = status_update.get("message", "")
+
+                    if status == "error":
+                        click.echo(click.style(f"❌ {message}", fg="red"))
+                    elif status == "success":
+                        click.echo(click.style(f"✅ {message}", fg="green"))
                     else:
-                        click.echo(f"ℹ️  {message}")
-                        
+                        click.echo(f"i {message}")
+
             except Exception as e:
-                click.echo(click.style(f"Deployment failed: {str(e)} ❌", fg='red'))
+                click.echo(click.style(f"Deployment failed: {e!s} ❌", fg="red"))
                 return
         else:
             url = deploy_app(script, target, port=port)
-            
+
             ## Deployment Success Message
-            success_message = """
-            
+            success_message = f"""
+
             ===========================================================\n
             🎉 Deployment successful! ✅
 
@@ -225,9 +225,7 @@ def deploy(script, target, port, log_level):
                 - App: {script}
                 - Environment: {target}
                 - Port: {port}
-            """.format(
-                script=script, url=url, target=target, port=port
-            )
+            """
 
             click.echo(click.style(success_message, fg="green"))
 
@@ -253,14 +251,37 @@ def stop(script, target):
         if not os.path.exists(script):
             click.echo(f"Error: Script '{script}' not found. ❌")
             return
-            
+
         if target == "structured":
-            from preswald.deploy import stop_structured_deployment
             try:
-                result = stop_structured_deployment(script)
-                click.echo(click.style("✅ Production deployment stopped successfully.", fg='green'))
+                stop_structured_deployment(script)
+                click.echo(
+                    click.style(
+                        "✅ Production deployment stopped successfully.", fg="green"
+                    )
+                )
             except Exception as e:
-                click.echo(click.style(f"❌ {str(e)}", fg='red'))
+                click.echo(click.style(f"❌ {e!s}", fg="red"))
+        if target == "gcp":
+            try:
+                click.echo("Starting GCP deployment cleanup... 🧹")
+                for status_update in cleanup_gcp_deployment(script):
+                    status = status_update.get("status", "")
+                    message = status_update.get("message", "")
+
+                    if status == "error":
+                        click.echo(click.style(f"❌ {message}", fg="red"))
+                    elif status == "success":
+                        click.echo(click.style(f"✅ {message}", fg="green"))
+                    else:
+                        click.echo(f"i {message}")
+                click.echo(
+                    click.style(
+                        "✅ GCP deployment cleaned up successfully!", fg="green"
+                    )
+                )
+            except Exception as e:
+                click.echo(click.style(f"❌ GCP cleanup failed: {e!s}", fg="red"))
                 sys.exit(1)
         else:
             stop_app(script)
@@ -274,53 +295,71 @@ def stop(script, target):
 def deployments():
     """
     Show all deployments for your Preswald app.
-    
+
     This command displays information about your deployments on Structured Cloud.
     Must be run from the directory containing your Preswald app.
     """
     try:
         script = os.path.join(os.getcwd(), ".env.structured")
         if not os.path.exists(script):
-            click.echo(click.style(f"Error: No Preswald app found in current directory. ❌", fg='red'))
+            click.echo(
+                click.style(
+                    "Error: No Preswald app found in current directory. ❌", fg="red"
+                )
+            )
             return
-            
+
         from preswald.deploy import get_structured_deployments
+
         try:
             result = get_structured_deployments(script)
 
             # Print user info
-            user = result.get('user', {})
-            click.echo("\n" + click.style("User Information:", fg='blue', bold=True))
+            user = result.get("user", {})
+            click.echo("\n" + click.style("User Information:", fg="blue", bold=True))
             click.echo(f"Username: {user.get('username')}")
             click.echo(f"Email: {user.get('email')}")
-            
+
             # Print deployments
-            deployments = result.get('deployments', [])
-            click.echo("\n" + click.style("Deployments:", fg='blue', bold=True))
-            
+            deployments = result.get("deployments", [])
+            click.echo("\n" + click.style("Deployments:", fg="blue", bold=True))
+
             if not deployments:
                 click.echo("No active deployments found.")
             else:
                 for deployment in deployments:
-                    status_color = 'green' if deployment.get('isActive') else 'yellow'
-                    click.echo("\n" + click.style(f"Deployment ID: {deployment.get('id')}", bold=True))
+                    status_color = "green" if deployment.get("isActive") else "yellow"
+                    click.echo(
+                        "\n"
+                        + click.style(
+                            f"Deployment ID: {deployment.get('id')}", bold=True
+                        )
+                    )
                     click.echo(f"App ID: {deployment.get('appId')}")
-                    click.echo(click.style(f"Status: {deployment.get('status')}", fg=status_color))
+                    click.echo(
+                        click.style(
+                            f"Status: {deployment.get('status')}", fg=status_color
+                        )
+                    )
                     click.echo(f"Created: {deployment.get('createdAt')}")
                     click.echo(f"Last Updated: {deployment.get('updatedAt')}")
-                    click.echo(click.style(f"Active: {deployment.get('isActive')}", fg=status_color))
-            
+                    click.echo(
+                        click.style(
+                            f"Active: {deployment.get('isActive')}", fg=status_color
+                        )
+                    )
+
             # Print meta info
-            meta = result.get('meta', {})
-            click.echo("\n" + click.style("Meta Information:", fg='blue', bold=True))
+            meta = result.get("meta", {})
+            click.echo("\n" + click.style("Meta Information:", fg="blue", bold=True))
             click.echo(f"Total Deployments: {meta.get('total')}")
             click.echo(f"Last Updated: {meta.get('timestamp')}")
-            
+
         except Exception as e:
-            click.echo(click.style(f"❌ {str(e)}", fg='red'))
+            click.echo(click.style(f"❌ {e!s}", fg="red"))
             sys.exit(1)
     except Exception as e:
-        click.echo(click.style(f"Error showing deployments: {e} ❌", fg='red'))
+        click.echo(click.style(f"Error showing deployments: {e} ❌", fg="red"))
         sys.exit(1)
 
 
