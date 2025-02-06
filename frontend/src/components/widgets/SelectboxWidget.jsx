@@ -1,85 +1,79 @@
 'use client';
 
+import React from 'react';
+
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
-import { Label } from "@/components/ui/label";
-import React from 'react';
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
-const SelectboxWidget = ({ 
-  label, 
-  options = [], 
-  value, 
-  id, 
+const SelectboxWidget = ({
+  label,
+  options = [],
+  value,
+  id,
   onChange,
   className,
-  placeholder = "Select an option",
+  placeholder = 'Select an option',
   disabled = false,
   error,
   required = false,
-  size = "default" // "sm", "default", "lg"
+  size = 'default', // "sm", "default", "lg"
 }) => {
   const handleValueChange = (newValue) => {
-    console.log("[SelectboxWidget] Change event:", {
+    console.log('[SelectboxWidget] Change event:', {
       id,
       oldValue: value,
       newValue: newValue,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     try {
       onChange?.(newValue);
-      console.log("[SelectboxWidget] State updated successfully:", {
+      console.log('[SelectboxWidget] State updated successfully:', {
         id,
-        value: newValue
+        value: newValue,
       });
     } catch (error) {
-      console.error("[SelectboxWidget] Error updating state:", {
+      console.error('[SelectboxWidget] Error updating state:', {
         id,
-        error: error.message
+        error: error.message,
       });
     }
   };
 
   // Size variants
   const sizeVariants = {
-    sm: "h-8 text-xs",
-    default: "h-10 text-sm",
-    lg: "h-12 text-base"
+    sm: 'h-8 text-xs',
+    default: 'h-10 text-sm',
+    lg: 'h-12 text-base',
   };
 
   return (
-    <div className={cn("space-y-2", className)}>
+    <div className={cn('space-y-2', className)}>
       {label && (
-        <Label 
+        <Label
           htmlFor={id}
           className={cn(
-            "text-sm font-medium",
-            error && "text-destructive",
-            disabled && "opacity-50"
+            'text-sm font-medium',
+            error && 'text-destructive',
+            disabled && 'opacity-50'
           )}
         >
           {label}
           {required && <span className="text-destructive ml-1">*</span>}
         </Label>
       )}
-      <Select
-        value={value}
-        onValueChange={handleValueChange}
-        disabled={disabled}
-      >
+      <Select value={value} onValueChange={handleValueChange} disabled={disabled}>
         <SelectTrigger
           id={id}
-          className={cn(
-            sizeVariants[size],
-            error && "border-destructive focus:ring-destructive"
-          )}
+          className={cn(sizeVariants[size], error && 'border-destructive focus:ring-destructive')}
         >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
@@ -89,9 +83,9 @@ const SelectboxWidget = ({
               key={index}
               value={option}
               className={cn(
-                "cursor-pointer",
-                size === "sm" && "text-xs py-1.5",
-                size === "lg" && "text-base py-2.5"
+                'cursor-pointer',
+                size === 'sm' && 'text-xs py-1.5',
+                size === 'lg' && 'text-base py-2.5'
               )}
             >
               {option}
@@ -99,11 +93,7 @@ const SelectboxWidget = ({
           ))}
         </SelectContent>
       </Select>
-      {error && (
-        <p className="text-xs text-destructive mt-1">
-          {error}
-        </p>
-      )}
+      {error && <p className="text-xs text-destructive mt-1">{error}</p>}
     </div>
   );
 };

@@ -1,13 +1,24 @@
-'use client'
+'use client';
 
-import { ChartBarIcon, ClockIcon, DocumentTextIcon, GlobeAltIcon, HomeIcon, MagnifyingGlassIcon, ServerIcon, Squares2X2Icon } from "@heroicons/react/24/solid";
+import {
+  ChartBarIcon,
+  ClockIcon,
+  DocumentTextIcon,
+  GlobeAltIcon,
+  HomeIcon,
+  MagnifyingGlassIcon,
+  ServerIcon,
+  Squares2X2Icon,
+} from '@heroicons/react/24/solid';
+
 import React, { useState } from 'react';
-
+import { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
+
+import { cn } from '@/lib/utils';
+
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
-import { cn } from "@/lib/utils";
-import { useEffect } from 'react'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
@@ -25,7 +36,7 @@ export default function Layout({ branding, children }) {
     // Get branding from window object (set by server)
     if (window.PRESWALD_BRANDING) {
       console.log('Received branding:', window.PRESWALD_BRANDING);
-      
+
       // Update document title
       document.title = window.PRESWALD_BRANDING.name;
 
@@ -33,7 +44,7 @@ export default function Layout({ branding, children }) {
       const updateFaviconLinks = (faviconUrl) => {
         // Remove any existing favicon links
         const existingLinks = document.querySelectorAll("link[rel*='icon']");
-        existingLinks.forEach(link => link.remove());
+        existingLinks.forEach((link) => link.remove());
 
         // Create new favicon links
         const iconLink = document.createElement('link');
@@ -52,7 +63,7 @@ export default function Layout({ branding, children }) {
       // Function to check if favicon is accessible
       const checkFavicon = () => {
         fetch(window.PRESWALD_BRANDING.favicon)
-          .then(response => {
+          .then((response) => {
             if (response.ok) {
               setFaviconLoaded(true);
               console.log('Favicon loaded successfully');
@@ -61,14 +72,13 @@ export default function Layout({ branding, children }) {
               throw new Error('Favicon not found');
             }
           })
-          .catch(error => {
+          .catch((error) => {
             console.warn('Favicon failed to load, retrying in 1 second...', error);
             setTimeout(checkFavicon, 1000);
           });
       };
 
       checkFavicon();
-      
     } else {
       console.warn('No PRESWALD_BRANDING found in window object');
     }
@@ -90,11 +100,13 @@ export default function Layout({ branding, children }) {
       />
 
       {/* Main Content */}
-      <div className={cn(
-        "flex flex-col min-h-screen",
-        "lg:pl-80 transition-all duration-300",
-        isCollapsed && "lg:pl-20"
-      )}>
+      <div
+        className={cn(
+          'flex flex-col min-h-screen',
+          'lg:pl-80 transition-all duration-300',
+          isCollapsed && 'lg:pl-20'
+        )}
+      >
         <TopBar
           setSidebarOpen={setSidebarOpen}
           onToggleSidebar={handleToggleSidebar}
@@ -103,9 +115,7 @@ export default function Layout({ branding, children }) {
         />
 
         <main className="flex-1 py-10">
-          <div className="px-4 sm:px-6 lg:px-8">
-            {children}
-          </div>
+          <div className="px-4 sm:px-6 lg:px-8">{children}</div>
         </main>
       </div>
     </div>

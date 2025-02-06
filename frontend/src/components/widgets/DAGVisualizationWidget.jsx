@@ -1,13 +1,6 @@
-import 'reactflow/dist/style.css';
-
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { FiInfo, FiLock, FiMaximize2, FiMinimize2, FiUnlock } from 'react-icons/fi';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { FiInfo, FiLock, FiMaximize2, FiMinimize2, FiUnlock } from 'react-icons/fi';
+import { useInView } from 'react-intersection-observer';
 import ReactFlow, {
   Background,
   Controls,
@@ -16,17 +9,14 @@ import ReactFlow, {
   useEdgesState,
   useNodesState,
 } from 'reactflow';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import 'reactflow/dist/style.css';
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { useInView } from 'react-intersection-observer';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
+import { cn } from '@/lib/utils';
 
 // Custom node styles
 const nodeStyles = {
@@ -91,7 +81,7 @@ const DAGVisualizationWidget = ({ id, data: rawData, content, error }) => {
   // Transform Plotly data to ReactFlow format
   useEffect(() => {
     if (rawData?.data) {
-      const plotlyNodes = rawData.data.find(trace => trace.type === 'scatter');
+      const plotlyNodes = rawData.data.find((trace) => trace.type === 'scatter');
       const nodeData = plotlyNodes?.customdata || [];
       const positions = plotlyNodes?.node?.positions || [];
 
@@ -116,9 +106,9 @@ const DAGVisualizationWidget = ({ id, data: rawData, content, error }) => {
 
       // Create edges from dependencies
       const flowEdges = [];
-      nodeData.forEach(node => {
+      nodeData.forEach((node) => {
         if (node.dependencies) {
-          node.dependencies.forEach(dep => {
+          node.dependencies.forEach((dep) => {
             flowEdges.push({
               id: `${dep}-${node.name}`,
               source: dep,
@@ -148,11 +138,11 @@ const DAGVisualizationWidget = ({ id, data: rawData, content, error }) => {
   }, []);
 
   const toggleFullscreen = useCallback(() => {
-    setIsFullscreen(prev => !prev);
+    setIsFullscreen((prev) => !prev);
   }, []);
 
   const toggleLock = useCallback(() => {
-    setIsLocked(prev => !prev);
+    setIsLocked((prev) => !prev);
   }, []);
 
   if (error) {
@@ -171,8 +161,8 @@ const DAGVisualizationWidget = ({ id, data: rawData, content, error }) => {
   return (
     <Card
       className={cn(
-        "relative transition-all duration-300",
-        isFullscreen ? "fixed inset-0 z-50 m-4" : ""
+        'relative transition-all duration-300',
+        isFullscreen ? 'fixed inset-0 z-50 m-4' : ''
       )}
       ref={setRefs}
     >
@@ -181,11 +171,7 @@ const DAGVisualizationWidget = ({ id, data: rawData, content, error }) => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowMiniMap(prev => !prev)}
-              >
+              <Button variant="ghost" size="icon" onClick={() => setShowMiniMap((prev) => !prev)}>
                 <FiInfo className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -194,30 +180,16 @@ const DAGVisualizationWidget = ({ id, data: rawData, content, error }) => {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleLock}
-              >
-                {isLocked ? (
-                  <FiLock className="h-4 w-4" />
-                ) : (
-                  <FiUnlock className="h-4 w-4" />
-                )}
+              <Button variant="ghost" size="icon" onClick={toggleLock}>
+                {isLocked ? <FiLock className="h-4 w-4" /> : <FiUnlock className="h-4 w-4" />}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
-              {isLocked ? "Unlock Nodes" : "Lock Nodes"}
-            </TooltipContent>
+            <TooltipContent>{isLocked ? 'Unlock Nodes' : 'Lock Nodes'}</TooltipContent>
           </Tooltip>
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleFullscreen}
-              >
+              <Button variant="ghost" size="icon" onClick={toggleFullscreen}>
                 {isFullscreen ? (
                   <FiMinimize2 className="h-4 w-4" />
                 ) : (
@@ -225,15 +197,13 @@ const DAGVisualizationWidget = ({ id, data: rawData, content, error }) => {
                 )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
-              {isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-            </TooltipContent>
+            <TooltipContent>{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
 
       {/* Main Content */}
-      <CardContent className={cn("p-0", isFullscreen ? "h-full" : "h-[600px]")}>
+      <CardContent className={cn('p-0', isFullscreen ? 'h-full' : 'h-[600px]')}>
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
@@ -263,20 +233,17 @@ const DAGVisualizationWidget = ({ id, data: rawData, content, error }) => {
 
       {/* Node Details Panel */}
       {selectedNode && (
-        <Card className={cn(
-          "absolute bottom-4 left-4 right-4 max-w-md mx-auto transition-all duration-300",
-          selectedNode ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"
-        )}>
+        <Card
+          className={cn(
+            'absolute bottom-4 left-4 right-4 max-w-md mx-auto transition-all duration-300',
+            selectedNode ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+          )}
+        >
           <CardHeader className="pb-2">
             <div className="flex justify-between items-center">
               <CardTitle className="text-lg">{selectedNode.label}</CardTitle>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSelectedNode(null)}
-              >
-                <span className="sr-only">Close</span>
-                ×
+              <Button variant="ghost" size="icon" onClick={() => setSelectedNode(null)}>
+                <span className="sr-only">Close</span>×
               </Button>
             </div>
           </CardHeader>
@@ -308,11 +275,7 @@ const DAGVisualizationWidget = ({ id, data: rawData, content, error }) => {
                 <span className="text-sm font-medium text-muted-foreground">Dependencies:</span>
                 <div className="mt-1 flex flex-wrap gap-1">
                   {selectedNode.dependencies.map((dep) => (
-                    <Badge
-                      key={dep}
-                      variant="outline"
-                      className="text-xs"
-                    >
+                    <Badge key={dep} variant="outline" className="text-xs">
                       {dep}
                     </Badge>
                   ))}
@@ -326,4 +289,4 @@ const DAGVisualizationWidget = ({ id, data: rawData, content, error }) => {
   );
 };
 
-export default DAGVisualizationWidget; 
+export default DAGVisualizationWidget;

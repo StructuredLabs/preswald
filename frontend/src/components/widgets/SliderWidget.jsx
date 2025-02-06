@@ -1,23 +1,24 @@
-import { Card, CardContent } from "@/components/ui/card";
+import React from 'react';
 
-import { Label } from "@/components/ui/label";
-import React from "react";
-import { Slider } from "@/components/ui/slider";
-import { cn } from "@/lib/utils";
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
 
-const SliderWidget = ({ 
-  label, 
-  min = 0, 
-  max = 100, 
-  value = 50, 
+import { cn } from '@/lib/utils';
+
+const SliderWidget = ({
+  label,
+  min = 0,
+  max = 100,
+  value = 50,
   step = 1.0,
-  id, 
+  id,
   onChange,
   className,
   disabled = false,
   showValue = true,
   showMinMax = true,
-  variant = "default" // default, card
+  variant = 'default', // default, card
 }) => {
   const [localValue, setLocalValue] = React.useState(value);
 
@@ -28,10 +29,10 @@ const SliderWidget = ({
 
   const handleMouseUp = () => {
     if (localValue !== value) {
-      console.log("[SliderWidget] Change event:", {
+      console.log('[SliderWidget] Change event:', {
         id,
         value: localValue,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
       onChange?.(localValue);
     }
@@ -42,21 +43,13 @@ const SliderWidget = ({
   }, [value]);
 
   const SliderContent = (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn('space-y-4', className)}>
       <div className="flex items-center justify-between">
-        <Label 
-          htmlFor={id}
-          className={cn(
-            "text-sm font-medium",
-            disabled && "opacity-50"
-          )}
-        >
+        <Label htmlFor={id} className={cn('text-sm font-medium', disabled && 'opacity-50')}>
           {label}
         </Label>
         {showValue && (
-          <span className="text-sm text-muted-foreground font-medium">
-            {localValue}
-          </span>
+          <span className="text-sm text-muted-foreground font-medium">{localValue}</span>
         )}
       </div>
       {/* <Slider
@@ -70,20 +63,20 @@ const SliderWidget = ({
         className="w-full text-black"
       /> */}
       <div className="p-4 bg-white">
-      <div className="mt-2">
-        <input
-          id={id}
-          name={id}
-          type="range"
-          min={min}
-          max={max}
-          step={step}
-          value={localValue}
-          onChange={handleChange}
-          onMouseUp={handleMouseUp}
-          onTouchEnd={handleMouseUp}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        />
+        <div className="mt-2">
+          <input
+            id={id}
+            name={id}
+            type="range"
+            min={min}
+            max={max}
+            step={step}
+            value={localValue}
+            onChange={handleChange}
+            onMouseUp={handleMouseUp}
+            onTouchEnd={handleMouseUp}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          />
         </div>
       </div>
       {showMinMax && (
@@ -95,12 +88,10 @@ const SliderWidget = ({
     </div>
   );
 
-  if (variant === "card") {
+  if (variant === 'card') {
     return (
       <Card>
-        <CardContent className="pt-6">
-          {SliderContent}
-        </CardContent>
+        <CardContent className="pt-6">{SliderContent}</CardContent>
       </Card>
     );
   }

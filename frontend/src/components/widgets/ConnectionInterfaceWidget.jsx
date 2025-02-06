@@ -1,32 +1,29 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import React, { useState } from "react";
+import React, { useState } from 'react';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
 const CONNECTION_TYPES = [
-  { value: "csv", label: "CSV File" },
-  { value: "json", label: "JSON File" },
-  { value: "parquet", label: "Parquet File" },
-  { value: "postgres", label: "PostgreSQL Database" },
+  { value: 'csv', label: 'CSV File' },
+  { value: 'json', label: 'JSON File' },
+  { value: 'parquet', label: 'Parquet File' },
+  { value: 'postgres', label: 'PostgreSQL Database' },
 ];
 
-const ConnectionInterfaceWidget = ({ 
-  className,
-  onConnect,
-  disabled = false 
-}) => {
-  const [source, setSource] = useState("");
-  const [type, setType] = useState("csv");
+const ConnectionInterfaceWidget = ({ className, onConnect, disabled = false }) => {
+  const [source, setSource] = useState('');
+  const [type, setType] = useState('csv');
 
   const handleConnect = () => {
     if (onConnect) {
@@ -37,7 +34,7 @@ const ConnectionInterfaceWidget = ({
   };
 
   return (
-    <Card className={cn("w-full", className)}>
+    <Card className={cn('w-full', className)}>
       <CardHeader>
         <CardTitle>Connection Interface</CardTitle>
       </CardHeader>
@@ -55,11 +52,7 @@ const ConnectionInterfaceWidget = ({
 
         <div className="space-y-2">
           <Label htmlFor="type">Connection Type</Label>
-          <Select
-            value={type}
-            onValueChange={setType}
-            disabled={disabled}
-          >
+          <Select value={type} onValueChange={setType} disabled={disabled}>
             <SelectTrigger id="type">
               <SelectValue placeholder="Select connection type" />
             </SelectTrigger>
@@ -73,11 +66,7 @@ const ConnectionInterfaceWidget = ({
           </Select>
         </div>
 
-        <Button
-          className="w-full"
-          onClick={handleConnect}
-          disabled={!source.trim() || disabled}
-        >
+        <Button className="w-full" onClick={handleConnect} disabled={!source.trim() || disabled}>
           Connect
         </Button>
       </CardContent>

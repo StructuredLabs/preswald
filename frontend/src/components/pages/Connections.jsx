@@ -1,27 +1,19 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { ChevronDown } from 'lucide-react';
+
 import React, { useEffect, useState } from 'react';
 
-import { Badge } from "@/components/ui/badge";
-import { ChevronDown } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Skeleton } from '@/components/ui/skeleton';
+
+import { cn } from '@/lib/utils';
 import { websocket } from '@/utils/websocket';
 
 function MetadataView({ metadata, type }) {
   if (!metadata || metadata.error) {
     return (
-      <div className="text-sm text-destructive">
-        {metadata?.error || 'No metadata available'}
-      </div>
+      <div className="text-sm text-destructive">{metadata?.error || 'No metadata available'}</div>
     );
   }
 
@@ -47,7 +39,9 @@ function MetadataView({ metadata, type }) {
                     <Collapsible key={table}>
                       <CollapsibleTrigger className="flex items-center text-sm text-primary hover:text-primary/90 cursor-pointer">
                         <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                        <span className="ml-2">{table} ({info.columns.length} columns)</span>
+                        <span className="ml-2">
+                          {table} ({info.columns.length} columns)
+                        </span>
                       </CollapsibleTrigger>
                       <CollapsibleContent className="ml-6 mt-2">
                         {info.columns.map((col) => (
@@ -87,7 +81,9 @@ function MetadataView({ metadata, type }) {
                 <Collapsible key={col.name}>
                   <CollapsibleTrigger className="flex items-center text-sm text-primary hover:text-primary/90 cursor-pointer">
                     <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                    <span className="ml-2">{col.name} ({col.type})</span>
+                    <span className="ml-2">
+                      {col.name} ({col.type})
+                    </span>
                   </CollapsibleTrigger>
                   <CollapsibleContent className="ml-6 mt-2">
                     <div className="text-muted-foreground">Sample Values:</div>
@@ -157,27 +153,19 @@ function ConnectionCard({ connection }) {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-semibold">
-                    {connection.name}
-                  </h3>
-                  <Badge variant={getStatusVariant(connection.status)}>
-                    {connection.status}
-                  </Badge>
+                  <h3 className="text-sm font-semibold">{connection.name}</h3>
+                  <Badge variant={getStatusVariant(connection.status)}>{connection.status}</Badge>
                 </div>
                 <div className="mt-1 space-y-1">
-                  <p className="text-sm text-muted-foreground">
-                    Type: {connection.type}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {connection.details}
-                  </p>
+                  <p className="text-sm text-muted-foreground">Type: {connection.type}</p>
+                  <p className="text-sm text-muted-foreground">{connection.details}</p>
                 </div>
               </div>
             </div>
             <ChevronDown
               className={cn(
-                "h-4 w-4 shrink-0 transition-transform duration-200",
-                isExpanded && "rotate-180"
+                'h-4 w-4 shrink-0 transition-transform duration-200',
+                isExpanded && 'rotate-180'
               )}
             />
           </CollapsibleTrigger>
@@ -253,9 +241,7 @@ function Connections() {
     return (
       <div className="p-4">
         <Card className="border-destructive">
-          <CardContent className="p-6 text-center text-destructive">
-            Error: {error}
-          </CardContent>
+          <CardContent className="p-6 text-center text-destructive">Error: {error}</CardContent>
         </Card>
       </div>
     );

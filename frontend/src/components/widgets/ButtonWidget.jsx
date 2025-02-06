@@ -1,22 +1,24 @@
-import { Button } from "@/components/ui/button";
-import React from "react";
-import { cn } from "@/lib/utils";
+import React from 'react';
 
-const ButtonWidget = ({ 
-  label, 
-  onClick, 
-  variant = "outline",
-  size = "default",
+import { Button } from '@/components/ui/button';
+
+import { cn } from '@/lib/utils';
+
+const ButtonWidget = ({
+  label,
+  onClick,
+  variant = 'outline',
+  size = 'default',
   className,
   disabled = false,
   loading = false,
-  ...props 
+  ...props
 }) => {
   return (
     <Button
       variant={variant}
       size={size}
-      onClick={onClick || (() => alert("Button clicked!"))}
+      onClick={onClick || (() => alert('Button clicked!'))}
       className={cn(className)}
       disabled={disabled || loading}
       {...props}

@@ -1,12 +1,12 @@
-import {Route, Routes} from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
 
+import Layout from './components/Layout';
 import ComponentShowcase from './components/pages/ComponentShowcase';
 import Connections from './components/pages/Connections';
 import Dashboard from './components/pages/Dashboard';
 import Definitions from './components/pages/Definitions';
-import Layout from './components/Layout';
-import { BrowserRouter as Router } from 'react-router-dom';
 import { websocket } from './utils/websocket';
 
 const App = () => {
@@ -38,49 +38,49 @@ const App = () => {
 
     updateTitle();
 
-    document.addEventListener("visibilitychange", updateTitle);
-    return () => document.removeEventListener("visibilitychange", updateTitle);
+    document.addEventListener('visibilitychange', updateTitle);
+    return () => document.removeEventListener('visibilitychange', updateTitle);
   }, [config]);
 
   const handleWebSocketMessage = (message) => {
-    console.log("[App] Received WebSocket message:", message);
+    console.log('[App] Received WebSocket message:', message);
 
     switch (message.type) {
-      case "components":
+      case 'components':
         if (message.components) {
           refreshComponentsList(message.components);
         }
         break;
 
-      case "error":
+      case 'error':
         handleError(message.content);
         break;
 
-      case "connection_status":
+      case 'connection_status':
         updateConnectionStatus(message);
         break;
 
-      case "config":
+      case 'config':
         setConfig(message.config);
         break;
 
-      case "initial_state":
+      case 'initial_state':
         // Handle initial state
-        console.log("[App] Received initial state:", message);
+        console.log('[App] Received initial state:', message);
         break;
     }
   };
 
   const refreshComponentsList = (components) => {
     if (!components || !components.rows) {
-      console.warn("[App] Invalid components data received:", components);
+      console.warn('[App] Invalid components data received:', components);
       setComponents({ rows: [] });
       return;
     }
 
     try {
-      const updatedRows = components.rows.map(row => 
-        row.map(component => {
+      const updatedRows = components.rows.map((row) =>
+        row.map((component) => {
           if (!component || !component.id) return component;
 
           const currentState = websocket.getComponentState(component.id);
@@ -92,32 +92,32 @@ const App = () => {
         })
       );
 
-      console.log("[App] Updating components with:", { rows: updatedRows });
+      console.log('[App] Updating components with:', { rows: updatedRows });
       setComponents({ rows: updatedRows });
       setError(null);
     } catch (error) {
-      console.error("[App] Error processing components:", error);
-      setError("Error processing components data");
+      console.error('[App] Error processing components:', error);
+      setError('Error processing components data');
       setComponents({ rows: [] });
     }
   };
 
   const handleError = (errorContent) => {
-    console.error("[App] Received error:", errorContent);
+    console.error('[App] Received error:', errorContent);
     setError(errorContent.message);
 
     if (errorContent.componentId) {
-      setComponents(prevState => {
+      setComponents((prevState) => {
         if (!prevState || !prevState.rows) return { rows: [] };
-        
+
         return {
-          rows: prevState.rows.map(row =>
-            row.map(component =>
+          rows: prevState.rows.map((row) =>
+            row.map((component) =>
               component.id === errorContent.componentId
                 ? { ...component, error: errorContent.message }
                 : component
             )
-          )
+          ),
         };
       });
     }
@@ -127,18 +127,16 @@ const App = () => {
     try {
       websocket.updateComponentState(componentId, value);
     } catch (error) {
-      console.error("[App] Error updating component state:", error);
-      setComponents(prevState => {
+      console.error('[App] Error updating component state:', error);
+      setComponents((prevState) => {
         if (!prevState || !prevState.rows) return { rows: [] };
 
         return {
-          rows: prevState.rows.map(row =>
-            row.map(component =>
-              component.id === componentId
-                ? { ...component, error: error.message }
-                : component
+          rows: prevState.rows.map((row) =>
+            row.map((component) =>
+              component.id === componentId ? { ...component, error: error.message } : component
             )
-          )
+          ),
         };
       });
     }
@@ -146,11 +144,7 @@ const App = () => {
 
   const updateConnectionStatus = (message) => {
     setIsConnected(message.connected);
-    setError(
-      message.connected
-        ? null
-        : "Lost connection to server. Attempting to reconnect..."
-    );
+    setError(message.connected ? null : 'Lost connection to server. Attempting to reconnect...');
   };
 
   const LoadingState = () => (
@@ -162,8 +156,8 @@ const App = () => {
     </div>
   );
 
-  console.log("[App] Rendering with:", { components, isConnected, error });
-  
+  console.log('[App] Rendering with:', { components, isConnected, error });
+
   return (
     <Router>
       <Layout>
@@ -200,6 +194,6 @@ const App = () => {
     //     )}
     // </Layout>
   );
-}
+};
 
 export default App;
