@@ -120,6 +120,7 @@ CORE_DEPENDENCIES = [
     "psycopg2-binary>=2.9.10",
     "openai==1.59.7",
     "celery>=5.4.0",
+    "duckdb>=1.1.3",
 ]
 
 # Define additional dependencies for development
