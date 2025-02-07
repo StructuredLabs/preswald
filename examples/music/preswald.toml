@@ -1,0 +1,21 @@
+[project]
+title = "Preswald Project"
+version = "0.1.0"
+port = 8501
+
+[branding]
+name = "Preswald Project"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#F89613"
+
+[data.postgres]
+host = "localhost"            # PostgreSQL host
+port = 5432                   # PostgreSQL port
+dbname = "mydb"              # Database name
+user = "user"                # Username
+# password is stored in secrets.toml
+
+[logging]
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
