@@ -20,7 +20,7 @@ in 2024! Here are the list of some nominees:
 
 # Load data
 data = pd.read_csv(
-    "./examples/music/data/most_streamed_spotify_songs_2024.csv",
+    "https://storage.googleapis.com/preswald/most_streamed_spotify_songs_2024.csv",
     encoding="unicode_escape",
 )
 
