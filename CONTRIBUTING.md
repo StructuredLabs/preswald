@@ -77,7 +77,7 @@ We recommend using Conda to manage dependencies:
 Verify your setup by running the sample app:
 
 ```bash
-preswald run examples/earthquakes.py
+cd examples/earthquakes && preswald run hello.py
 ```
 
 ## Development Workflow
