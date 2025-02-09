@@ -165,6 +165,9 @@ def start_server(script: Optional[str] = None, port: int = 8501):
     final_port = port if port != 8501 else (config_port if config_port is not None else 8501)
     logger.info(f"Starting server on port {final_port}")
 
+    # Set environment variable for frontend
+    os.environ["PRESWALD_PORT"] = str(final_port)
+
     config = uvicorn.Config(app, host="0.0.0.0", port=final_port, loop="asyncio")
     server = uvicorn.Server(config)
 

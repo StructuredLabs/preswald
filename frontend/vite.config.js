@@ -12,7 +12,10 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      "/api": "http://localhost:8501", // Forward API requests to FastAPI
+      "/api": {
+        target: `http://localhost:${process.env.PRESWALD_PORT || '8501'}`,
+        changeOrigin: true,
+      },
     },
   },
 });

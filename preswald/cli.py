@@ -69,7 +69,7 @@ def init(name):
 
 @cli.command()
 @click.argument("script", default="hello.py")
-@click.option("--port", default=8501, help="Port to run the server on.")
+@click.option("--port", default=8501, help="Port to run the server on. Overrides port in config file if specified.")
 @click.option(
     "--log-level",
     type=click.Choice(
@@ -82,7 +82,10 @@ def run(script, port, log_level):
     """
     Run a Preswald app.
 
-    By default, it runs the `hello.py` script on localhost:8501.
+    Port priority:
+    1. --port argument (if provided)
+    2. port from preswald.toml (if exists)
+    3. default port 8501
     """
     if not os.path.exists(script):
         click.echo(f"Error: Script '{script}' not found. ❌")
@@ -160,7 +163,7 @@ def run(script, port, log_level):
     default="local",
     help="Target platform for deployment.",
 )
-@click.option("--port", default=8501, help="Port for deployment.")
+@click.option("--port", default=8501, help="Port for deployment. Overrides port in config file if specified.")
 @click.option(
     "--log-level",
     type=click.Choice(
