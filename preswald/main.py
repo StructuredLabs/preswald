@@ -36,8 +36,9 @@ def create_app(script_path: Optional[str] = None) -> FastAPI:
         allow_headers=["*"],
     )
 
-    # Configure static files
-    service.branding_manager = _setup_static_files(app)
+    # Configure static files and branding manager
+    branding_manager = _setup_static_files(app)
+    setattr(service, 'branding_manager', branding_manager)
 
     # Store service instance
     app.state.service = service
@@ -144,6 +145,7 @@ def start_server(script: Optional[str] = None, port: int = 8501):
     """Start the FastAPI server"""
     app = create_app(script)
 
+    config_port = None
     # Load port from config if available
     if script:
         try:
@@ -154,11 +156,16 @@ def start_server(script: Optional[str] = None, port: int = 8501):
 
                 config = toml.load(config_path)
                 if "project" in config and "port" in config["project"]:
-                    port = config["project"]["port"]
+                    config_port = config["project"]["port"]
+                    logger.info(f"Using port {config_port} from config.toml")
         except Exception as e:
             logger.error(f"Error loading config: {e}")
 
-    config = uvicorn.Config(app, host="0.0.0.0", port=port, loop="asyncio")
+    # Use port priority: CLI argument > config file > default
+    final_port = port if port != 8501 else (config_port if config_port is not None else 8501)
+    logger.info(f"Starting server on port {final_port}")
+
+    config = uvicorn.Config(app, host="0.0.0.0", port=final_port, loop="asyncio")
     server = uvicorn.Server(config)
 
     # Handle shutdown signals
@@ -250,12 +257,12 @@ def _handle_index_request(service: PreswaldService) -> HTMLResponse:
         raise HTTPException(status_code=500, detail="Internal server error") from e
 
 
-def _handle_favicon_request(service: PreswaldService) -> HTMLResponse:
-    """Handle index.html requests with proper branding"""
+def _handle_favicon_request(service: PreswaldService) -> FileResponse:
+    """Handle favicon requests with proper branding"""
     try:
         # Get branding configuration
         branding = service.branding_manager.get_branding_config(service.script_path)
         return FileResponse(branding["favicon"])
     except Exception as e:
-        logger.error(f"Error serving index: {e}")
+        logger.error(f"Error serving favicon: {e}")
         raise HTTPException(status_code=500, detail="Internal server error") from e
