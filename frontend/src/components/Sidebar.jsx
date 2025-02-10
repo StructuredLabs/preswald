@@ -74,7 +74,7 @@ export default function Sidebar({
         </nav>
       </div>
       <div className="text-center text-sm text-gray-400 pb-2">
-        Built By <a href="https://github.com/preswald/preswald" className="hover:underline">Preswald</a>
+        Built By <a href="https://github.com/structuredlabs/preswald" className="hover:underline">Preswald</a>
       </div>
       </div>
     </div>
