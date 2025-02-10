@@ -228,9 +228,10 @@ def _handle_index_request(service: PreswaldService) -> HTMLResponse:
             "<title>Vite + React</title>", f'<title>{branding["name"]}</title>'
         )
 
+        import time
         # Add favicon links
         favicon_links = f"""    <link rel="icon" type="image/x-icon" href="{branding["favicon"]}" />
-    <link rel="shortcut icon" type="image/x-icon" href="{branding["favicon"]}" />"""
+    <link rel="shortcut icon" type="image/x-icon" href="{branding["favicon"]}?timestamp={time.time()}" />"""
         content = re.sub(r'<link[^>]*rel="icon"[^>]*>', "", content)
         content = content.replace(
             '<meta charset="UTF-8" />', f'<meta charset="UTF-8" />\n{favicon_links}'

@@ -10,15 +10,13 @@ import {
   ServerIcon,
   Squares2X2Icon,
 } from '@heroicons/react/24/solid';
-
 import React, { useState } from 'react';
-import { useEffect } from 'react';
+
 import { Outlet } from 'react-router-dom';
-
-import { cn } from '@/lib/utils';
-
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
+import { cn } from '@/lib/utils';
+import { useEffect } from 'react';
 
 const navigation = [{ name: 'Dashboard', href: '/', icon: HomeIcon }];
 
@@ -45,13 +43,13 @@ export default function Layout({ branding, children }) {
         const iconLink = document.createElement('link');
         iconLink.type = 'image/x-icon';
         iconLink.rel = 'icon';
-        iconLink.href = faviconUrl;
+        iconLink.href = `${faviconUrl}?timestamp=${new Date().getTime()}`;
         document.head.appendChild(iconLink);
 
         const shortcutLink = document.createElement('link');
         shortcutLink.type = 'image/x-icon';
         shortcutLink.rel = 'shortcut icon';
-        shortcutLink.href = faviconUrl;
+        shortcutLink.href = `${faviconUrl}?timestamp=${new Date().getTime()}`;
         document.head.appendChild(shortcutLink);
       };
 

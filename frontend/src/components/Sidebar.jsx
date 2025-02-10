@@ -25,7 +25,7 @@ export default function Sidebar({
       <div className="flex flex-col gap-y-5 w-full">
         {!isMobile && (
           <div className="flex h-16 shrink-0 items-center">
-            <img className="h-8 w-8" src={branding?.logo} alt={branding?.name} />
+            <img className="h-8 w-8" src={`${branding?.logo}?timstamp=${new Date().getTime()}`} alt={branding?.name} />
             {!isCollapsed && (
               <span className="ml-4 text-lg font-semibold transition-opacity duration-200">
                 {branding?.name}
@@ -98,7 +98,7 @@ export default function Sidebar({
           <SheetHeader className="p-4 border-b">
             <div className="flex items-center justify-between">
               <SheetTitle className="flex items-center gap-2">
-                <img className="h-8 w-8" src={branding?.logo} alt={branding?.name} />
+                <img className="h-8 w-8" src={`${branding?.logo}?timstamp=${new Date().getTime()}`} alt={branding?.name} />
                 <span>{branding?.name}</span>
               </SheetTitle>
             </div>
