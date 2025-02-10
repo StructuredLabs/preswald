@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - "**" # Trigger on pushes to any branch
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3 # Checkout the repository
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10" # Set the Python version to 3.10
+          cache: "pip" # Cache the pip packages
+
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip # Upgrade the pip
+          pip install -e ".[dev]" # Install the dependencies
+          pip install black ruff isort # Install the formatting tools
+
+      - name: Check formatting with Black
+        run: black . --check # Check the formatting with Black
+
+      - name: Check imports with isort
+        run: isort . --check-only --diff # Check the imports with isort
+
+      - name: Lint with Ruff
+        run: ruff check . # Lint with Ruff
+
+  security:
+    needs: code-quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Install security tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit safety
+
+      - name: Run Bandit security check
+        run: bandit -r preswald/ -c pyproject.toml
+
+      - name: Check dependencies for known vulnerabilities
+        run: safety check
