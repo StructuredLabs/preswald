@@ -8,7 +8,7 @@
 
 ## Getting Datasets
 
-For this example, we're using a real estate dataset from Kaggle that contains property information from 7 major Indian cities. 
+For this example, we're using a real estate dataset from Kaggle that contains property information from 7 major Indian cities.
 Here's the link: [Real Estate Data from 7 Indian Cities](https://www.kaggle.com/datasets/rakkesharv/real-estate-data-from-7-indian-cities)
 
 **Dataset Source:** Real Estate Data from 7 Indian Cities

@@ -1,19 +1,9 @@
 'use client';
 
-import {
-  ChartBarIcon,
-  ClockIcon,
-  DocumentTextIcon,
-  GlobeAltIcon,
-  HomeIcon,
-  MagnifyingGlassIcon,
-  ServerIcon,
-  Squares2X2Icon,
-} from '@heroicons/react/24/solid';
+import { HomeIcon, ServerIcon } from '@heroicons/react/24/solid';
 
 import React, { useState } from 'react';
 import { useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
 
 import { cn } from '@/lib/utils';
 
@@ -23,7 +13,6 @@ import TopBar from './TopBar';
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
   { name: 'Connections', href: '/connections', icon: ServerIcon },
-  { name: 'Definitions', href: '/definitions', icon: DocumentTextIcon },
 ];
 
 export default function Layout({ branding, children }) {

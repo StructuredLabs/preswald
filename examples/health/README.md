@@ -27,7 +27,6 @@ This project demonstrates how to connect to MotherDuck from Python using DuckDB.
    con = duckdb.connect("md:my_db?token=<your_motherduck_token>")
    ```
 
-
 ## Notes
 
 - Make sure you have a valid **MotherDuck** account and token.

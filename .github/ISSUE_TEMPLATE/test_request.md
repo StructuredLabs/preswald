@@ -1,15 +1,16 @@
 ---
 name: Test Request
 about: Request new tests or improvements to existing tests
-title: '[TEST] '
+title: "[TEST] "
 labels: testing
-assignees: ''
+assignees: ""
 ---
 
 **Area to be Tested**
 Describe which component, feature, or functionality needs testing.
 
 **Type of Testing Needed**
+
 - [ ] Unit Tests
 - [ ] Integration Tests
 - [ ] End-to-End Tests
@@ -21,6 +22,7 @@ Describe current test coverage (if any) for this area.
 
 **Specific Test Cases**
 List specific scenarios that should be tested:
+
 1. Scenario 1
 2. Scenario 2
 3. Edge cases to consider

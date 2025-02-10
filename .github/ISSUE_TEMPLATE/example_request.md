@@ -1,9 +1,9 @@
 ---
 name: Example Request
 about: Request a new example for the SDK
-title: '[EXAMPLE] '
+title: "[EXAMPLE] "
 labels: example, documentation
-assignees: ''
+assignees: ""
 ---
 
 **Use Case Description**
@@ -14,6 +14,7 @@ What specific SDK features should this example showcase?
 
 **Example Outline**
 Rough outline of how the example should work:
+
 1. Initial setup/configuration
 2. Main functionality
 3. Expected output/results
@@ -22,6 +23,7 @@ Rough outline of how the example should work:
 Who is this example primarily for? (e.g., beginners, advanced users, specific use case)
 
 **Related Documentation**
+
 - Link to relevant SDK documentation
 - Link to related features or examples
 
