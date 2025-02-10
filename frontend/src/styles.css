@@ -64,3 +64,8 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* plotly */
+.modebar-container {
+  display: none !important;
+}
