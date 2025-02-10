@@ -12,6 +12,7 @@ from preswald.deploy import stop as stop_app
 from preswald.main import start_server
 from preswald.utils import configure_logging, read_template
 
+
 # Create a temporary directory for IPC
 TEMP_DIR = os.path.join(tempfile.gettempdir(), "preswald")
 os.makedirs(TEMP_DIR, exist_ok=True)
@@ -56,7 +57,7 @@ def init(name):
             ".gitignore": "gitignore",
             "README.md": "readme.md",
             "pyproject.toml": "pyproject.toml",
-            "data/sample.csv": "sample.csv",
+            os.path.join("data", "sample.csv"): "sample.csv",
         }
 
         for file_name, template_name in file_templates.items():
