@@ -366,5 +366,25 @@ def deployments():
         sys.exit(1)
 
 
+@cli.command()
+@click.pass_context
+def tutorial(ctx):
+    """
+    Run the Preswald tutorial app.
+
+    This command runs the tutorial app located in the 'tutorial/hello.py' file.
+    """
+    tutorial_script = os.path.join("tutorial", "hello.py")
+
+    if not os.path.exists(tutorial_script):
+        click.echo(f"Error: Tutorial script '{tutorial_script}' not found. ❌")
+        return
+
+    click.echo("🚀 Launching the Preswald tutorial app! 🎉")
+
+    # Invoke the 'run' command with 'tutorial/hello.py'
+    ctx.invoke(run, script=tutorial_script)
+
+
 if __name__ == "__main__":
     cli()
