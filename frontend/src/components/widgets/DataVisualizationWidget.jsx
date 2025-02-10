@@ -1,20 +1,18 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useInView } from 'react-intersection-observer';
-import Plot from 'react-plotly.js';
-
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-
-import { cn } from '@/lib/utils';
-
-import { FEATURES } from '../../config/features';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   debounce,
   decompressData,
   processDataInChunks,
   sampleData,
 } from '../../utils/dataProcessing';
+
+import { FEATURES } from '../../config/features';
+import Plot from 'react-plotly.js';
+import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
+import { useInView } from 'react-intersection-observer';
 
 const INITIAL_POINTS_THRESHOLD = 1000;
 const PROGRESSIVE_LOADING_CHUNK_SIZE = 500;
@@ -192,12 +190,19 @@ const DataVisualizationWidget = ({ id, data: rawData, content, error, className 
                 margin: { t: 40, r: 10, l: 60, b: 40 },
                 showlegend: true,
                 hovermode: 'closest',
+                xaxis: { fixedrange: true },
+                yaxis: { fixedrange: true },
               }}
               config={{
-                responsive: true,
+                responsive: false,
                 scrollZoom: false,
                 displayModeBar: false,
                 displaylogo: false,
+                dragmode: false,
+                zoom: false,
+                doubleClick: false,
+                showAxisDragHandles: false,
+                showAxisRangeEntryBoxes: false,
                 ...processedData.config,
               }}
               className="w-full h-full"
