@@ -5,7 +5,6 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import Layout from './components/Layout';
 import Connections from './components/pages/Connections';
 import Dashboard from './components/pages/Dashboard';
-import Definitions from './components/pages/Definitions';
 import { websocket } from './utils/websocket';
 
 const App = () => {
@@ -175,7 +174,6 @@ const App = () => {
               }
             />
             <Route path="/connections" element={<Connections />} />
-            <Route path="/definitions" element={<Definitions />} />
           </Routes>
         )}
       </Layout>

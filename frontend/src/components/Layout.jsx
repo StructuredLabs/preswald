@@ -23,7 +23,6 @@ import TopBar from './TopBar';
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
   { name: 'Connections', href: '/connections', icon: ServerIcon },
-  { name: 'Definitions', href: '/definitions', icon: DocumentTextIcon },
 ];
 
 export default function Layout({ branding, children }) {
