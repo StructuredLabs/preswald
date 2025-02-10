@@ -20,10 +20,7 @@ import { cn } from '@/lib/utils';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 
-const navigation = [
-  { name: 'Dashboard', href: '/', icon: HomeIcon },
-  { name: 'Connections', href: '/connections', icon: ServerIcon },
-];
+const navigation = [{ name: 'Dashboard', href: '/', icon: HomeIcon }];
 
 export default function Layout({ branding, children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);

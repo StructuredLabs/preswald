@@ -3,7 +3,6 @@ import { Route, Routes } from 'react-router-dom';
 import { BrowserRouter as Router } from 'react-router-dom';
 
 import Layout from './components/Layout';
-import Connections from './components/pages/Connections';
 import Dashboard from './components/pages/Dashboard';
 import { websocket } from './utils/websocket';
 
@@ -173,7 +172,6 @@ const App = () => {
                 />
               }
             />
-            <Route path="/connections" element={<Connections />} />
           </Routes>
         )}
       </Layout>
