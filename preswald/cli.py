@@ -179,60 +179,82 @@ def deploy(script, target, port, log_level):
     """
     try:
         if target == "aws":
-            click.echo(
-                "\nWe're working on supporting AWS soon! Please enjoy some ☕ and 🍌 in the meantime"
-            )
+            click.echo(click.style(
+                "\n📢 AWS Deployment Status",
+                fg="yellow", bold=True
+            ))
+            click.echo(click.style(
+                "We're working on supporting AWS soon! Please enjoy some ☕ and 🍌 in the meantime\n",
+                fg="yellow"
+            ))
             return
 
         if not os.path.exists(script):
-            click.echo(f"Error: Script '{script}' not found. ❌")
+            click.echo(click.style("Error: ", fg="red", bold=True) + 
+                      click.style(f"Script '{script}' not found. ❌", fg="red"))
             return
 
         config_path = os.path.join(os.path.dirname(script), "preswald.toml")
         log_level = configure_logging(config_path=config_path, level=log_level)
 
         if target == "structured":
-            click.echo("Starting production deployment... 🚀")
+            click.echo(click.style("\n🚀 Production Deployment", fg="blue", bold=True))
+            click.echo("=" * 50)
             try:
                 for status_update in deploy_app(script, target, port=port):
+                    # Ensure status_update is a dictionary
+                    if not isinstance(status_update, dict):
+                        continue
+                        
                     status = status_update.get("status", "")
                     message = status_update.get("message", "")
 
-                    if status == "error":
-                        click.echo(click.style(f"❌ {message}", fg="red"))
-                    elif status == "success":
-                        click.echo(click.style(f"✅ {message}", fg="green"))
-                    else:
-                        click.echo(f"i {message}")
+                    prefix = {
+                        "error": click.style("❌ ERROR:", fg="red", bold=True),
+                        "success": click.style("✅ SUCCESS:", fg="green", bold=True),
+                        "info": click.style("ℹ️  INFO:", fg="blue", bold=True)
+                    }.get(status, click.style("ℹ️  INFO:", fg="blue", bold=True))
+                    
+                    click.echo(f"{prefix} {message}")
 
             except Exception as e:
-                click.echo(click.style(f"Deployment failed: {e!s} ❌", fg="red"))
+                click.echo("\n" + "=" * 50)
+                click.echo(click.style("❌ Deployment Failed", fg="red", bold=True))
+                click.echo(click.style(f"Error: {e!s}", fg="red"))
+                click.echo("=" * 50 + "\n")
                 return
         else:
             url = deploy_app(script, target, port=port)
 
             # Deployment Success Message
-            success_message = f"""
+            header = click.style("\n🎉 Deployment Successful!", fg="green", bold=True)
+            divider = click.style("=" * 60, fg="green")
+            
+            details = f"""
+{header}
+{divider}
 
-            ===========================================================\n
-            🎉 Deployment successful! ✅
+🌐 Access Your Application
+   URL: {click.style(url, fg="bright_green", bold=True)}
 
-            🌐 Your app is live and running at:
-            {url}
+📋 Deployment Details
+   • Script: {click.style(script, fg="bright_green")}
+   • Environment: {click.style(target, fg="bright_green")}
+   • Port: {click.style(str(port), fg="bright_green")}
 
-            💡 Next Steps:
-                - Open the URL above in your browser to view your app
+💡 Next Steps
+   1. Open the URL above in your browser
+   2. Start using your deployed application
+   3. Monitor the application logs for any issues
 
-            🚀 Deployment Summary:
-                - App: {script}
-                - Environment: {target}
-                - Port: {port}
-            """
-
-            click.echo(click.style(success_message, fg="green"))
+{divider}
+"""
+            click.echo(details)
 
     except Exception as e:
-        click.echo(f"Error deploying app: {e} ❌")
+        click.echo(click.style("\n❌ Deployment Error", fg="red", bold=True))
+        click.echo(click.style(f"Details: {e}", fg="red"))
+        click.echo("\n")
 
 
 @cli.command()
