@@ -197,6 +197,7 @@ const DataVisualizationWidget = ({ id, data: rawData, content, error, className 
                 responsive: false,
                 scrollZoom: false,
                 displayModeBar: false,
+                modeBarButtonsToRemove: [''],
                 displaylogo: false,
                 dragmode: false,
                 zoom: false,
