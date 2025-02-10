@@ -15,18 +15,12 @@ Thank you for your interest in contributing to **Preswald**! This document outli
 
 ## Project Structure
 
-**Preswald** uses a modern tech stack to deliver its functionality:
-
-- **Backend**: Python with FastAPI.
-- **Frontend**: React + Vite.
-
-The project structure looks like this:
-
 ```
 preswald/
-├── preswald/        # Core Python FastAPI backend
-├── frontend/       # React + Vite frontend application
+├── preswald/       # SDK + Python FastAPI backend
+├── frontend/       # React + Vite frontend
 ├── examples/       # Sample apps to showcase Preswald's capabilities
+├── tutorial/       # Tutorial for getting started with Preswald
 ├── tests/          # Unit and integration tests
 ├── setup.py        # Python package configuration
 └── README.md       # Project overview
@@ -61,16 +55,11 @@ We recommend using Conda to manage dependencies:
    pre-commit install
    ```
 
-### 3. Build the Frontend and Backend
+### 3. Build the Frontend
 
-1. Build the frontend assets:
-   ```bash
-   python setup.py build_frontend
-   ```
-2. Build the backend:
-   ```bash
-   python -m build
-   ```
+```bash
+python setup.py build_frontend
+```
 
 ### 4. Run the Example App
 
@@ -90,11 +79,12 @@ Here’s a quick summary of the contributing workflow:
    git checkout -b feature/your-feature-name
    ```
 3. **Make your changes** and follow the [Style Guide](#style-guide).
-4. **Push your branch** to your fork:
+4. **Test your changes** thoroughly.
+5. **Push your branch** to your fork:
    ```bash
    git push origin feature/your-feature-name
    ```
-5. **Open a Pull Request** on the main repository.
+6. **Open a Pull Request** on the main repository.
 
 ## Style Guide
 
@@ -103,17 +93,53 @@ Follow these style guidelines to maintain consistency:
 - **Python**: Use [PEP 8](https://peps.python.org/pep-0008/).
 - **React**: Follow [React Best Practices](https://react.dev/learn).
 - **Formatting/Linting**:
-  - Python: Use `black`, `isort`, and `ruff`.
+  These are set up in the pre-commit hook - will run upon `git commit` on staged files. You don't have to run anything explicitly for formatting/linting
+  - Python: we use `ruff`
     ```bash
-    black .
-    isort .
-    ruff .
+    ruff format
+    ruff check --fix
     ```
-    These are set up in the pre-commit hook - will run upon `git commit` on staged files
-  - JavaScript: Use ESLint with the provided configuration.
+  - JavaScript: we use `ESLint` with the provided configuration.
     ```bash
     npm run lint
     ```
+
+## Code Quality
+
+If you're using Preswald in your project, you might want to adopt similar standards. You can use our configuration files as a starting point:
+
+- `.pre-commit-config.yaml` for pre-commit configuration
+- `pyproject.toml` for tool settings
+
+These configurations ensure your code remains consistent with our standards when contributing back to the project.
+
+## Testing
+
+1. Create and activate another Conda environment for testing:
+   ```bash
+   conda deactivate # if inside an existing conda env
+   conda create -n preswald-test python=3.11 -y
+   conda activate preswald-test
+   ```
+2. Clear old builds:
+   ```bash
+   rm -rf dist/ build/ *.egg-info
+   ```
+3. Build frontend and backend:
+   ```bash
+   python setup.py build_frontend
+   python -m build
+   ```
+4. Install the pip package
+   ```bash
+   pip install dist/preswald-0.xx.xx.tar.gz
+   ```
+5. Run a test app
+   ```
+   cd examples/earthquakes && preswald run hello.py
+   ```
+   Make sure to do step 5 for **all** directories in `examples`, not just `earthquakes`
+
 
 ## Pull Request Guidelines
 

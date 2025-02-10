@@ -186,44 +186,7 @@ We’re here to help! Check out our full documentation at [Preswald Docs](https:
 
 ## **🤝 Contributing**
 
-Preswald thrives on community contributions! Here’s how you can help:
-
-1. Fork the repository.
-2. Clone your fork:
-   ```bash
-   git clone https://github.com/StructuredLabs/preswald.git
-   ```
-3. For local development, with the frontend, run the following commands
-
-   ```
-   pip install -e ".[dev]"
-   pre-commit install
-   python setup.py build_frontend
-   python -m build
-   pip install dist/preswald-0.xx.xx.tar.gz
-   ```
-
-4. Run a test app
-   ```
-   preswald run examples/earthquakes.py
-   ```
-
-### Code Quality
-
-Preswald maintains high code quality standards through automated tools:
-
-- All code is formatted with Black for consistent style
-- Imports are organized with isort
-- Code is linted with Ruff to catch potential issues
-
-If you're using Preswald in your project, you might want to adopt similar standards. You can use our configuration files as a starting point:
-
-- `.pre-commit-config.yaml` for pre-commit configuration
-- `pyproject.toml` for tool settings
-
-These configurations ensure your code remains consistent with our standards when contributing back to the project.
-
-For details, check out [CONTRIBUTING.md](CONTRIBUTING.md).
+Check out [CONTRIBUTING.md](CONTRIBUTING.md).
 
 <br>
 
