@@ -10,7 +10,7 @@ favicon = "images/favicon.ico"
 primaryColor = "#F89613"
 
 [data.csv]
-file_path = "data/sample.csv"
+path = "data/sample.csv"
 
 [logging]
 level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
