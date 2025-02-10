@@ -329,3 +329,7 @@ class PreswaldService:
                 )
             except Exception as e:
                 logger.error(f"Error sending error message: {e}")
+
+    def clear_components(self):
+        """Clear all components from the layout manager"""
+        self._layout_manager.clear_layout()

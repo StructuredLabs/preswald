@@ -210,17 +210,19 @@ class ScriptRunner:
             logger.warning("[ScriptRunner] Not running or no script path set")
             return
 
-        logger.info(
-            f"[ScriptRunner] Running script: {self.script_path} (run #{self._run_count})"
-        )
-
-        # Set up script environment
-        self._script_globals = {
-            "widget_states": self.widget_states,
-        }
+        logger.info(f"[ScriptRunner] Running script: {self.script_path} (run #{self._run_count})")
 
         try:
             from .service import PreswaldService
+            service = PreswaldService.get_instance()
+            
+            # Clear previous components before execution
+            service.clear_components()
+
+            # Set up script environment
+            self._script_globals = {
+                "widget_states": self.widget_states,
+            }
 
             # Capture script output
             with self._redirect_stdout():
@@ -239,7 +241,6 @@ class ScriptRunner:
                     os.chdir(current_working_dir)
 
                 # Process rendered components
-                service = PreswaldService.get_instance()
                 components = service.get_rendered_components()
                 logger.info(f"[ScriptRunner] Rendered {len(components)} components")
 
