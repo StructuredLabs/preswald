@@ -37,6 +37,7 @@ def init(name):
     try:
         os.makedirs(name, exist_ok=True)
         os.makedirs(os.path.join(name, "images"), exist_ok=True)
+        os.makedirs(os.path.join(name, "data"), exist_ok=True)
 
         # Copy default branding files from package resources
         import shutil
@@ -55,6 +56,7 @@ def init(name):
             ".gitignore": "gitignore",
             "README.md": "readme.md",
             "pyproject.toml": "pyproject.toml",
+            "data/sample.csv": "sample.csv",
         }
 
         for file_name, template_name in file_templates.items():
@@ -209,7 +211,7 @@ def deploy(script, target, port, log_level):
         else:
             url = deploy_app(script, target, port=port)
 
-            ## Deployment Success Message
+            # Deployment Success Message
             success_message = f"""
 
             ===========================================================\n
