@@ -24,7 +24,6 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
   { name: 'Connections', href: '/connections', icon: ServerIcon },
   { name: 'Definitions', href: '/definitions', icon: DocumentTextIcon },
-  { name: 'Components', href: '/components', icon: Squares2X2Icon },
 ];
 
 export default function Layout({ branding, children }) {

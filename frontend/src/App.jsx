@@ -3,7 +3,6 @@ import { Route, Routes } from 'react-router-dom';
 import { BrowserRouter as Router } from 'react-router-dom';
 
 import Layout from './components/Layout';
-import ComponentShowcase from './components/pages/ComponentShowcase';
 import Connections from './components/pages/Connections';
 import Dashboard from './components/pages/Dashboard';
 import Definitions from './components/pages/Definitions';
@@ -177,7 +176,6 @@ const App = () => {
             />
             <Route path="/connections" element={<Connections />} />
             <Route path="/definitions" element={<Definitions />} />
-            <Route path="/components" element={<ComponentShowcase />} />
           </Routes>
         )}
       </Layout>
