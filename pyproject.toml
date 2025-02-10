@@ -2,21 +2,6 @@
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
-# Black configuration
-[tool.black]
-line-length = 88
-target-version = ['py37']  # Matching your python_requires=">=3.7"
-include = '\.pyi?$'
-extend-exclude = '''
-# Exclude the frontend-related files and build artifacts
-(
-    frontend/
-    | dist/
-    | build/
-    | \.eggs/
-)
-'''
-
 # Ruff configuration
 [tool.ruff]
 line-length = 88
@@ -51,6 +36,7 @@ exclude = [
     "dist",
     "frontend",
     "*.egg-info",
+    ".eggs",
 ]
 
 # Allow automatic fixes
@@ -73,3 +59,8 @@ lines-after-imports = 2
 known-first-party = []  # Add your project's modules here
 known-third-party = []  # Add specific third-party modules here if needed
 section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+
+# Format configuration (replacing Black)
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

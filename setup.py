@@ -132,7 +132,6 @@ DEV_DEPENDENCIES = [
     "pytest>=8.3",
     "build",
     "twine",
-    "black>=23.12.1",
     "ruff>=0.1.11",
     "pre-commit>=3.5.0",
 ]
