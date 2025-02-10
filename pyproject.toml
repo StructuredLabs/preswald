@@ -17,19 +17,6 @@ extend-exclude = '''
 )
 '''
 
-# isort configuration - made compatible with Black
-[tool.isort]
-profile = "black"
-multi_line_output = 3
-line_length = 88
-force_grid_wrap = 0
-include_trailing_comma = true
-use_parentheses = true
-ensure_newline_before_comments = true
-split_on_trailing_comma = true
-# Skip frontend-related directories
-skip = ["frontend", "dist", "build", ".eggs"]
-
 # Ruff configuration
 [tool.ruff]
 line-length = 88
@@ -80,3 +67,9 @@ max-complexity = 12  # Slightly higher than default to accommodate your build co
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"  # Using Google style docstrings
+
+[tool.ruff.lint.isort]
+lines-after-imports = 2
+known-first-party = []  # Add your project's modules here
+known-third-party = []  # Add specific third-party modules here if needed
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]

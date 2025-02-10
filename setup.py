@@ -31,9 +31,9 @@ class BuildFrontendCommand(Command):
 
         print("Building frontend assets...")
         try:
-            # Obtain npm path 
+            # Obtain npm path
             npm_path = shutil.which("npm")
-            if not npm_path: 
+            if not npm_path:
                 raise Exception("npm is not installed or not found in PATH")
             # Run npm install with error handling
             result = subprocess.run(
@@ -131,7 +131,6 @@ CORE_DEPENDENCIES = [
 DEV_DEPENDENCIES = [
     "pytest>=8.3",
     "build",
-    "isort",
     "twine",
     "black>=23.12.1",
     "ruff>=0.1.11",
