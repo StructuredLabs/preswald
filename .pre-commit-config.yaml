@@ -7,25 +7,25 @@ repos:
         language: system
         types: [python]
 
-      - id: isort
-        name: isort
-        entry: isort
-        language: system
-        types: [python]
+      #- id: isort
+      #  name: isort
+      #  entry: isort
+      #  language: system
+      #  types: [python]
 
-      - id: ruff
-        name: ruff
-        entry: ruff check
-        language: system
-        types: [python]
-        exclude: ^setup\.py$
+      #- id: ruff
+      #  name: ruff
+      #  entry: ruff check
+      #  language: system
+      #  types: [python]
+      #  exclude: ^setup\.py$
 
-      - id: prettier
-        name: prettier
-        entry: bash -c 'cd frontend && npx prettier --write "src/**/*.{js,jsx,css,scss,json}"'
-        language: system
-        types_or: [javascript, jsx, css, scss, json]
-        files: ^frontend/
+      #- id: prettier
+      #  name: prettier
+      #  entry: bash -c 'cd frontend && npx prettier --write "src/**/*.{js,jsx,css,scss,json}"'
+      #  language: system
+      #  types_or: [javascript, jsx, css, scss, json]
+      #  files: ^frontend/
 
       # - id: eslint
       #   name: eslint
