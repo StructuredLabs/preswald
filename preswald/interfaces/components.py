@@ -245,7 +245,7 @@ def convert_to_serializable(obj):
     return obj
 
 
-def plotly(fig):
+def plotly(fig, size=1.0):
     """
     Render a Plotly figure.
 
@@ -359,6 +359,7 @@ def plotly(fig):
                     "showTips": False,  # Disable hover tips for better performance
                 },
             },
+            "size": size,
         }
 
         # Verify JSON serialization
