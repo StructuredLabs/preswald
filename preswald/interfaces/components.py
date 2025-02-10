@@ -257,7 +257,7 @@ def plotly(fig):
         import time
 
         start_time = time.time()
-        logger.debug(f"[PLOTLY] Starting plotly render")
+        logger.debug("[PLOTLY] Starting plotly render")
 
         id = generate_id("plot")
         logger.debug(f"[PLOTLY] Created plot component with id {id}")
@@ -284,9 +284,11 @@ def plotly(fig):
                             5,
                             20,
                         )  # Reasonable size range for web rendering
-                        with np.errstate(divide='ignore', invalid='ignore'):
+                        with np.errstate(divide="ignore", invalid="ignore"):
                             scaled_sizes = (sizes / max_size) * max_size
-                            scaled_sizes = np.nan_to_num(scaled_sizes, nan=0.0, posinf=0.0, neginf=0.0)
+                            scaled_sizes = np.nan_to_num(
+                                scaled_sizes, nan=0.0, posinf=0.0, neginf=0.0
+                            )
 
                         # Ensure there's a minimum size if needed
                         scaled_sizes = np.clip(scaled_sizes, 1, max_size)
@@ -358,6 +360,7 @@ def plotly(fig):
                     "scrollZoom": True,  # Enable scroll zoom for better interaction
                     "showTips": False,  # Disable hover tips for better performance
                 },
+                "plotType": "plotly",
             },
         }
 
@@ -374,11 +377,128 @@ def plotly(fig):
         return component
 
     except Exception as e:
-        logger.error(f"[PLOTLY] Error creating plot: {str(e)}", exc_info=True)
+        logger.error(f"[PLOTLY] Error creating plot: {e!s}", exc_info=True)
         error_component = {
             "type": "plot",
             "id": id,
-            "error": f"Failed to create plot: {str(e)}",
+            "error": f"Failed to create plot: {e!s}",
+        }
+        service.append_component(error_component)
+        return error_component
+
+
+def matplotlib(fig):
+    service = PreswaldService.get_instance()
+    try:
+        import time
+        import warnings
+
+        import mpld3
+        from matplotlib import MatplotlibDeprecationWarning
+
+        start_time = time.time()
+        logger.debug("[MATPLOTLIB] Starting Matplotlib render")
+
+        id = generate_id("plot")
+        logger.debug(f"[MATPLOTLIB] Created plot component with id {id}")
+
+        # Optimize the figure for web rendering
+        optimize_start = time.time()
+
+        # Reduce precision of numeric values in axes and plot data
+        for ax in fig.get_axes():
+            # Optimize font sizes
+            ax.tick_params(axis="both", labelsize=12)
+            ax.set_title(ax.get_title(), fontsize=14)
+            ax.set_xlabel(ax.get_xlabel(), fontsize=12)
+            ax.set_ylabel(ax.get_ylabel(), fontsize=12)
+
+            # Reduce precision of numeric values
+            for line in ax.get_lines():
+                x_data = line.get_xdata()
+                y_data = line.get_ydata()
+
+                if line.get_linestyle() == "":  # If no linestyle is set
+                    line.set_linestyle("--")
+
+                if isinstance(x_data, (np.ndarray, list)):
+                    x_data = (
+                        np.round(x_data, decimals=4)
+                        if isinstance(x_data, np.ndarray)
+                        else np.round(np.array(x_data), decimals=4)
+                    )
+                    line.set_xdata(x_data)
+
+                if isinstance(y_data, (np.ndarray, list)):
+                    y_data = (
+                        np.round(y_data, decimals=4)
+                        if isinstance(y_data, np.ndarray)
+                        else np.round(np.array(y_data), decimals=4)
+                    )
+                    line.set_ydata(y_data)
+
+        fig.tight_layout(pad=0.5)
+
+        logger.debug(
+            f"[MATPLOTLIB] Figure optimization took {time.time() - optimize_start:.3f}s"
+        )
+
+        # Convert the figure to JSON-serializable format
+        with warnings.catch_warnings():
+            # Ignore MatplotlibDepricationWarning from mpld3\mplexporter\utils.py, lines 300, 303, 306
+            # This warning is generated because the axis.converter attribute was depricated in 3.10 and will be removed in 3.12
+            # The package should use axis.get_converter() instead.
+            warnings.simplefilter("ignore", category=MatplotlibDeprecationWarning)
+            fig_dict_start = time.time()
+            fig_dict = mpld3.fig_to_dict(
+                fig
+            )  # library handles cleaning of data, ensuring NAN values are properly handled
+
+        logger.debug(
+            f"[MATPLOTLIB] Figure to dict conversion took {time.time() - fig_dict_start:.3f}s"
+        )
+
+        # Convert to JSON-serializable format
+        serialize_start = time.time()
+        serializable_fig_dict = convert_to_serializable(fig_dict)
+        logger.debug(
+            f"[MATPLOTLIB] Serialization took {time.time() - serialize_start:.3f}s"
+        )
+
+        component = {
+            "type": "plot",
+            "id": id,
+            "data": {
+                "data": serializable_fig_dict,
+                "plotType": "matplotlib",
+            },
+        }
+
+        # Verify JSON serialization
+        json_start = time.time()
+        json.dumps(component)
+        logger.debug(
+            f"[MATPLOTLIB] JSON verification took {time.time() - json_start:.3f}s"
+        )
+
+        logger.debug(
+            f"[MATPLOTLIB] Matplotlib plot data created successfully for id {id}"
+        )
+        logger.debug(
+            f"[MATPLOTLIB] Total matplotlib render took {time.time() - start_time:.3f}s"
+        )
+
+        service.append_component(component)
+        return component
+
+    except Exception as e:
+        logger.error(
+            f"[MPL] Error converting matplotlib to plotly: {e!s}", exc_info=True
+        )
+        error_component = {
+            "type": "plot",
+            "id": id,
+            "error": f"Failed to create plot: {e!s}",
         }
         service.append_component(error_component)
         return error_component
@@ -452,12 +572,12 @@ def table(data, title=None):
         return component
 
     except Exception as e:
-        logger.error(f"Error creating table component: {str(e)}")
+        logger.error(f"Error creating table component: {e!s}")
         error_component = {
             "type": "table",
             "id": id,
             "data": [],
-            "title": f"Error: {str(e)}",
+            "title": f"Error: {e!s}",
         }
         service.append_component(error_component)
         return error_component
@@ -516,12 +636,12 @@ def workflow_dag(workflow, title="Workflow Dependency Graph"):
 
     except Exception as e:
         logger.error(
-            f"[WORKFLOW_DAG] Error creating DAG visualization: {str(e)}", exc_info=True
+            f"[WORKFLOW_DAG] Error creating DAG visualization: {e!s}", exc_info=True
         )
         error_component = {
             "type": "dag",  # Changed from "plot" to "dag"
             "id": generate_id("dag"),
-            "error": f"Failed to create DAG visualization: {str(e)}",
+            "error": f"Failed to create DAG visualization: {e!s}",
         }
         service.append_component(error_component)
         return error_component

@@ -1,4 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import mpld3 from 'mpld3';
+
+import React, {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useInView } from 'react-intersection-observer';
 import Plot from 'react-plotly.js';
 
@@ -19,12 +28,65 @@ import {
 const INITIAL_POINTS_THRESHOLD = 1000;
 const PROGRESSIVE_LOADING_CHUNK_SIZE = 500;
 
+const MPLPlot = React.forwardRef(({ data, figId, className }, ref) => {
+  const containerRef = useRef(null);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+  // Expose resize method on this component so debounce useMemo does not have to be
+  // redefined on data change
+  useImperativeHandle(ref, () => ({
+    resize: (width, height) => {
+      try {
+        setDimensions({ width, height });
+      } catch (error) {
+        console.error('Error resizing mpld3 plot:', error);
+      }
+    },
+  }));
+
+  // Set initial width and height when the component first mounts
+  useEffect(() => {
+    if (containerRef.current) {
+      const { width, height } = containerRef.current.getBoundingClientRect();
+      setDimensions({ width, height });
+    }
+  }, []);
+
+  // Update plot when data or dimensions changes
+  useEffect(() => {
+    // Check if we're in a browser environment and if the necessary data and container are available
+    if (typeof window === 'undefined' || !data || !containerRef.current) {
+      return;
+    }
+
+    try {
+      if (dimensions.width && dimensions.height) {
+        // Remove figure to prevent duplicate plots
+        mpld3.remove_figure(figId);
+        const initialData = { ...data.data, width: dimensions.width, height: dimensions.height };
+        mpld3.draw_figure(figId, initialData);
+      }
+    } catch (error) {
+      console.error('Error rendering mpld3 plot:', error);
+    }
+  }, [figId, data, dimensions]);
+
+  return (
+    <div className={className} style={{ minHeight: '400px' }} ref={containerRef}>
+      <div id={figId} className="w-full h-full" />
+    </div>
+  );
+});
+
 const DataVisualizationWidget = ({ id, data: rawData, content, error, className }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [plotError, setPlotError] = useState(null);
   const [processedData, setProcessedData] = useState(null);
   const plotContainerRef = useRef(null);
   const [loadedDataPercentage, setLoadedDataPercentage] = useState(0);
+
+  // Define a ref for the mpl plot
+  const mplPlotRef = useRef(null);
 
   const { ref: inViewRef, inView } = useInView({
     threshold: 0.1,
@@ -63,32 +125,56 @@ const DataVisualizationWidget = ({ id, data: rawData, content, error, className 
 
     const threshold = isInitialLoad ? INITIAL_POINTS_THRESHOLD : FEATURES.DATA_SAMPLING_THRESHOLD;
 
-    return {
-      ...plotData,
-      data: plotData.data.map((trace) => {
-        // Deep clone the trace to avoid mutations
-        const processedTrace = { ...trace };
+    switch (data?.plotType) {
+      case 'matplotlib':
+        return {
+          ...plotData,
+          data: plotData.data.map((ax) => {
+            // Deep clone the trace to avoid mutations
+            const processedAx = { ...ax };
 
-        // Process numerical arrays for optimization
-        ['x', 'y', 'lat', 'lon'].forEach((key) => {
-          if (Array.isArray(trace[key])) {
-            processedTrace[key] = sampleData(trace[key], threshold);
-          }
-        });
+            // Process numerical arrays for optimization
+            ['data01', 'data02', 'data03'].forEach((key) => {
+              if (Array.isArray(ax[key])) {
+                processedAx[key] = sampleData(ax[key], threshold);
+              }
+            });
 
-        // Handle marker properties
-        if (trace.marker) {
-          processedTrace.marker = { ...trace.marker };
-          ['size', 'color'].forEach((key) => {
-            if (Array.isArray(trace.marker[key])) {
-              processedTrace.marker[key] = sampleData(trace.marker[key], threshold);
+            return processedAx;
+          }),
+        };
+
+      case 'plotly':
+        return {
+          ...plotData,
+          data: plotData.data.map((trace) => {
+            // Deep clone the trace to avoid mutations
+            const processedTrace = { ...trace };
+
+            // Process numerical arrays for optimization
+            ['x', 'y', 'z', 'lat', 'lon'].forEach((key) => {
+              if (Array.isArray(trace[key])) {
+                processedTrace[key] = sampleData(trace[key], threshold);
+              }
+            });
+
+            // Handle marker properties
+            if (trace.marker) {
+              processedTrace.marker = { ...trace.marker };
+              ['size', 'color'].forEach((key) => {
+                if (Array.isArray(trace.marker[key])) {
+                  processedTrace.marker[key] = sampleData(trace.marker[key], threshold);
+                }
+              });
             }
-          });
-        }
 
-        return processedTrace;
-      }),
-    };
+            return processedTrace;
+          }),
+        };
+      default:
+        console.warn(`Invalid plot type: ${data?.plotType}`);
+        return plotData;
+    }
   }, []);
 
   // Handle data processing and loading
@@ -146,10 +232,31 @@ const DataVisualizationWidget = ({ id, data: rawData, content, error, className 
   const debouncedResize = useMemo(
     () =>
       debounce(() => {
-        if (plotContainerRef.current) {
-          window.Plotly.Plots.resize(plotContainerRef.current);
+        if (!plotContainerRef.current) return;
+
+        const containerRect = plotContainerRef.current.getBoundingClientRect();
+
+        switch (data.plotType) {
+          case 'plotly':
+            if (window.Plotly) {
+              window.Plotly.Plots.resize(plotContainerRef.current);
+            } else {
+              console.error('Plotly is not available.');
+            }
+            break;
+
+          case 'matplotlib':
+            // Call the resize method on the MPLPlot component
+            if (mplPlotRef.current?.resize) {
+              mplPlotRef.current.resize(containerRect.width, containerRect.height);
+            }
+            break;
+
+          default:
+            console.warn(`Unsupported plotType: ${data.plotType}`);
+            break;
         }
-      }, 150),
+      }, FEATURES.DEBOUNCE_MS), // Use debounce timing specified in features.js
     []
   );
 
@@ -181,33 +288,42 @@ const DataVisualizationWidget = ({ id, data: rawData, content, error, className 
                 <Progress value={loadedDataPercentage} className="w-full h-2" />
               </div>
             )}
-            <Plot
-              key={id}
-              data={processedData.data}
-              layout={{
-                ...processedData.layout,
-                font: { family: 'Inter, system-ui, sans-serif' },
-                paper_bgcolor: 'transparent',
-                plot_bgcolor: 'transparent',
-                margin: { t: 40, r: 10, l: 60, b: 40 },
-                showlegend: true,
-                hovermode: 'closest',
-              }}
-              config={{
-                responsive: true,
-                scrollZoom: false,
-                displayModeBar: false,
-                displaylogo: false,
-                ...processedData.config,
-              }}
-              className="w-full h-full"
-              useResizeHandler={true}
-              style={{ width: '100%', height: '100%' }}
-              onError={(err) => {
-                console.error('Plotly rendering error:', err);
-                setPlotError('Failed to render plot');
-              }}
-            />
+            {data.plotType === 'plotly' ? (
+              <Plot
+                key={id}
+                data={processedData.data}
+                layout={{
+                  ...processedData.layout,
+                  font: { family: 'Inter, system-ui, sans-serif' },
+                  paper_bgcolor: 'transparent',
+                  plot_bgcolor: 'transparent',
+                  margin: { t: 40, r: 10, l: 60, b: 40 },
+                  showlegend: true,
+                  hovermode: 'closest',
+                }}
+                config={{
+                  responsive: true,
+                  scrollZoom: false,
+                  displayModeBar: false,
+                  displaylogo: false,
+                  ...processedData.config,
+                }}
+                className="w-full h-full"
+                useResizeHandler={true}
+                style={{ width: '100%', height: '100%' }}
+                onError={(err) => {
+                  console.error('Plotly rendering error:', err);
+                  setPlotError('Failed to render plot');
+                }}
+              />
+            ) : data.plotType === 'matplotlib' ? (
+              <MPLPlot
+                data={processedData}
+                figId={processedData.data.id}
+                className="w-full h-full"
+                ref={mplPlotRef} // Pass the ref to the MPLPlot component
+              />
+            ) : null}
           </div>
         ) : (
           <div className="w-full h-full" ref={plotContainerRef} />
