@@ -47,6 +47,7 @@ unsafe-fixes = false
 [tool.ruff.lint.per-file-ignores]
 "setup.py" = ["E402"]  # Module level import not at top of file
 "tests/*" = ["PLR2004"]  # Magic numbers in tests are fine
+"__init__.py" = ["F401"] # Unused imports in __init__ files are fine
 
 [tool.ruff.lint.mccabe]
 max-complexity = 12  # Slightly higher than default to accommodate your build commands

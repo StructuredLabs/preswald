@@ -4,22 +4,23 @@ Grouping all the user-facing components of the SDK
 """
 
 from .components import (
-    slider,
-    text,
-    checkbox,
-    button,
-    selectbox,
-    text_input,
-    progress,
-    spinner,
     alert,
+    button,
+    checkbox,
     image,
     plotly,
-    workflow_dag,
+    progress,
+    selectbox,
     separator,
+    slider,
+    spinner,
+    text,
+    text_input,
+    workflow_dag,
 )
-from .data import view
-from .workflow import Workflow, RetryPolicy, WorkflowAnalyzer
+from .data import connect, query, view
+from .workflow import RetryPolicy, Workflow, WorkflowAnalyzer
+
 
 # Get all imported names (excluding special names like __name__)
 __all__ = [

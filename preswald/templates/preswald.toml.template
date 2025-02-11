@@ -10,6 +10,7 @@ favicon = "images/favicon.ico"
 primaryColor = "#F89613"
 
 [data.csv]
+type = "csv"
 path = "data/sample.csv"
 
 [logging]

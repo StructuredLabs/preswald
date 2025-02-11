@@ -7,9 +7,11 @@ from typing import Any, Callable, Dict, Optional
 
 from fastapi import WebSocket, WebSocketDisconnect
 
+from .managers.data import DataManager
 from .managers.layout import LayoutManager
 from .runner import ScriptRunner
 from .utils import clean_nan_values, compress_data, optimize_plotly_data
+
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +30,7 @@ class PreswaldService:
             cls._instance = cls()
             if script_path:
                 cls._instance._script_path = script_path
+                cls._instance._initialize_data_manager(script_path)
         return cls._instance
 
     @classmethod
@@ -43,8 +46,12 @@ class PreswaldService:
         self._component_states: Dict[str, Any] = {}
         self._lock = threading.Lock()
 
+        # TODO: deprecated
         # Connection management
         self._connections: Dict[str, Any] = {}
+
+        # Data management
+        self.data_manager: DataManager = None  # set during server creation
 
         # Layout management
         self._layout_manager = LayoutManager()
@@ -71,8 +78,7 @@ class PreswaldService:
             raise FileNotFoundError(f"Script not found: {path}")
 
         self._script_path = path
-        # TODO Initialize connections from config
-        # asyncio.create_task(self.connection_manager.initialize_from_script(path))
+        self._initialize_data_manager(path)
 
     async def register_client(
         self, client_id: str, websocket: WebSocket
@@ -333,3 +339,12 @@ class PreswaldService:
     def clear_components(self):
         """Clear all components from the layout manager"""
         self._layout_manager.clear_layout()
+
+    def _initialize_data_manager(self, script_path: str) -> None:
+        script_dir = os.path.dirname(script_path)
+        preswald_path = os.path.join(script_dir, "preswald.toml")
+        secrets_path = os.path.join(script_dir, "secrets.toml")
+
+        self.data_manager = DataManager(
+            preswald_path=preswald_path, secrets_path=secrets_path
+        )
