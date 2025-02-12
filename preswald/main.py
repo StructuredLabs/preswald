@@ -12,14 +12,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
-from preswald.engine.celery import CeleryEngine
+# from preswald.engine.celery import CeleryEngine
 from preswald.engine.managers.branding import BrandingManager
 from preswald.engine.service import PreswaldService
+
 
 logger = logging.getLogger(__name__)
 
 # Global celery engine instance
-celery_engine = None
+# celery_engine = None
 
 
 def create_app(script_path: Optional[str] = None) -> FastAPI:
@@ -43,14 +44,14 @@ def create_app(script_path: Optional[str] = None) -> FastAPI:
     app.state.service = service
 
     # Initialize CeleryEngine
-    global celery_engine
-    celery_engine = CeleryEngine()
+    # global celery_engine
+    # celery_engine = CeleryEngine()
 
     # Set script path if provided
     if script_path:
         service.script_path = script_path
         # Start celery worker and trigger initial connection parsing
-        celery_engine.start_worker(script_path)
+        # celery_engine.start_worker(script_path)
 
     # Register routes
     _register_routes(app)
@@ -99,9 +100,9 @@ def _register_api_routes(app: FastAPI):
     @app.get("/api/connections")
     async def get_connections():
         """Get all active connections and their states"""
-        global celery_engine
-        if celery_engine:
-            return celery_engine.get_latest_result()
+        # global celery_engine
+        # if celery_engine:
+        #     return celery_engine.get_latest_result()
         return {
             "connections": [],
             "error": "Celery engine not initialized",
@@ -164,9 +165,9 @@ def start_server(script: Optional[str] = None, port: int = 8501):
     # Handle shutdown signals
     def handle_shutdown(signum, frame):
         logger.info("Shutting down server...")
-        global celery_engine
-        if celery_engine:
-            celery_engine.stop_worker()
+        # global celery_engine
+        # if celery_engine:
+        #     celery_engine.stop_worker()
         app.state.service.shutdown()
 
     signal.signal(signal.SIGINT, handle_shutdown)
@@ -225,10 +226,11 @@ def _handle_index_request(service: PreswaldService) -> HTMLResponse:
 
         # Replace title
         content = content.replace(
-            "<title>Vite + React</title>", f'<title>{branding["name"]}</title>'
+            "<title>Vite + React</title>", f"<title>{branding['name']}</title>"
         )
 
         import time
+
         # Add favicon links
         favicon_links = f"""    <link rel="icon" type="image/x-icon" href="{branding["favicon"]}" />
     <link rel="shortcut icon" type="image/x-icon" href="{branding["favicon"]}?timestamp={time.time()}" />"""
