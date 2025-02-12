@@ -86,8 +86,7 @@ class PostgresSource(DataSource):
         # For Postgres, we create a view for the specific query
         view_name = f"pg_view_{uuid.uuid4().hex[:8]}"
 
-        # Extract table name from query - this is a simplified version
-        # You might want to make this more robust with proper SQL parsing
+        # Extract table name from query (simplified version)
         table_name = sql.split("FROM")[1].strip().split()[0]
 
         self._duckdb.execute(f"""

@@ -18,7 +18,7 @@ from .components import (
     text_input,
     workflow_dag,
 )
-from .data import connect, query, view
+from .data import connect, get_df, query, view
 from .workflow import RetryPolicy, Workflow, WorkflowAnalyzer
 
 
