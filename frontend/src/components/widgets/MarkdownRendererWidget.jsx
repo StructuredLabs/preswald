@@ -1,12 +1,12 @@
-import remarkGfm from 'remark-gfm';
-
-import React from 'react';
-import ReactMarkdown from 'react-markdown';
-
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
 
+import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { cn } from '@/lib/utils';
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import remarkGfm from 'remark-gfm';
 
 const MarkdownRendererWidget = ({
   markdown,
@@ -62,15 +62,64 @@ const MarkdownRendererWidget = ({
       />
     ),
     // Style code blocks
-    code: ({ className, ...props }) => (
-      <code
+    pre: ({ className, ...props }) => (
+      <pre
         className={cn(
-          'relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm',
+          'mb-6 mt-6 overflow-x-auto rounded-lg',
+          'bg-zinc-950 dark:bg-zinc-900',
+          'border border-zinc-200 dark:border-zinc-800',
+          'p-4 shadow-sm',
           className
         )}
         {...props}
       />
     ),
+    code: ({ node, inline, className, children, ...props }) => {
+      const match = /language-(\w+)/.exec(className || '');
+      const lang = match ? match[1] : '';
+      const isInline = inline || !lang;
+      
+      if (isInline) {
+        return (
+          <code
+            className={cn(
+              'relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm',
+              'bg-zinc-100 dark:bg-zinc-800',
+              'text-zinc-900 dark:text-zinc-100',
+              'whitespace-normal',
+              'inline-block',
+              className
+            )}
+            {...props}
+          >
+            {children}
+          </code>
+        );
+      }
+
+      return (
+        <div className="relative">
+          {lang && (
+            <div className="absolute right-2 top-2 z-10">
+              <span className="rounded-md bg-zinc-700 px-2 py-1 text-xs font-medium text-zinc-200">
+                {lang}
+              </span>
+            </div>
+          )}
+          <SyntaxHighlighter
+            language={lang}
+            style={oneDark}
+            customStyle={{
+              margin: 0,
+              borderRadius: '0.5rem',
+              background: 'rgb(24 24 27)',
+            }}
+          >
+            {String(children).replace(/\n$/, '')}
+          </SyntaxHighlighter>
+        </div>
+      );
+    },
     // Style blockquotes
     blockquote: ({ className, ...props }) => (
       <blockquote className={cn('mt-6 border-l-2 pl-6 italic', className)} {...props} />
@@ -123,7 +172,11 @@ const MarkdownRendererWidget = ({
           'prose-headings:scroll-m-20',
           'prose-p:leading-7',
           'prose-li:marker:text-muted-foreground',
-          variant === 'ghost' ? 'p-0' : 'p-2'
+          'prose-pre:p-0',
+          'prose-pre:bg-transparent',
+          'prose-code:text-zinc-900 dark:prose-code:text-zinc-100',
+          'prose-pre:shadow-lg',
+          variant === 'ghost' ? 'p-0' : 'p-6'
         )}
       >
         <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>

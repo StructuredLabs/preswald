@@ -7,8 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-		"lint": "eslint .",
-		"lint:fix": "eslint . --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write '**/*.{js,jsx,css,scss,json}'"
   },
   "dependencies": {
@@ -46,6 +46,7 @@
     "react-markdown": "^9.0.1",
     "react-plotly.js": "^2.6.0",
     "react-router-dom": "^6.28.1",
+    "react-syntax-highlighter": "^15.6.1",
     "reactflow": "^11.11.4",
     "remark-gfm": "^4.0.0",
     "tailwind-merge": "^2.6.0",
