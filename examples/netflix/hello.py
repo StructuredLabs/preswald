@@ -3,6 +3,7 @@ import plotly.express as px
 
 from preswald import plotly, text
 
+
 text("# Netflix Movies & TV Shows Dashboard")
 
 # Read the data

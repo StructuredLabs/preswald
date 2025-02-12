@@ -1,6 +1,8 @@
 import pandas as pd
 import plotly.express as px
-from preswald import text, plotly
+
+from preswald import plotly, text
+
 
 # Display the dashboard title
 text("# Fire Incident Analytics Dashboard 🔥")
@@ -9,17 +11,19 @@ text("# Fire Incident Analytics Dashboard 🔥")
 
 # Load and preprocess the data
 data = pd.read_csv("mapdataall.csv")
-data['incident_acres_burned'] = pd.to_numeric(
-    data['incident_acres_burned'], errors='coerce')
+data["incident_acres_burned"] = pd.to_numeric(
+    data["incident_acres_burned"], errors="coerce"
+)
 
 # Ensure the 'incident_dateonly_created' column is in datetime format
-data['incident_dateonly_created'] = pd.to_datetime(
-    data['incident_dateonly_created'], errors='coerce')
+data["incident_dateonly_created"] = pd.to_datetime(
+    data["incident_dateonly_created"], errors="coerce"
+)
 
 # Filter data for Los Angeles County in 2025
 filtered_data = data[
-    (data['incident_county'] == 'Los Angeles') &
-    (data['incident_dateonly_created'].dt.year == 2025)
+    (data["incident_county"] == "Los Angeles")
+    & (data["incident_dateonly_created"].dt.year == 2025)
 ]
 
 # Add a new subsection for LA fires in 2025 (Scatter Map)
@@ -38,11 +42,13 @@ fig_map = px.scatter_mapbox(
 )
 
 # Update marker properties for better visibility
-fig_map.update_traces(marker=dict(
-    size=20,  # Increase marker size
-    opacity=0.9,  # Slightly transparent
-    symbol="circle",  # Set symbol type
-))
+fig_map.update_traces(
+    marker={
+        "size": 20,  # Increase marker size
+        "opacity": 0.9,  # Slightly transparent
+        "symbol": "circle",  # Set symbol type
+    }
+)
 
 # Display the Scatter Map
 plotly(fig_map)
@@ -58,16 +64,16 @@ fig_bar = px.bar(
     labels={
         "incident_acres_burned": "Acres Burned",
         "incident_containment": "Containment (%)",
-        "incident_name": "Fire Name"
+        "incident_name": "Fire Name",
     },
-    hover_data=["incident_acres_burned", "incident_containment"]
+    hover_data=["incident_acres_burned", "incident_containment"],
 )
 
 # Scale down the bar chart
 fig_bar.update_layout(
     xaxis_tickangle=45,  # Rotate x-axis labels for better readability
     height=500,  # Scale down the figure height
-    title_x=0.5  # Center the title
+    title_x=0.5,  # Center the title
 )
 
 # Display the Bar Chart
@@ -78,38 +84,40 @@ text("## Fire Trends Over Time")
 
 # Ensure there are valid dates and filter for data from 2000 onwards
 # Filter for 2000 and later
-data = data[data['incident_dateonly_created'].dt.year >= 2000]
-data['incident_month'] = data['incident_dateonly_created'].dt.to_period(
-    'M').astype(str)
+data = data[data["incident_dateonly_created"].dt.year >= 2000]
+data["incident_month"] = data["incident_dateonly_created"].dt.to_period("M").astype(str)
 
 # Group by month
-trend_data = data.groupby('incident_month', as_index=False).agg({
-    'incident_acres_burned': 'sum',  # Total acres burned per month
-    # Number of incidents per month
-    'incident_id': 'count' if 'incident_id' in data.columns else None
-})
+trend_data = data.groupby("incident_month", as_index=False).agg(
+    {
+        "incident_acres_burned": "sum",  # Total acres burned per month
+        # Number of incidents per month
+        "incident_id": "count" if "incident_id" in data.columns else None,
+    }
+)
 
 # Check if trend_data has values
 if not trend_data.empty:
     fig_line = px.line(
         trend_data,
-        x='incident_month',
-        y='incident_acres_burned',
+        x="incident_month",
+        y="incident_acres_burned",
         title="Fire Trends Over Time (2000 to Present)",
         labels={
-            'incident_month': 'Month',
-            'incident_acres_burned': 'Total Acres Burned'
+            "incident_month": "Month",
+            "incident_acres_burned": "Total Acres Burned",
         },
-        markers=True
+        markers=True,
     )
 
-    fig_line.update_traces(line=dict(width=3), marker=dict(
-        size=8))  # Enhance line and marker visibility
+    fig_line.update_traces(
+        line={"width": 3}, marker={"size": 8}
+    )  # Enhance line and marker visibility
     fig_line.update_layout(
         xaxis_title="Month",
         yaxis_title="Total Acres Burned",
         xaxis_tickangle=45,  # Rotate x-axis labels for readability
-        height=500  # Adjust the height for a cleaner display
+        height=500,  # Adjust the height for a cleaner display
     )
     plotly(fig_line)
 else:

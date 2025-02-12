@@ -1,7 +1,8 @@
-import pandas as pd
 import duckdb
 import plotly.express as px
-from preswald import text, plotly, view
+
+from preswald import plotly, text, view
+
 
 # ----------------------------------------------------------------------------
 # 1. Connect to your MotherDuck database
@@ -34,7 +35,7 @@ fig_a = px.line(
     y="ESTIMATE",
     color="ESTIMATE_TYPE",  # separate lines for "age adjusted" vs "crude"
     markers=True,
-    title="Cholesterol Estimate by Time Period"
+    title="Cholesterol Estimate by Time Period",
 )
 plotly(fig_a)
 
@@ -46,7 +47,7 @@ fig_b = px.bar(
     y="ESTIMATE",
     color="ESTIMATE_TYPE",
     barmode="group",
-    title="Age Adjusted vs. Crude Estimates"
+    title="Age Adjusted vs. Crude Estimates",
 )
 plotly(fig_b)
 
@@ -60,7 +61,7 @@ fig_c = px.scatter(
     color="GROUP",  # e.g. "Total" vs. "Race and Hispanic origin"
     size="ESTIMATE",
     hover_data=["TIME_PERIOD", "ESTIMATE_TYPE"],
-    title="Cholesterol Estimate by Subgroup"
+    title="Cholesterol Estimate by Subgroup",
 )
 plotly(fig_c)
 

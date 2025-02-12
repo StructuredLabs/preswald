@@ -1,6 +1,8 @@
 import pandas as pd
 import plotly.express as px
+
 from preswald import plotly, text
+
 
 text("# Most Streamed Songs in 2024 with Grammy Nominees")
 text(

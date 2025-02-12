@@ -11,7 +11,6 @@ text("# Earthquake Analytics Dashboard 🌍")
 connect()
 
 # Slider for filtering magnitude
-# here min_magnitude is {'type': 'slider', 'id': 'slider-f6dab796', 'label': 'Minimum Magnitude', 'min': 0.0, 'max': 10.0, 'step': 1, 'value': 5.0}
 min_magnitude = slider("Minimum Magnitude", min_val=0.0, max_val=10.0, default=5.0)
 
 # Read the data and filter based on magnitude
@@ -19,15 +18,13 @@ data = get_df("earthquake_data")
 # data = get_df("earthquake_db", "earthquake_data") # NOTE: requires changing the column names based on what you have in postgres
 # Convert Magnitude column to numeric, handling any non-numeric values
 data["Magnitude"] = pd.to_numeric(data["Magnitude"], errors="coerce")
-filtered_data = data[data["Magnitude"] >= min_magnitude.get("value", min_magnitude)]
+filtered_data = data[data["Magnitude"] >= min_magnitude]
 
 # View the filtered data
 view(filtered_data)
 
 # Summary statistics
-text(
-    f"### Total Earthquakes with Magnitude ≥ {min_magnitude.get('value', min_magnitude)}: {len(filtered_data)}"
-)
+text(f"### Total Earthquakes with Magnitude ≥ {min_magnitude}: {len(filtered_data)}")
 
 
 # Interactive map using Plotly

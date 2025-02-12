@@ -13,12 +13,12 @@ primaryColor = "#F89613"
 primary_color = "#3498db"
 font = "Arial, sans-serif"
 
-[connections.csv]
+[data.csv]
 type = "csv"
 file_path = "mapdataall.csv"
 delimiter = ","
 header = true
 
 [logging]
-level = "DEBUG"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
 format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
