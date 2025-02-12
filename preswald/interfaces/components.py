@@ -17,7 +17,7 @@ def generate_id(prefix="component"):
     return f"{prefix}-{uuid.uuid4().hex[:8]}"
 
 
-def checkbox(label, default=False, size=1.0):
+def checkbox(label, default=False, size=1.0) -> bool:
     """Create a checkbox component with consistent ID based on label."""
     service = PreswaldService.get_instance()
 
@@ -39,7 +39,7 @@ def checkbox(label, default=False, size=1.0):
     }
     logger.debug(f"Created component: {component}")
     service.append_component(component)
-    return component
+    return current_value
 
 
 def slider(
@@ -49,7 +49,7 @@ def slider(
     step: float = 1.0,
     default: float = None,
     size: float = 1.0,
-) -> dict:
+) -> float:
     """Create a slider component with consistent ID based on label"""
     service = PreswaldService.get_instance()
 
@@ -72,12 +72,8 @@ def slider(
         "size": size,
     }
 
-    logger.debug(f"Creating slider component with id {component_id}, label: {label}")
-    logger.debug(f"Current value from state: {current_value}")
-
     service.append_component(component)
-
-    return component
+    return current_value
 
 
 def button(label, size=1.0):
@@ -95,17 +91,11 @@ def selectbox(label, options, default=None, size=1.0):
     """Create a select component with consistent ID based on label."""
     service = PreswaldService.get_instance()
 
-    # Create a consistent ID based on the label
     component_id = f"selectbox-{hashlib.md5(label.encode()).hexdigest()[:8]}"
-
-    # Get current state or use default
     current_value = service.get_component_state(component_id)
     if current_value is None:
-        current_value = (
-            default if default is not None else (options[0] if options else None)
-        )
+        current_value = default if default is not None else (options[0] if options else None)
 
-    logger.debug(f"Creating selectbox component with id {component_id}, label: {label}")
     component = {
         "type": "selectbox",
         "id": component_id,
@@ -114,12 +104,11 @@ def selectbox(label, options, default=None, size=1.0):
         "value": current_value,
         "size": size,
     }
-    logger.debug(f"Created component: {component}")
     service.append_component(component)
-    return component
+    return current_value
 
 
-def text_input(label, placeholder="", size=1.0):
+def text_input(label, placeholder="", size=1.0) -> str:
     """Create a text input component with consistent ID based on label."""
     service = PreswaldService.get_instance()
 
@@ -144,7 +133,7 @@ def text_input(label, placeholder="", size=1.0):
     }
     logger.debug(f"Created component: {component}")
     service.append_component(component)
-    return component
+    return current_value
 
 
 def progress(label, value=0, size=1.0):
@@ -205,7 +194,7 @@ def image(src, alt="Image", size=1.0):
     return component
 
 
-def text(markdown_str, size=1.0):
+def text(markdown_str, size=1.0) -> str:
     """Create a text/markdown component."""
     service = PreswaldService.get_instance()
     id = generate_id("text")
@@ -219,7 +208,7 @@ def text(markdown_str, size=1.0):
     }
     logger.debug(f"Created component: {component}")
     service.append_component(component)
-    return component
+    return markdown_str
 
 
 def convert_to_serializable(obj):
