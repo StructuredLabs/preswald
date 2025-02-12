@@ -83,23 +83,8 @@ class PostgresSource(DataSource):
         )
 
     def query(self, sql: str) -> pd.DataFrame:
-        # For Postgres, we create a view for the specific query
-        view_name = f"pg_view_{uuid.uuid4().hex[:8]}"
-
-        # Extract table name from query (simplified version)
-        table_name = sql.split("FROM")[1].strip().split()[0]
-
-        self._duckdb.execute(f"""
-            CREATE OR REPLACE VIEW {view_name} AS
-            SELECT * FROM postgres_scan('{self._conn_string}', 'SELECT * FROM {table_name}')
-        """)
-
-        # Replace source name with view name in query
-        sql = sql.replace(table_name, view_name)
+        self._duckdb.execute(f"CALL postgres_attach('{self._conn_string}')")
         result = self._duckdb.execute(sql).df()
-
-        # Cleanup
-        self._duckdb.execute(f"DROP VIEW IF EXISTS {view_name}")
         return result
 
     def to_df(self, table_name: str, schema: str = "public") -> pd.DataFrame:
