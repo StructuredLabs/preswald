@@ -285,7 +285,16 @@ def deploy_to_prod(script_path: str, port: int = 8501) -> Generator[dict, None, 
     zip_buffer.seek(0)
     files = {'deployment': ('app.zip', zip_buffer, 'application/zip')}
     
-    # Send the deployment request with credentials
+    try:
+        git_repo_name = subprocess.check_output(
+            ['git', 'config', '--get', 'remote.origin.url'],
+            cwd=script_dir
+        ).decode('utf-8').strip()
+        
+        git_repo_name = git_repo_name.split('/')[-1].replace('.git', '')
+    except subprocess.CalledProcessError:
+        git_repo_name = os.path.basename(script_dir)
+
     try:
         response = requests.post(
             f"{STRUCTURED_CLOUD_SERVICE_URL}/deploy",
@@ -293,7 +302,8 @@ def deploy_to_prod(script_path: str, port: int = 8501) -> Generator[dict, None, 
             data={
                 'github_username': github_username,
                 'structured_cloud_api_key': structured_cloud_api_key,
-                'app_id': app_id
+                'app_id': app_id,
+                'git_repo_name': git_repo_name,
             },
             stream=True
         )
