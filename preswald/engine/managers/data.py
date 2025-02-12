@@ -102,17 +102,26 @@ class PostgresSource(DataSource):
         self._duckdb.execute(f"DROP VIEW IF EXISTS {view_name}")
         return result
 
-    def to_df(self, table_name: str) -> pd.DataFrame:
+    def to_df(self, table_name: str, schema: str = "public") -> pd.DataFrame:
         """Get entire table as a DataFrame"""
-        view_name = f"pg_view_{uuid.uuid4().hex[:8]}"
-        self._duckdb.execute(f"""
-            CREATE OR REPLACE VIEW {view_name} AS
-            SELECT * FROM postgres_scan('{self._conn_string}', 'SELECT * FROM {table_name}')
-        """)
-
-        result = self._duckdb.execute(f"SELECT * FROM {view_name}").df()
-        self._duckdb.execute(f"DROP VIEW IF EXISTS {view_name}")
-        return result
+        logger.info("to_df")
+        try:
+            view_name = f"pg_view_{uuid.uuid4().hex[:8]}"
+            self._duckdb.execute(f"""
+                CREATE OR REPLACE VIEW {view_name} AS
+                SELECT * FROM postgres_scan(
+                    '{self._conn_string}',
+                    '{schema}',
+                    '{table_name}'
+                )
+            """)
+            result = self._duckdb.execute(f"SELECT * FROM {view_name}").df()
+            self._duckdb.execute(f"DROP VIEW IF EXISTS {view_name}")
+            return result
+        except Exception as e:
+            # Clean up views if they exist
+            self._duckdb.execute(f"DROP VIEW IF EXISTS {view_name}")
+            raise Exception(f"Error reading table {schema}.{table_name}: {e!s}") from e
 
 
 class DataManager:
