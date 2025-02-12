@@ -9,14 +9,14 @@ logo = "images/logo.png"
 favicon = "images/favicon.ico"
 primaryColor = "#F89613"
 
-[data.postgres]
+[data.earthquake_db]
 host = "localhost"            # PostgreSQL host
 port = 5432                   # PostgreSQL port
 dbname = "mydb"              # Database name
 user = "user"                # Username
 # password is stored in secrets.toml
 
-[data.csv]
+[data.earthquake_data]
 type = "csv"
 path = "data/earthquake_data.csv"
 delimiter = ","

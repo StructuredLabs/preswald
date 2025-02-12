@@ -53,8 +53,7 @@ def get_df(source_name: str, table_name: Optional[str] = None) -> pd.DataFrame:
         logger.error(f"Error getting a dataframe from data source: {e}")
 
 
-# TODO: does this work with connection name?
-def view(data_or_connection_name, limit: int = 100):
+def view(df: pd.DataFrame, limit: int = 100):
     """
     Render a preview of the data using the table component.
 
@@ -62,9 +61,4 @@ def view(data_or_connection_name, limit: int = 100):
         data_or_connection_name: Either a pandas DataFrame or a connection name string.
         limit (int): Maximum number of rows to display in the table.
     """
-    try:
-        if isinstance(data_or_connection_name, pd.DataFrame):
-            return table(data_or_connection_name.head(limit))
-    except Exception as e:
-        logger.error(f"Error rendering data: {e}")
-        return table(pd.DataFrame())
+    return table(df.head(limit))
