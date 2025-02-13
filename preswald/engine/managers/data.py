@@ -14,6 +14,19 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
+class ClickhouseConfig:
+    """Configuration for Clickhouse connection"""
+
+    host: str
+    port: int
+    database: str
+    user: str
+    password: str
+    secure: bool = False  # Whether to use HTTPS/SSL
+    verify: bool = True  # Whether to verify SSL certificate
+
+
+@dataclass
 class PostgresConfig:
     host: str
     port: int
@@ -109,6 +122,61 @@ class PostgresSource(DataSource):
             raise Exception(f"Error reading table {schema}.{table_name}: {e!s}") from e
 
 
+class ClickhouseSource(DataSource):
+    def __init__(
+        self,
+        name: str,
+        config: ClickhouseConfig,
+        duckdb_conn: duckdb.DuckDBPyConnection,
+    ):
+        super().__init__(name, duckdb_conn)
+        self.config = config
+
+        # Initialize clickhouse_scanner extension
+        self._duckdb.execute("INSTALL chsql from community;")
+        self._duckdb.execute("LOAD chsql;")
+
+        # Construct connection string
+        protocol = "https" if self.config.secure else "http"
+        self._conn_string = (
+            f"{protocol}://{config.user}:{config.password}"
+            f"@{config.host}:{config.port}"
+            f"/{config.database}"
+            f"?verify={'true' if config.verify else 'false'}"
+        )
+
+        self._server_url = f"{protocol}://{config.host}:{config.port}"
+
+    def query(self, sql: str) -> pd.DataFrame:
+        """Execute a SQL query against Clickhouse"""
+        try:
+            wrapped_sql = f"SELECT * FROM ch_scan('{sql}', '{self._server_url}', user := 'default')"
+            result = self._duckdb.execute(wrapped_sql).df()
+            return result
+        except Exception as e:
+            raise Exception(f"Error executing Clickhouse query: {e!s}") from e
+
+    def to_df(self, table_name: str) -> pd.DataFrame:
+        """Get entire table as a DataFrame"""
+        try:
+            wrapped_sql = f"SELECT * FROM ch_scan('SELECT * FROM {table_name}', '{self._server_url}', user := 'default')"
+            result = self._duckdb.execute(wrapped_sql).df()
+            return result
+
+        except Exception as e:
+            # Clean up views if they exist
+            logger.error(f"Error reading table {table_name}: {e}")
+            raise
+
+    def __del__(self):
+        """Cleanup when the source is destroyed"""
+        try:
+            # Clean up the CHSQL connection
+            self._duckdb.execute("CALL chsql_cleanup();")
+        except:  # noqa: E722
+            pass  # Ignore cleanup errors on destruction
+
+
 class DataManager:
     def __init__(self, preswald_path: str, secrets_path: Optional[str] = None):
         self.preswald_path = preswald_path
@@ -127,21 +195,35 @@ class DataManager:
 
             source_type = source_config["type"]
 
-            # TODO: need to handle errors more gracefully here
+            try:
+                if source_type == "csv":
+                    cfg = CSVConfig(path=source_config["path"])
+                    self.sources[name] = CSVSource(name, cfg, self.duckdb_conn)
 
-            if source_type == "csv":
-                cfg = CSVConfig(path=source_config["path"])
-                self.sources[name] = CSVSource(name, cfg, self.duckdb_conn)
+                elif source_type == "postgres":
+                    cfg = PostgresConfig(
+                        host=source_config["host"],
+                        port=source_config["port"],
+                        dbname=source_config["dbname"],
+                        user=source_config["user"],
+                        password=source_config["password"],
+                    )
+                    self.sources[name] = PostgresSource(name, cfg, self.duckdb_conn)
 
-            elif source_type == "postgres":
-                cfg = PostgresConfig(
-                    host=source_config["host"],
-                    port=source_config["port"],
-                    dbname=source_config["dbname"],
-                    user=source_config["user"],
-                    password=source_config["password"],
-                )
-                self.sources[name] = PostgresSource(name, cfg, self.duckdb_conn)
+                elif source_type == "clickhouse":
+                    cfg = ClickhouseConfig(
+                        host=source_config["host"],
+                        port=source_config["port"],
+                        database=source_config["database"],
+                        user=source_config["user"],
+                        password=source_config["password"],
+                        secure=source_config.get("secure", False),
+                        verify=source_config.get("verify", True),
+                    )
+                    self.sources[name] = ClickhouseSource(name, cfg, self.duckdb_conn)
+            except Exception as e:
+                logger.error(f"Error initializing {source_type} source '{name}': {e}")
+                continue
         return self.sources.keys(), self.duckdb_conn
 
     def query(self, sql: str, source_name: str) -> pd.DataFrame:
