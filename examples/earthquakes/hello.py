@@ -10,6 +10,47 @@ text("# Earthquake Analytics Dashboard 🌍")
 # Load and connect data
 connect()
 
+# ---
+
+# Clickhouse section
+
+query_string = """
+WITH yearly_stats AS
+    (
+        SELECT
+            toYear(Date) AS year,
+            count() AS earthquake_count,
+            round(avg(Magnitude), 2) AS avg_magnitude,
+            round(max(Magnitude), 2) AS max_magnitude,
+            round(avg(Depth), 2) AS avg_depth,
+            countIf(Magnitude >= 6.) AS significant_quakes
+        FROM earthquakes
+        WHERE toYear(Date) >= 1970
+        GROUP BY year
+        ORDER BY year DESC
+    )
+SELECT
+    current.year,
+    current.earthquake_count,
+    current.avg_magnitude,
+    current.max_magnitude,
+    current.avg_depth,
+    current.significant_quakes,
+    round(((current.earthquake_count - previous.earthquake_count) / previous.earthquake_count) * 100, 1) AS yoy_change_percent
+FROM yearly_stats AS current
+LEFT JOIN yearly_stats AS previous
+    ON current.year = previous.year + 1
+ORDER BY current.year DESC
+LIMIT 10
+"""
+
+# c_data = query("SELECT * FROM earthquakes LIMIT 50;", "eq_clickhouse")
+# d_data = query(query_string, "eq_clickhouse")
+
+# view(c_data)
+# view(d_data)
+# ---
+
 # Slider for filtering magnitude
 min_magnitude = slider("Minimum Magnitude", min_val=0.0, max_val=10.0, default=5.0)
 

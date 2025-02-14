@@ -22,3 +22,12 @@ type = "csv"
 path = "data/earthquake_data.csv"
 delimiter = ","
 header = true
+
+[data.eq_clickhouse]
+type = "clickhouse"
+host = "localhost"
+port = 8123
+database = "default"
+user = "default"
+secure = false
+verify = true
