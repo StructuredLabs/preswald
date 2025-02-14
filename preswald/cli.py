@@ -97,63 +97,14 @@ def run(script, port, log_level):
     url = f"http://localhost:{port}"
     click.echo(f"Running '{script}' on {url} with log level {log_level}  🎉!")
 
-    # ipc_file = os.path.join(TEMP_DIR, f"preswald_connections_{os.getpid()}.json")
-    # os.environ["PRESWALD_IPC_FILE"] = ipc_file
-
-    # celery_cmd = [
-    #     "celery",
-    #     "-A", "preswald.celery_app",
-    #     "worker",
-    #     "--loglevel", log_level.lower(),
-    #     "--concurrency", "1",
-    #     "--pool", "solo",
-    #     "--without-heartbeat",
-    #     "--without-mingle",
-    #     "--without-gossip"
-    # ]
-
     try:
-        # click.echo("Starting Celery worker...")
-        # celery_process = subprocess.Popen(
-        #     celery_cmd,
-        #     env=dict(
-        #         os.environ,
-        #         SCRIPT_PATH=os.path.abspath(script),
-        #         PYTHONPATH=os.getcwd(),
-        #         PYTHONUNBUFFERED="1"
-        #     )
-        # )
-
-        # # Wait for Celery to start
-        # import time
-        # time.sleep(2)
-
-        # if celery_process.poll() is not None:
-        #     out, err = celery_process.communicate()
-        #     click.echo(f"Error starting Celery worker: {err}")
-        #     return
 
         webbrowser.open(url)
 
-        # try:
         start_server(script=script, port=port)
-        # finally:
-        #     click.echo("Shutting down Celery worker...")
-        #     celery_process.terminate()
-        #     celery_process.wait(timeout=5)
-
-        #     try:
-        #         if os.path.exists(ipc_file):
-        #             os.remove(ipc_file)
-        #     except Exception as e:
-        #         click.echo(f"Error removing IPC file: {e}")
 
     except Exception as e:
         click.echo(f"Error: {e}")
-        # if 'celery_process' in locals():
-        #     celery_process.terminate()
-        #     celery_process.wait(timeout=5)
-
 
 @cli.command()
 @click.argument("script", default="app.py")

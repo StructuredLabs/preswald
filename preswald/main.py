@@ -12,16 +12,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
-# from preswald.engine.celery import CeleryEngine
 from preswald.engine.managers.branding import BrandingManager
 from preswald.engine.service import PreswaldService
 
 
 logger = logging.getLogger(__name__)
-
-# Global celery engine instance
-# celery_engine = None
-
 
 def create_app(script_path: Optional[str] = None) -> FastAPI:
     """Create and configure the FastAPI application"""
@@ -43,15 +38,9 @@ def create_app(script_path: Optional[str] = None) -> FastAPI:
     # Store service instance
     app.state.service = service
 
-    # Initialize CeleryEngine
-    # global celery_engine
-    # celery_engine = CeleryEngine()
-
     # Set script path if provided
     if script_path:
         service.script_path = script_path
-        # Start celery worker and trigger initial connection parsing
-        # celery_engine.start_worker(script_path)
 
     # Register routes
     _register_routes(app)
@@ -93,24 +82,6 @@ def _register_static_routes(app: FastAPI):
         """Serve the SPA for any other routes"""
         return await serve_index()
 
-
-def _register_api_routes(app: FastAPI):
-    """Register API routes"""
-
-    @app.get("/api/connections")
-    async def get_connections():
-        """Get all active connections and their states"""
-        # global celery_engine
-        # if celery_engine:
-        #     return celery_engine.get_latest_result()
-        return {
-            "connections": [],
-            "error": "Celery engine not initialized",
-            "timestamp": 0,
-            "is_parsing": False,
-        }
-
-
 def _register_websocket_routes(app: FastAPI):
     """Register WebSocket routes"""
 
@@ -136,7 +107,6 @@ def _register_websocket_routes(app: FastAPI):
 def _register_routes(app: FastAPI):
     """Register all application routes"""
 
-    _register_api_routes(app)
     _register_websocket_routes(app)
     _register_static_routes(app)  # order matters for static routes
 
@@ -165,9 +135,6 @@ def start_server(script: Optional[str] = None, port: int = 8501):
     # Handle shutdown signals
     def handle_shutdown(signum, frame):
         logger.info("Shutting down server...")
-        # global celery_engine
-        # if celery_engine:
-        #     celery_engine.stop_worker()
         app.state.service.shutdown()
 
     signal.signal(signal.SIGINT, handle_shutdown)
