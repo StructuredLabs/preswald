@@ -81,7 +81,13 @@ def init(name):
     default=None,
     help="Set the logging level (overrides config file)",
 )
-def run(script, port, log_level):
+@click.option(
+    "--disable-new-tab",
+    is_flag=True,
+    default=False,
+    help="Disable automatically opening a new browser tab",
+)
+def run(script, port, log_level, disable_new_tab):
     """
     Run a Preswald app.
 
@@ -98,8 +104,8 @@ def run(script, port, log_level):
     click.echo(f"Running '{script}' on {url} with log level {log_level}  🎉!")
 
     try:
-
-        webbrowser.open(url)
+        if not disable_new_tab:
+            webbrowser.open(url)
 
         start_server(script=script, port=port)
 
