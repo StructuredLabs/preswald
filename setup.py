@@ -156,7 +156,14 @@ setup(
     # Package data and dependencies
     include_package_data=True,
     package_data={
-        "preswald": ["static/*", "static/assets/*", "templates/*"],
+        "preswald": [
+            "static/*", 
+            "static/assets/*", 
+            "templates/*",
+            "tutorial/*",
+            "tutorial/data/*",
+            "tutorial/images/*"
+        ],
     },
     python_requires=">=3.7",
     # Dependencies

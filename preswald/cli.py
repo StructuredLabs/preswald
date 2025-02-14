@@ -323,18 +323,20 @@ def tutorial(ctx):
     """
     Run the Preswald tutorial app.
 
-    This command runs the tutorial app located in the 'tutorial/hello.py' file.
+    This command runs the tutorial app located in the package's tutorial directory.
     """
-    tutorial_script = os.path.join("tutorial", "hello.py")
+    import preswald
+    package_dir = os.path.dirname(preswald.__file__)
+    tutorial_script = os.path.join(package_dir, "tutorial", "hello.py")
 
     if not os.path.exists(tutorial_script):
         click.echo(f"Error: Tutorial script '{tutorial_script}' not found. ❌")
-        click.echo("👉 Please run this command from the root directory of the project.")
+        click.echo("👉 The tutorial files may be missing from your installation.")
         return
 
     click.echo("🚀 Launching the Preswald tutorial app! 🎉")
 
-    # Invoke the 'run' command with 'tutorial/hello.py'
+    # Invoke the 'run' command with the tutorial script path
     ctx.invoke(run, script=tutorial_script)
 
 
