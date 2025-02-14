@@ -228,13 +228,15 @@ def deploy_to_cloud_run(deploy_dir: Path, container_name: str, port: int = 8501)
         raise Exception(f"Deployment failed: {str(e)}")
 
 
-def deploy_to_prod(script_path: str, port: int = 8501) -> Generator[dict, None, None]:
+def deploy_to_prod(script_path: str, port: int = 8501, github_username: str = None, api_key: str = None) -> Generator[dict, None, None]:
     """
     Deploy a Preswald app to production via Structured Cloud service.
     
     Args:
         script_path: Path to the Preswald application script
         port: Port number for the deployment
+        github_username: Optional GitHub username provided via CLI
+        api_key: Optional Structured Cloud API key provided via CLI
         
     Returns:
         Generator yielding deployment status updates
@@ -244,9 +246,13 @@ def deploy_to_prod(script_path: str, port: int = 8501) -> Generator[dict, None, 
     env_file = script_dir / '.env.structured'
     
     if not env_file.exists():
-        # Get GitHub credentials from user
-        github_username = input("Enter your GitHub username: ")
-        structured_cloud_api_key = input("Enter your Structured Cloud API key: ")
+        # Use provided credentials or get from user input
+        if not github_username:
+            github_username = input("Enter your GitHub username: ")
+        if not api_key:
+            structured_cloud_api_key = input("Enter your Structured Cloud API key: ")
+        else:
+            structured_cloud_api_key = api_key
         
         # Generate a unique app ID (using timestamp)
         app_id = f"app_{int(datetime.now().timestamp())}"
@@ -257,14 +263,15 @@ def deploy_to_prod(script_path: str, port: int = 8501) -> Generator[dict, None, 
             f.write(f"STRUCTURED_CLOUD_API_KEY={structured_cloud_api_key}\n") 
             f.write(f"APP_ID={app_id}\n")
     else:
-        # Read credentials from existing env file
+        # Read credentials from existing env file if not provided via CLI
         credentials = {}
         with open(env_file, 'r') as f:
             for line in f:
                 key, value = line.strip().split('=')
                 credentials[key] = value
-        github_username = credentials['GITHUB_USERNAME']
-        structured_cloud_api_key = credentials['STRUCTURED_CLOUD_API_KEY']
+        
+        github_username = github_username or credentials['GITHUB_USERNAME']
+        structured_cloud_api_key = api_key or credentials['STRUCTURED_CLOUD_API_KEY']
         app_id = credentials['APP_ID']
     
     # Create a temporary zip file
@@ -422,7 +429,7 @@ def deploy_to_gcp(script_path: str, port: int = 8501) -> str:
         )
 
 
-def deploy(script_path: str, target: str = "local", port: int = 8501) -> str | Generator[dict, None, None]:
+def deploy(script_path: str, target: str = "local", port: int = 8501, github_username: str = None, api_key: str = None) -> str | Generator[dict, None, None]:
     """
     Deploy a Preswald app.
 
@@ -430,13 +437,15 @@ def deploy(script_path: str, target: str = "local", port: int = 8501) -> str | G
         script_path: Path to the Preswald application script
         target: Deployment target ("local", "gcp", "aws", or "prod")
         port: Port number for the deployment
+        github_username: Optional GitHub username for structured deployment
+        api_key: Optional Structured Cloud API key for structured deployment
 
     Returns:
         str | Generator: URL where the application can be accessed for local/cloud deployments,
                         or a Generator yielding deployment status for production deployments
     """
     if target == "structured":
-        return deploy_to_prod(script_path, port)
+        return deploy_to_prod(script_path, port, github_username, api_key)
     elif target == "gcp":
         return deploy_to_gcp(script_path, port)
     elif target == "local":

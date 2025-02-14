@@ -129,7 +129,15 @@ def run(script, port, log_level, disable_new_tab):
     default=None,
     help="Set the logging level (overrides config file)",
 )
-def deploy(script, target, port, log_level):
+@click.option(
+    "--github",
+    help="GitHub username for structured deployment",
+)
+@click.option(
+    "--api-key",
+    help="Structured Cloud API key for structured deployment",
+)
+def deploy(script, target, port, log_level, github, api_key):
     """
     Deploy your Preswald app.
 
@@ -152,7 +160,7 @@ def deploy(script, target, port, log_level):
         if target == "structured":
             click.echo("Starting production deployment... 🚀")
             try:
-                for status_update in deploy_app(script, target, port=port):
+                for status_update in deploy_app(script, target, port=port, github_username=github, api_key=api_key):
                     status = status_update.get("status", "")
                     message = status_update.get("message", "")
 
