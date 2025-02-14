@@ -2,9 +2,12 @@ import hashlib
 import json
 import logging
 import uuid
+import base64
+import io
 
 import numpy as np
 import pandas as pd
+from matplotlib.figure import Figure
 
 from preswald.engine.service import PreswaldService
 
@@ -524,3 +527,79 @@ def separator():
     component = {"type": "separator", "id": str(uuid.uuid4())}
     service.append_component(component)
     return component
+
+
+class MatplotlibWrapper:
+    """
+    A wrapper class for matplotlib functionality in Preswald.
+    """
+    def __init__(self):
+        import matplotlib.pyplot as plt
+        self.plt = plt
+        self.format = 'png'  # default format
+        
+    def __call__(self, fig, label=None, format='png'): 
+        """
+        Original matplotlib function to display a figure
+        
+        Args:
+            fig: matplotlib.figure.Figure object
+            format: 'png' or 'svg' (default: 'png')
+        """
+        if not isinstance(fig, Figure):
+            raise TypeError("Expected matplotlib.figure.Figure, got {}".format(type(fig)))
+        
+        if format not in ['png', 'svg']:
+            raise ValueError("Format must be 'png' or 'svg'")
+            
+        service = PreswaldService.get_instance()
+        buf = io.BytesIO()
+        
+        # Set figure DPI for better quality
+        if format == 'svg':
+            fig.savefig(buf, format=format, bbox_inches='tight')
+        else:
+            fig.savefig(buf, format=format, bbox_inches='tight', dpi=100)
+            
+        buf.seek(0)
+        
+        # For SVG, decode as UTF-8 string first
+        if format == 'svg':
+            img_data = base64.b64encode(buf.getvalue()).decode('utf-8')
+        else:
+            img_data = base64.b64encode(buf.getvalue()).decode('utf-8')
+        
+        component = {
+            "type": "matplotlib", 
+            "data": { 
+                "image": img_data,
+                "format": format
+            }
+        }
+        service.append_component(component)
+        return component
+        
+    def plot(self, *args, format='png', label=None, **kwargs):
+        """
+        Create a line plot, similar to matplotlib.pyplot.plot()
+        
+        Args:
+            *args: Arguments passed to plt.plot()
+            format: 'png' or 'svg' (default: 'png')
+            **kwargs: Keyword arguments passed to plt.plot()
+        """
+        if format not in ['png', 'svg']:
+            raise ValueError("Format must be 'png' or 'svg'")
+            
+        # Create a new figure if one doesn't exist
+        if not self.plt.get_fignums():
+            self.plt.figure(figsize=(10, 6))
+            
+        # Create the plot
+        self.plt.plot(*args, label=label, **kwargs)
+        
+        # Return the component
+        return self(self.plt.gcf(), label=label, format=format)
+
+# Replace the function with an instance of the wrapper class
+matplotlib = MatplotlibWrapper()
