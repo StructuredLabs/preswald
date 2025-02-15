@@ -1,9 +1,9 @@
 import logging
-import toml
 import os
-import pkg_resources
 from typing import Optional
-import logging
+
+import pkg_resources
+import toml
 
 
 def read_template(template_name):
@@ -11,8 +11,19 @@ def read_template(template_name):
     template_path = pkg_resources.resource_filename(
         "preswald", f"templates/{template_name}.template"
     )
-    with open(template_path, "r") as f:
+    with open(template_path) as f:
         return f.read()
+
+
+def read_port_from_config(config_path: str, port: int):
+    try:
+        if os.path.exists(config_path):
+            config = toml.load(config_path)
+            if "project" in config and "port" in config["project"]:
+                port = config["project"]["port"]
+        return port
+    except Exception as e:
+        print(f"Warning: Could not load port config from {config_path}: {e}")
 
 
 def configure_logging(config_path: Optional[str] = None, level: Optional[str] = None):

@@ -18,6 +18,7 @@ from preswald.engine.service import PreswaldService
 
 logger = logging.getLogger(__name__)
 
+
 def create_app(script_path: Optional[str] = None) -> FastAPI:
     """Create and configure the FastAPI application"""
     app = FastAPI()
@@ -82,6 +83,7 @@ def _register_static_routes(app: FastAPI):
         """Serve the SPA for any other routes"""
         return await serve_index()
 
+
 def _register_websocket_routes(app: FastAPI):
     """Register WebSocket routes"""
 
@@ -114,20 +116,6 @@ def _register_routes(app: FastAPI):
 def start_server(script: Optional[str] = None, port: int = 8501):
     """Start the FastAPI server"""
     app = create_app(script)
-
-    # Load port from config if available
-    if script:
-        try:
-            script_dir = os.path.dirname(script)
-            config_path = os.path.join(script_dir, "preswald.toml")
-            if os.path.exists(config_path):
-                import toml
-
-                config = toml.load(config_path)
-                if "project" in config and "port" in config["project"]:
-                    port = config["project"]["port"]
-        except Exception as e:
-            logger.error(f"Error loading config: {e}")
 
     config = uvicorn.Config(app, host="0.0.0.0", port=port, loop="asyncio")
     server = uvicorn.Server(config)

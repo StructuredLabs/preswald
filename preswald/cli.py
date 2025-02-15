@@ -10,7 +10,7 @@ from preswald.deploy import cleanup_gcp_deployment, stop_structured_deployment
 from preswald.deploy import deploy as deploy_app
 from preswald.deploy import stop as stop_app
 from preswald.main import start_server
-from preswald.utils import configure_logging, read_template
+from preswald.utils import configure_logging, read_port_from_config, read_template
 
 
 # Create a temporary directory for IPC
@@ -99,6 +99,7 @@ def run(script, port, log_level, disable_new_tab):
 
     config_path = os.path.join(os.path.dirname(script), "preswald.toml")
     log_level = configure_logging(config_path=config_path, level=log_level)
+    port = read_port_from_config(config_path=config_path, port=port)
 
     url = f"http://localhost:{port}"
     click.echo(f"Running '{script}' on {url} with log level {log_level}  🎉!")
@@ -111,6 +112,7 @@ def run(script, port, log_level, disable_new_tab):
 
     except Exception as e:
         click.echo(f"Error: {e}")
+
 
 @cli.command()
 @click.argument("script", default="app.py")
@@ -156,11 +158,14 @@ def deploy(script, target, port, log_level, github, api_key):
 
         config_path = os.path.join(os.path.dirname(script), "preswald.toml")
         log_level = configure_logging(config_path=config_path, level=log_level)
+        port = read_port_from_config(config_path=config_path, port=port)
 
         if target == "structured":
             click.echo("Starting production deployment... 🚀")
             try:
-                for status_update in deploy_app(script, target, port=port, github_username=github, api_key=api_key):
+                for status_update in deploy_app(
+                    script, target, port=port, github_username=github, api_key=api_key
+                ):
                     status = status_update.get("status", "")
                     message = status_update.get("message", "")
 
@@ -340,6 +345,7 @@ def tutorial(ctx):
     This command runs the tutorial app located in the package's tutorial directory.
     """
     import preswald
+
     package_dir = os.path.dirname(preswald.__file__)
     tutorial_script = os.path.join(package_dir, "tutorial", "hello.py")
 
