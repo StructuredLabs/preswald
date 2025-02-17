@@ -83,14 +83,15 @@ This will create a folder called `my_project` with all the basics you need:
 Time to make something magical! Open up `hello.py` and write:
 
 ```python
-from preswald import text, view
+from preswald import text, connect, get_df, view
 import pandas as pd
 
 # Render Markdown content
 text("# Welcome to Preswald")
 
-# Connect to a CSV file
-df = pd.read_csv("data.csv")
+# Connect to a CSV source
+connect()
+df = get_df("sample_data")
 
 # Display the data as a table
 view(df)
@@ -143,14 +144,16 @@ text("# Hello, World!")
 ### **Example 2: Interactive Dashboard**
 
 ```python
-from preswald import text, slider, view
+from preswald import text, slider, connect, get_df, view
 import pandas as pd
 
 
 text("# Interactive Dashboard")
+connect() # load in sources from preswald.toml
 slider_value = slider("Rows to Display", min_val=10, max_val=100, step=10, default=50)
-data_conn = pd.read_csv("data.csv")
-view(data_conn, limit=slider_value)
+
+df = get_df("sample_data") # name of csv source in preswald.toml
+view(df, limit=slider_value)
 ```
 
 ## **🔧 Configuration**
