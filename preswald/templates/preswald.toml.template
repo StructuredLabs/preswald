@@ -2,6 +2,7 @@
 title = "Preswald Project"
 version = "0.1.0"
 port = 8501
+slug = "preswald-project"  # Required: Unique identifier for your project
 
 [branding]
 name = "Preswald Project"
