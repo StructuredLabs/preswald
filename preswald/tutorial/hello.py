@@ -1,9 +1,10 @@
-import pandas as pd
 import plotly.express as px
 
 from preswald import (
     Workflow,
     WorkflowAnalyzer,
+    connect,
+    get_df,
     plotly,
     selectbox,
     separator,
@@ -41,7 +42,8 @@ text("## 2. Viewing Data with `view()`")
 text("Let's load a sample dataset and display it using the `view()` component.")
 
 # Load the sample CSV
-df = pd.read_csv("data/sample.csv")
+connect()
+df = get_df("sample_csv")
 
 # Displaying the data with `view`
 view(df, limit=10)  # Display first 10 rows
@@ -111,7 +113,7 @@ num_rows = slider(
     max_val=len(df),
     step=1,
     default=5,
-)["value"]
+)
 
 # Display the selected number of rows
 view(df.head(num_rows))
@@ -148,7 +150,7 @@ text(
 column_choice = selectbox(
     label="Choose a column to visualize",
     options=df.select_dtypes(include=["number"]).columns.tolist(),
-)["value"]
+)
 
 # Create and display a histogram based on the selected column
 fig = px.histogram(df, x=column_choice, title=f"Distribution of {column_choice}")
@@ -168,7 +170,7 @@ from preswald import selectbox
 choice = selectbox(
     label="Choose Dataset",
     options=["Dataset A", "Dataset B", "Dataset C"]
-)['value']
+)
 
 print(f"User selected: {choice}")
 ```
@@ -224,7 +226,8 @@ workflow = Workflow()
 
 @workflow.atom()
 def load_data():
-    return pd.read_csv("data/sample.csv")
+    connect()
+    return get_df("sample_csv")
 
 
 # Define an atom for cleaning data, dependent on load_data
@@ -262,7 +265,8 @@ workflow = Workflow()
 
 @workflow.atom()
 def load_data():
-    return pd.read_csv("data.csv")
+    connect()
+    return get_df("sample_csv")
 
 @workflow.atom(dependencies=['load_data'])
 def clean_data(load_data):
