@@ -1,16 +1,17 @@
 import pandas as pd
 import plotly.express as px
 
-from preswald import plotly, text
+from preswald import connect, get_df, plotly, text
 
 
 # Display the dashboard title
 text("# Fire Incident Analytics Dashboard 🔥")
 
 # Connect to the data
+connect()
 
 # Load and preprocess the data
-data = pd.read_csv("mapdataall.csv")
+data = get_df("csv")
 data["incident_acres_burned"] = pd.to_numeric(
     data["incident_acres_burned"], errors="coerce"
 )

@@ -15,9 +15,7 @@ font = "Arial, sans-serif"
 
 [data.csv]
 type = "csv"
-file_path = "mapdataall.csv"
-delimiter = ","
-header = true
+path = "mapdataall.csv"
 
 [logging]
 level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
