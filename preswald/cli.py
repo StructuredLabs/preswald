@@ -10,7 +10,7 @@ from preswald.deploy import cleanup_gcp_deployment, stop_structured_deployment
 from preswald.deploy import deploy as deploy_app
 from preswald.deploy import stop as stop_app
 from preswald.main import start_server
-from preswald.utils import configure_logging, read_port_from_config, read_template
+from preswald.utils import configure_logging, read_template, get_project_slug, generate_slug, read_port_from_config
 
 
 # Create a temporary directory for IPC
@@ -40,6 +40,9 @@ def init(name):
         os.makedirs(os.path.join(name, "images"), exist_ok=True)
         os.makedirs(os.path.join(name, "data"), exist_ok=True)
 
+        # Generate a unique slug for the project
+        project_slug = generate_slug(name)
+
         # Copy default branding files from package resources
         import shutil
 
@@ -62,10 +65,16 @@ def init(name):
 
         for file_name, template_name in file_templates.items():
             content = read_template(template_name)
+            
+            # Replace the default slug in preswald.toml with the generated one
+            if file_name == "preswald.toml":
+                content = content.replace('slug = "preswald-project"', f'slug = "{project_slug}"')
+            
             with open(os.path.join(name, file_name), "w") as f:
                 f.write(content)
 
         click.echo(f"Initialized a new Preswald project in '{name}/' 🎉!")
+        click.echo(f"Project slug: {project_slug}")
     except Exception as e:
         click.echo(f"Error initializing project: {e} ❌")
 
@@ -161,6 +170,14 @@ def deploy(script, target, port, log_level, github, api_key):
         port = read_port_from_config(config_path=config_path, port=port)
 
         if target == "structured":
+            # Validate project slug before deployment
+            try:
+                project_slug = get_project_slug(config_path)
+                click.echo(f"Using project slug: {project_slug}")
+            except Exception as e:
+                click.echo(click.style(f"Error: {str(e)} ❌", fg="red"))
+                return
+
             click.echo("Starting production deployment... 🚀")
             try:
                 for status_update in deploy_app(
@@ -203,7 +220,8 @@ def deploy(script, target, port, log_level, github, api_key):
             click.echo(click.style(success_message, fg="green"))
 
     except Exception as e:
-        click.echo(f"Error deploying app: {e} ❌")
+        click.echo(click.style(f"Deployment failed: {e!s} ❌", fg="red"))
+        sys.exit(1)
 
 
 @cli.command()
