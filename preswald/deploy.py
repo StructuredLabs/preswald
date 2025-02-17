@@ -11,7 +11,7 @@ from typing import Generator
 from datetime import datetime
 import io
 
-from preswald.utils import read_template
+from preswald.utils import read_template, get_project_slug
 
 logger = logging.getLogger(__name__)
 
@@ -243,7 +243,19 @@ def deploy_to_prod(script_path: str, port: int = 8501, github_username: str = No
     """
     script_path = os.path.abspath(script_path)
     script_dir = Path(script_path).parent
+    config_path = script_dir / "preswald.toml"
     env_file = script_dir / '.env.structured'
+    
+    # Get project slug from preswald.toml
+    try:
+        project_slug = get_project_slug(config_path)
+    except Exception as e:
+        yield {
+            'status': 'error',
+            'message': f'Failed to get project slug: {str(e)}',
+            'timestamp': datetime.now().isoformat()
+        }
+        raise Exception(f"Failed to get project slug: {str(e)}")
     
     if not env_file.exists():
         # Use provided credentials or get from user input
@@ -254,14 +266,10 @@ def deploy_to_prod(script_path: str, port: int = 8501, github_username: str = No
         else:
             structured_cloud_api_key = api_key
         
-        # Generate a unique app ID (using timestamp)
-        app_id = f"app_{int(datetime.now().timestamp())}"
-        
         # Create and populate .env.structured file
         with open(env_file, 'w') as f:
             f.write(f"GITHUB_USERNAME={github_username}\n")
-            f.write(f"STRUCTURED_CLOUD_API_KEY={structured_cloud_api_key}\n") 
-            f.write(f"APP_ID={app_id}\n")
+            f.write(f"STRUCTURED_CLOUD_API_KEY={structured_cloud_api_key}\n")
     else:
         # Read credentials from existing env file if not provided via CLI
         credentials = {}
@@ -272,7 +280,6 @@ def deploy_to_prod(script_path: str, port: int = 8501, github_username: str = No
         
         github_username = github_username or credentials['GITHUB_USERNAME']
         structured_cloud_api_key = api_key or credentials['STRUCTURED_CLOUD_API_KEY']
-        app_id = credentials['APP_ID']
     
     # Create a temporary zip file
     zip_buffer = io.BytesIO()
@@ -309,7 +316,7 @@ def deploy_to_prod(script_path: str, port: int = 8501, github_username: str = No
             data={
                 'github_username': github_username,
                 'structured_cloud_api_key': structured_cloud_api_key,
-                'app_id': app_id,
+                'project_slug': project_slug,
                 'git_repo_name': git_repo_name,
             },
             stream=True
@@ -331,7 +338,6 @@ def deploy_to_prod(script_path: str, port: int = 8501, github_username: str = No
             'timestamp': datetime.now().isoformat()
         }
         raise Exception(f"Production deployment failed: {str(e)}")
-
 
 def deploy_to_gcp(script_path: str, port: int = 8501) -> str:
     """
@@ -573,7 +579,14 @@ def stop_structured_deployment(script_path: str) -> dict:
         dict: Status of the stop operation
     """
     script_dir = Path(script_path).parent
+    config_path = script_dir / "preswald.toml"
     env_file = script_dir / '.env.structured'
+    
+    # Get project slug from preswald.toml
+    try:
+        project_slug = get_project_slug(config_path)
+    except Exception as e:
+        raise Exception(f"Failed to get project slug: {str(e)}")
     
     if not env_file.exists():
         raise Exception("No deployment found. The .env.structured file is missing.")
@@ -587,7 +600,6 @@ def stop_structured_deployment(script_path: str) -> dict:
             
     github_username = credentials['GITHUB_USERNAME']
     structured_cloud_api_key = credentials['STRUCTURED_CLOUD_API_KEY']
-    app_id = credentials['APP_ID']
     
     try:
         response = requests.post(
@@ -595,7 +607,7 @@ def stop_structured_deployment(script_path: str) -> dict:
             json={
                 'github_username': github_username,
                 'structured_cloud_api_key': structured_cloud_api_key,
-                'app_id': app_id
+                'project_slug': project_slug
             }
         )
         response.raise_for_status()
@@ -616,7 +628,14 @@ def get_structured_deployments(script_path: str) -> dict:
         dict: Deployment information including user, organization, and deployments list
     """
     script_dir = Path(script_path).parent
+    config_path = script_dir / "preswald.toml"
     env_file = script_dir / '.env.structured'
+    
+    # Get project slug from preswald.toml
+    try:
+        project_slug = get_project_slug(config_path)
+    except Exception as e:
+        raise Exception(f"Failed to get project slug: {str(e)}")
     
     if not env_file.exists():
         raise Exception("No deployment found. The .env.structured file is missing.")
@@ -630,7 +649,6 @@ def get_structured_deployments(script_path: str) -> dict:
             
     github_username = credentials['GITHUB_USERNAME']
     structured_cloud_api_key = credentials['STRUCTURED_CLOUD_API_KEY']
-    app_id = credentials['APP_ID']
     
     try:
         response = requests.post(
@@ -638,7 +656,7 @@ def get_structured_deployments(script_path: str) -> dict:
             json={
                 'github_username': github_username,
                 'structured_cloud_api_key': structured_cloud_api_key,
-                'app_id': app_id
+                'project_slug': project_slug
             }
         )
         response.raise_for_status()
