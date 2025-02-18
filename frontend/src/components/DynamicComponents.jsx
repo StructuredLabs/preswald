@@ -17,6 +17,7 @@ import SpinnerWidget from './widgets/SpinnerWidget';
 import TableViewerWidget from './widgets/TableViewerWidget';
 import TextInputWidget from './widgets/TextInputWidget';
 import UnknownWidget from './widgets/UnknownWidget';
+import MatplotlibComponent from './widgets/MatplotlibComponent';
 import { cn } from '@/lib/utils';
 
 // Error boundary component
@@ -233,6 +234,9 @@ const MemoizedComponent = memo(
 
       case 'dag':
         return <DAGVisualizationWidget {...commonProps} data={component.data || {}} />;
+
+      case 'matplotlib':
+        return <MatplotlibComponent data={component.data} />;
 
       default:
         console.warn(`[DynamicComponents] Unknown component type: ${component.type}`);
