@@ -327,12 +327,17 @@ def spinner(label: str, size: float = 1.0):
     return component
 
 
-def table(data: pd.DataFrame, title: Optional[str] = None) -> Dict:  # noqa: C901
+def table(  # noqa: C901
+    data: pd.DataFrame, title: Optional[str] = None, limit: Optional[int] = None
+) -> Dict:
     """Create a table component that renders data using TableViewerWidget.
 
     Args:
-        data: List of dictionaries or pandas DataFrame to display
+        data: Pandas DataFrame or list of dictionaries to display
         title: Optional title for the table
+
+    Returns:
+        Dict: Component metadata and processed data
     """
     id = generate_id("table")
     logger.debug(f"Creating table component with id {id}")
@@ -341,9 +346,10 @@ def table(data: pd.DataFrame, title: Optional[str] = None) -> Dict:  # noqa: C90
     try:
         # Convert pandas DataFrame to list of dictionaries if needed
         if hasattr(data, "to_dict"):
-            # Reset index and drop it to avoid index column in output
             if isinstance(data, pd.DataFrame):
                 data = data.reset_index(drop=True)
+                if limit is not None:
+                    data = data.head(limit)
             data = data.to_dict("records")
 
         # Ensure data is a list
@@ -358,6 +364,7 @@ def table(data: pd.DataFrame, title: Optional[str] = None) -> Dict:  # noqa: C90
                 for key, value in row.items():
                     # Convert key to string to ensure it's serializable
                     key_str = str(key)
+
                     # Handle special cases and convert value
                     if pd.isna(value):
                         processed_row[key_str] = None
@@ -380,6 +387,7 @@ def table(data: pd.DataFrame, title: Optional[str] = None) -> Dict:  # noqa: C90
                 # If row is not a dict, convert it to a simple dict
                 processed_data.append({"value": str(row)})
 
+        # Create the component structure
         component = {
             "type": "table",
             "id": id,

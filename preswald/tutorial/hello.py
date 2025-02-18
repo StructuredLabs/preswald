@@ -9,8 +9,8 @@ from preswald import (
     selectbox,
     separator,
     slider,
+    table,
     text,
-    view,
     workflow_dag,
 )
 
@@ -38,25 +38,25 @@ text("This is **bold** text, and this is *italic* text.")
 )
 
 # --- LOADING DATA ---
-text("## 2. Viewing Data with `view()`")
-text("Let's load a sample dataset and display it using the `view()` component.")
+text("## 2. Viewing Data with `table()`")
+text("Let's load a sample dataset and display it using the `table()` component.")
 
 # Load the sample CSV
 connect()
 df = get_df("sample_csv")
 
-# Displaying the data with `view`
-view(df, limit=10)  # Display first 10 rows
+# Displaying the data with `table`
+table(df, limit=10)  # Display first 10 rows
 
 text(
     """
-The `view()` component displays data in a tabular format.
+The `table()` component displays data in a tabular format.
 
 **Example:**
 
 ```python
-from preswald import view
-view(df, limit=10)
+from preswald import table
+table(df, limit=10)
 ```
 
 - **limit**: Use this parameter to control how many rows to display.
@@ -116,7 +116,7 @@ num_rows = slider(
 )
 
 # Display the selected number of rows
-view(df.head(num_rows))
+table(df.head(num_rows))
 
 text(
     """
@@ -185,14 +185,14 @@ text(
 
 # Display some content
 text("### Section 1: Original Data")
-view(df.head(5))
+table(df.head(5))
 
 # Add a separator to visually break content
 separator()
 
 # Display more content after the separator
 text("### Section 2: Data Summary")
-view(df.describe())
+table(df.describe())
 
 text(
     """

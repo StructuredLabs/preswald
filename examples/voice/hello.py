@@ -2,7 +2,7 @@ import duckdb
 import pandas as pd
 import plotly.express as px
 
-from preswald import plotly, slider, text, view
+from preswald import plotly, slider, table, text
 
 
 # 📌 Color Configuration
@@ -489,4 +489,4 @@ text(
     "Below is the final dataset after merging ASR transcriptions, intent classifications, and AI responses."
 )
 
-view(merged_logs, limit=20)
+table(merged_logs, limit=20)

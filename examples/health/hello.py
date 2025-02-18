@@ -1,7 +1,7 @@
 import duckdb
 import plotly.express as px
 
-from preswald import plotly, text, view
+from preswald import plotly, table, text
 
 
 # ----------------------------------------------------------------------------
@@ -68,4 +68,4 @@ plotly(fig_c)
 # ----------------------------------------------------------------------------
 # 4. Render the final display in Preswald
 # ----------------------------------------------------------------------------
-view(df)
+table(df)

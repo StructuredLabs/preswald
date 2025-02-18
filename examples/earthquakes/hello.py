@@ -1,7 +1,7 @@
 import pandas as pd
 import plotly.express as px
 
-from preswald import connect, get_df, plotly, slider, text, view
+from preswald import connect, get_df, plotly, slider, table, text
 
 
 # Title
@@ -47,8 +47,8 @@ LIMIT 10
 # c_data = query("SELECT * FROM earthquakes LIMIT 50;", "eq_clickhouse")
 # d_data = query(query_string, "eq_clickhouse")
 
-# view(c_data)
-# view(d_data)
+# table(c_data)
+# table(d_data)
 # ---
 
 # Slider for filtering magnitude
@@ -62,7 +62,7 @@ data["Magnitude"] = pd.to_numeric(data["Magnitude"], errors="coerce")
 filtered_data = data[data["Magnitude"] >= min_magnitude]
 
 # View the filtered data
-view(filtered_data)
+table(filtered_data)
 
 # Summary statistics
 text(f"### Total Earthquakes with Magnitude ≥ {min_magnitude}: {len(filtered_data)}")

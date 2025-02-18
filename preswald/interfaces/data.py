@@ -5,8 +5,6 @@ import pandas as pd
 
 from preswald.engine.service import PreswaldService
 
-from .components import table
-
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -51,14 +49,3 @@ def get_df(source_name: str, table_name: Optional[str] = None) -> pd.DataFrame:
         return df_result
     except Exception as e:
         logger.error(f"Error getting a dataframe from data source: {e}")
-
-
-def view(df: pd.DataFrame, limit: int = 100):
-    """
-    Render a preview of the data using the table component.
-
-    Args:
-        data_or_connection_name: Either a pandas DataFrame or a connection name string.
-        limit (int): Maximum number of rows to display in the table.
-    """
-    return table(df.head(limit))

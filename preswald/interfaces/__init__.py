@@ -11,11 +11,12 @@ from .components import (
     selectbox,
     separator,
     slider,
+    table,
     text,
     text_input,
     workflow_dag,
 )
-from .data import connect, get_df, query, view
+from .data import connect, get_df, query
 from .workflow import RetryPolicy, Workflow, WorkflowAnalyzer
 
 

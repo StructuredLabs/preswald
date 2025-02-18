@@ -1,14 +1,14 @@
 import pandas as pd
 import plotly.graph_objects as go
 
-from preswald import plotly, text, view
+from preswald import plotly, table, text
 
 
 text("# Network Topology Visualizer")
 text("Visualize the topology of a network.")
 
 df = pd.read_csv("data.csv")
-view(df)
+table(df)
 
 # Create a list of devices
 devices = df["Device Name"].unique()
