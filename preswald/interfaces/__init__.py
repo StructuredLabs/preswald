@@ -5,15 +5,12 @@ Grouping all the user-facing components of the SDK
 
 from .components import (
     alert,
-    button,
     checkbox,
-    image,
     plotly,
     progress,
     selectbox,
     separator,
     slider,
-    spinner,
     text,
     text_input,
     workflow_dag,
