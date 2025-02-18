@@ -80,7 +80,6 @@ def init(name):
 
 
 @cli.command()
-@click.argument("script", default="hello.py")
 @click.option("--port", default=8501, help="Port to run the server on.")
 @click.option(
     "--log-level",
@@ -96,17 +95,35 @@ def init(name):
     default=False,
     help="Disable automatically opening a new browser tab",
 )
-def run(script, port, log_level, disable_new_tab):
+def run(port, log_level, disable_new_tab):
     """
-    Run a Preswald app.
+    Run a Preswald app from the current directory.
 
-    By default, it runs the `hello.py` script on localhost:8501.
+    Looks for preswald.toml in the current directory and runs the script specified in the entrypoint.
     """
-    if not os.path.exists(script):
-        click.echo(f"Error: Script '{script}' not found. ❌")
+    config_path = "preswald.toml"
+    if not os.path.exists(config_path):
+        click.echo("Error: preswald.toml not found in current directory. ❌")
+        click.echo("Make sure you're in a Preswald project directory.")
         return
 
-    config_path = os.path.join(os.path.dirname(script), "preswald.toml")
+    import tomli
+    try:
+        with open(config_path, "rb") as f:
+            config = tomli.load(f)
+    except Exception as e:
+        click.echo(f"Error reading preswald.toml: {e} ❌")
+        return
+
+    if "project" not in config or "entrypoint" not in config["project"]:
+        click.echo("Error: entrypoint not defined in preswald.toml under [project] section. ❌")
+        return
+
+    script = config["project"]["entrypoint"]
+    if not os.path.exists(script):
+        click.echo(f"Error: Entrypoint script '{script}' not found. ❌")
+        return
+
     log_level = configure_logging(config_path=config_path, level=log_level)
     port = read_port_from_config(config_path=config_path, port=port)
 
@@ -375,7 +392,7 @@ def tutorial(ctx):
     click.echo("🚀 Launching the Preswald tutorial app! 🎉")
 
     # Invoke the 'run' command with the tutorial script path
-    ctx.invoke(run, script=tutorial_script)
+    ctx.invoke(run, port=8501)
 
 
 if __name__ == "__main__":
