@@ -124,6 +124,7 @@ CORE_DEPENDENCIES = [
     "psycopg2-binary>=2.9.10",
     "openai==1.59.7",
     "duckdb>=1.1.3",
+    "tomli==2.0.1",
 ]
 
 # Define additional dependencies for development

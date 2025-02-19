@@ -141,7 +141,7 @@ def run(port, log_level, disable_new_tab):
 
 
 @cli.command()
-@click.argument("script", default="app.py")
+@click.argument("script", default=None, required=False)
 @click.option(
     "--target",
     type=click.Choice(["local", "gcp", "aws", "structured"], case_sensitive=False),
@@ -170,12 +170,31 @@ def deploy(script, target, port, log_level, github, api_key):
     Deploy your Preswald app.
 
     This allows you to share the app within your local network or deploy to production.
+    If no script is provided, it will use the entrypoint defined in preswald.toml.
     """
     try:
         if target == "aws":
             click.echo(
                 "\nWe're working on supporting AWS soon! Please enjoy some ☕ and 🍌 in the meantime"
             )
+            return
+
+        # First try to read from preswald.toml in current directory
+        config_path = "preswald.toml"
+        if os.path.exists(config_path):
+            import tomli
+            try:
+                with open(config_path, "rb") as f:
+                    config = tomli.load(f)
+                if "project" in config and "entrypoint" in config["project"]:
+                    script = script or config["project"]["entrypoint"]
+            except Exception as e:
+                click.echo(f"Warning: Error reading preswald.toml: {e}")
+                # Continue with provided script argument if config reading fails
+
+        if not script:
+            click.echo("Error: No script specified and no entrypoint found in preswald.toml ❌")
+            click.echo("Either provide a script argument or define entrypoint in preswald.toml")
             return
 
         if not os.path.exists(script):
