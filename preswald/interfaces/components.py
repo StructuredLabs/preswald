@@ -37,7 +37,7 @@ def alert(message: str, level: str = "info", size: float = 1.0) -> str:
     return message
 
 
-# TODO: requires testing
+# TODO: Add button functionality
 def button(label: str, size: float = 1.0):
     """Create a button component."""
     service = PreswaldService.get_instance()

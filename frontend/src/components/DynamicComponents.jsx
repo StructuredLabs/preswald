@@ -70,6 +70,7 @@ const MemoizedComponent = memo(
             disabled={component.disabled || false}
             loading={component.loading || false}
             onClick={() => handleUpdate(componentId, true)}
+            className={component.className}
           />
         );
 
