@@ -3,7 +3,7 @@ import logging
 import os
 import threading
 import time
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, ClassVar
 
 from fastapi import WebSocket, WebSocketDisconnect
 
@@ -11,6 +11,7 @@ from .managers.data import DataManager
 from .managers.layout import LayoutManager
 from .runner import ScriptRunner
 from .utils import clean_nan_values, compress_data, optimize_plotly_data
+from preswald.interfaces.components import BaseComponent
 
 
 logger = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ class PreswaldService:
     Acts as a facade to provide a simplified interface to the complex subsystem.
     """
 
-    _instance = None
+    _instance: ClassVar['PreswaldService' | None] = None
 
     @classmethod
     def initialize(cls, script_path=None):
@@ -34,21 +35,19 @@ class PreswaldService:
         return cls._instance
 
     @classmethod
-    def get_instance(cls):
+    def get_instance(cls) -> 'PreswaldService':
         if cls._instance is None:
-            raise RuntimeError(
-                "PreswaldService not initialized. Did you call start_server()?"
-            )
+            cls._instance = cls()
         return cls._instance
 
     def __init__(self):
         # Component state management
-        self._component_states: Dict[str, Any] = {}
+        self._component_states: dict[str, Any] = {}
         self._lock = threading.Lock()
 
         # TODO: deprecated
         # Connection management
-        self._connections: Dict[str, Any] = {}
+        self._connections: dict[str, Any] = {}
 
         # Data management
         self.data_manager: DataManager = None  # set during server creation
@@ -60,15 +59,15 @@ class PreswaldService:
         self.branding_manager = None  # set during server creation
 
         # Initialize session tracking
-        self.websocket_connections: Dict[str, WebSocket] = {}
-        self.script_runners: Dict[str, ScriptRunner] = {}
+        self.websocket_connections: dict[str, WebSocket] = {}
+        self.script_runners: dict[str, ScriptRunner] = {}
 
         # Initialize service state
-        self._script_path: Optional[str] = None
+        self._script_path: str | None = None
         self._is_shutting_down: bool = False
 
     @property
-    def script_path(self) -> Optional[str]:
+    def script_path(self) -> str | None:
         return self._script_path
 
     @script_path.setter
@@ -137,7 +136,7 @@ class PreswaldService:
         except Exception as e:
             logger.error(f"Error unregistering client {client_id}: {e}")
 
-    async def handle_client_message(self, client_id: str, message: Dict[str, Any]):
+    async def handle_client_message(self, client_id: str, message: dict[str, Any]):
         """Process incoming messages from clients"""
         start_time = time.time()
         try:
@@ -165,61 +164,20 @@ class PreswaldService:
         for client_id in list(self.websocket_connections.keys()):
             await self.unregister_client(client_id)
 
-    def append_component(self, component):
-        """Add a component to the layout manager"""
-        try:
-            if isinstance(component, dict):
-                # Clean any NaN values in the component
-                clean_start = time.time()
-                cleaned_component = clean_nan_values(component)
-                logger.debug(
-                    f"[RENDER] NaN cleanup took {time.time() - clean_start:.3f}s"
-                )
-
-                # Ensure component has current state
-                if "id" in cleaned_component:
-                    component_id = cleaned_component["id"]
-                    if component_id not in self._layout_manager.seen_ids:
-                        # Update component with current state if it exists
-                        if "value" in cleaned_component:
-                            current_state = self.get_component_state(component_id)
-                            if current_state is not None:
-                                cleaned_component["value"] = clean_nan_values(
-                                    current_state
-                                )
-                                logger.debug(
-                                    f"Updated component {component_id} with state: {current_state}"
-                                )
-                        self._layout_manager.add_component(cleaned_component)
-                        logger.debug(f"Added component with state: {cleaned_component}")
-                else:
-                    # Components without IDs are added as-is
-                    self._layout_manager.add_component(cleaned_component)
-                    logger.debug(f"Added component without ID: {cleaned_component}")
-            else:
-                # Convert HTML string to component data
-                component = {
-                    "type": "html",
-                    "content": str(component),
-                    "size": 1.0,  # HTML components take full width
-                }
-                self._layout_manager.add_component(component)
-                logger.debug(f"Added HTML component: {component}")
-        except Exception as e:
-            logger.error(f"Error adding component: {e}", exc_info=True)
+    def append_component(self, component: BaseComponent) -> None:
+        self._layout_manager.add_component(component)
 
     def get_rendered_components(self):
         rows = self._layout_manager.get_layout()
         return {"rows": rows}
 
-    def get_component_state(self, component_id: str, default: Any = None) -> Any:
-        """Get the current state of a component"""
-        with self._lock:
-            value = self._component_states.get(component_id, default)
-            logger.debug(f"[STATE] Getting state for {component_id}: {value}")
-            return value
+    def get_component_state(self, component_id: str) -> Any | None:
+        return self._component_states.get(component_id)
 
-    def _update_component_states(self, states: Dict[str, Any]):
+    def set_component_state(self, component_id: str, value: Any) -> None:
+        self._component_states[component_id] = value
+
+    def _update_component_states(self, states: dict[str, Any]):
         """Update the state of a component and trigger callbacks"""
         with self._lock:
             logger.debug("[STATE] Updating states")
@@ -241,7 +199,7 @@ class PreswaldService:
     def _create_send_callback(self, websocket: WebSocket) -> Callable:
         """Create a message sending callback for a specific websocket"""
 
-        async def send_message(msg: Dict[str, Any]):
+        async def send_message(msg: dict[str, Any]):
             if not self._is_shutting_down:
                 try:
                     await websocket.send_json(msg)
@@ -261,7 +219,7 @@ class PreswaldService:
         except Exception as e:
             logger.error(f"Error sending initial states: {e}")
 
-    async def _handle_component_update(self, client_id: str, message: Dict[str, Any]):
+    async def _handle_component_update(self, client_id: str, message: dict[str, Any]):
         """Handle component state update messages"""
         states = message.get("states", {})
         if not states:
@@ -281,7 +239,7 @@ class PreswaldService:
         await self._broadcast_state_updates(states, exclude_client=client_id)
 
     async def _broadcast_state_updates(
-        self, states: Dict[str, Any], exclude_client: Optional[str] = None
+        self, states: dict[str, Any], exclude_client: str | None = None
     ):
         """Broadcast state updates to all clients except the sender"""
 
