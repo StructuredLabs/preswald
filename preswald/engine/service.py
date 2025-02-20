@@ -119,16 +119,19 @@ class PreswaldService:
         try:
             # Clean up websocket
             if websocket := self.websocket_connections.pop(client_id, None):
-                await websocket.close(code=1000, reason="Server shutting down")
+                try:
+                    # Check if websocket is not already closed
+                    if not websocket.client_state.DISCONNECTED:
+                        await websocket.close(code=1000, reason="Server shutting down")
+                except Exception as e:
+                    # Log but don't raise if websocket is already closed
+                    logger.debug(f"Websocket already closed for client {client_id}: {e}")
 
             self._layout_manager.clear_layout()
 
             # Clean up script runner
             if runner := self.script_runners.pop(client_id, None):
                 await runner.stop()
-
-            # for connection in self.connection_manager.get_all_connections():
-            #     self.connection_manager.close_connection(connection.name)
 
             asyncio.create_task(self._broadcast_connections())  # noqa: RUF006
         except Exception as e:
@@ -307,24 +310,28 @@ class PreswaldService:
         """Broadcast current connections to all clients"""
         try:
             connection_list = []
-            for conn in self.connection_manager.get_all_connections():
-                conn_type = type(conn.name).__name__
-                conn_info = {
-                    "name": conn.name,
-                    "type": conn_type,
-                    "details": (
-                        str(conn)[:100] + "..." if len(str(conn)) > 100 else str(conn)
-                    ),
+            # Use websocket_connections instead of deprecated connection_manager
+            for client_id, websocket in self.websocket_connections.items():
+                connection_info = {
+                    "name": client_id,
+                    "type": "WebSocket",
+                    "details": f"Active WebSocket connection for client {client_id}"
                 }
-                connection_list.append(conn_info)
+                connection_list.append(connection_info)
 
+            # Broadcast to all connected clients
             for websocket in self.websocket_connections.values():
-                await websocket.send_json(
-                    {"type": "connections_update", "connections": connection_list}
-                )
+                try:
+                    await websocket.send_json({
+                        "type": "connections_update",
+                        "connections": connection_list
+                    })
+                except Exception as e:
+                    logger.debug(f"Error sending connection update to client: {e}")
 
         except Exception as e:
             logger.error(f"Error broadcasting connections: {e}")
+            # Don't raise the exception to prevent disrupting the main flow
 
     async def _send_error(self, client_id: str, message: str):
         """Send error message to a specific client"""

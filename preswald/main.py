@@ -121,20 +121,25 @@ def start_server(script: Optional[str] = None, port: int = 8501):
     server = uvicorn.Server(config)
 
     # Handle shutdown signals
-    def handle_shutdown(signum, frame):
+    async def handle_shutdown(signum=None, frame=None):
+        """Handle graceful shutdown of the server"""
         logger.info("Shutting down server...")
-        app.state.service.shutdown()
+        await app.state.service.shutdown()
 
-    signal.signal(signal.SIGINT, handle_shutdown)
-    signal.signal(signal.SIGTERM, handle_shutdown)
+    # Handle shutdown signals
+    def sync_handle_shutdown(signum, frame):
+        """Synchronous wrapper for the async shutdown handler"""
+        loop = asyncio.get_event_loop()
+        loop.create_task(handle_shutdown(signum, frame))
+
+    signal.signal(signal.SIGINT, sync_handle_shutdown)
+    signal.signal(signal.SIGTERM, sync_handle_shutdown)
 
     try:
         import asyncio
-
         asyncio.run(server.serve())
-
     except KeyboardInterrupt:
-        handle_shutdown(None, None)
+        asyncio.run(handle_shutdown())
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         raise
