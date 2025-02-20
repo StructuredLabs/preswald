@@ -1,7 +1,6 @@
 ---
 title: "Quickstart"
 icon: octicons/zap-24
-weight: 1
 description: "Get up and running with the Preswald SDK in under 5 minutes"
 ---
 

@@ -19,6 +19,14 @@ theme:
     - search.share
     - search.suggest
     - navigation.tracking
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.footer
+
+  font:
+    text: Inter
+    code: Roboto Mono
+
 extra:
   social:
     - icon: fontawesome/brands/linkedin 
