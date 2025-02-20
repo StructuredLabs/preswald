@@ -1,17 +1,18 @@
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
-from preswald.interfaces.components import BaseComponent
+if TYPE_CHECKING:
+    from preswald.interfaces.components import BaseComponent
 
 class LayoutManager:
     """Manages the layout of components in rows based on their sizes"""
 
     def __init__(self) -> None:
-        self.rows: list[list[BaseComponent]] = []
-        self.current_row: list[BaseComponent] = []
+        self.rows: list[list["BaseComponent"]] = []
+        self.current_row: list["BaseComponent"] = []
         self.current_row_size = 0.0
         self.seen_ids: set[str] = set()
 
-    def add_component(self, component: BaseComponent) -> None:
+    def add_component(self, component: "BaseComponent") -> None:
         """Add a component to the layout"""
         # Handle separator component type which forces a new row
         if component.type == "separator":

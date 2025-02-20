@@ -3,7 +3,7 @@ import logging
 import os
 import threading
 import time
-from typing import Any, Callable, ClassVar
+from typing import Any, Callable, ClassVar, TYPE_CHECKING
 
 from fastapi import WebSocket, WebSocketDisconnect
 
@@ -11,8 +11,9 @@ from .managers.data import DataManager
 from .managers.layout import LayoutManager
 from .runner import ScriptRunner
 from .utils import clean_nan_values, compress_data, optimize_plotly_data
-from preswald.interfaces.components import BaseComponent
 
+if TYPE_CHECKING:
+    from preswald.interfaces.components import BaseComponent
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,7 @@ class PreswaldService:
     Acts as a facade to provide a simplified interface to the complex subsystem.
     """
 
-    _instance: ClassVar['PreswaldService' | None] = None
+    _instance: ClassVar["PreswaldService | None"] = None
 
     @classmethod
     def initialize(cls, script_path=None):
@@ -35,7 +36,7 @@ class PreswaldService:
         return cls._instance
 
     @classmethod
-    def get_instance(cls) -> 'PreswaldService':
+    def get_instance(cls) -> "PreswaldService":
         if cls._instance is None:
             cls._instance = cls()
         return cls._instance
@@ -109,6 +110,7 @@ class PreswaldService:
 
         except WebSocketDisconnect:
             logger.info(f"[WebSocket] Client disconnected: {client_id}")
+            raise
         except Exception as e:
             logger.error(f"Error registering client {client_id}: {e}")
             raise
@@ -164,7 +166,7 @@ class PreswaldService:
         for client_id in list(self.websocket_connections.keys()):
             await self.unregister_client(client_id)
 
-    def append_component(self, component: BaseComponent) -> None:
+    def append_component(self, component: "BaseComponent") -> None:
         self._layout_manager.add_component(component)
 
     def get_rendered_components(self):
