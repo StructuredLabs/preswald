@@ -206,14 +206,6 @@ def deploy(script, target, port, log_level, github, api_key):
         port = read_port_from_config(config_path=config_path, port=port)
 
         if target == "structured":
-            # Validate project slug before deployment
-            try:
-                project_slug = get_project_slug(config_path)
-                click.echo(f"Using project slug: {project_slug}")
-            except Exception as e:
-                click.echo(click.style(f"Error: {str(e)} ❌", fg="red"))
-                return
-
             click.echo("Starting production deployment... 🚀")
             try:
                 for status_update in deploy_app(
