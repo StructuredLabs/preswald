@@ -15,118 +15,131 @@ from preswald import (
 )
 
 
+# Create a workflow instance
+workflow = Workflow()
+
+
 # --- WELCOME MESSAGE ---
-text("# 🐵 Welcome to Preswald!")
-text(
-    "This tutorial app showcases **all the components** available in the Preswald library, with explanations and usage examples. For more details, check out the [GitHub repository](https://github.com/StructuredLabs/preswald) and the [documentation](https://docs.preswald.com)."
-)
+@workflow.atom()
+def welcome_message():
+    text("# 🐵 Welcome to Preswald!")
+    text(
+"""
+This tutorial app showcases **all the components** available in the Preswald library, with explanations and usage examples. For more details, check out the [GitHub repository](https://github.com/StructuredLabs/preswald) and the [documentation](https://docs.preswald.com).
+"""
+    )
+
 
 # --- TEXT COMPONENT ---
-text("## 1. Displaying Text with `text()`")
-text(
-    """
+@workflow.atom()
+def text_component_demo():
+    text("## 1. Displaying Text with `text()`")
+    text(
+"""
 The `text()` function allows you to display formatted text using **Markdown**. You can create headers, lists, and even embed code snippets.
-
 **Example:**
-
 ```python
 from preswald import text
 text("# This is a Header")
 text("This is **bold** text, and this is *italic* text.")
 ```
 """
-)
+    )
+
 
 # --- LOADING DATA ---
-text("## 2. Viewing Data with `table()`")
-text("Let's load a sample dataset and display it using the `table()` component.")
+@workflow.atom()
+def load_data():
+    text("## 2. Viewing Data with `table()`")
+    text("Let's load a sample dataset and display it using the `table()` component.")
 
-# Load the sample CSV
-connect()
-df = get_df("sample_csv")
+    connect()
+    df = get_df("sample_csv")
+    table(df, limit=10)  # Display first 10 rows
 
-# Displaying the data with `table`
-table(df, limit=10)  # Display first 10 rows
-
-text(
-    """
+    text(
+"""
 The `table()` component displays data in a tabular format.
-
 **Example:**
-
 ```python
 from preswald import table
 table(df, limit=10)
 ```
-
 - **limit**: Use this parameter to control how many rows to display.
 """
-)
+    )
+    return df
+
 
 # --- PLOTTING DATA ---
-text("## 3. Visualizing Data with `plotly()`")
-text(
-    "Now, let's create an interactive scatter plot using Plotly and embed it using the `plotly()` component."
-)
+@workflow.atom(dependencies=["load_data"])
+def plot_data(load_data):
+    df = load_data
+    text("## 3. Visualizing Data with `plotly()`")
+    text(
+"""
+Now, let's create an interactive scatter plot using Plotly and embed it using the `plotly()` component.
+"""
+    )
 
-# Create a scatter plot using Plotly Express
-fig = px.scatter(
-    df,
-    x="quantity",
-    y="value",
-    text="item",
-    title="Quantity vs. Value",
-    labels={"quantity": "Quantity", "value": "Value"},
-)
+    # Create a scatter plot using Plotly Express
+    fig = px.scatter(
+        df,
+        x="quantity",
+        y="value",
+        text="item",
+        title="Quantity vs. Value",
+        labels={"quantity": "Quantity", "value": "Value"},
+    )
 
-# Add labels and style the plot
-fig.update_traces(textposition="top center", marker={"size": 12, "color": "lightblue"})
-fig.update_layout(template="plotly_white")
+    # Add labels and style the plot
+    fig.update_traces(
+        textposition="top center", marker={"size": 12, "color": "lightblue"}
+    )
+    fig.update_layout(template="plotly_white")
 
-# Display the plot using plotly()
-plotly(fig)
+    # Display the plot using plotly()
+    plotly(fig)
 
-text(
-    """
+    text(
+"""
 The `plotly()` function embeds interactive Plotly charts into your app.
-
 **Example:**
-
 ```python
 from preswald import plotly
 import plotly.express as px
-
 fig = px.scatter(x=[1, 2, 3], y=[4, 5, 6])
 plotly(fig)
 ```
 """
-)
+    )
+
 
 # --- SLIDER COMPONENT ---
-text("## 4. Adding Interactivity with `slider()`")
-text("Let's add a slider to let users control how many rows of data to display.")
+@workflow.atom(dependencies=["load_data"])
+def slider_demo(load_data):
+    df = load_data
+    text("## 4. Adding Interactivity with `slider()`")
+    text("Let's add a slider to let users control how many rows of data to display.")
 
-# Create a slider for selecting the number of rows to display
-num_rows = slider(
-    label="Select number of rows to display",
-    min_val=1,
-    max_val=len(df),
-    step=1,
-    default=5,
-)
+    # Create a slider for selecting the number of rows to display
+    num_rows = slider(
+        label="Select number of rows to display",
+        min_val=1,
+        max_val=len(df),
+        step=1,
+        default=5,
+    )
 
-# Display the selected number of rows
-table(df.head(num_rows))
+    # Display the selected number of rows
+    table(df.head(num_rows))
 
-text(
-    """
+    text(
+"""
 The `slider()` component allows users to select a numerical value.
-
 **Example:**
-
 ```python
 from preswald import slider
-
 value = slider(
     label="Select a value",
     min_val=1,
@@ -135,248 +148,229 @@ value = slider(
     default=20
 )
 ```
-
 Use the selected value dynamically in your app!
 """
-)
+    )
+
 
 # --- SELECTBOX COMPONENT ---
-text("## 5. Adding Interactivity with `selectbox()`")
-text(
-    "Use the dropdown menu below to select a column from the dataset and visualize its distribution."
-)
+@workflow.atom(dependencies=["load_data"])
+def selectbox_demo(load_data):
+    df = load_data
+    text("## 5. Adding Interactivity with `selectbox()`")
+    text(
+        "Use the dropdown menu below to select a column from the dataset and visualize its distribution."
+    )
 
-# Create a selectbox for choosing a column to visualize
-column_choice = selectbox(
-    label="Choose a column to visualize",
-    options=df.select_dtypes(include=["number"]).columns.tolist(),
-)
+    # Create a selectbox for choosing a column to visualize
+    column_choice = selectbox(
+        label="Choose a column to visualize",
+        options=df.select_dtypes(include=["number"]).columns.tolist(),
+    )
 
-# Create and display a histogram based on the selected column
-fig = px.histogram(df, x=column_choice, title=f"Distribution of {column_choice}")
+    # Create and display a histogram based on the selected column
+    fig = px.histogram(df, x=column_choice, title=f"Distribution of {column_choice}")
 
-# Display the plot
-plotly(fig)
+    # Display the plot
+    plotly(fig)
 
-text(
-    """
+    text(
+"""
 The `selectbox()` component allows users to select from a list of options.
-
 **Example:**
-
 ```python
 from preswald import selectbox
-
 choice = selectbox(
     label="Choose Dataset",
     options=["Dataset A", "Dataset B", "Dataset C"]
 )
-
 print(f"User selected: {choice}")
 ```
 In this example, selecting a column updates the histogram dynamically! """
-)
+    )
+
 
 # --- SEPARATOR COMPONENT ---
-text("## 6. Organizing Content with `separator()`")
-text(
-    "The `separator()` function adds a simple visual break between sections for better readability."
-)
+@workflow.atom(dependencies=["load_data"])
+def separator_demo(load_data):
+    df = load_data
+    text("## 6. Organizing Content with `separator()`")
+    text(
+        "The `separator()` function adds a simple visual break between sections for better readability."
+    )
 
-# Display some content
-text("### Section 1: Original Data")
-table(df.head(5))
+    # Display some content
+    text("### Section 1: Original Data")
+    table(df.head(5))
 
-# Add a separator to visually break content
-separator()
+    # Add a separator to visually break content
+    separator()
 
-# Display more content after the separator
-text("### Section 2: Data Summary")
-table(df.describe())
+    # Display more content after the separator
+    text("### Section 2: Data Summary")
+    table(df.describe())
 
-text(
-    """
+    text(
+"""
 The `separator()` component helps organize your app content by adding visual breaks.
-
 **Example:**
-
 ```python
 from preswald import separator
-
 text("Section 1 Content")
 separator()
 text("Section 2 Content")
 ```
-
-This improves the readability of your app by clearly distinguishing between different sections. """
-)
+This improves the readability of your app by clearly distinguishing between different sections.
+"""
+    )
 
 
 # --- WORKFLOW DAG COMPONENT ---
-text("## 7. Visualizing Workflow Dependencies with `workflow_dag()`")
-text(
-    "The `workflow_dag()` function renders a Directed Acyclic Graph (DAG) to visualize task dependencies in your workflow."
-)
-
-# Create a workflow instance
-workflow = Workflow()
-
-# Define an atom for loading data
-
-
 @workflow.atom()
-def load_data():
-    connect()
-    return get_df("sample_csv")
+def workflow_dag_demo():
+    text("## 7. Visualizing Workflow Dependencies with `workflow_dag()`")
+    text(
+"""
+The `workflow_dag()` function renders a Directed Acyclic Graph (DAG) to visualize task dependencies in your workflow.
+"""
+    )
 
+    # Create a demo workflow for visualization
+    demo_workflow = Workflow()
 
-# Define an atom for cleaning data, dependent on load_data
+    @demo_workflow.atom()
+    def demo_load_data():
+        connect()
+        return get_df("sample_csv")
 
+    @demo_workflow.atom(dependencies=["demo_load_data"])
+    def demo_clean_data(demo_load_data):
+        return demo_load_data.dropna()
 
-@workflow.atom(dependencies=["load_data"])
-def clean_data(load_data):
-    return load_data.dropna()
+    @demo_workflow.atom(dependencies=["demo_clean_data"])
+    def demo_analyze_data(demo_clean_data):
+        return demo_clean_data.describe()
 
+    # Execute the demo workflow
+    demo_workflow.execute()
 
-# Define an atom for analyzing data, dependent on clean_data
+    # Render the workflow DAG
+    workflow_dag(demo_workflow, title="Sample Workflow Dependency Graph")
 
-
-@workflow.atom(dependencies=["clean_data"])
-def analyze_data(clean_data):
-    return clean_data.describe()
-
-
-# Execute the workflow
-results = workflow.execute()
-
-# Render the workflow DAG
-workflow_dag(workflow, title="Sample Workflow Dependency Graph")
-
-text(
-    """
+    text(
+"""
 The `workflow_dag()` component helps visualize dependencies and relationships within workflows.
-
 **Example:**
-
 ```python
 from preswald import workflow_dag, Workflow
-
 workflow = Workflow()
-
 @workflow.atom()
 def load_data():
     connect()
     return get_df("sample_csv")
-
 @workflow.atom(dependencies=['load_data'])
 def clean_data(load_data):
     return load_data.dropna()
-
 @workflow.atom(dependencies=['clean_data'])
 def analyze_data(clean_data):
     return clean_data.describe()
-
 workflow.execute()
 workflow_dag(workflow, title="Workflow Dependency Graph")
 ```
-
 **Key Features:**
 - **Visualize Dependencies:** Clearly see how tasks are interconnected.
 - **Interactive Exploration:** Zoom, pan, and hover over nodes for details.
 - **Customizable Titles:** Make your DAGs more descriptive and easy to understand.
 """
-)
+    )
+
 
 # --- WORKFLOW ANALYZER COMPONENT ---
-text("## 8. Optimizing Workflows with `WorkflowAnalyzer()`")
-text(
-    "The `WorkflowAnalyzer()` provides tools to analyze and optimize workflows, helping you identify bottlenecks and parallel execution opportunities."
-)
+@workflow.atom(dependencies=["workflow_dag_demo"])
+def workflow_analyzer_demo():
+    text("## 8. Optimizing Workflows with `WorkflowAnalyzer()`")
+    text(
+        "The `WorkflowAnalyzer()` provides tools to analyze and optimize workflows, helping you identify bottlenecks and parallel execution opportunities."
+    )
 
-# Initialize the WorkflowAnalyzer
-analyzer = WorkflowAnalyzer(workflow)
+    # Initialize the WorkflowAnalyzer with the main tutorial workflow
+    analyzer = WorkflowAnalyzer(workflow)
 
-# Identify and display the critical path
-critical_path = analyzer.get_critical_path()
-text(f"**Critical Path:** {' → '.join(critical_path)}")
+    # Identify and display the critical path
+    critical_path = analyzer.get_critical_path()
+    text(f"**Critical Path:** {' → '.join(critical_path)}")
 
-# Visualize the critical path
-analyzer.visualize(highlight_path=critical_path, title="Workflow Critical Path")
+    # Visualize the critical path
+    analyzer.visualize(highlight_path=critical_path, title="Workflow Critical Path")
 
-# Identify and display parallel execution groups
-parallel_groups = analyzer.get_parallel_groups()
-text("**Parallel Execution Groups:**")
-for i, group in enumerate(parallel_groups, 1):
-    text(f"- Group {i}: {', '.join(group)}")
+    # Identify and display parallel execution groups
+    parallel_groups = analyzer.get_parallel_groups()
+    text("**Parallel Execution Groups:**")
+    for i, group in enumerate(parallel_groups, 1):
+        text(f"- Group {i}: {', '.join(group)}")
 
-text(
-    """
+    text(
+"""
 The `WorkflowAnalyzer()` helps identify bottlenecks and optimize execution by highlighting critical paths and parallelizable tasks.
-
 **Example:**
-
 ```python
 from preswald import WorkflowAnalyzer
-
 analyzer = WorkflowAnalyzer(workflow)
-
 # Visualize the workflow
 analyzer.visualize(title="Workflow Dependency Graph")
-
 # Display critical path
 critical_path = analyzer.get_critical_path()
 print("Critical Path:", ' → '.join(critical_path))
-
 # Visualize the critical path
 analyzer.visualize(highlight_path=critical_path,
                    title="Workflow Critical Path")
-
 # Display parallel execution groups
 parallel_groups = analyzer.get_parallel_groups()
 for i, group in enumerate(parallel_groups, 1):
     print(f"Group {i}: {', '.join(group)}")
 ```
-
 **Key Features:**
 - **Critical Path Analysis:** Identify workflow bottlenecks to improve execution time.
 - **Parallel Execution Groups:** Highlight tasks that can run in parallel for optimized performance.
 - **Interactive DAG Visualization:** Explore workflow dependencies visually to better understand complex processes.
 """
-)
+    )
 
 
 # --- RETRY POLICY EXPLANATION ---
-text("## 9. Making Workflows More Reliable with `RetryPolicy`")
-text(
-    """
+@workflow.atom()
+def retry_policy_demo():
+    text("## 9. Making Workflows More Reliable with `RetryPolicy`")
+    text(
+"""
 The `RetryPolicy` helps handle failures in your workflow by automatically retrying tasks if they fail. You can control how many times a task is retried, how long to wait between retries, and which errors should trigger a retry.
-
 ### How It Works:
 1. **Set a Retry Policy for the Whole Workflow:** This will apply to all tasks unless you override it for specific ones.
-
 ```python
 from preswald import Workflow, RetryPolicy
-
 policy = RetryPolicy(max_attempts=3, delay=1.0)
 workflow = Workflow(default_retry_policy=policy)
 ```
-
 2. **Override for Specific Tasks:** You can set a different retry rule for individual tasks.
-
 ```python
 @workflow.atom(retry_policy=RetryPolicy(max_attempts=5, delay=0.5))
 def fetch_data():
     raise IOError("Simulated failure")
 ```
-
 ### Why Use `RetryPolicy`?
 - **More Reliable:** Automatically retries tasks if something goes wrong.
 - **Avoid Infinite Loops:** Limits retries and adds delays between attempts.
 - **Customizable:** Set different retry rules for different tasks.
-
 """
-)
+    )
+
 
 # --- FINAL MESSAGE ---
-text("## 🎉 You've explored all the components of Preswald!")
-text("Now go ahead and build your own interactive data apps!")
+@workflow.atom()
+def final_message():
+    text("## 🎉 You've explored all the components of Preswald!")
+    text("Now go ahead and build your own interactive data apps!")
+
+
+# Execute the workflow
+results = workflow.execute()
