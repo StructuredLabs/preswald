@@ -1,0 +1,130 @@
+---
+title: "Troubleshooting"
+icon: octicons/bug-24
+description: "Resolve common issues with Preswald setup, development and deployment."
+---
+
+<Warning>
+  If you need support, just reach out to us and we'll help:
+  founders@structuredlabs.com
+</Warning>
+
+## **Favicon or Logo Not Updating**
+
+If your app's favicon or logo doesn't update in the browser, it might be due to browser caching. Use the following methods to perform a hard refresh:
+
+- **macOS**:  
+  Press `Command + Shift + R` to force a refresh.
+- **Windows**:  
+  Press `Ctrl + F5` to clear the cache and reload the page.
+
+---
+
+## **Docker Issues**
+
+If you encounter issues related to Docker, verify that Docker is installed and running on your system.
+
+### **Verify Docker Installation**
+
+Run the following command in your terminal to check if Docker is installed:
+
+```bash
+docker --version
+```
+
+If Docker is not installed or the command fails, download and install Docker from [Docker's official website](https://www.docker.com/).
+
+---
+
+## **GCloud Deploy Not Working**
+
+If deploying to Google Cloud Run fails, verify that the Google Cloud CLI (gcloud) is installed and configured correctly.
+
+### **Verify GCloud CLI Installation**
+
+Run the following command to confirm that the GCloud CLI is installed:
+
+```bash
+gcloud --version
+```
+
+If it is not installed, follow the [GCloud CLI Installation Guide](https://cloud.google.com/sdk/docs/install).
+
+### **Common GCloud CLI Issues**
+
+- **Authentication Error**: Run `gcloud auth login` to authenticate your account.
+- **Project Configuration**: Select the correct project using `gcloud config set project <project-id>`.
+
+---
+
+## **Dependency Errors**
+
+Dependency errors may arise if the required Python packages are not installed or if conflicting versions exist. Using a virtual environment can help isolate your dependencies.
+
+### **Set Up a Virtual Environment**
+
+#### **Using `venv`**
+
+1. **Create a Virtual Environment**:
+
+   ```bash
+   python -m venv env
+   ```
+
+2. **Activate the Virtual Environment**:
+
+   - On **macOS/Linux**:
+     ```bash
+     source env/bin/activate
+     ```
+   - On **Windows**:
+     ```bash
+     env\Scripts\activate
+     ```
+
+#### **Using Conda**
+
+1. **Create a Conda Environment**:
+
+   ```bash
+   conda create --name myenv python=3.9
+   ```
+
+   Replace `myenv` with the desired name for your environment and `3.9` with your desired Python version.
+
+2. **Activate the Conda Environment**:
+
+   ```bash
+   conda activate myenv
+   ```
+
+---
+
+## **General Debugging Tips**
+
+1. **Check Logs**:  
+   Logs often provide detailed error messages. For example:
+   - Docker logs: `docker logs <container-id>`
+   - GCloud logs: `gcloud app logs read`
+2. **Verify File Paths**:  
+   Make sure all file paths referenced in your script (e.g., `data.csv`) are correct and accessible.
+
+3. **Update Software**:
+
+   - Verify your Python version matches the project's requirements.
+   - Update Preswald with the following command:
+     ```bash
+     pip install --upgrade preswald
+     ```
+
+4. **Reinstall Dependencies**:  
+   If dependency issues persist, delete the `env` folder, recreate the virtual environment, and reinstall dependencies.
+
+---
+
+## **Need More Help?**
+
+If you are still facing issues after trying the above steps:
+
+- Open an issue on the [Preswald GitHub Repository](https://github.com/StructuredLabs/preswald/issues).
+- [Contact us](mailto:founders@structuredlabs.com)
