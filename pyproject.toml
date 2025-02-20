@@ -1,11 +1,56 @@
+[project]
+name = "preswald"
+version = "0.1.37"
+description = "A lightweight data workflow SDK."
+authors = [
+    { name="Structured", email="founders@structuredlabs.com" },
+]
+license = { text = "Apache 2.0" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.10"
+
+dependencies = [
+    "click>=8.1.8",
+    "duckdb>=1.2.0",
+    "fastapi>=0.115.8",
+    "httpx>=0.28.1",
+    "jinja2>=3.1.5",
+    "markdown>=3.7",
+    "networkx>=3.4.2",
+    "openai>=1.63.2",
+    "pandas>=2.2.3",
+    "plotly>=6.0.0",
+    "psycopg2-binary>=2.9.10",
+    "python-multipart>=0.0.20",
+    "sqlalchemy>=2.0.38",
+    "toml>=0.10.2",
+    "uvicorn>=0.34.0",
+    "websockets>=15.0",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.15.0",
+    "pandas-stubs>=2.2.3.241126",
+    "plotly-stubs>=0.0.4",
+    "pytest>=8.3.4",
+    "pytest-mock>=3.14.0",
+    "ruff>=0.9.6",
+]
+
+
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 # Ruff configuration
 [tool.ruff]
 line-length = 88
-target-version = "py37"
+target-version = "py310"
 
 # Enable specific rule sets
 lint.select = [
