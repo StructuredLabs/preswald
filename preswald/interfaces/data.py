@@ -5,6 +5,7 @@ import pandas as pd
 
 from preswald.engine.service import PreswaldService
 
+from .component_functions import table
 
 # Configure logging
 logger = logging.getLogger(__name__)
