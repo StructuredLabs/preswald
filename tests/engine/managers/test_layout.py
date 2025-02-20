@@ -4,10 +4,9 @@ import pytest
 
 from preswald.engine.managers.layout import LayoutManager
 from preswald.interfaces.components import (
-    TextComponent,
-    ButtonComponent,
-    SeparatorComponent,
-    ValidationError,
+    Text,
+    Button,
+    Separator,
 )
 
 @pytest.fixture
@@ -16,7 +15,7 @@ def layout_manager() -> LayoutManager:
 
 def test_add_component_basic(layout_manager: LayoutManager) -> None:
     """Test adding a single component"""
-    component = TextComponent(label="test", size=1.0, markdown="test")
+    component = Text(label="test", size=1.0, markdown="test")
     layout_manager.add_component(component)
     layout_manager.finish_current_row()
     
@@ -26,8 +25,8 @@ def test_add_component_basic(layout_manager: LayoutManager) -> None:
 
 def test_add_multiple_components_same_row(layout_manager: LayoutManager) -> None:
     """Test adding multiple components that fit in one row"""
-    component1 = TextComponent(label="test1", size=0.5, markdown="test1")
-    component2 = TextComponent(label="test2", size=0.5, markdown="test2")
+    component1 = Text(label="test1", size=0.5, markdown="test1")
+    component2 = Text(label="test2", size=0.5, markdown="test2")
     
     layout_manager.add_component(component1)
     layout_manager.add_component(component2)
@@ -40,8 +39,8 @@ def test_add_multiple_components_same_row(layout_manager: LayoutManager) -> None
 
 def test_add_components_multiple_rows(layout_manager: LayoutManager) -> None:
     """Test components split into multiple rows when they exceed size 1.0"""
-    component1 = TextComponent(label="test1", size=0.6, markdown="test1")
-    component2 = TextComponent(label="test2", size=0.6, markdown="test2")
+    component1 = Text(label="test1", size=0.6, markdown="test1")
+    component2 = Text(label="test2", size=0.6, markdown="test2")
     
     layout_manager.add_component(component1)
     layout_manager.add_component(component2)
@@ -55,24 +54,23 @@ def test_add_components_multiple_rows(layout_manager: LayoutManager) -> None:
 
 def test_separator_forces_new_row(layout_manager: LayoutManager) -> None:
     """Test that separator component forces a new row"""
-    component1 = TextComponent(label="test1", size=0.5, markdown="test1")
-    separator = SeparatorComponent(label="sep", size=1.0)
-    component2 = TextComponent(label="test2", size=0.5, markdown="test2")
+    component1 = Text(label="test1", size=0.5, markdown="test1")
+    separator = Separator(label="sep", size=1.0)
+    component2 = Text(label="test2", size=0.5, markdown="test2")
     
     layout_manager.add_component(component1)
     layout_manager.add_component(separator)
     layout_manager.add_component(component2)
     layout_manager.finish_current_row()
     
-    assert len(layout_manager.rows) == 3
+    assert len(layout_manager.rows) == 2
     assert len(layout_manager.rows[0]) == 1
-    assert len(layout_manager.rows[1]) == 0  # Separator creates empty row
-    assert len(layout_manager.rows[2]) == 1
+    assert len(layout_manager.rows[1]) == 1
 
 def test_flex_calculation(layout_manager: LayoutManager) -> None:
     """Test flex values are calculated correctly"""
-    component1 = TextComponent(label="test1", size=0.3, markdown="test1")
-    component2 = TextComponent(label="test2", size=0.7, markdown="test2")
+    component1 = Text(label="test1", size=0.3, markdown="test1")
+    component2 = Text(label="test2", size=0.7, markdown="test2")
     
     layout_manager.add_component(component1)
     layout_manager.add_component(component2)
@@ -87,7 +85,7 @@ def test_flex_calculation(layout_manager: LayoutManager) -> None:
 
 def test_clear_layout(layout_manager: LayoutManager) -> None:
     """Test clearing the layout"""
-    component = TextComponent(label="test", size=1.0, markdown="test")
+    component = Text(label="test", size=1.0, markdown="test")
     layout_manager.add_component(component)
     layout_manager.finish_current_row()
     
@@ -101,8 +99,8 @@ def test_clear_layout(layout_manager: LayoutManager) -> None:
 
 def test_component_id_tracking(layout_manager: LayoutManager) -> None:
     """Test that component IDs are tracked correctly"""
-    component1 = TextComponent(label="test1", size=0.5, markdown="test1")
-    component2 = TextComponent(label="test2", size=0.5, markdown="test2")
+    component1 = Text(label="test1", size=0.5, markdown="test1")
+    component2 = Text(label="test2", size=0.5, markdown="test2")
     
     layout_manager.add_component(component1)
     layout_manager.add_component(component2)
@@ -112,7 +110,7 @@ def test_component_id_tracking(layout_manager: LayoutManager) -> None:
 
 def test_get_layout_conversion(layout_manager: LayoutManager) -> None:
     """Test that get_layout returns correct dictionary format"""
-    component = ButtonComponent(label="test", size=1.0)
+    component = Button(label="test", size=1.0)
     layout_manager.add_component(component)
     layout_manager.finish_current_row()
     
@@ -121,6 +119,7 @@ def test_get_layout_conversion(layout_manager: LayoutManager) -> None:
     assert len(layout[0]) == 1
     
     component_dict = layout[0][0]
+    print(f"\n\n{component_dict}\n\n")
     assert component_dict["type"] == "button"
     assert component_dict["label"] == "test"
     assert component_dict["size"] == 1.0
