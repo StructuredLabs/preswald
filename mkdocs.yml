@@ -1,0 +1,84 @@
+site_name: Preswald
+site_url: https://docs.preswald.com/
+repo_url: https://github.com/StructuredLabs/preswald
+repo_name: StructuredLabs/preswald
+theme:
+  name: material
+  logo: img/favicon.ico
+  favicon: img/favicon.ico
+  icon: 
+    repo: fontawesome/brands/github
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.action.edit
+    - content.action.view
+    - navigation.indexes
+    - navigation.tabs
+    - search.highlight
+    - search.share
+    - search.suggest
+    - navigation.tracking
+extra:
+  social:
+    - icon: fontawesome/brands/linkedin 
+      link: https://www.linkedin.com/company/structuredlabs/
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/StructuredLabs
+    - icon: fontawesome/solid/globe
+      link: https://www.structuredlabs.com
+    - icon: fontawesome/brands/slack
+      link: https://structured-users.slack.com/
+    - icon: fontawesome/brands/github
+      link: https://github.com/StructuredLabs
+
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+nav:
+  - Documentation: 
+    - Get started:
+      - Introduction: introduction.md
+      - Quickstart: quickstart.md
+      - Configuration: configuration.md
+      - Core_Concepts: coreconcepts.md
+      - Contributing: contributing.md
+    - CLI_Reference:
+      - preswald_tutorial: cli/tutorial.md
+      - preswald_init: cli/init.md
+      - preswald_run: cli/run.md
+      - preswald_deploy: cli/deploy.md
+      - preswald_deployments: cli/deployments.md
+      - preswald_stop: cli/stop.md
+    - Layout:
+      - Guide: usage/guide.md
+    - Usage:
+      - Examples: usage/examples.md
+      - Troubleshooting: usage/troubleshooting.md
+  - SDK Reference:
+    - ui:
+      - alert: sdk/alert.md
+      - checkbox: sdk/checkbox.md
+      - plotly: sdk/plotly.md
+      - progress: sdk/progress.md
+      - selectbox: sdk/selectbox.md
+      - separator: sdk/separator.md
+      - slider: sdk/slider.md
+      - table: sdk/table.md
+      - text: sdk/text.md
+      - text_input: sdk/text_input.md
+      - workflow_dag: sdk/workflow_dag.md
+    - data:
+      - connect: sdk/connect.md
+      - get_df: sdk/get_df.md
+      - query: sdk/query.md
+    - workflow:
+      - RetryPolicy: sdk/retrypolicy.md
+      - Workflow: sdk/workflow.md
+      - WorkflowAnalyzer: sdk/workflow_analyzer.md
+
+

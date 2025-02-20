@@ -1,0 +1,52 @@
+---
+title: "text"
+icon: material/text-short
+description: ""
+---
+
+```python
+text(markdown_str: str, size: float = 1.0) -> str:
+```
+
+The `text` function allows you to display formatted text or Markdown in your application. It’s perfect for creating titles, headers, paragraphs, and more using the power of Markdown syntax.
+
+## Parameters
+
+- **`markdown_str`** _(str)_: The string containing text or Markdown to be rendered.
+- **`size`** _(float)_: _(Optional)_ The width of the component in a row. Defaults to `1.0` (full row). See the [Layout Guide](/layout/guide) for details.
+
+## Returns
+
+- `str` containing the input `markdown_str`.
+
+## Usage Example
+
+Here’s an example of how to use the `text` function:
+
+```python
+from preswald import text
+
+# Display a Markdown header
+text("# Welcome to Preswald")
+
+# Display a paragraph
+text("This is a **formatted text** example using Markdown.")
+```
+
+### Markdown Support
+
+The `text` function supports the full range of Markdown syntax, including:
+
+- **Headers**: `#` for H1, `##` for H2, and so on.
+- **Emphasis**: `*italic*`, `**bold**`, `~~strikethrough~~`.
+- **Lists**:
+  - Unordered: `- Item 1`, `- Item 2`
+  - Ordered: `1. Item 1`, `2. Item 2`
+- **Links**: `[Link text](https://example.com)`
+- **Code blocks**:
+  ````markdown
+  ```python
+  print("Hello, world!")
+  ```
+  ````
+- And more!
