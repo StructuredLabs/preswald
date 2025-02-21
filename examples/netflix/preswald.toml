@@ -12,3 +12,13 @@ primaryColor = "#F89613"
 [logging]
 level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
 format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+
+# PR example code
+def main():
+    print("Hello, Preswald!")
+    print("This is a simple example for contributing to the project.")
+
+
+if __name__ == "__main__":
+    main()
