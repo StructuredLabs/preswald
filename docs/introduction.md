@@ -24,29 +24,24 @@ Preswald is a lightweight, code-first platform designed to simplify the creation
 
 Get started with Preswald in just a few steps. Set up your environment and start building powerful, interactive data applications right away.
 
-<CardGroup cols={2}>
-  <Card
-    title="Install the SDK"
-    icon="cloud-arrow-down"
-    href="https://pypi.org/project/preswald/"
-  >
-    Run preswald locally and get everything you need to start building.
-  </Card>
-  <Card
-    title="Check out our Blog"
-    icon="book"
-    href="https://blog.structuredlabs.com"
-  >
-    Read about how Preswald and the larger data ecosystem is evolving.
-  </Card>
-  <Card title="Book a Demo" icon="calendar" href="https://cal.com/structured">
-    Book a personalized demo to explore how Preswald can help your team.
-  </Card>
-  <Card
-    title="Explore the Codebase"
-    icon="code"
-    href="https://github.com/StructuredLabs/preswald"
-  >
-    Explore the GitHub repo to dig into the source code or contribute.
-  </Card>
-</CardGroup>
+
+<div class="grid cards black-text" markdown>
+
+- [:material-cloud-arrow-down-outline:{.xl} 
+<br/>__Install the SDK__ 
+<br/>Run preswald locally and get everything you need to start building.](https://pypi.org/project/preswald/)
+
+
+- [:octicons-repo-24:{.xl} 
+<br/>__Check out our Blog__ 
+<br/>Read about how Preswald and the larger data ecosystem is evolving.](https://blog.structuredlabs.com/)
+
+- [:octicons-calendar-24:{.xl} 
+<br/>__Book a Demo__ 
+<br/>Book a personalized demo to explore how Preswald can help your team.](https://cal.com/structured)
+
+- [:octicons-code-24:{.xl} 
+<br/>__Explore the Codebase__ 
+<br/> Explore the GitHub repo to dig into the source code or contribute.](https://github.com/StructuredLabs/preswald)
+
+</div>
