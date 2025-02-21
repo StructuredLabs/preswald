@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FastAPI in Browser (Pyodide)</title>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.27.2/full/pyodide.js"></script>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      .container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      button {
+        padding: 8px 16px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      #output {
+        padding: 15px;
+        background-color: #f5f5f5;
+        border-radius: 4px;
+        min-height: 200px;
+        white-space: pre-wrap;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+      }
+      .endpoint {
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-bottom: 10px;
+      }
+      .method {
+        display: inline-block;
+        padding: 3px 6px;
+        border-radius: 3px;
+        color: white;
+        font-weight: bold;
+        margin-right: 10px;
+      }
+      .get {
+        background-color: #61affe;
+      }
+      .post {
+        background-color: #49cc90;
+      }
+      .loading {
+        color: #666;
+        font-style: italic;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>FastAPI in Browser with Pyodide</h1>
+    <p>
+      This example demonstrates running a FastAPI application directly in your
+      browser using Pyodide (Python + WebAssembly).
+    </p>
+
+    <div class="container">
+      <div>
+        <h2>1. Initialize Pyodide and Install Dependencies</h2>
+        <button id="setupBtn">Setup Environment</button>
+        <p class="loading" id="loadingSetup" style="display: none">
+          Setting up Pyodide environment (this may take a minute)...
+        </p>
+      </div>
+
+      <div>
+        <h2>2. Create a FastAPI Application</h2>
+        <button id="createAppBtn" disabled>Create FastAPI App</button>
+      </div>
+
+      <div>
+        <h2>3. Test API Endpoints</h2>
+        <div class="endpoint">
+          <span class="method get">GET</span>
+          <span class="url">/</span>
+          <button id="rootEndpointBtn" disabled>Test Root Endpoint</button>
+        </div>
+        <div class="endpoint">
+          <span class="method get">GET</span>
+          <span class="url">/items</span>
+          <button id="getItemsBtn" disabled>Get All Items</button>
+        </div>
+        <div class="endpoint">
+          <span class="method post">POST</span>
+          <span class="url">/items</span>
+          <button id="addItemBtn" disabled>Add New Item</button>
+        </div>
+      </div>
+
+      <div>
+        <h2>Output</h2>
+        <div id="output">Results will appear here...</div>
+      </div>
+    </div>
+
+    <script>
+      // Store the pyodide instance globally
+      let pyodide;
+
+      // Function to log output
+      function log(message) {
+        const output = document.getElementById("output");
+        output.innerHTML += message + "\n";
+        output.scrollTop = output.scrollHeight;
+      }
+
+      // Function to clear output
+      function clearOutput() {
+        document.getElementById("output").innerHTML = "";
+      }
+
+      // Setup Pyodide environment
+      document
+        .getElementById("setupBtn")
+        .addEventListener("click", async function () {
+          clearOutput();
+          const loadingElement = document.getElementById("loadingSetup");
+          loadingElement.style.display = "block";
+          this.disabled = true;
+
+          try {
+            log("Loading Pyodide...");
+            pyodide = await loadPyodide();
+            log("Pyodide loaded successfully.");
+
+            log("Installing micropip...");
+            await pyodide.loadPackagesFromImports(`
+                    import micropip
+                `);
+
+            log("Installing FastAPI and dependencies...");
+            await pyodide.runPythonAsync(`
+                    import micropip
+                    await micropip.install(['fastapi', 'typing_extensions', 'starlette'])
+                    print("✅ FastAPI and dependencies installed")
+                `);
+
+            document.getElementById("createAppBtn").disabled = false;
+            log("Setup complete! You can now create a FastAPI application.");
+          } catch (error) {
+            log(`Error during setup: ${error.message}`);
+            console.error(error);
+          } finally {
+            loadingElement.style.display = "none";
+          }
+        });
+
+      // Create the FastAPI application
+      document
+        .getElementById("createAppBtn")
+        .addEventListener("click", async function () {
+          clearOutput();
+          this.disabled = true;
+
+          try {
+            log("Creating FastAPI application...");
+            await pyodide.runPythonAsync(`
+                    from fastapi import FastAPI, HTTPException
+                    from pydantic import BaseModel
+                    from typing import List, Optional
+                    import json
+                    
+                    # Create the FastAPI app
+                    app = FastAPI(title="Browser FastAPI Demo")
+                    
+                    # Define data model
+                    class Item(BaseModel):
+                        id: Optional[int] = None
+                        name: str
+                        description: Optional[str] = None
+                        price: float
+                        
+                    # In-memory database
+                    items_db = [
+                        {"id": 1, "name": "Laptop", "description": "High-performance laptop", "price": 999.99},
+                        {"id": 2, "name": "Keyboard", "description": "Mechanical keyboard", "price": 79.99}
+                    ]
+                    item_id_counter = 3
+                    
+                    # Root endpoint
+                    @app.get("/")
+                    def read_root():
+                        return {"message": "Welcome to the FastAPI Browser Demo!"}
+                    
+                    # Get all items
+                    @app.get("/items")
+                    def get_items():
+                        return items_db
+                    
+                    # Get item by ID
+                    @app.get("/items/{item_id}")
+                    def get_item(item_id: int):
+                        item = next((i for i in items_db if i["id"] == item_id), None)
+                        if item is None:
+                            raise HTTPException(status_code=404, detail="Item not found")
+                        return item
+                    
+                    # Create new item
+                    @app.post("/items")
+                    def create_item(item: Item):
+                        global item_id_counter
+                        new_item = item.dict()
+                        new_item["id"] = item_id_counter
+                        item_id_counter += 1
+                        items_db.append(new_item)
+                        return new_item
+                    
+                    # Custom function to handle requests without a server
+                    def handle_request(path, method="GET", body=None):
+                        from starlette.routing import NoMatchFound
+                        from starlette.requests import Request
+                        from starlette.datastructures import URL, Headers
+                        
+                        url = URL(path=path)
+                        headers = Headers({})
+                        
+                        try:
+                            route = app.router.routes[0]
+                            for r in app.router.routes:
+                                if r.matches(scope={"type": "http", "method": method, "path": path})[0]:
+                                    route = r
+                                    break
+                            
+                            # Create a minimal request object
+                            request = Request({
+                                "type": "http",
+                                "method": method,
+                                "path": path,
+                                "headers": headers,
+                                "query_string": url.query.encode()
+                            })
+                            
+                            # Handle request body for POST/PUT
+                            if body and method in ["POST", "PUT"]:
+                                async def receive():
+                                    return {"type": "http.request", "body": json.dumps(body).encode()}
+                                request._receive = receive
+                            
+                            # Get the endpoint and params
+                            handler, params = route.matches({"type": "http", "method": method, "path": path})
+                            
+                            # Call the endpoint
+                            result = handler(request, **params)
+                            
+                            # Handle async results
+                            if hasattr(result, "__await__"):
+                                import asyncio
+                                result = asyncio.get_event_loop().run_until_complete(result)
+                            
+                            return {"status": "success", "data": result}
+                            
+                        except NoMatchFound:
+                            return {"status": "error", "message": f"No route found for {method} {path}"}
+                        except Exception as e:
+                            return {"status": "error", "message": str(e)}
+                `);
+
+            log("✅ FastAPI application created successfully!");
+
+            // Enable all API test buttons
+            document.getElementById("rootEndpointBtn").disabled = false;
+            document.getElementById("getItemsBtn").disabled = false;
+            document.getElementById("addItemBtn").disabled = false;
+
+            log("You can now test the API endpoints.");
+          } catch (error) {
+            log(`Error creating FastAPI app: ${error.message}`);
+            console.error(error);
+          }
+        });
+
+      // Test the root endpoint
+      document
+        .getElementById("rootEndpointBtn")
+        .addEventListener("click", async function () {
+          try {
+            log("\n--- Testing GET / endpoint ---");
+            const result = await pyodide.runPythonAsync(`
+                    handle_request("/")
+                `);
+            log(JSON.stringify(result, null, 2));
+          } catch (error) {
+            log(`Error: ${error.message}`);
+          }
+        });
+
+      // Test the GET /items endpoint
+      document
+        .getElementById("getItemsBtn")
+        .addEventListener("click", async function () {
+          try {
+            log("\n--- Testing GET /items endpoint ---");
+            const result = await pyodide.runPythonAsync(`
+                    handle_request("/items")
+                `);
+            log(JSON.stringify(result, null, 2));
+          } catch (error) {
+            log(`Error: ${error.message}`);
+          }
+        });
+
+      // Test the POST /items endpoint
+      document
+        .getElementById("addItemBtn")
+        .addEventListener("click", async function () {
+          try {
+            log("\n--- Testing POST /items endpoint ---");
+            const newItem = {
+              name: "Monitor",
+              description: "4K Ultra HD Monitor",
+              price: 349.99,
+            };
+            const result = await pyodide.runPythonAsync(`
+                    handle_request("/items", method="POST", body=${JSON.stringify(
+                      newItem
+                    )})
+                `);
+            log(JSON.stringify(result, null, 2));
+
+            // Refresh the items list to show the new item
+            log("\n--- Updated items list ---");
+            const updatedItems = await pyodide.runPythonAsync(`
+                    handle_request("/items")
+                `);
+            log(JSON.stringify(updatedItems, null, 2));
+          } catch (error) {
+            log(`Error: ${error.message}`);
+          }
+        });
+    </script>
+  </body>
+</html>
