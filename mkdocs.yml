@@ -1,5 +1,5 @@
 site_name: Preswald
-site_url: https://docs.preswald.com/
+site_url: http://localhost:8000/introduction
 repo_url: https://github.com/StructuredLabs/preswald
 repo_name: StructuredLabs/preswald
 theme:
@@ -18,9 +18,6 @@ theme:
     - search.highlight
     - search.share
     - search.suggest
-    - navigation.tracking
-    - navigation.instant
-    - navigation.instant.progress
     - navigation.footer
 
   font:
@@ -47,15 +44,17 @@ markdown_extensions:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
+extra_javascript:
+  - javascripts/extra.js
 nav:
   - Documentation: 
-    - Get started:
+    - "Get started":
       - Introduction: introduction.md
       - Quickstart: quickstart.md
       - Configuration: configuration.md
       - Core_Concepts: coreconcepts.md
       - Contributing: contributing.md
-    - CLI_Reference:
+    - "CLI Reference":
       - preswald_tutorial: cli/tutorial.md
       - preswald_init: cli/init.md
       - preswald_run: cli/run.md
@@ -63,11 +62,18 @@ nav:
       - preswald_deployments: cli/deployments.md
       - preswald_stop: cli/stop.md
     - Layout:
-      - Guide: usage/guide.md
+      - Guide: layout/guide.md
     - Usage:
       - Examples: usage/examples.md
       - Troubleshooting: usage/troubleshooting.md
-  - SDK Reference:
+    - "Important Links":
+      - Community: https://join.slack.com/t/structured-users/shared_invite/zt-265ong01f-UHP6BP3FzvOmMQDIKty_JQ
+      - Blog: https://structuredlabs.substack.com/
+      - PyPI: https://pypi.org/project/preswald/
+      - Copilot: https://marketplace.visualstudio.com/items?itemName=preswald.preswald
+      - Website: https://preswald.com/
+      - Support: mailto:amrutha@structuredlabs.com
+  - "SDK Reference":
     - ui:
       - alert: sdk/alert.md
       - checkbox: sdk/checkbox.md
@@ -88,5 +94,12 @@ nav:
       - RetryPolicy: sdk/retrypolicy.md
       - Workflow: sdk/workflow.md
       - WorkflowAnalyzer: sdk/workflow_analyzer.md
+    - "Important Links":
+      - Community: https://join.slack.com/t/structured-users/shared_invite/zt-265ong01f-UHP6BP3FzvOmMQDIKty_JQ
+      - Blog: https://structuredlabs.substack.com/
+      - PyPI: https://pypi.org/project/preswald/
+      - Copilot: https://marketplace.visualstudio.com/items?itemName=preswald.preswald
+      - Website: https://preswald.com/
+      - Support: mailto:amrutha@structuredlabs.com
 
 
