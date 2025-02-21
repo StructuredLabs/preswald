@@ -1,24 +1,26 @@
+import io
+import json
+import logging
 import os
 import shutil
 import subprocess
-from pathlib import Path
-import logging
-import pkg_resources
-import json
-import requests
 import zipfile
-from typing import Generator
 from datetime import datetime
-import io
+from pathlib import Path
+from typing import Generator
 
-from preswald.utils import read_template, get_project_slug
+import pkg_resources
+import requests
+
+from preswald.utils import get_project_slug, read_template
+
 
 logger = logging.getLogger(__name__)
 
 # Default Structured Cloud service URL
 # STRUCTURED_CLOUD_SERVICE_URL = os.getenv('STRUCTURED_CLOUD_SERVICE_URL', 'http://127.0.0.1:8080')
 # @TODO: to inject this from a preswald cli cmdn
-STRUCTURED_CLOUD_SERVICE_URL = "https://corewald-880196552654.us-east1.run.app"
+STRUCTURED_CLOUD_SERVICE_URL = "https://corewald-ndjz2ws6la-ue.a.run.app"
 
 
 def get_deploy_dir(script_path: str) -> Path:
@@ -111,7 +113,7 @@ def setup_gcloud() -> None:
             print("\nConfiguring Docker authentication...")
             subprocess.run(["gcloud", "auth", "configure-docker"], check=True)
         except subprocess.CalledProcessError as e:
-            raise Exception(f"Authentication failed: {str(e)}")
+            raise Exception(f"Authentication failed: {e!s}")
 
 
 def ensure_project_selected() -> str:
@@ -142,7 +144,7 @@ def ensure_project_selected() -> str:
         return project_id
 
     except subprocess.CalledProcessError as e:
-        raise Exception(f"Failed to get or set project: {str(e)}")
+        raise Exception(f"Failed to get or set project: {e!s}")
 
 
 def deploy_to_cloud_run(deploy_dir: Path, container_name: str, port: int = 8501) -> str:
@@ -166,7 +168,7 @@ def deploy_to_cloud_run(deploy_dir: Path, container_name: str, port: int = 8501)
         region = "us-west1"  # Default region, could be made configurable
         gcr_image = f"gcr.io/{project_id}/{container_name}"
 
-        print(f"Pushing image to Google Container Registry...")
+        print("Pushing image to Google Container Registry...")
 
         # Tag and push the image
         subprocess.run(
@@ -174,7 +176,7 @@ def deploy_to_cloud_run(deploy_dir: Path, container_name: str, port: int = 8501)
         )
         subprocess.run(["docker", "push", gcr_image], check=True, cwd=deploy_dir)
 
-        print(f"Deploying to Cloud Run...")
+        print("Deploying to Cloud Run...")
 
         # Deploy to Cloud Run
         subprocess.run(
@@ -223,40 +225,42 @@ def deploy_to_cloud_run(deploy_dir: Path, container_name: str, port: int = 8501)
                 "Google Cloud SDK not found. Please install from: "
                 "https://cloud.google.com/sdk/docs/install"
             )
-        raise Exception(f"Cloud Run deployment failed: {str(e)}")
+        raise Exception(f"Cloud Run deployment failed: {e!s}")
     except Exception as e:
-        raise Exception(f"Deployment failed: {str(e)}")
+        raise Exception(f"Deployment failed: {e!s}")
 
 
-def deploy_to_prod(script_path: str, port: int = 8501, github_username: str = None, api_key: str = None) -> Generator[dict, None, None]:
+def deploy_to_prod(
+    script_path: str, port: int = 8501, github_username: str = None, api_key: str = None
+) -> Generator[dict, None, None]:
     """
     Deploy a Preswald app to production via Structured Cloud service.
-    
+
     Args:
         script_path: Path to the Preswald application script
         port: Port number for the deployment
         github_username: Optional GitHub username provided via CLI
         api_key: Optional Structured Cloud API key provided via CLI
-        
+
     Returns:
         Generator yielding deployment status updates
     """
     script_path = os.path.abspath(script_path)
     script_dir = Path(script_path).parent
     config_path = script_dir / "preswald.toml"
-    env_file = script_dir / '.env.structured'
-    
+    env_file = script_dir / ".env.structured"
+
     # Get project slug from preswald.toml
     try:
         project_slug = get_project_slug(config_path)
     except Exception as e:
         yield {
-            'status': 'error',
-            'message': f'Failed to get project slug: {str(e)}',
-            'timestamp': datetime.now().isoformat()
+            "status": "error",
+            "message": f"Failed to get project slug: {e!s}",
+            "timestamp": datetime.now().isoformat(),
         }
-        raise Exception(f"Failed to get project slug: {str(e)}")
-    
+        raise Exception(f"Failed to get project slug: {e!s}")
+
     if not env_file.exists():
         # Use provided credentials or get from user input
         if not github_username:
@@ -265,47 +269,50 @@ def deploy_to_prod(script_path: str, port: int = 8501, github_username: str = No
             structured_cloud_api_key = input("Enter your Structured Cloud API key: ")
         else:
             structured_cloud_api_key = api_key
-        
+
         # Create and populate .env.structured file
-        with open(env_file, 'w') as f:
+        with open(env_file, "w") as f:
             f.write(f"GITHUB_USERNAME={github_username}\n")
             f.write(f"STRUCTURED_CLOUD_API_KEY={structured_cloud_api_key}\n")
     else:
         # Read credentials from existing env file if not provided via CLI
         credentials = {}
-        with open(env_file, 'r') as f:
+        with open(env_file) as f:
             for line in f:
-                key, value = line.strip().split('=')
+                key, value = line.strip().split("=")
                 credentials[key] = value
-        
-        github_username = github_username or credentials['GITHUB_USERNAME']
-        structured_cloud_api_key = api_key or credentials['STRUCTURED_CLOUD_API_KEY']
-    
+
+        github_username = github_username or credentials["GITHUB_USERNAME"]
+        structured_cloud_api_key = api_key or credentials["STRUCTURED_CLOUD_API_KEY"]
+
     # Create a temporary zip file
     zip_buffer = io.BytesIO()
-    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
         # Walk through the script directory and add all files
         for root, _, files in os.walk(script_dir):
             for file in files:
                 # Skip .preswald_deploy directory
-                if '.preswald_deploy' in root:
+                if ".preswald_deploy" in root:
                     continue
-                    
+
                 file_path = os.path.join(root, file)
                 arc_name = os.path.relpath(file_path, script_dir)
                 zip_file.write(file_path, arc_name)
-    
+
     # Prepare the zip file for sending
     zip_buffer.seek(0)
-    files = {'deployment': ('app.zip', zip_buffer, 'application/zip')}
-    
+    files = {"deployment": ("app.zip", zip_buffer, "application/zip")}
+
     try:
-        git_repo_name = subprocess.check_output(
-            ['git', 'config', '--get', 'remote.origin.url'],
-            cwd=script_dir
-        ).decode('utf-8').strip()
-        
-        git_repo_name = git_repo_name.split('/')[-1].replace('.git', '')
+        git_repo_name = (
+            subprocess.check_output(
+                ["git", "config", "--get", "remote.origin.url"], cwd=script_dir
+            )
+            .decode("utf-8")
+            .strip()
+        )
+
+        git_repo_name = git_repo_name.split("/")[-1].replace(".git", "")
     except subprocess.CalledProcessError:
         git_repo_name = os.path.basename(script_dir)
 
@@ -314,30 +321,31 @@ def deploy_to_prod(script_path: str, port: int = 8501, github_username: str = No
             f"{STRUCTURED_CLOUD_SERVICE_URL}/deploy",
             files=files,
             data={
-                'github_username': github_username,
-                'structured_cloud_api_key': structured_cloud_api_key,
-                'project_slug': project_slug,
-                'git_repo_name': git_repo_name,
+                "github_username": github_username,
+                "structured_cloud_api_key": structured_cloud_api_key,
+                "project_slug": project_slug,
+                "git_repo_name": git_repo_name,
             },
-            stream=True
+            stream=True,
         )
         response.raise_for_status()
-        
+
         # Process SSE stream
         for line in response.iter_lines():
             if line:
                 # SSE lines start with "data: "
-                if line.startswith(b'data: '):
-                    data = json.loads(line[6:].decode('utf-8'))
+                if line.startswith(b"data: "):
+                    data = json.loads(line[6:].decode("utf-8"))
                     yield data
-                    
+
     except requests.RequestException as e:
         yield {
-            'status': 'error',
-            'message': f'Deployment failed: {str(e)}',
-            'timestamp': datetime.now().isoformat()
+            "status": "error",
+            "message": f"Deployment failed: {e!s}",
+            "timestamp": datetime.now().isoformat(),
         }
-        raise Exception(f"Production deployment failed: {str(e)}")
+        raise Exception(f"Production deployment failed: {e!s}")
+
 
 def deploy_to_gcp(script_path: str, port: int = 8501) -> str:
     """
@@ -355,17 +363,17 @@ def deploy_to_gcp(script_path: str, port: int = 8501) -> str:
     script_dir = Path(script_path).parent
     container_name = get_container_name(script_path)
     deploy_dir = get_deploy_dir(script_path)
-    
+
     # Get preswald version for exact version matching
     preswald_version = pkg_resources.get_distribution("preswald").version
-    
+
     # Clear out old deployment directory contents while preserving the directory itself
     for item in deploy_dir.iterdir():
         if item.is_file():
             item.unlink()
         elif item.is_dir():
             shutil.rmtree(item)
-            
+
     # Copy everything from script's directory to deployment directory
     for item in script_dir.iterdir():
         if item.name == ".preswald_deploy":
@@ -374,17 +382,17 @@ def deploy_to_gcp(script_path: str, port: int = 8501) -> str:
             shutil.copy2(item, deploy_dir / item.name)
         elif item.is_dir():
             shutil.copytree(item, deploy_dir / item.name)
-            
+
     # Rename main script to app.py if needed
     if Path(script_path).name != "app.py":
         shutil.move(deploy_dir / Path(script_path).name, deploy_dir / "app.py")
-        
+
     # Create startup script
     startup_template = read_template("run.py")
     startup_script = startup_template.format(port=port)
     with open(deploy_dir / "run.py", "w") as f:
         f.write(startup_script)
-        
+
     # Create Dockerfile
     dockerfile_template = read_template("Dockerfile")
     dockerfile_content = dockerfile_template.format(
@@ -392,7 +400,7 @@ def deploy_to_gcp(script_path: str, port: int = 8501) -> str:
     )
     with open(deploy_dir / "Dockerfile", "w") as f:
         f.write(dockerfile_content)
-        
+
     # Store deployment info
     deployment_info = {
         "script": script_path,
@@ -401,12 +409,12 @@ def deploy_to_gcp(script_path: str, port: int = 8501) -> str:
     }
     with open(deploy_dir / "deployment.json", "w") as f:
         json.dump(deployment_info, f, indent=2)
-        
+
     try:
         # Stop any existing container
-        print(f"Stopping existing deployment (if any)...")
+        print("Stopping existing deployment (if any)...")
         stop_existing_container(container_name)
-        
+
         # Build the Docker image for GCP (using linux/amd64 platform)
         print(f"Building Docker image {container_name} for GCP deployment...")
         subprocess.run(
@@ -422,12 +430,12 @@ def deploy_to_gcp(script_path: str, port: int = 8501) -> str:
             check=True,
             cwd=deploy_dir,
         )
-        
+
         # Deploy to Cloud Run
         return deploy_to_cloud_run(deploy_dir, container_name, port=port)
-        
+
     except subprocess.CalledProcessError as e:
-        raise Exception(f"Docker operation failed: {str(e)}")
+        raise Exception(f"Docker operation failed: {e!s}")
     except FileNotFoundError:
         raise Exception(
             "Docker not found. Please install Docker Desktop from "
@@ -435,7 +443,13 @@ def deploy_to_gcp(script_path: str, port: int = 8501) -> str:
         )
 
 
-def deploy(script_path: str, target: str = "local", port: int = 8501, github_username: str = None, api_key: str = None) -> str | Generator[dict, None, None]:
+def deploy(
+    script_path: str,
+    target: str = "local",
+    port: int = 8501,
+    github_username: str = None,
+    api_key: str = None,
+) -> str | Generator[dict, None, None]:
     """
     Deploy a Preswald app.
 
@@ -502,7 +516,7 @@ def deploy(script_path: str, target: str = "local", port: int = 8501, github_use
             json.dump(deployment_info, f, indent=2)
         try:
             # Stop any existing container
-            print(f"Stopping existing deployment (if any)...")
+            print("Stopping existing deployment (if any)...")
             stop_existing_container(container_name)
             # Build the Docker image
             print(f"Building Docker image {container_name}...")
@@ -529,7 +543,7 @@ def deploy(script_path: str, target: str = "local", port: int = 8501, github_use
             )
             return f"http://localhost:{port}"
         except subprocess.CalledProcessError as e:
-            raise Exception(f"Docker operation failed: {str(e)}")
+            raise Exception(f"Docker operation failed: {e!s}")
         except FileNotFoundError:
             raise Exception(
                 "Docker not found. Please install Docker Desktop from "
@@ -571,138 +585,140 @@ def stop(script_path: str = None) -> None:
 def stop_structured_deployment(script_path: str) -> dict:
     """
     Stop a Preswald app deployed to Structured Cloud service.
-    
+
     Args:
         script_path: Path to the Preswald application script
-        
+
     Returns:
         dict: Status of the stop operation
     """
     script_dir = Path(script_path).parent
     config_path = script_dir / "preswald.toml"
-    env_file = script_dir / '.env.structured'
-    
+    env_file = script_dir / ".env.structured"
+
     # Get project slug from preswald.toml
     try:
         project_slug = get_project_slug(config_path)
     except Exception as e:
-        raise Exception(f"Failed to get project slug: {str(e)}")
-    
+        raise Exception(f"Failed to get project slug: {e!s}")
+
     if not env_file.exists():
         raise Exception("No deployment found. The .env.structured file is missing.")
-    
+
     # Read credentials from existing env file
     credentials = {}
-    with open(env_file, 'r') as f:
+    with open(env_file) as f:
         for line in f:
-            key, value = line.strip().split('=')
+            key, value = line.strip().split("=")
             credentials[key] = value
-            
-    github_username = credentials['GITHUB_USERNAME']
-    structured_cloud_api_key = credentials['STRUCTURED_CLOUD_API_KEY']
-    
+
+    github_username = credentials["GITHUB_USERNAME"]
+    structured_cloud_api_key = credentials["STRUCTURED_CLOUD_API_KEY"]
+
     try:
         response = requests.post(
             f"{STRUCTURED_CLOUD_SERVICE_URL}/stop",
             json={
-                'github_username': github_username,
-                'structured_cloud_api_key': structured_cloud_api_key,
-                'project_slug': project_slug
-            }
+                "github_username": github_username,
+                "structured_cloud_api_key": structured_cloud_api_key,
+                "project_slug": project_slug,
+            },
         )
         response.raise_for_status()
         return response.json()
-        
+
     except requests.RequestException as e:
-        raise Exception(f"Failed to stop production deployment: {str(e)}")
+        raise Exception(f"Failed to stop production deployment: {e!s}")
 
 
 def get_structured_deployments(script_path: str) -> dict:
     """
     Get deployments from Structured Cloud service.
-    
+
     Args:
         script_path: Path to the Preswald application script
-        
+
     Returns:
         dict: Deployment information including user, organization, and deployments list
     """
     script_dir = Path(script_path).parent
     config_path = script_dir / "preswald.toml"
-    env_file = script_dir / '.env.structured'
-    
+    env_file = script_dir / ".env.structured"
+
     # Get project slug from preswald.toml
     try:
         project_slug = get_project_slug(config_path)
     except Exception as e:
-        raise Exception(f"Failed to get project slug: {str(e)}")
-    
+        raise Exception(f"Failed to get project slug: {e!s}")
+
     if not env_file.exists():
         raise Exception("No deployment found. The .env.structured file is missing.")
-    
+
     # Read credentials from existing env file
     credentials = {}
-    with open(env_file, 'r') as f:
+    with open(env_file) as f:
         for line in f:
-            key, value = line.strip().split('=')
+            key, value = line.strip().split("=")
             credentials[key] = value
-            
-    github_username = credentials['GITHUB_USERNAME']
-    structured_cloud_api_key = credentials['STRUCTURED_CLOUD_API_KEY']
-    
+
+    github_username = credentials["GITHUB_USERNAME"]
+    structured_cloud_api_key = credentials["STRUCTURED_CLOUD_API_KEY"]
+
     try:
         response = requests.post(
             f"{STRUCTURED_CLOUD_SERVICE_URL}/deployments",
             json={
-                'github_username': github_username,
-                'structured_cloud_api_key': structured_cloud_api_key,
-                'project_slug': project_slug
-            }
+                "github_username": github_username,
+                "structured_cloud_api_key": structured_cloud_api_key,
+                "project_slug": project_slug,
+            },
         )
         response.raise_for_status()
         return response.json()
-        
+
     except requests.RequestException as e:
-        raise Exception(f"Failed to fetch deployments: {str(e)}")
+        raise Exception(f"Failed to fetch deployments: {e!s}")
 
 
 def cleanup_gcp_deployment(script_path: str):
-    import subprocess
     import json
+    import subprocess
     from datetime import datetime
     from pathlib import Path
-    
+
     def log_status(status, message):
         return {
-            'status': status,
-            'message': message,
-            'timestamp': datetime.utcnow().isoformat()
+            "status": status,
+            "message": message,
+            "timestamp": datetime.utcnow().isoformat(),
         }
-    
+
     try:
-        yield log_status('info', 'Gathering deployment information...')
+        yield log_status("info", "Gathering deployment information...")
         script_path = os.path.abspath(script_path)
         script_dir = Path(script_path).parent
         container_name = get_container_name(script_path)
-        
-        yield log_status('info', 'Verifying Google Cloud SDK setup...')
+
+        yield log_status("info", "Verifying Google Cloud SDK setup...")
         try:
             setup_gcloud()
         except Exception as e:
-            yield log_status('error', f'Failed to setup Google Cloud SDK: {str(e)}')
+            yield log_status("error", f"Failed to setup Google Cloud SDK: {e!s}")
             return
-            
+
         try:
             project_id = ensure_project_selected()
-            yield log_status('success', f'Found GCP project: {project_id}')
+            yield log_status("success", f"Found GCP project: {project_id}")
         except Exception as e:
-            yield log_status('error', f'Failed to get GCP project: {str(e)}')
+            yield log_status("error", f"Failed to get GCP project: {e!s}")
             return
-            
+
         region = "us-west1"
         gcr_image = f"gcr.io/{project_id}/{container_name}"
-        
-        yield log_status('info', f'Attempting to delete Cloud Run service: {container_name}')
+
+        yield log_status(
+            "info", f"Attempting to delete Cloud Run service: {container_name}"
+        )
         try:
             service_check = subprocess.run(
                 [
@@ -715,12 +731,12 @@ def cleanup_gcp_deployment(script_path: str):
                     "managed",
                     "--region",
                     region,
-                    "--format=json"
+                    "--format=json",
                 ],
                 capture_output=True,
-                text=True
+                text=True,
             )
-            
+
             if service_check.returncode == 0:
                 delete_result = subprocess.run(
                     [
@@ -733,22 +749,32 @@ def cleanup_gcp_deployment(script_path: str):
                         "managed",
                         "--region",
                         region,
-                        "--quiet"
+                        "--quiet",
                     ],
                     capture_output=True,
-                    text=True
+                    text=True,
                 )
-                
+
                 if delete_result.returncode == 0:
-                    yield log_status('success', f'Successfully deleted Cloud Run service: {container_name}')
+                    yield log_status(
+                        "success",
+                        f"Successfully deleted Cloud Run service: {container_name}",
+                    )
                 else:
-                    yield log_status('error', f'Failed to delete Cloud Run service: {delete_result.stderr}')
+                    yield log_status(
+                        "error",
+                        f"Failed to delete Cloud Run service: {delete_result.stderr}",
+                    )
             else:
-                yield log_status('info', f'No Cloud Run service found with name: {container_name}')
+                yield log_status(
+                    "info", f"No Cloud Run service found with name: {container_name}"
+                )
         except Exception as e:
-            yield log_status('error', f'Error while deleting Cloud Run service: {str(e)}')
-            
-        yield log_status('info', f'Cleaning up container images from GCR: {gcr_image}')
+            yield log_status(
+                "error", f"Error while deleting Cloud Run service: {e!s}"
+            )
+
+        yield log_status("info", f"Cleaning up container images from GCR: {gcr_image}")
         try:
             list_result = subprocess.run(
                 [
@@ -757,18 +783,18 @@ def cleanup_gcp_deployment(script_path: str):
                     "images",
                     "list-tags",
                     gcr_image,
-                    "--format=json"
+                    "--format=json",
                 ],
                 capture_output=True,
-                text=True
+                text=True,
             )
-            
+
             if list_result.returncode == 0:
                 images = json.loads(list_result.stdout)
                 if images:
-                    yield log_status('info', 'Removing image tags...')
+                    yield log_status("info", "Removing image tags...")
                     for image in images:
-                        tags = image.get('tags', [])
+                        tags = image.get("tags", [])
                         for tag in tags:
                             untag_result = subprocess.run(
                                 [
@@ -777,18 +803,21 @@ def cleanup_gcp_deployment(script_path: str):
                                     "images",
                                     "untag",
                                     f"{gcr_image}:{tag}",
-                                    "--quiet"
+                                    "--quiet",
                                 ],
                                 capture_output=True,
-                                text=True
+                                text=True,
                             )
                             if untag_result.returncode == 0:
-                                yield log_status('success', f'Removed tag: {tag}')
+                                yield log_status("success", f"Removed tag: {tag}")
                             else:
-                                yield log_status('warning', f'Failed to remove tag {tag}: {untag_result.stderr}')
+                                yield log_status(
+                                    "warning",
+                                    f"Failed to remove tag {tag}: {untag_result.stderr}",
+                                )
 
                     for image in images:
-                        digest = image.get('digest')
+                        digest = image.get("digest")
                         if digest:
                             delete_image_result = subprocess.run(
                                 [
@@ -798,17 +827,22 @@ def cleanup_gcp_deployment(script_path: str):
                                     "delete",
                                     f"{gcr_image}@{digest}",
                                     "--force-delete-tags",
-                                    "--quiet"
+                                    "--quiet",
                                 ],
                                 capture_output=True,
-                                text=True
+                                text=True,
                             )
-                            
+
                             if delete_image_result.returncode == 0:
-                                yield log_status('success', f'Deleted container image: {digest[:12]}')
+                                yield log_status(
+                                    "success", f"Deleted container image: {digest[:12]}"
+                                )
                             else:
-                                yield log_status('error', f'Failed to delete image {digest[:12]}: {delete_image_result.stderr}')
-                    
+                                yield log_status(
+                                    "error",
+                                    f"Failed to delete image {digest[:12]}: {delete_image_result.stderr}",
+                                )
+
                     repo_delete_result = subprocess.run(
                         [
                             "gcloud",
@@ -817,41 +851,46 @@ def cleanup_gcp_deployment(script_path: str):
                             "delete",
                             gcr_image,
                             "--force-delete-tags",
-                            "--quiet"
+                            "--quiet",
                         ],
                         capture_output=True,
-                        text=True
+                        text=True,
                     )
-                    
+
                     if repo_delete_result.returncode == 0:
-                        yield log_status('success', 'Successfully deleted container image repository')
+                        yield log_status(
+                            "success", "Successfully deleted container image repository"
+                        )
                     else:
-                        yield log_status('error', f'Failed to delete image repository: {repo_delete_result.stderr}')
+                        yield log_status(
+                            "error",
+                            f"Failed to delete image repository: {repo_delete_result.stderr}",
+                        )
                 else:
-                    yield log_status('info', 'No container images found to clean up')
+                    yield log_status("info", "No container images found to clean up")
             else:
-                yield log_status('error', f'Failed to list container images: {list_result.stderr}')
+                yield log_status(
+                    "error", f"Failed to list container images: {list_result.stderr}"
+                )
         except Exception as e:
-            yield log_status('error', f'Error while cleaning up container images: {str(e)}')
-            
-        yield log_status('info', 'Cleaning up local Docker images...')
+            yield log_status(
+                "error", f"Error while cleaning up container images: {e!s}"
+            )
+
+        yield log_status("info", "Cleaning up local Docker images...")
         try:
             subprocess.run(
-                ["docker", "rmi", container_name],
-                capture_output=True,
-                text=True
+                ["docker", "rmi", container_name], capture_output=True, text=True
             )
-            subprocess.run(
-                ["docker", "rmi", gcr_image],
-                capture_output=True,
-                text=True
-            )
-            yield log_status('success', 'Cleaned up local Docker images')
+            subprocess.run(["docker", "rmi", gcr_image], capture_output=True, text=True)
+            yield log_status("success", "Cleaned up local Docker images")
         except Exception as e:
-            yield log_status('info', f'Note: Could not clean local Docker images: {str(e)}')
-            
-        yield log_status('success', 'GCP cleanup completed successfully!')
-        
+            yield log_status(
+                "info", f"Note: Could not clean local Docker images: {e!s}"
+            )
+
+        yield log_status("success", "GCP cleanup completed successfully!")
+
     except Exception as e:
-        yield log_status('error', f'Unexpected error during cleanup: {str(e)}')
+        yield log_status("error", f"Unexpected error during cleanup: {e!s}")
         raise

@@ -9,13 +9,22 @@ import pkg_resources
 from preswald.deploy import cleanup_gcp_deployment, stop_structured_deployment
 from preswald.deploy import deploy as deploy_app
 from preswald.deploy import stop as stop_app
+from preswald.engine.telemetry import TelemetryService
 from preswald.main import start_server
-from preswald.utils import configure_logging, read_template, get_project_slug, generate_slug, read_port_from_config
+from preswald.utils import (
+    configure_logging,
+    generate_slug,
+    read_port_from_config,
+    read_template,
+)
 
 
 # Create a temporary directory for IPC
 TEMP_DIR = os.path.join(tempfile.gettempdir(), "preswald")
 os.makedirs(TEMP_DIR, exist_ok=True)
+
+# Initialize telemetry service
+telemetry = TelemetryService()
 
 
 @click.group()
@@ -65,13 +74,20 @@ def init(name):
 
         for file_name, template_name in file_templates.items():
             content = read_template(template_name)
-            
+
             # Replace the default slug in preswald.toml with the generated one
             if file_name == "preswald.toml":
-                content = content.replace('slug = "preswald-project"', f'slug = "{project_slug}"')
-            
+                content = content.replace(
+                    'slug = "preswald-project"', f'slug = "{project_slug}"'
+                )
+
             with open(os.path.join(name, file_name), "w") as f:
                 f.write(content)
+
+        # Track initialization
+        telemetry.track_command(
+            "init", {"project_name": name, "project_slug": project_slug}
+        )
 
         click.echo(f"Initialized a new Preswald project in '{name}/' 🎉!")
         click.echo(f"Project slug: {project_slug}")
@@ -108,6 +124,7 @@ def run(port, log_level, disable_new_tab):
         return
 
     import tomli
+
     try:
         with open(config_path, "rb") as f:
             config = tomli.load(f)
@@ -116,7 +133,9 @@ def run(port, log_level, disable_new_tab):
         return
 
     if "project" not in config or "entrypoint" not in config["project"]:
-        click.echo("Error: entrypoint not defined in preswald.toml under [project] section. ❌")
+        click.echo(
+            "Error: entrypoint not defined in preswald.toml under [project] section. ❌"
+        )
         return
 
     script = config["project"]["entrypoint"]
@@ -126,6 +145,17 @@ def run(port, log_level, disable_new_tab):
 
     log_level = configure_logging(config_path=config_path, level=log_level)
     port = read_port_from_config(config_path=config_path, port=port)
+
+    # Track run command
+    telemetry.track_command(
+        "run",
+        {
+            "script": script,
+            "port": port,
+            "log_level": log_level,
+            "disable_new_tab": disable_new_tab,
+        },
+    )
 
     url = f"http://localhost:{port}"
     click.echo(f"Running '{script}' on {url} with log level {log_level}  🎉!")
@@ -183,6 +213,7 @@ def deploy(script, target, port, log_level, github, api_key):
         config_path = "preswald.toml"
         if os.path.exists(config_path):
             import tomli
+
             try:
                 with open(config_path, "rb") as f:
                     config = tomli.load(f)
@@ -193,8 +224,12 @@ def deploy(script, target, port, log_level, github, api_key):
                 # Continue with provided script argument if config reading fails
 
         if not script:
-            click.echo("Error: No script specified and no entrypoint found in preswald.toml ❌")
-            click.echo("Either provide a script argument or define entrypoint in preswald.toml")
+            click.echo(
+                "Error: No script specified and no entrypoint found in preswald.toml ❌"
+            )
+            click.echo(
+                "Either provide a script argument or define entrypoint in preswald.toml"
+            )
             return
 
         if not os.path.exists(script):
@@ -204,6 +239,19 @@ def deploy(script, target, port, log_level, github, api_key):
         config_path = os.path.join(os.path.dirname(script), "preswald.toml")
         log_level = configure_logging(config_path=config_path, level=log_level)
         port = read_port_from_config(config_path=config_path, port=port)
+
+        # Track deployment
+        telemetry.track_command(
+            "deploy",
+            {
+                "script": script,
+                "target": target,
+                "port": port,
+                "log_level": log_level,
+                "has_github": bool(github),
+                "has_api_key": bool(api_key),
+            },
+        )
 
         if target == "structured":
             click.echo("Starting production deployment... 🚀")
@@ -271,6 +319,9 @@ def stop(script, target):
             click.echo(f"Error: Script '{script}' not found. ❌")
             return
 
+        # Track stop command
+        telemetry.track_command("stop", {"script": script, "target": target})
+
         if target == "structured":
             try:
                 stop_structured_deployment(script)
@@ -327,6 +378,9 @@ def deployments():
                 )
             )
             return
+
+        # Track deployments command
+        telemetry.track_command("deployments", {})
 
         from preswald.deploy import get_structured_deployments
 
@@ -399,6 +453,9 @@ def tutorial(ctx):
         click.echo(f"Error: Tutorial script '{tutorial_script}' not found. ❌")
         click.echo("👉 The tutorial files may be missing from your installation.")
         return
+
+    # Track tutorial command
+    telemetry.track_command("tutorial", {})
 
     click.echo("🚀 Launching the Preswald tutorial app! 🎉")
 

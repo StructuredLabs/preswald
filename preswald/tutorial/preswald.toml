@@ -3,6 +3,7 @@ title = "Preswald Tutorial"
 version = "0.1.0"
 port = 8501
 entrypoint = "hello.py"
+slug = "preswald-tutorial"
 
 [branding]
 name = "Preswald Tutorial"
