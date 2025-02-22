@@ -2,6 +2,7 @@
 title = "Voice Log Debugger"
 version = "0.1.0"
 port = 8501
+entrypoint = "hello.py"
 
 [branding]
 name = "Voice Log Debugger"

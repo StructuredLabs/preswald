@@ -2,7 +2,6 @@ import logging
 import os
 import uuid
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any, Dict, Optional
 
 import duckdb
@@ -60,7 +59,7 @@ class CSVSource(DataSource):
         self, name: str, config: CSVConfig, duckdb_conn: duckdb.DuckDBPyConnection
     ):
         super().__init__(name, duckdb_conn)
-        self.path = Path(config.path)
+        self.path = config.path
 
         # Create a table in DuckDB for this CSV
         self._table_name = f"csv_{name}_{uuid.uuid4().hex[:8]}"

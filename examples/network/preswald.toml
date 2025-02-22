@@ -2,6 +2,7 @@
 title = "Network Topology | Preswald"
 version = "0.1.0"
 port = 8501
+entrypoint = "hello.py"
 
 [branding]
 name = "Network Topology"
