@@ -3,6 +3,7 @@ title = "Real Estate Prices | Preswald"
 version = "0.1.0"
 port = 8501
 entrypoint = "hello.py"
+slug = "real-estate-prices"
 
 [branding]
 name = "Real Estate Prices"
