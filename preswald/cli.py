@@ -26,7 +26,6 @@ os.makedirs(TEMP_DIR, exist_ok=True)
 # Initialize telemetry service
 telemetry = TelemetryService()
 
-
 @click.group()
 @click.version_option()
 def cli():
