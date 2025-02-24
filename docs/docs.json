@@ -1,12 +1,13 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "theme": "maple",
+  "name": "Preswald",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+  "primary": "#000000",
+    "light": "#000000",
+    "dark": "#000000"
   },
+  
   "favicon": "/favicon.svg",
   "navigation": {
     "tabs": [
@@ -75,7 +76,7 @@
     }
   },
   "logo": {
-    "light": "/logo/light.svg",
+    "light": "/logo/light.png",
     "dark": "/logo/dark.svg"
   },
   "navbar": {
@@ -91,11 +92,17 @@
       "href": "https://dashboard.mintlify.com"
     }
   },
+  "appearance": {
+    "default": "light",
+    "strict": true
+  },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "x": "https://x.com/StructuredLabs",
+      "github": "https://github.com/StructuredLabs/preswald",
+      "linkedin": "https://www.linkedin.com/company/structuredlabs/",
+      "website": "https://preswald.com",
+      "slack": "https://structured-users.slack.com/"
     }
   }
 }
