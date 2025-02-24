@@ -1,55 +1,87 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "maple",
+  "theme": "mint",
   "name": "Preswald",
   "colors": {
-  "primary": "#000000",
+    "primary": "#000000",
     "light": "#000000",
     "dark": "#000000"
   },
-  
   "favicon": "/favicon.svg",
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
             "group": "Get Started",
             "pages": [
               "introduction",
               "quickstart",
-              "development"
+              "configuration",
+              "coreconcepts",
+              "contributing"
             ]
           },
           {
-            "group": "Essentials",
+            "group": "CLI Reference",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/settings",
-              "essentials/navigation",
-              "essentials/reusable-snippets"
+              "cli/tutorial",
+              "cli/init",
+              "cli/run",
+              "cli/deploy",
+              "cli/deployments",
+              "cli/stop"
+            ]
+          },
+          {
+            "group": "Layout",
+            "pages": [
+              "layout/guide"
+            ]
+          },
+          {
+            "group": "Usage",
+            "pages": [
+              "usage/examples",
+              "usage/troubleshooting"
             ]
           }
         ]
       },
       {
-        "tab": "API Reference",
+        "tab": "SDK Reference",
         "groups": [
           {
-            "group": "API Documentation",
+            "group": "ui",
             "pages": [
-              "api-reference/introduction"
+              "sdk/alert",
+              "sdk/checkbox",
+              "sdk/plotly",
+              "sdk/progress",
+              "sdk/selectbox",
+              "sdk/separator",
+              "sdk/slider",
+              "sdk/table",
+              "sdk/text",
+              "sdk/text_input",
+              "sdk/workflow_dag"
             ]
           },
           {
-            "group": "Endpoint Examples",
+            "group": "data",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete"
+              "sdk/connect",
+              "sdk/get_df",
+              "sdk/query"
+            ]
+          },
+          {
+            "group": "workflow",
+            "pages": [
+              "sdk/retrypolicy",
+              "sdk/workflow",
+              "sdk/workflow_analyzer"
             ]
           }
         ]
@@ -58,19 +90,24 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
           "anchor": "Community",
-          "href": "https://mintlify.com/community",
+          "href": "https://join.slack.com/t/structured-users/shared_invite/zt-265ong01f-UHP6BP3FzvOmMQDIKty_JQ",
           "icon": "slack"
         },
         {
           "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
+          "href": "https://structuredlabs.substack.com/",
           "icon": "newspaper"
+        },
+        {
+          "anchor": "PyPI",
+          "href": "https://pypi.org/project/preswald/",
+          "icon": "code"
+        },
+        {
+          "anchor": "Copilot",
+          "href": "https://marketplace.visualstudio.com/items?itemName=preswald.preswald",
+          "icon": "brain"
         }
       ]
     }
@@ -79,30 +116,33 @@
     "light": "/logo/light.png",
     "dark": "/logo/dark.svg"
   },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
   "appearance": {
     "default": "light",
     "strict": true
   },
+  "navbar": {
+    "links": [
+      {
+        "label": "Website",
+        "href": "https://preswald.com"
+      },
+      {
+        "label": "Support",
+        "href": "mailto:amrutha@structuredlabs.com"
+      }
+    ],
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/StructuredLabs/preswald"
+    }
+  },
   "footer": {
     "socials": {
-      "x": "https://x.com/StructuredLabs",
-      "github": "https://github.com/StructuredLabs/preswald",
       "linkedin": "https://www.linkedin.com/company/structuredlabs/",
-      "website": "https://preswald.com",
-      "slack": "https://structured-users.slack.com/"
+      "twitter": "https://twitter.com/StructuredLabs",
+      "website": "https://www.structuredlabs.com",
+      "slack": "https://structured-users.slack.com/",
+      "github": "https://github.com/StructuredLabs"
     }
   }
 }

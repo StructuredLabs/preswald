@@ -1,0 +1,42 @@
+---
+title: "button"
+icon: "square"
+description: ""
+---
+
+```python
+button(label: str, size: float = 1.0)
+```
+
+The `button` function adds a clickable button to your app.
+
+## Parameters
+
+- **`label`** _(str)_: The text displayed on the button
+- **`size`** _(float)_: _(Optional)_ The width of the component in a row. Defaults to `1.0` (full row). See the [Layout Guide](/layout/guide) for details.
+
+## Returns
+
+- Returns a button component object (Note: Button functionality is currently under development)
+
+## Usage Example
+
+Here's an example of how to add a button to your app:
+
+```python
+from preswald import button
+
+# Create a simple button
+button(label="Click Me!")
+```
+
+### Key Features
+
+1. **Customizable Label**: Set the text that appears on the button
+2. **Flexible Layout**: Control the button's width in the layout
+
+### Why Use `button`?
+
+Buttons are fundamental UI elements that provide clear call-to-actions for users. They are essential for creating interactive applications where users need to trigger specific actions.
+
+Note: Button click functionality is currently under development.

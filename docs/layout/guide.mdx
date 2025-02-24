@@ -1,0 +1,41 @@
+---
+title: "Guide"
+icon: "table-cells"
+description: ""
+---
+
+# Using the `size` Parameter in Components
+
+The `size` parameter lets you control how much space a component occupies in a row, enabling you to create dynamic and responsive layouts.
+
+---
+
+## How the `size` Parameter Works
+
+- **Default Behavior**: All components have a default `size=1.0`, taking up the full width of the row.
+- **Custom Sizes**: You can specify a `size` less than `1.0` to allow multiple components to share the same row.
+- **Row Limit**: The combined `size` of components in a row cannot exceed `1.0`.
+- **Dependency**: A component only shares a row if another component is placed after it.
+
+---
+
+## Example: Multiple Components in One Row
+
+Here’s an example of how to use the `size` parameter to arrange components in a row:
+
+```python
+from preswald import slider, button
+
+# Two sliders sharing a row
+slider1 = slider("Filter 1", min_val=0.0, max_val=10.0, default=5.0, size=0.5)
+slider2 = slider("Filter 2", min_val=0.0, max_val=10.0, default=5.0, size=0.5)
+
+# Button and slider sharing a row
+submit_button = button("Submit", size=0.3)
+threshold_slider = slider("Threshold", min_val=0.0, max_val=100.0, default=50.0, size=0.7)
+```
+
+---
+
+- **Flexible Layouts**: Multiple components with smaller sizes can fit side by side in a single row.
+- **Spacing Management**: Verify the combined sizes of all components in a row add up to `1.0` or less.

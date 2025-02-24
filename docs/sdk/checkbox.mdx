@@ -1,0 +1,43 @@
+---
+title: "checkbox"
+icon: "square-check"
+description: ""
+---
+
+```python
+checkbox(label: str, default: bool = False, size: float = 1.0) -> bool
+```
+
+The `checkbox` function adds an interactive check box to your app.
+
+## Parameters
+
+- **`label`** _(str)_: The label displayed next to the checkbox, indicating its purpose.
+- **`default`** _(bool)_: _(Optional)_ The initial/default value of the checkbox.
+- **`size`** _(float)_: _(Optional)_ The width of the component in a row. Defaults to `1.0` (full row). See the [Layout Guide](/layout/guide) for details.
+
+## Returns
+
+- `bool`: `True` if checked, `False` if not.
+
+## Usage Example
+
+Here’s an example of how to add a checkbox to your app:
+
+```python
+from preswald import checkbox, text
+
+# Create a checkbox for selecting 
+money_shown = checkbox(label="Show me the money")
+if money_shown:
+    text("The money")
+```
+
+### Key Features
+
+1. **Customizable Label**: Set the label to distinguish between different checkboxes.
+2. **Adjustable Default**: Control the default state.
+
+### Why Use `checkbox`?
+
+Checkboxes provide a way to create conditional logic in the data app - enabling more interactive and dynamic flows for end-users.

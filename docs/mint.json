@@ -1,0 +1,130 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Preswald",
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.png"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#000000",
+    "light": "#000000",
+    "dark": "#000000"
+  },
+  "modeToggle": {
+    "default": "light",
+    "isHidden": true
+  },
+  "topbarLinks": [
+    {
+      "name": "Website",
+      "url": "https://preswald.com"
+    },
+    {
+      "name": "Support",
+      "url": "mailto:amrutha@structuredlabs.com"
+    }
+  ],
+  "topbarCtaButton": {
+    "type": "github",
+    "url": "https://github.com/StructuredLabs/preswald"
+  },
+  "tabs": [
+    {
+      "name": "SDK Reference",
+      "url": "sdk"
+    }
+  ],
+  "anchors": [
+    {
+      "name": "Community",
+      "icon": "slack",
+      "url": "https://join.slack.com/t/structured-users/shared_invite/zt-265ong01f-UHP6BP3FzvOmMQDIKty_JQ"
+    },
+    {
+      "name": "Blog",
+      "icon": "newspaper",
+      "url": "https://structuredlabs.substack.com/"
+    },
+    {
+      "name": "PyPI",
+      "icon": "code",
+      "url": "https://pypi.org/project/preswald/"
+    },
+    {
+      "name": "Copilot",
+      "icon": "brain",
+      "url": "https://marketplace.visualstudio.com/items?itemName=preswald.preswald"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Get Started",
+      "pages": [
+        "introduction",
+        "quickstart",
+        "configuration",
+        "coreconcepts",
+        "contributing"
+      ]
+    },
+    {
+      "group": "CLI Reference",
+      "pages": [
+        "cli/tutorial",
+        "cli/init",
+        "cli/run",
+        "cli/deploy",
+        "cli/deployments",
+        "cli/stop"
+      ]
+    },
+    {
+      "group": "ui",
+      "pages": [
+        "sdk/alert",
+        "sdk/checkbox",
+        "sdk/plotly",
+        "sdk/progress",
+        "sdk/selectbox",
+        "sdk/separator",
+        "sdk/slider",
+        "sdk/table",
+        "sdk/text",
+        "sdk/text_input",
+        "sdk/workflow_dag"
+      ]
+    },
+    {
+      "group": "data",
+      "pages": [
+        "sdk/connect",
+        "sdk/get_df",
+        "sdk/query"
+      ]
+    },
+    {
+      "group": "workflow",
+      "pages": [
+        "sdk/retrypolicy",
+        "sdk/workflow",
+        "sdk/workflow_analyzer"
+      ]
+    },
+    {
+      "group": "Layout",
+      "pages": ["layout/guide"]
+    },
+    {
+      "group": "Usage",
+      "pages": ["usage/examples", "usage/troubleshooting"]
+    }
+  ],
+  "footerSocials": {
+    "linkedin": "https://www.linkedin.com/company/structuredlabs/",
+    "twitter": "https://twitter.com/StructuredLabs",
+    "website": "https://www.structuredlabs.com",
+    "slack": "https://structured-users.slack.com/",
+    "github": "https://github.com/StructuredLabs"
+  }
+}
