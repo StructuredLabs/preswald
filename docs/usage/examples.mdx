@@ -1,0 +1,49 @@
+---
+title: "Examples"
+icon: "book"
+---
+
+## **Hello World**
+
+Display a simple "Hello, World!" message using Preswald:
+
+```python
+from preswald import text
+
+text("# Hello, World!")
+```
+
+---
+
+## **Data Viewer**
+
+Connect to a CSV file and display the data using Preswald's viewer:
+
+```python
+from preswald import connect, get_df, view
+
+connect() # reads preswald.toml
+data = get_df("example_data")
+view(data)
+```
+
+---
+
+## **Interactive Dashboard**
+
+Create an interactive dashboard where users can control how many rows of data to display:
+
+```python
+from preswald import text, slider, view
+
+text("# Interactive Dashboard")
+
+rows = slider("Rows to Display", min_val=5, max_val=50, default=10)
+view(data, limit=rows)
+```
+
+---
+
+## Learn More
+
+To explore these examples in depth and discover additional use cases, check out the [Preswald Examples](https://github.com/StructuredLabs/preswald/tree/main/examples). You'll find comprehensive guides and example projects to help you make the most of Preswald.

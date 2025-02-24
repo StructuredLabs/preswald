@@ -1,0 +1,55 @@
+---
+title: "workflow_dag"
+icon: "diagram-project"
+description: ""
+---
+
+```python
+workflow_dag(workflow: preswald.Workflow, title="Workflow Dependency Graph")
+```
+
+The `workflow_dag` function renders a Directed Acyclic Graph (DAG) visualization for a given workflow. This helps you visualize dependencies and relationships within the workflow, making it easier to understand and debug complex processes.
+
+## Parameters
+
+- **`workflow`**: A workflow object representing the process or pipeline to be visualized.
+- **`title`** _(str)_: _(Optional)_ The title displayed above the visualization. Defaults to `"Workflow Dependency Graph"`.
+
+## Returns
+
+- **Plotly Chart**: An interactive Plotly chart representing the workflow's DAG.
+
+## Usage Example
+
+Here’s an example of how to visualize a workflow using `workflow_dag`:
+
+```python
+from preswald import workflow_dag, Workflow
+
+# Create a workflow object
+workflow = Workflow()
+
+# Render the workflow DAG
+workflow_dag(workflow, title="Example Workflow")
+```
+
+### Key Features
+
+1. **Visualize Dependencies**: Provides a clear representation of task dependencies in the workflow.
+2. **Interactive Exploration**: Zoom, pan, and hover over nodes to inspect details.
+3. **Customizable Title**: Add meaningful titles to make the visualization more descriptive.
+
+### Example Use Case
+
+Imagine you’re working on a data pipeline with multiple interconnected tasks:
+
+- Use `workflow_dag` to render a visual map of how tasks depend on one another.
+- Quickly identify bottlenecks, cycles, or missing connections in your workflow.
+
+### Why Use `workflow_dag`?
+
+- **Clarity**: Converts complex workflows into easy-to-understand visuals.
+- **Diagnostics**: Spot issues or inefficiencies in the workflow structure.
+- **Professional Presentation**: Share high-quality visualizations with stakeholders or team members.
+
+Simplify and visualize your workflows effortlessly with `workflow_dag`! 🛠️

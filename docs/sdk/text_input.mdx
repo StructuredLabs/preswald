@@ -1,0 +1,42 @@
+---
+title: "text_input"
+icon: "input-text"
+description: ""
+---
+
+```python
+text_input(label: str, placeholder: str = "", size: float = 1.0) -> str
+```
+
+The `text_input` function adds an interactive text box to take user input to your app.
+
+## Parameters
+
+- **`label`** _(str)_: The label displayed next to the `text_input`, indicating its purpose.
+- **`placeholder`** _(str)_: Placeholder string (not default).
+- **`size`** _(float)_: _(Optional)_ The width of the component in a row. Defaults to `1.0` (full row). See the [Layout Guide](/layout/guide) for details.
+
+## Returns
+
+- `str`: user input
+
+## Usage Example
+
+Here’s an example of how to add a `text_input` to your app:
+
+```python
+from preswald import text_input, text
+
+# Create a text_input for user input
+dogs_input = text_input(label="Who let the dogs out?", placeholder="Woof")
+text(dogs_input)
+```
+
+### Key Features
+
+1. **Customizable Label**: Set the label to distinguish between different `text_input`s.
+2. **Adjustable Placeholder**: Control the look of the textboxes for better UI/UX.
+
+### Why Use `text_input`?
+
+Text Inputs provide a way to create get end-user text input in the data app.

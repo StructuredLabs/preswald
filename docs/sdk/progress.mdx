@@ -1,0 +1,31 @@
+---
+title: "progress"
+icon: "bars-progress"
+description: ""
+---
+
+```python
+progress(label: str, value: float = 0.0, size: float = 1.0) -> float
+```
+
+The `progress` function adds a progress/work done indicator to your app.
+
+## Parameters
+
+- **`label`** _(str)_: The label displayed in the progress component, indicating its purpose.
+- **`value`** _(float)_: _(Optional)_ The current value displayed on the bar, rounded to the nearest int.
+- **`size`** _(float)_: _(Optional)_ The width of the component in a row. Defaults to `1.0` (full row). See the [Layout Guide](/layout/guide) for details.
+
+## Returns
+
+- `float`: the current `value` 
+
+## Usage Example
+
+Here’s an example of how to add a progress to your app:
+
+```python
+from preswald import progress
+
+progress(label="current_progress", value=50.3) # will round to 50%
+```

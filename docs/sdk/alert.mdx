@@ -1,0 +1,40 @@
+---
+title: "alert"
+icon: "circle-exclamation"
+description: ""
+---
+
+```python
+alert(message: str, level: str = "info", size: float = 1.0) -> str
+```
+
+The `alert` function adds an alert notification to your app.
+
+## Parameters
+
+- **`message`** _(str)_: The message displayed by the alert
+- **`level`** _(float)_: The severity level of the alert.
+- **`size`** _(float)_: _(Optional)_ The width of the component in a row. Defaults to `1.0` (full row). See the [Layout Guide](/layout/guide) for details.
+
+## Returns
+
+- `str` of the provided `message`
+
+## Usage Example
+
+Here’s an example of how to add an alert to your app:
+
+```python
+from preswald import alert
+
+alert(message="This is an alert!", level="critical")
+```
+
+### Key Features
+
+1. **Customizable Message**: Set the specific message of the alert.
+2. **Adjustable Severity**: Control the urgency by setting `level`.
+
+### Why Use `alert`?
+
+Alerts provide a way to render updates/notifications to the user with more urgency.

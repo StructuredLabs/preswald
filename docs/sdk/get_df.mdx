@@ -1,0 +1,93 @@
+---
+title: "get_df"
+icon: "table-cells"
+description: "Retrieve data from configured sources as pandas DataFrames"
+---
+
+```python
+get_df(source_name: str, table_name: Optional[str] = None) -> pd.DataFrame
+```
+
+The `get_df` function retrieves data from a configured source and returns it as a pandas DataFrame. For database sources (PostgreSQL, ClickHouse), a table name must be specified.
+
+## Parameters
+
+- `source_name` (str): Name of the data source as configured in preswald.toml
+- `table_name` (Optional[str]): Required for database sources, specifies which table to retrieve
+
+## Returns
+
+- `pd.DataFrame`: Data from the specified source as a pandas DataFrame
+
+## Usage Examples
+
+Note: `connect` must be called before `get_df` can be used.
+
+### CSV Source
+
+For CSV sources, `table_name` is not required since the entire CSV file is treated as a single table:
+
+```python
+from preswald import get_df
+
+# Read entire CSV file
+customers_df = get_df('eq_csv')
+```
+
+### PostgreSQL Source
+
+For PostgreSQL sources, `table_name` is required:
+
+```python
+from preswald import get_df
+
+# Read specific table from PostgreSQL
+earthquakes_df = get_df('eq_pg', 'earthquake_events')
+```
+
+### ClickHouse Source
+
+Similarly for ClickHouse sources, `table_name` is required:
+
+```python
+from preswald import get_df
+
+# Read specific table from ClickHouse
+events_df = get_df('eq_clickhouse', 'events')
+```
+
+## Error Handling
+
+The function includes comprehensive error handling:
+
+1. Validates source existence
+2. Checks for required table_name parameter for database sources
+3. Handles connection and query errors
+4. Provides detailed error messages through logging
+
+## Best Practices
+
+1. Always call `connect()` before using
+2. Always check if source exists in preswald.toml before calling
+3. For database sources, always provide `table_name`
+4. Use error handling when calling the function
+5. Consider memory limitations when retrieving large datasets
+
+Example with error handling:
+
+```python
+from preswald import get_df
+
+try:
+    df = get_df('eq_pg', 'large_table')
+except ValueError as e:
+    print(f"Configuration error: {e}")
+except Exception as e:
+    print(f"Error retrieving data: {e}")
+```
+
+## Related Functions
+
+- `connect()`: Must be called before using get_df
+- `query()`: For custom SQL queries against data sources
+- `view()`: For rendering DataFrame previews

@@ -1,0 +1,81 @@
+---
+title: "table"
+icon: "table"
+description: "Display data in an interactive table format"
+---
+
+```python
+table(data: pd.DataFrame, title: Optional[str] = None, limit: Optional[int] = None) -> Dict
+```
+
+The `table` function provides an easy way to display datasets in an interactive table format, making it simple to explore and understand your data.
+
+## Parameters
+
+- **`data`** _(Pandas DataFrame)_: The dataset you want to display. Must be a Pandas DataFrame or a list of dictionaries.
+- **`title`** _(str, optional)_: An optional title to display above the table.
+- **`limit`** _(int, optional)_: Maximum number of rows to display. If not specified, shows all rows.
+
+## Returns
+
+- `Dict` containing the table component metadata and processed data.
+
+## Usage Example
+
+Here's an example of how to use the `table` function:
+
+```python
+from preswald import table
+
+# Example DataFrame
+import pandas as pd
+
+data = {
+    "Name": ["Alice", "Bob", "Charlie"],
+    "Age": [25, 30, 35],
+    "City": ["New York", "Los Angeles", "Chicago"]
+}
+
+df = pd.DataFrame(data)
+
+# Display the dataset with a title
+table(df, title="Employee Data")
+
+# Display just the data
+table(df)
+```
+
+## Key Features
+
+1. **Automatic Data Processing**: Handles various data types including timestamps, numpy arrays, and nested structures
+2. **Interactive Display**: Renders data in a format optimized for exploration and analysis
+3. **Error Handling**: Gracefully handles edge cases and provides clear error messages
+4. **Flexible Input**: Accepts both Pandas DataFrames and lists of dictionaries
+
+## Data Type Support
+
+The table component automatically handles various data types:
+- Basic types (strings, numbers, booleans)
+- Timestamps and datetime objects
+- Numpy arrays and numeric types
+- Missing values (None, NaN)
+- Nested data structures (lists, arrays)
+
+## Best Practices
+
+1. **Large Datasets**: For large datasets, consider limiting the rows before display:
+   ```python
+   table(df, title="First 100 Rows", limit=100)
+   ```
+
+2. **Column Selection**: Select relevant columns to improve readability:
+   ```python
+   table(df[['Name', 'Age', 'City']])
+   ```
+
+3. **Data Preprocessing**: Clean and format data before display:
+   ```python
+   # Round numeric columns
+   df_clean = df.round(2)
+   table(df_clean)
+   ```
