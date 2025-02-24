@@ -25,8 +25,8 @@
 <a href="https://docs.preswald.com" target="_blank">
 <img src="https://img.shields.io/badge/Documentation-Read-green?style=for-the-badge" alt="Documentation">
 </a>
-<a href="https://demo.preswald.com" target="_blank">
-<img src="https://img.shields.io/badge/Demo-Try-orange?style=for-the-badge" alt="Demo">
+<a href="https://studio.structuredlabs.com" target="_blank">
+<img src="https://img.shields.io/badge/Demo-Try-orange?style=for-the-badge" alt="Studio">
 </a>
 <a href="https://cal.com/structured" target="_blank">
 <img src="https://img.shields.io/badge/Book%20a%20Demo-Schedule-red?style=for-the-badge" alt="Book a Demo">
