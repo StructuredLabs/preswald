@@ -10,7 +10,7 @@
     <a href="https://www.python.org/downloads/">
         <img src="https://img.shields.io/badge/python-3.7%2B-blue.svg" alt="Python Version">
     </a>
-    <a href="https://structured-users.slack.com/join/shared_invite/zt-265ong01f-UHP6BP3FzvOmMQDIKty_JQ#/shared-invite/email">
+    <a href="https://join.slack.com/t/preswald-community/shared_invite/zt-265ong01f-UHP6BP3FzvOmMQDIKty_JQ">
         <img src="https://img.shields.io/badge/Slack-Join%20Community-orange" alt="Slack Community">
     </a>
     <a href="https://pypi.org/project/preswald/">
