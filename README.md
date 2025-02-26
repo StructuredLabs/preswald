@@ -83,18 +83,33 @@ This will create a folder called `my_project` with all the basics you need:
 Time to make something magical! Open up `hello.py` and write:
 
 ```python
-from preswald import text, connect, get_df, view
+from preswald import text, plotly, connect, get_df, table
 import pandas as pd
+import plotly.express as px
 
-# Render Markdown content
-text("# Welcome to Preswald")
+text("# Welcome to Preswald!")
+text("This is your first app. 🎉")
 
-# Connect to a CSV source
-connect()
-df = get_df("sample_data")
+# Load the CSV
+connect() # load in all sources, which by default is the sample_csv
+df = get_df('sample_csv')
 
-# Display the data as a table
-view(df)
+# Create a scatter plot
+fig = px.scatter(df, x='quantity', y='value', text='item',
+                 title='Quantity vs. Value',
+                 labels={'quantity': 'Quantity', 'value': 'Value'})
+
+# Add labels for each point
+fig.update_traces(textposition='top center', marker=dict(size=12, color='lightblue'))
+
+# Style the plot
+fig.update_layout(template='plotly_white')
+
+# Show the plot
+plotly(fig)
+
+# Show the data
+table(df)
 ```
 
 ![Demo GIF](assets/demo2.gif)
@@ -104,7 +119,7 @@ view(df)
 Now the fun part—see it in action! Run your app locally with:
 
 ```bash
-preswald run hello.py
+preswald run
 ```
 
 This command launches a development server, and Preswald will let you know where your app is hosted. Typically, it’s here:
