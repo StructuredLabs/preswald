@@ -2,9 +2,11 @@
 
 import { Menu, PanelLeft, PanelLeftClose } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
 import React from 'react';
+
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+
 import { cn } from '@/lib/utils';
 
 export default function Topbar({ setSidebarOpen, branding, onToggleSidebar, isCollapsed }) {
@@ -43,7 +45,11 @@ export default function Topbar({ setSidebarOpen, branding, onToggleSidebar, isCo
         <div className="flex items-center gap-x-4 lg:gap-x-6">
           {/* Mobile branding */}
           <div className="flex lg:hidden items-center">
-            <img className="h-8 w-8" src={`${branding?.logo}?timstamp=${new Date().getTime()}`} alt={branding?.name} />
+            <img
+              className="h-8 w-8"
+              src={`${branding?.logo}?timstamp=${new Date().getTime()}`}
+              alt={branding?.name}
+            />
             <span className="ml-3 text-lg font-semibold">{branding?.name}</span>
           </div>
         </div>

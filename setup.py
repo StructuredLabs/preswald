@@ -106,25 +106,26 @@ class BuildFrontendCommand(Command):
 
 # Define core dependencies needed for the package to run
 CORE_DEPENDENCIES = [
-    "fastapi>=0.68.0,<1.0.0",
-    "uvicorn>=0.15.0,<1.0.0",
-    "websockets>=10.0,<11.0",
-    "python-multipart>=0.0.5,<0.1.0",
-    "httpx>=0.23.0,<1.0.0",
-    "Markdown>=3.4.0",
+    # Dependencies that work in browser and server environments
     "pandas>=1.5",
     "toml==0.10.2",
-    "SQLAlchemy==2.0.36",
     "plotly==5.24.1",
-    "Jinja2==3.1.4",
-    "click==8.1.7",
+    "Markdown>=3.4.0",
+    # Server-only dependencies
+    "fastapi>=0.68.0,<1.0.0; platform_system != 'Emscripten'",
+    "uvicorn>=0.15.0,<1.0.0; platform_system != 'Emscripten'",
+    "websockets>=10.0,<11.0; platform_system != 'Emscripten'",
+    # Native code dependencies
+    "duckdb>=1.1.2; platform_system != 'Emscripten'",
+    # Other dependencies
+    "httpx>=0.23.0,<1.0.0",
+    "python-multipart>=0.0.5,<0.1.0",
+    "Jinja2>=3.1.3",
+    "click>=8.1.7",
     "networkx>=3.0",
-    "Requests==2.32.3",
-    "setuptools==75.1.0",
-    "psycopg2-binary>=2.9.10",
-    "openai==1.59.7",
-    "duckdb>=1.1.3",
-    "tomli==2.0.1",
+    "Requests>=2.31.0",  # NOTE: maybe need to make this server only as well?
+    "setuptools>=69.5.1",
+    "tomli>=2.0.1",  # TODO: standardize alongside toml/tomllib
 ]
 
 # Define additional dependencies for development
@@ -158,12 +159,12 @@ setup(
     include_package_data=True,
     package_data={
         "preswald": [
-            "static/*", 
-            "static/assets/*", 
+            "static/*",
+            "static/assets/*",
             "templates/*",
             "tutorial/*",
             "tutorial/data/*",
-            "tutorial/images/*"
+            "tutorial/images/*",
         ],
     },
     python_requires=">=3.7",

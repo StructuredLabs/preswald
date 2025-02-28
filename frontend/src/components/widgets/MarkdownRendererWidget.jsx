@@ -1,12 +1,14 @@
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Card, CardContent } from '@/components/ui/card';
+import remarkGfm from 'remark-gfm';
 
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { cn } from '@/lib/utils';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import remarkGfm from 'remark-gfm';
+
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent } from '@/components/ui/card';
+
+import { cn } from '@/lib/utils';
 
 const MarkdownRendererWidget = ({
   markdown,
@@ -78,7 +80,7 @@ const MarkdownRendererWidget = ({
       const match = /language-(\w+)/.exec(className || '');
       const lang = match ? match[1] : '';
       const isInline = inline || !lang;
-      
+
       if (isInline) {
         return (
           <code

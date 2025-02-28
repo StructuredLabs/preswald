@@ -1,5 +1,8 @@
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import React, { memo } from 'react';
+
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
+import { cn } from '@/lib/utils';
 
 // Import all widgets
 import AlertWidget from './widgets/AlertWidget';
@@ -17,7 +20,6 @@ import SpinnerWidget from './widgets/SpinnerWidget';
 import TableViewerWidget from './widgets/TableViewerWidget';
 import TextInputWidget from './widgets/TextInputWidget';
 import UnknownWidget from './widgets/UnknownWidget';
-import { cn } from '@/lib/utils';
 
 // Error boundary component
 class ErrorBoundary extends React.Component {

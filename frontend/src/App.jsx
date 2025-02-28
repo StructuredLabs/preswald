@@ -4,7 +4,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 
 import Layout from './components/Layout';
 import Dashboard from './components/pages/Dashboard';
-import { websocket } from './utils/websocket';
+import { comm } from './utils/websocket';
 
 const App = () => {
   const [components, setComponents] = useState({ rows: [] });
@@ -13,19 +13,17 @@ const App = () => {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    websocket.connect();
+    comm.connect();
 
-    const unsubscribe = websocket.subscribe(handleWebSocketMessage);
+    const unsubscribe = comm.subscribe(handleMessage);
 
     return () => {
       unsubscribe();
-      websocket.disconnect();
+      comm.disconnect();
     };
   }, []);
 
-  // TODO: where is this used, if at all?
   useEffect(() => {
-    // Update document title based on config
     const updateTitle = () => {
       const title = config?.project?.title;
       if (title) {
@@ -34,13 +32,12 @@ const App = () => {
     };
 
     updateTitle();
-
     document.addEventListener('visibilitychange', updateTitle);
     return () => document.removeEventListener('visibilitychange', updateTitle);
   }, [config]);
 
-  const handleWebSocketMessage = (message) => {
-    console.log('[App] Received WebSocket message:', message);
+  const handleMessage = (message) => {
+    console.log('[App] Received message:', message);
 
     switch (message.type) {
       case 'components':
@@ -80,7 +77,7 @@ const App = () => {
         row.map((component) => {
           if (!component || !component.id) return component;
 
-          const currentState = websocket.getComponentState(component.id);
+          const currentState = comm.getComponentState(component.id);
           return {
             ...component,
             value: currentState !== undefined ? currentState : component.value,
@@ -122,7 +119,7 @@ const App = () => {
 
   const handleComponentUpdate = (componentId, value) => {
     try {
-      websocket.updateComponentState(componentId, value);
+      comm.updateComponentState(componentId, value);
     } catch (error) {
       console.error('[App] Error updating component state:', error);
       setComponents((prevState) => {
@@ -141,19 +138,20 @@ const App = () => {
 
   const updateConnectionStatus = (message) => {
     setIsConnected(message.connected);
-    setError(message.connected ? null : 'Lost connection to server. Attempting to reconnect...');
+    setError(message.connected ? null : 'Lost connection. Attempting to reconnect...');
   };
 
   const LoadingState = () => (
     <div className="flex items-center justify-center h-screen">
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">Connecting to server...</p>
+        <p className="text-gray-600">Connecting...</p>
       </div>
     </div>
   );
 
   console.log('[App] Rendering with:', { components, isConnected, error });
+  console.log(window.location.pathname);
 
   return (
     <Router>
@@ -161,32 +159,14 @@ const App = () => {
         {!isConnected ? (
           <LoadingState />
         ) : (
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <Dashboard
-                  components={components}
-                  error={error}
-                  handleComponentUpdate={handleComponentUpdate}
-                />
-              }
-            />
-          </Routes>
+          <Dashboard
+            components={components}
+            error={error}
+            handleComponentUpdate={handleComponentUpdate}
+          />
         )}
       </Layout>
     </Router>
-    // <Layout>
-    //    {!isConnected ? (
-    //       <LoadingState />
-    //     ) : (
-    //       <Dashboard
-    //         components={components}
-    //         error={error}
-    //         handleComponentUpdate={handleComponentUpdate}
-    //       />
-    //     )}
-    // </Layout>
   );
 };
 

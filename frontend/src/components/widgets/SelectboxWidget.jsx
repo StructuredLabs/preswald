@@ -1,5 +1,8 @@
 'use client';
 
+import React from 'react';
+
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -8,8 +11,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-import { Label } from '@/components/ui/label';
-import React from 'react';
 import { cn } from '@/lib/utils';
 
 const SelectboxWidget = ({
@@ -76,9 +77,7 @@ const SelectboxWidget = ({
         >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent
-          className="min-w-[var(--radix-select-trigger-width)]"
-        >
+        <SelectContent className="min-w-[var(--radix-select-trigger-width)]">
           {options.map((option, index) => (
             <SelectItem
               key={index}

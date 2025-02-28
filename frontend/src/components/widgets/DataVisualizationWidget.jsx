@@ -1,18 +1,20 @@
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useInView } from 'react-intersection-observer';
+import Plot from 'react-plotly.js';
+
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Progress } from '@/components/ui/progress';
+
+import { cn } from '@/lib/utils';
+
+import { FEATURES } from '../../config/features';
 import {
   debounce,
   decompressData,
   processDataInChunks,
   sampleData,
 } from '../../utils/dataProcessing';
-
-import { FEATURES } from '../../config/features';
-import Plot from 'react-plotly.js';
-import { Progress } from '@/components/ui/progress';
-import { cn } from '@/lib/utils';
-import { useInView } from 'react-intersection-observer';
 
 const INITIAL_POINTS_THRESHOLD = 1000;
 const PROGRESSIVE_LOADING_CHUNK_SIZE = 500;

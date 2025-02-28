@@ -1,5 +1,7 @@
-import { Button } from '@/components/ui/button';
 import React from 'react';
+
+import { Button } from '@/components/ui/button';
+
 import { cn } from '@/lib/utils';
 
 const ButtonWidget = ({
@@ -17,11 +19,7 @@ const ButtonWidget = ({
       variant={variant}
       size={size}
       onClick={onClick || (() => alert('Button clicked!'))}
-      className={cn(
-        'w-full sm:w-auto px-2 py-1',
-        loading && 'cursor-not-allowed',
-        className
-      )}
+      className={cn('w-full sm:w-auto px-2 py-1', loading && 'cursor-not-allowed', className)}
       disabled={disabled || loading}
       {...props}
     >
