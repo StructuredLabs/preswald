@@ -99,7 +99,7 @@ class TelemetryService:
         self, event_type: str, additional_data: Optional[Dict] = None
     ) -> bool:
         if not self._telemetry_enabled:
-            logger.debug("Telemetry is disabled, skipping data collection")
+            logger.debug(f"Telemetry is disabled, skipping data collection")
             return False
 
         try:
@@ -132,7 +132,7 @@ class TelemetryService:
             self.update_script_path(script_path)
         
         if not self._telemetry_enabled:
-            logger.debug("Telemetry is disabled, skipping command tracking")
+            logger.debug(f"Telemetry is disabled, skipping command tracking")
             return False
 
         additional_data = {"command": command, "command_args": args or {}}

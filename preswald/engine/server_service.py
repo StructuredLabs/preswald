@@ -159,11 +159,12 @@ class ServerPreswaldService:
             )
 
     async def shutdown(self):
-        """Gracefully shut down the service"""
+        """Clean up before server shutdown"""
+        # Mark service as shutting down
         self._is_shutting_down = True
-        logger.info("Received shutdown signal, cleaning up...")
+        logger.info(f"Received shutdown signal, cleaning up...")
 
-        # Clean up all client connections
+        # Close all WebSocket connections
         for client_id in list(self.websocket_connections.keys()):
             await self.unregister_client(client_id)
 
@@ -224,7 +225,7 @@ class ServerPreswaldService:
     def _update_component_states(self, states: Dict[str, Any]):
         """Update the state of a component and trigger callbacks"""
         with self._lock:
-            logger.debug("[STATE] Updating states")
+            logger.debug(f"[STATE] Updating states")
             for component_id, new_value in states.items():
                 old_value = self._component_states.get(component_id)
 
@@ -356,3 +357,23 @@ class ServerPreswaldService:
         self.data_manager = DataManager(
             preswald_path=preswald_path, secrets_path=secrets_path
         )
+
+    def update_states(self, component_states: Dict[str, Any]) -> None:
+        """Update multiple component states at once"""
+        with self._lock:
+            logger.debug(f"[STATE] Updating states")
+            old_states = dict(self._component_states)
+            for component_id, new_value in component_states.items():
+                old_value = old_states.get(component_id)
+
+                # Clean NaN values before comparison and storage
+                cleaned_new_value = clean_nan_values(new_value)
+                cleaned_old_value = clean_nan_values(old_value)
+
+                if cleaned_old_value != cleaned_new_value:
+                    self._component_states[component_id] = cleaned_new_value
+
+                    # Log state change
+                    logger.debug(f"[STATE] State changed for {component_id}:")
+                    logger.debug(f"  - Old value: {cleaned_old_value}")
+                    logger.debug(f"  - New value: {cleaned_new_value}")

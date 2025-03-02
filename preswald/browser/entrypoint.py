@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 # Verify we're in Pyodide
 IS_PYODIDE = "pyodide" in sys.modules
 if not IS_PYODIDE:
-    logger.error("This module should only be imported in a Pyodide environment")
+    logger.error(f"This module should only be imported in a Pyodide environment")
     sys.exit(1)
 
 # Import required Pyodide-specific modules
