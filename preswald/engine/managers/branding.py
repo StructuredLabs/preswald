@@ -69,7 +69,7 @@ class BrandingManager:
                     logger.info(f"Copied logo to: {dest_path}")
                 else:
                     self._copy_default_logo()
-                    logger.info("Using default logo")
+                    logger.info(f"Using default logo")
 
     def _handle_favicon(
         self, config: Dict[str, Any], script_dir: str, branding: Dict[str, Any]
@@ -89,7 +89,7 @@ class BrandingManager:
                     logger.info(f"Copied favicon to: {dest_path}")
                 else:
                     self._copy_default_favicon()
-                    logger.info("Using default favicon")
+                    logger.info(f"Using default favicon")
 
     def _ensure_default_assets(self):
         """Ensure default assets are present"""

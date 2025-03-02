@@ -98,8 +98,9 @@ def plotly(fig, size: float = 1.0) -> Dict:  # noqa: C901
         import time
 
         start_time = time.time()
-        logger.debug("[PLOTLY] Starting plotly render")
+        logger.debug(f"[PLOTLY] Starting plotly render")
 
+        # Generate a unique ID for this plot
         id = generate_id("plot")
         logger.debug(f"[PLOTLY] Created plot component with id {id}")
 

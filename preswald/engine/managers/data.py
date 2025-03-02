@@ -101,7 +101,7 @@ class PostgresSource(DataSource):
 
     def to_df(self, table_name: str, schema: str = "public") -> pd.DataFrame:
         """Get entire table as a DataFrame"""
-        logger.info("to_df")
+        logger.info(f"to_df")
         try:
             view_name = f"pg_view_{uuid.uuid4().hex[:8]}"
             self._duckdb.execute(f"""
@@ -255,11 +255,11 @@ class DataManager:
 
             config = toml.load(self.preswald_path)
             data_config = config.get("data", {})
-            logger.info("Successfully loaded preswald.toml")
+            logger.info(f"Successfully loaded preswald.toml")
 
             if self.secrets_path and os.path.exists(self.secrets_path):
                 secrets = toml.load(self.secrets_path)
-                logger.info("Successfully loaded secrets.toml")
+                logger.info(f"Successfully loaded secrets.toml")
 
                 secret_sources = secrets.get("data", {})
 

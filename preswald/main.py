@@ -123,7 +123,7 @@ def start_server(script: Optional[str] = None, port: int = 8501):
     # Handle shutdown signals
     async def handle_shutdown(signum=None, frame=None):
         """Handle graceful shutdown of the server"""
-        logger.info("Shutting down server...")
+        logger.info(f"Shutting down server...")
         await app.state.service.shutdown()
 
     # Handle shutdown signals

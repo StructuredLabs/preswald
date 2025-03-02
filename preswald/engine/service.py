@@ -17,12 +17,12 @@ if IS_PYODIDE:
     # In browser (Pyodide) environment
     from preswald.browser.virtual_service import VirtualPreswaldService as ServiceImpl
 
-    logger.info("Using VirtualPreswaldService (Browser/Pyodide environment)")
+    logger.info(f"Using VirtualPreswaldService (Browser/Pyodide environment)")
 else:
     # In regular Python environment with server capabilities
     from preswald.engine.server_service import ServerPreswaldService as ServiceImpl
 
-    logger.info("Using ServerPreswaldService (Native Python environment)")
+    logger.info(f"Using ServerPreswaldService (Native Python environment)")
 
 
 class PreswaldService:

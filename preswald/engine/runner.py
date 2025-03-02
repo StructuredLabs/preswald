@@ -106,13 +106,13 @@ class ScriptRunner:
             new_widget_states: Dictionary of widget ID to new value
         """
         if not new_widget_states:
-            logger.debug("[ScriptRunner] No new states for rerun")
+            logger.debug(f"[ScriptRunner] No new states for rerun")
             return
 
         # Basic debouncing - skip if last run was too recent
         current_time = time.time()
         if current_time - self._last_run_time < 0.1:  # 100ms debounce
-            logger.debug("[ScriptRunner] Skipping rerun due to debounce")
+            logger.debug(f"[ScriptRunner] Skipping rerun due to debounce")
             return
 
         logger.info(f"[ScriptRunner] Rerunning with new states: {new_widget_states}")
@@ -157,7 +157,7 @@ class ScriptRunner:
     @contextmanager
     def _redirect_stdout(self):
         """Capture and redirect stdout with improved buffering."""
-        logger.debug("[ScriptRunner] Setting up stdout redirection")
+        logger.debug(f"[ScriptRunner] Setting up stdout redirection")
 
         class PreswaldOutputStream:
             def __init__(self, callback):
@@ -202,12 +202,12 @@ class ScriptRunner:
         finally:
             output_stream.flush()
             sys.stdout = old_stdout
-            logger.debug("[ScriptRunner] Restored stdout")
+            logger.debug(f"[ScriptRunner] Restored stdout")
 
     async def run_script(self):
         """Execute the script with enhanced error handling and state management."""
         if not self.is_running or not self.script_path:
-            logger.warning("[ScriptRunner] Not running or no script path set")
+            logger.warning(f"[ScriptRunner] Not running or no script path set")
             return
 
         logger.info(f"[ScriptRunner] Running script: {self.script_path} (run #{self._run_count})")
@@ -234,9 +234,9 @@ class ScriptRunner:
                     script_dir = os.path.dirname(os.path.realpath(self.script_path))
                     os.chdir(script_dir)
                     code = compile(f.read(), self.script_path, "exec")
-                    logger.debug("[ScriptRunner] Script compiled")
+                    logger.debug(f"[ScriptRunner] Script compiled")
                     exec(code, self._script_globals)
-                    logger.debug("[ScriptRunner] Script executed")
+                    logger.debug(f"[ScriptRunner] Script executed")
                     # Change back to original working dir
                     os.chdir(current_working_dir)
 
@@ -249,7 +249,7 @@ class ScriptRunner:
                     await self.send_message(
                         {"type": "components", "components": components}
                     )
-                    logger.debug("[ScriptRunner] Sent components to frontend")
+                    logger.debug(f"[ScriptRunner] Sent components to frontend")
 
         except Exception as e:
             error_msg = f"Error executing script: {str(e)}"
