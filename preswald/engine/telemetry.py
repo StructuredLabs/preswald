@@ -7,7 +7,7 @@ import requests
 import tomli
 from pkg_resources import get_distribution
 
-STRUCTURED_CLOUD_SERVICE_URL = "https://corewald-ndjz2ws6la-ue.a.run.app"
+STRUCTURED_CLOUD_SERVICE_URL = "http://deployer.preswald.com"
 logger = logging.getLogger(__name__)
 
 class TelemetryService:

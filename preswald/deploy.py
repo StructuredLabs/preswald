@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 # Default Structured Cloud service URL
 # STRUCTURED_CLOUD_SERVICE_URL = os.getenv('STRUCTURED_CLOUD_SERVICE_URL', 'http://127.0.0.1:8080')
 # @TODO: to inject this from a preswald cli cmdn
-STRUCTURED_CLOUD_SERVICE_URL = "https://corewald-ndjz2ws6la-ue.a.run.app"
+STRUCTURED_CLOUD_SERVICE_URL = "http://deployer.preswald.com/"
 
 
 def get_deploy_dir(script_path: str) -> Path:
