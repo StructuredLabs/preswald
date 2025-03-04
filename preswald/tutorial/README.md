@@ -13,5 +13,3 @@ To see the components in action, simply run:
 preswald tutorial
 ```
 This will start the tutorial application, allowing you to interact with the various components and see how they work in a live environment.
-
-![tutorial](images/readme.gif "Tutorial")
