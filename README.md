@@ -120,9 +120,6 @@ plotly(fig)
 # Show the data
 table(df)
 ```
-
-![Demo GIF](assets/demo2.gif)
-
 ### **3. Run Your App**
 
 Now the fun part—see it in action! Run your app locally with:
