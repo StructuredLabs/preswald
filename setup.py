@@ -127,6 +127,7 @@ CORE_DEPENDENCIES = [
     "Requests>=2.31.0",  # NOTE: maybe need to make this server only as well?
     "setuptools>=69.5.1",
     "tomli>=2.0.1",  # TODO: standardize alongside toml/tomllib
+    "scipy>=1.15.2"
 ]
 
 # Define additional dependencies for development
