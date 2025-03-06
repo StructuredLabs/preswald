@@ -136,7 +136,7 @@ These configurations ensure your code remains consistent with our standards when
    ```
 5. Run a test app
    ```
-   cd examples/earthquakes && preswald run hello.py
+   cd examples/earthquakes && preswald run
    ```
    Make sure to do step 5 for **all** directories in `examples`, not just `earthquakes`
 
