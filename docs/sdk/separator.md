@@ -1,0 +1,43 @@
+---
+title: "separator"
+icon: fontawesome/solid/divide
+description: ""
+---
+
+```python
+separator() -> Dict
+```
+
+The `separator` function is a layout control component that forces a new row in your app's layout. It's essential for organizing content and creating clear visual breaks between different sections of your application.
+
+## Parameters
+
+This component **takes no parameters**.
+
+## Returns
+
+- `Dict` containing the component type and id.
+
+## Usage Example
+
+Here's how to use the `separator` function:
+
+```python
+from preswald import separator, text, button
+
+# Create components that will be on the same row
+text("Left content", size=0.5)
+text("Right content", size=0.5)
+
+# Force a new row with separator
+separator()
+
+# These components will be on a new row
+button("Button 1", size=0.3)
+button("Button 2", size=0.3)
+button("Button 3", size=0.3)
+```
+
+### Key Features
+- **Clean Layout**: Adds a clear visual break to structure your app's content.
+- **Simple to Use**: No configuration needed—just call the function.
