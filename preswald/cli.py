@@ -301,30 +301,32 @@ def deploy(script, target, port, log_level, github, api_key):  # noqa: C901
 
 
 @cli.command()
-@click.argument("script", default="app.py")
 @click.option(
     "--target",
     type=click.Choice(["local", "gcp", "aws", "structured"], case_sensitive=False),
     default="local",
     help="Target platform to stop the deployment from.",
 )
-def stop(script, target):
+def stop(target):
     """
     Stop the currently running deployment.
 
     This command must be run from the same directory as your Preswald app.
     """
     try:
-        if not os.path.exists(script):
-            click.echo(f"Error: Script '{script}' not found. ❌")
+        # Track stop command
+        telemetry.track_command("stop", {"target": target})
+        config_path = "preswald.toml"
+        if not os.path.exists(config_path):
+            click.echo("Error: preswald.toml not found in current directory. ❌")
+            click.echo("Make sure you're in a Preswald project directory.")
             return
 
-        # Track stop command
-        telemetry.track_command("stop", {"script": script, "target": target})
-
+        current_dir = os.getcwd()
+        print(f"Current directory: {current_dir}")
         if target == "structured":
             try:
-                stop_structured_deployment(script)
+                stop_structured_deployment(current_dir)
                 click.echo(
                     click.style(
                         "✅ Production deployment stopped successfully.", fg="green"
@@ -335,7 +337,7 @@ def stop(script, target):
         if target == "gcp":
             try:
                 click.echo("Starting GCP deployment cleanup... 🧹")
-                for status_update in cleanup_gcp_deployment(script):
+                for status_update in cleanup_gcp_deployment(current_dir):
                     status = status_update.get("status", "")
                     message = status_update.get("message", "")
 
@@ -354,10 +356,9 @@ def stop(script, target):
                 click.echo(click.style(f"❌ GCP cleanup failed: {e!s}", fg="red"))
                 sys.exit(1)
         else:
-            stop_app(script)
+            stop_app(current_dir)
             click.echo("Deployment stopped successfully. 🛑 ")
     except Exception as e:
-        click.echo(f"Error stopping deployment: {e} ❌")
         sys.exit(1)
 
 
