@@ -1,4 +1,6 @@
 # Green Roofs in San Francisco - Data Visualization
+## Preview
+[Live Preview Link - Click Me](https://preswald-my-example-project-167719-wfeaikvx-ndjz2ws6la-ue.a.run.app/)
 
 ## Overview
 This project provides interactive visualizations of **green roofs** in San Francisco using `Plotly`, `GeoPandas`, and `Preswald`. The dataset includes information about green roof locations, building types, installation years, costs, and other attributes. The visualizations aim to help users explore trends, distribution, and insights about green roofs in the city.
