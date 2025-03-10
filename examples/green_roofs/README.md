@@ -43,20 +43,12 @@ pip install pandas geopandas plotly preswald
 - **Latitude/Longitude** extracted from `the_geom` column.
 - Uses `Scattermapbox` for plotting.
 
-### 2. Cost vs. Size Analysis
-**Description:** A scatter plot analyzing the relationship between green roof size (`Size_sf`) and cost (`Cost`).
-- Ensures proper scaling to avoid distortion.
-
-### 3. Yearly Installation Trends
+### 2. Yearly Installation Trends
 **Description:** A line chart showing the number of green roofs installed each year.
 - **Filtering:** Excludes buildings with missing or zero installation years.
 - **Rescaled X-axis:** Ensures the earliest installation year appears on the leftmost side.
 
-### 4. Building Use Distribution
+### 3. Building Use Distribution
 **Description:** A bar chart displaying green roofs categorized by `Building_U`, sorted by frequency.
 - **Stacked bars:** Different building types are color-coded.
 - **Sorted by Count:** Helps highlight the most common building types with green roofs.
-
-### 5. Built vs. Unfinished Buildings
-**Description:** A stacked bar chart differentiating between completed and unfinished green roofs.
-- **Categorization:** "Built" (valid `YearBuilt`) vs. "Unfinished" (`YearBuilt = 0`).
