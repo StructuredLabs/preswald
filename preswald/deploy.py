@@ -556,16 +556,15 @@ def deploy(  # noqa: C901
         raise ValueError(f"Unsupported deployment target: {target}")
 
 
-def stop(script_path: Optional[str] = None) -> None:
+def stop(current_dir: Optional[str] = None) -> None:
     """
     Stop a running Preswald deployment.
 
     If script_path is provided, stops that specific deployment.
     Otherwise, looks for a deployment in the current directory.
     """
-    if script_path:
-        script_path = os.path.abspath(script_path)
-        deploy_dir = get_deploy_dir(script_path)
+    if current_dir:
+        deploy_dir = Path(current_dir) / ".preswald_deploy"
     else:
         # Look for deployment in current directory
         deploy_dir = Path.cwd() / ".preswald_deploy"
@@ -585,7 +584,7 @@ def stop(script_path: Optional[str] = None) -> None:
         raise Exception(f"Failed to stop deployment: {e}") from e
 
 
-def stop_structured_deployment(script_path: str) -> dict:
+def stop_structured_deployment(script_dir: str) -> dict:
     """
     Stop a Preswald app deployed to Structured Cloud service.
 
@@ -595,9 +594,8 @@ def stop_structured_deployment(script_path: str) -> dict:
     Returns:
         dict: Status of the stop operation
     """
-    script_dir = Path(script_path).parent
-    config_path = script_dir / "preswald.toml"
-    env_file = script_dir / ".env.structured"
+    config_path = Path(script_dir) / "preswald.toml"
+    env_file = Path(script_dir) / ".env.structured"
 
     # Get project slug from preswald.toml
     try:
