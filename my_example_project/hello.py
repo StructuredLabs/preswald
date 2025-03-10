@@ -5,7 +5,7 @@ import geopandas as gpd
 import pandas as pd
 
 text("# Green Roofs in San Francisco")
-text("Analyzing Trends in Green Roof Maintenance and Installation")
+text("## Analyzing Trends in Green Roof Maintenance and Installation")
 
 # Load the CSV
 connect()
@@ -24,20 +24,60 @@ gdf['YearBuilt'] = gdf['YearBuilt'].fillna(0).astype(int)
 building_u_counts = gdf['Building_U'].value_counts().reset_index()
 building_u_counts.columns = ['Building_U', 'Count']
 
-sorted_building_u = building_u_counts.sort_values(by='Count', ascending=False)['Building_U']
+## pie chart
+building_u_pie = go.Pie(
+    labels=building_u_counts['Building_U'],
+    values=building_u_counts['Count'],
+    name='Building Usage Pie Chart',
+    visible=True ## start with pie chart
+)
+## bar chart
+building_u_bar = go.Bar(
+    x=building_u_counts['Building_U'],
+    y=building_u_counts['Count'],
+    name='Building Usage Bar Chart',
+    visible=False
+)
 
-building_t = px.bar(gdf, x="Building_U", color="ConstrType", 
-              title="Building Types by Building Use",
-              labels={"Building_U": "Building Use", "ConstrType": "Building Type"},
-              category_orders={"Building_U": sorted_building_u.tolist()},
-              barmode="stack")
+building_u_figure = go.Figure()
+
+building_u_figure.add_trace(building_u_pie)
+building_u_figure.add_trace(building_u_bar)
+building_u_figure.update_traces(
+    visible=False, 
+    selector=dict(name="Categories of Green Roof Installed Buildings"))
+
+## buttons to toggle between pie chart and bar chart
+building_u_figure.update_layout(
+    updatemenus=[
+        {
+            "buttons": [
+                {
+                    "label": "Pie Chart",
+                    "method": "update",
+                    "args": [{"visible": [True, False]}, {"title": "Building Buildings Uses"}],
+                },
+                {
+                    "label": "Bar Chart",
+                    "method": "update",
+                    "args": [{"visible": [False, True]}, {"title": "Buildings Uses"}],
+                }
+            ],
+            "direction": "down",
+            "showactive": True,
+        }
+    ]
+)
+
 
 ## remove unifinished buildings (YearBuilt == 0)
 filtered_yearly_data = gdf[gdf['YearBuilt'] != 0]
 yearly_data = filtered_yearly_data.groupby('YearBuilt').size().reset_index(name='Installations')
 
-yearly_trend = px.line(yearly_data, x="YearBuilt", y="Installations", 
-               title="Yearly Trend of Green Roof Installations", 
+## there's only one buildling installed per year before 2005 so removing it for better visualization
+yearly_data = yearly_data[yearly_data['YearBuilt'] >= 2005]
+
+yearly_trend = px.line(yearly_data, x="YearBuilt", y="Installations",
                labels={"YearBuilt": "Year", "Installations": "Number of Installations"})
 
 yearly_trend.update_layout(xaxis=dict(range=[yearly_data['YearBuilt'].min(), yearly_data['YearBuilt'].max()],tickmode='linear'))
@@ -54,23 +94,18 @@ roof_map = go.Figure(go.Scattermapbox(
 roof_map.update_layout(
     mapbox_style="carto-positron",
     mapbox_center={"lat": 37.7749, "lon": -122.4194},
-    mapbox_zoom=12,
-    title="Green Roofs in San Francisco"
+    mapbox_zoom=12
 )
 
-## finished vs unfinished buildings
-gdf['Building_Status'] = gdf['YearBuilt'].apply(lambda x: 'Built' if x != 0 else 'Unfinished')
-status_counts = gdf.groupby(['Building_U', 'Building_Status']).size().reset_index(name='Count')
-building_status = px.bar(status_counts, x="Building_U", y="Count", color="Building_Status", 
-              title="Built vs Unfinished Buildings by Building Use",
-              labels={"Building_U": "Building Use", "Count": "Count of Buildings"},
-              category_orders={"Building_U": sorted(gdf["Building_U"].unique())},
-              barmode="stack")
-
-
-
 # Show all the plots
-plotly(building_t)
+text ("### Buildings Types of Green Roof Installations")
+plotly(building_u_figure)
+
+text ("### Yearly Trend of Green Roof Installations")
 plotly(yearly_trend)
+
+text ("### Map of Green Roofs in San Francisco")
 plotly(roof_map)
-plotly(building_status)
+
+text ("### Raw Data")
+table(gdf)
