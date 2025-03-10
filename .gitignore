@@ -175,3 +175,7 @@ notes.md
 .ruff_cache/
 
 .env.structured
+.vscode/launch.json
+.vscode/settings.json
+.vscode/settings.json
+.vscode/settings.json

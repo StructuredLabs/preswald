@@ -11,9 +11,9 @@ logo = "images/logo.png"
 favicon = "images/favicon.ico"
 primaryColor = "#F89613"
 
-[data.sample_csv]
+[data.Green_Roofs]
 type = "csv"
-path = "data/sample.csv"
+path = "data/Green_Roofs.csv"
 
 [logging]
 level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
