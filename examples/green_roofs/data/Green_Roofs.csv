@@ -1,0 +1,36 @@
+OBJECTID,Building_N,ADDRESS,the_geom,Building_U,Public_Acc,Design,Installati,OtherParty,Size_sf,Cost,Cost_sf,YearBuilt,ConstrType,EdibleGard,HabitatCre,Seating,SolarElect,SolarHotWa,RainHarves,Complete
+1,California Pacific Medical Center Office Building,1100 Van Ness Ave,POINT (-122.42103429405425 37.78599330447395),Mixed Use - Office/Retail,,Rana Creek,,,26404,0,0,0,New,,,,,,,No
+2,California Pacific Medical Center Cathedral Hill Hospital,1101 Van Ness Ave,POINT (-122.42231169838828 37.78597839567158),Hospital,,Rana Creek,,,9850,0,0,0,New,,,,,,,No
+3,"Nursery: Center for Sustainable Gardening, SF Botanical Gardens",1199 09th Ave,POINT (-122.46724812384579 37.766631335978055),Office,,Fernau & Hartman,,,4300,0,0,0,New,,,,,,,No
+4,Linea,1998 Market St,POINT (-122.4263424390681 37.769967446112396),Mixed Use - Apartments/Retail,Tenants,Arquitectonica,,,766,0,0,2014,New,,,,,,,Yes
+5,38 Dolores/Whole Foods Market,2001 Market St,POINT (-122.42713654977928 37.768285207599824),Mixed Use - Apartments/Retail,Tenants,April Phillips Design Works,,"BAR Architects, William McDonough Partners",7288,0,0,2013,New,Yes,Yes,Yes,No,Yes,Yes,Yes
+6,Lumina (Infinity Phase II),201 Folsom St,POINT (-122.39185162373434 37.78868180933362),Mixed Use - Apartments/Retail,,Arquitectonica,,,19835,0,0,0,New,,,,,,,No
+7,"University of San Francisco, John Lo Schiavo Center for Science and Innovation",2455 Golden Gate Ave,POINT (-122.45093561660147 37.77645602618499),Education,Yes,Interstice Architects,,NBBJ,9290,0,0,2013,New,,,,,,,Yes
+8,307 Octavia,323 Octavia St,POINT (-122.42511983196643 37.774962098481126),Mixed Use - Apartments/Retail,,Pyotok Architects,,"Kennerly Architecture & Planning, Jon Wordon Architects",2931,0,0,0,New,,,,,,,No
+9,,340 Fremont St,POINT (-122.39323502927188 37.78712210506493),Condominiums,,Handel Architects,,,6302,0,0,0,New,,,,,,,No
+10,300 Ivy,401 Grove St,POINT (-122.4235603566332 37.77749266930185),Mixed Use - Apartments/Retail,,David Baker & Partners,,,695,0,0,2014,New,,,,,,,Yes
+11,Arden,718 Long Bridge St,POINT (-122.39418724347306 37.77180586393768),Condominiums,,Chris Dikeakos Architects,,,18760,0,0,0,New,,,,,,,No
+12,,900 Folsom St,POINT (-122.40412261051542 37.78015450342965),Mixed Use - Affordable Housing/Retail,,Architecture International,,,0,0,0,2014,New,,,,,,,Yes
+13,,260 05th St,POINT (-122.40450619114175 37.780460512359696),Mixed Use - Affordable Housing/Retail,,Architecture International,,,0,0,0,2014,New,,,,,,,Yes
+14,Hampton Inn,942 Mission St,POINT (-122.40777605877594 37.78217087305055),Hotel,,Michael Stanton Architecture,,,1286,0,0,0,New,,,,,,,No
+15,Ava,55 09th St,POINT (-122.4151027182332 37.77709718456745),Mixed Use - Affordable Housing/Retail,,Solomon Cordwell Buenz,,,2034,0,0,2014,New,,,,,,,Yes
+16,SFMTA,1 South Van Ness Ave,POINT (-122.41858099501333 37.77486198152428),Government,No,Rana Creek,,Department of Public Works,9500,400000,42.11,2010,Alteration,No,Yes,No,No,No,Yes,Yes
+17,The Arterra,300 Berry St,POINT (-122.39624079221255 37.77392968023261),Condominiums,,Kwan Henmi,,,0,0,0,2008,New,,,,,,,Yes
+18,Ortega Branch Library,3223 Ortega St #Library,POINT (-122.49682695120597 37.75094008472375),Government,No,Rana Creek,Trico Construction,Department of Public Works,3063,0,0,2011,,,,,,,,Yes
+19,EcoCenter at Heron's Head Park,32 Jennings St,POINT (-122.375308249462 37.73966638004744),Education,No,Evo Catalyst,Habitat Gardens,"Conservation Technology, HB Foam",4000,0,0,2012,,,,,,,,Yes
+20,Drew School,2901 California St,POINT (-122.44234772248527 37.787485589384026),Education,,Patrick Blanc,,,1720,0,0,2011,,,,,,,,Yes
+21,Cayuga Park Clubhouse,301 Naglee Ave,POINT (-122.45008491202738 37.71418109827917),Public,,,,,0,0,0,2013,New,,,,,,,Yes
+22,Twitter Headquarters,1355 Market St,POINT (-122.4163594613157 37.77689837636148),Office,Tenants,Andrea Cochran Landscape Architects,,,0,0,0,2012,Alteration,,,,,,,Yes
+23,City College of San Francisco Multi-Use Building,1100 Ocean Ave,POINT (-122.45295502936015 37.724790787982066),Education,No,Royston Hanamoto Alley & Abey (RHAA),Jensen Corporation Landscape Contractors,Etera (Sedum Tile),20000,0,0,2010,Alteration,,,,,,,Yes
+24,California Academy of Sciences,55 Music Concourse Dr,POINT (-122.4661270263712 37.76982613670922),Education,Yes,Rana Creek,WebCor Builders,"Renzo Piano, SWA Group",197000,0,0,2008,New,,,,,,,Yes
+25,Zero Cottage,339 Shotwell St,POINT (-122.41585281149545 37.76291371795972),Residential - Single Family,No,David Baker & Partners,,David Fletcher,430,0,0,2013,,,,,,,,Yes
+26,Drs. Julian + Raye Richardson Apartments,365 Fulton St,POINT (-122.42295489213168 37.77849379714381),Affordable Housing,,David Baker & Partners,Cahill Contractors,Andrea Cochran Landscape Architects,0,0,0,2011,,,,,,,,Yes
+27,Curran House,145 Taylor St,POINT (-122.41122469115166 37.783695893539274),Affordable Housing,,David Baker & Partners,Cahill Contractors,Andrea Cochran Landscape Architects,0,0,0,2005,New,,,,,,,Yes
+28,Glide Memorial Church - Graze the Roof,330 Ellis St,POINT (-122.41169720499111 37.785291167609884),Religious/Public,Yes,,,,2500,0,0,2008,Alteration,Yes,,,,,,Yes
+29,Yerba Buena Gardens,750 Howard St,POINT (-122.40204480726327 37.78449956951569),Commercial/Public,Yes,MGA Partners,,"Romaldo Giurgola, M. Paul Friedberg",130000,0,0,1993,,No,Yes,Yes,No,No,,Yes
+30,Transbay Terminal Center,201 Mission St,POINT (-122.39476845346188 37.791033727166116),Public,Yes,Rana Creek,,"Hines, Peter Walker & Partners",235224,0,0,0,New,,,,,,,No
+31,Rincon Green,333 Harrison St,POINT (-122.39128478679005 37.78651227091208),Condominiums,,David Baker & Partners,,,0,0,0,0,New,,,,,,,No
+32,SmithGroup San Francisco Office,301 Battery St,POINT (-122.40078447091963 37.79428923151683),Office,No,SmithGroup,Jensen Corporation Landscape Contractors,"Native Sons, Inc.",740,0,0,2007,Alteration,,,,,,,Yes
+33,Federal Building,50 United Nations Plz,POINT (-122.41441191377973 37.78042146256676),Government,No,HKS,,U.S. General Services Administration,9000,0,0,2013,Alteration,,,,,,,Yes
+34,Bayview Branch Library,507 03rd St,POINT (-122.3912542440704 37.73249608970182),Government,No,THA Architecture,KCK Builders,"Karin Payson A&D, Department of Public Works",900,0,0,2013,New,,,,,,,Yes
+35,Rene Cazenave Apartments,25 Essex St,POINT (-122.39516101724105 37.78637809252433),Affordable Housing,No,Leddy Maytum Stacy Architects,,"Community Housing Partnership, Bridge Housing",2860,0,0,2013,New,,,,,,,Yes
