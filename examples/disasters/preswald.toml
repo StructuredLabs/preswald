@@ -1,0 +1,20 @@
+[project]
+title = "Billion-Dollar Disasters"
+version = "0.1.0"
+port = 8501
+slug = "disasters"                 # Required: Unique identifier for your project
+entrypoint = "hello.py"            # Required: Main script to run when executing preswald run
+
+[branding]
+name = "Billion-Dollar Disasters"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#F89613"
+
+[data.disasters_csv]
+type = "csv"
+path = "data/disasters.csv"
+
+[logging]
+level = "INFO"                                                  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
