@@ -1,7 +1,9 @@
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 from preswald import connect, get_df, plotly, table, text
 import numpy as np
+
 # Report Title
 text("# Customer Churn Analysis")
 text(
@@ -17,6 +19,7 @@ df["TotalCharges"].fillna(0, inplace=True)
 df["Churn"] = df["Churn"].replace({"No": 0, "Yes": 1})  # Encode Churn
 
 # 1. Churn Rate across Different Services
+text("## Churn Rate by Services")
 services = ["PhoneService", "MultipleLines", "InternetService", "OnlineSecurity", "OnlineBackup", "DeviceProtection", "TechSupport", "StreamingTV", "StreamingMovies"]
 for service in services:
     fig = px.histogram(df, x=service, color="Churn", barmode="group", title=f"Churn Rate by {service}").update_layout(template="plotly_white")
@@ -29,13 +32,28 @@ fig_payment = px.histogram(df, x="PaymentMethod", color="Churn", barmode="group"
 plotly(fig_payment)
 
 
-# 3. Churn Rate vs. Tenure (Scatter with Trendline)
+# 3. Churn Rate vs. Tenure (Scatter without statsmodels trendline)
 text("## Churn vs Tenure")
-fig_tenure = px.scatter(
-    df, x="tenure", y="Churn", trendline="ols", title="Churn vs. Tenure"
-).update_layout(template="plotly_white")
-plotly(fig_tenure)
 
+# Calculate average churn rate by tenure using pandas
+tenure_churn = df.groupby('tenure')['Churn'].mean().reset_index()
+tenure_churn['ChurnRate'] = tenure_churn['Churn'] * 100  # Convert to percentage
+
+# Create scatter plot with custom line
+fig_tenure = px.scatter(tenure_churn, x="tenure", y="ChurnRate", 
+                       title="Average Churn Rate by Tenure")
+
+# Add a smoothed line using moving average from pandas
+window = 5  # Adjust window size as needed
+if len(tenure_churn) >= window:
+    tenure_churn['SmoothedChurnRate'] = tenure_churn['ChurnRate'].rolling(window=window, center=True).mean()
+    fig_tenure.add_trace(go.Scatter(x=tenure_churn['tenure'], y=tenure_churn['SmoothedChurnRate'],
+                                  mode='lines', name='Trend (Moving Avg)'))
+
+fig_tenure.update_layout(template="plotly_white", 
+                       xaxis_title="Tenure (months)",
+                       yaxis_title="Churn Rate (%)")
+plotly(fig_tenure)
 
 
 # 4. Distribution of Total Charges (Histogram, Colored by Churn)
@@ -54,10 +72,27 @@ plotly(fig_dependents)
 text("## Feature Correlations")
 numeric_df = df.select_dtypes(include=np.number) # select only numeric
 corr_matrix = numeric_df.corr()
-fig_corr = px.imshow(corr_matrix, title="Feature Correlation Heatmap").update_layout(template="plotly_white")
+fig_corr = px.imshow(corr_matrix, title="Feature Correlation Heatmap",
+                    color_continuous_scale="RdBu_r",  # Red-Blue color scale
+                    zmin=-1, zmax=1).update_layout(template="plotly_white")
 plotly(fig_corr)
 
+# 7. Add Contract Type Analysis (additional insight)
+text("## Churn by Contract Type")
+fig_contract = px.histogram(df, x="Contract", color="Churn", 
+                           title="Churn by Contract Type", 
+                           barmode='group').update_layout(template="plotly_white")
+plotly(fig_contract)
 
+# 8. Monthly Charges vs Total Charges colored by churn
+text("## Monthly vs Total Charges")
+fig_charges_comp = px.scatter(df, x="MonthlyCharges", y="TotalCharges", 
+                             color="Churn", opacity=0.7,
+                             title="Monthly vs Total Charges",
+                             color_discrete_sequence=["blue", "red"])
+fig_charges_comp.update_layout(template="plotly_white")
+plotly(fig_charges_comp)
 
 # Show the data
+text("## Sample Data")
 table(df, limit=10) # Still showing a subset
