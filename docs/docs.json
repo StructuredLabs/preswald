@@ -43,7 +43,8 @@
           {
             "group": "Contributing",
             "pages": [
-              "contributing"
+              "contributing",
+              "addnewcomponent"
             ]
           }
         ]

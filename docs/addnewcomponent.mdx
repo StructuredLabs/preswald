@@ -1,0 +1,155 @@
+---
+title: "New components"
+icon: "plus"
+description: "Instructions on creating a new component"
+---
+
+This guide walks you through the process of adding a new component in Preswald. For this example, we will create a component named `helloworldcomponent`. When adding your own component, replace `helloworldcomponent` with your desired component name.
+
+---
+
+## 1) Modify `preswald/preswald/interfaces/components.py`
+
+Add your new component under the existing ones:
+
+```python
+import hashlib
+from typing import Optional
+from preswald.service import PreswaldService
+
+def helloworldcomponent(
+    label: str,
+    default: Optional[float] = None,
+    size: float = 1.0,
+) -> float:
+    """Create a new component with a consistent ID based on label"""
+    service = PreswaldService.get_instance()
+
+    # Create a consistent ID based on the label
+    component_id = f"slider-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+
+    component = {
+        "type": "helloworldcomponent",
+        "id": component_id,
+        "label": label,
+        "size": size,
+    }
+
+    service.append_component(component)
+    return "hello world"
+```
+
+---
+
+## 2) Modify `preswald/preswald/interfaces/__init__.py`
+
+Add `helloworldcomponent` to the list of available components.
+
+```python
+from .components import helloworldcomponent
+```
+
+---
+
+## 3) Create a Frontend Component
+
+Create a new file in the frontend component directory:
+
+**Path:** `/preswald/frontend/src/components/widgets/HelloWorldWidget.jsx`
+
+```jsx
+import React from 'react';
+import { Card } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+
+const HelloWorldWidget = ({
+    _label,
+    className,
+    _size = 'default', // "sm", "default", "lg"
+}) => {
+    return (
+        <Card className={cn('w-full', className)}>
+            hello world
+        </Card>
+    );
+};
+
+export default HelloWorldWidget;
+```
+
+---
+
+## 4) Register Component in `DynamicComponents.jsx`
+
+Modify `frontend/src/components/DynamicComponents.jsx` to add a case for your new component:
+
+```jsx
+import HelloWorldWidget from '@/components/widgets/HelloWorldWidget';
+
+case 'helloworld':
+    return (
+        <HelloWorldWidget
+            {...commonProps}
+            className={component.className}
+            _size={component.size || 'default'}
+        />
+    );
+```
+
+---
+
+## 5) Test Usage
+
+Modify the example script at `examples/iris/hello.py`:
+
+```python
+from preswald import connect, get_df, text, helloworldcomponent
+import fastplotlib as fpl
+import numpy as np
+import pandas as pd
+
+# Report Title
+text(
+    "# Iris Data Viz with Preswald \n"
+    "This report provides a visual analysis of the famous Iris dataset. "
+    "Each plot explores different characteristics of the iris flowers across three species: "
+    "Setosa, Versicolor, and Virginica."
+)
+
+# Load the CSV
+df = get_df("iris_csv")
+
+df.columns = ["sepal_length", "sepal_width", "petal_length", "petal_width", "variety"]
+
+species_colors = {
+    "Setosa": [1, 0, 0, 1],
+    "Versicolor": [0, 1, 0, 1],
+    "Virginica": [0, 0, 1, 1]
+}
+
+df["species_color"] = df["variety"].map(species_colors)
+colors = np.array(df["species_color"].tolist())
+
+figure = fpl.Figure()
+
+data = np.column_stack((df["petal_length"], df["petal_width"]))
+scatter = figure[0, 0].add_scatter(data=data, sizes=5, colors=colors)
+
+helloworldcomponent(label="hi")
+
+figure.show()
+```
+
+Run the test:
+
+```sh
+cd examples/iris && preswald run
+```
+
+Verify that 'Hello World' appears in the output.
+
+---
+
+## 6) Customize Your Component
+
+Now that the basic structure is in place, you can customize the component's appearance and functionality further as needed.
