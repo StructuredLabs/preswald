@@ -459,6 +459,17 @@ def text_input(label: str, placeholder: str = "", size: float = 1.0) -> str:
     return current_value
 
 
+def topbar():
+    """Creates a topbar component."""
+    service = PreswaldService.get_instance()
+    id = generate_id("topbar")
+    logger.debug(f"Creating topbar component with id {id}")
+    component = {"type": "topbar", "id": id}
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+    return component
+
+
 def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -> Dict:
     """
     Render the workflow's DAG visualization.
