@@ -12,6 +12,10 @@ favicon = "images/favicon.ico"
 primaryColor = "#F89613"
 
 
+[data.sample_csv]
+type = "csv"
+path = "data/customer_churn.csv"
+
 [logging]
 level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
 format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
