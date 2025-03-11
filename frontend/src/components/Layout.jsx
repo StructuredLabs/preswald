@@ -18,7 +18,8 @@ import { Outlet } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 import Sidebar from './Sidebar';
-import TopBar from './TopBar';
+
+//import TopBar from './TopBar';
 
 const navigation = [{ name: 'Dashboard', href: '/', icon: HomeIcon }];
 
@@ -102,12 +103,14 @@ export default function Layout({ branding, children }) {
           isCollapsed && 'lg:pl-20'
         )}
       >
+        {/*
         <TopBar
           setSidebarOpen={setSidebarOpen}
           onToggleSidebar={handleToggleSidebar}
           isCollapsed={isCollapsed}
           branding={branding || window.PRESWALD_BRANDING}
         />
+        */}
 
         <main className="flex-1 py-10">
           <div className="px-4 sm:px-6 lg:px-8">{children}</div>

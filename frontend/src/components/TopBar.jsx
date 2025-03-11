@@ -11,8 +11,9 @@ import { cn } from '@/lib/utils';
 
 export default function Topbar({ setSidebarOpen, branding, onToggleSidebar, isCollapsed }) {
   return (
-    <div className="topbar">
-      {/* Mobile menu button */}
+    <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-background px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+      {/* REMOVE mobile version button}
+      {/* Mobile menu button}
       <Button
         variant="ghost"
         size="icon"
@@ -22,8 +23,10 @@ export default function Topbar({ setSidebarOpen, branding, onToggleSidebar, isCo
       >
         <Menu className="icon-button" />
       </Button>
+      */}
 
-      {/* Desktop collapse button */}
+      {/* REMOVE sidebar collapse button
+      {/* Desktop collapse button }
       <Button
         variant="ghost"
         size="icon"
@@ -37,6 +40,7 @@ export default function Topbar({ setSidebarOpen, branding, onToggleSidebar, isCo
           <PanelLeftClose className="icon-button" />
         )}
       </Button>
+      */}
 
       {/* Separator */}
       <Separator orientation="vertical" className="separator" />
