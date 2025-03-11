@@ -66,7 +66,7 @@ python setup.py build_frontend
 Verify your setup by running the sample app:
 
 ```bash
-cd examples/earthquakes && preswald run
+cd examples/iris && preswald run
 ```
 
 ## Development Workflow
