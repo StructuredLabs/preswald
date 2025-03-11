@@ -459,7 +459,7 @@ def text_input(label: str, placeholder: str = "", size: float = 1.0) -> str:
     return current_value
 
 
-def topbar():
+def topbar() -> Dict:
     """Creates a topbar component."""
     service = PreswaldService.get_instance()
     id = generate_id("topbar")

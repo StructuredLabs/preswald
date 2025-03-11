@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 
 import { cn } from '@/lib/utils';
 
-const Topbar = ({
+const TopbarWidget = ({
   branding = window.PRESWALD_BRANDING, // default to PRESWALD_BRANDING if nothing is passed
 }) => {
   return (
@@ -33,3 +33,5 @@ const Topbar = ({
     </div>
   );
 };
+
+export default TopbarWidget;

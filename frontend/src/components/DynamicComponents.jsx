@@ -19,6 +19,7 @@ import SliderWidget from './widgets/SliderWidget';
 import SpinnerWidget from './widgets/SpinnerWidget';
 import TableViewerWidget from './widgets/TableViewerWidget';
 import TextInputWidget from './widgets/TextInputWidget';
+import TopbarWidget from './widgets/TopbarWidget';
 import UnknownWidget from './widgets/UnknownWidget';
 
 // Error boundary component
@@ -111,6 +112,9 @@ const MemoizedComponent = memo(
             className={component.className}
           />
         );
+
+      case 'topbar':
+        return <TopbarWidget {...commonProps} />;
 
       case 'checkbox':
         return (
