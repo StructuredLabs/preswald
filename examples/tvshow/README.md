@@ -11,8 +11,7 @@ The dataset used is a CSV file named `netflix_titles.csv`, which includes the fo
 - **Title**: Name of the Show or Movie
 - **Director**: Name of the director
 - **Country**: Movie's country origin
-- **Release Year**: Movie or Show release year
-
+- **Release Year**: Movie or Show release year etc.
 ## What Does the App Do?
 
 The **TV Show and Movie Explorer** is an interactive dashboard that allows users to explore and visualize tv shows and movies from Netflix. It enables the following functionalities:
