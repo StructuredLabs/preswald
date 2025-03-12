@@ -2,7 +2,7 @@
 title = "Preswald Project"
 version = "0.1.0"
 port = 8501
-slug = "preswald-test-128556"  # Required: Unique identifier for your project
+slug = "juicebox7"  # Required: Unique identifier for your project
 entrypoint = "hello.py"    # Required: Main script to run when executing preswald run
 
 [branding]
