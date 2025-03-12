@@ -1,0 +1,7 @@
+secrets.toml
+.preswald_deploy
+.env.structured
+
+prswld-b00f9553-490f-45a4-a551-20a806f2b159
+
+preswald deploy --target structured --github mjkushman --api-key prswld-b00f9553-490f-45a4-a551-20a806f2b159 hello.py
