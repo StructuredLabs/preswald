@@ -5,14 +5,11 @@ connect()
 df = get_df("economic_data")
 
 text("# Analyzing Economic Indicators in BRICS: A Comparative Study")
-
-unique_countries = df[['Country Name', 'Country Code']].drop_duplicates()
-series_name = df[['Series Name']].drop_duplicates()
-series_name = series_name["Series Name"].tolist()
-country_list = list(unique_countries["Country Name"])
-
 text("## Time-Series Analysis of Economic Trends in BRICS Nations")
 text("Please select an economic indicator to analyze the time-series data.")
+
+series_name = df[['Series Name']].drop_duplicates()
+series_name = series_name["Series Name"].tolist()
 
 choice_series_name = selectbox(
     label="Select Series Name",
@@ -33,11 +30,8 @@ fig1 = px.line(df_filtered, x="Year", y="Value", color="Country Name",
               title=f"{indicator} Over Time",
               labels={"Value": indicator, "Year": "Year"},
               markers=True)
-
 fig1.show()
-
 plotly(fig1)
-
 separator()
 
 try:
@@ -51,9 +45,7 @@ try:
     )
 
     # Get the most recent year with valid data
-    df_filtered = df_filtered.dropna(subset=['Value'])  # Remove NaN values
-    # latest_year = df_filtered['Year'].max()
-
+    df_filtered = df_filtered.dropna(subset=['Value'])
     df_latest = df_filtered[df_filtered['Year'] == choice_year]
 
     if df_latest.empty:
@@ -66,16 +58,13 @@ try:
                     text_auto='.2s')
 
         fig2.show()
-
     plotly(fig2)
 except Exception as e:
     alert(message="To display any results, please select a year.", level="critical")
     print(f"An error occurred: {e}")
 
-
 separator()
 
 text("## BRICS Economic Data Table")
 text("The table below shows the economic data for BRICS nations.")
-
 table(df, limit=50)
