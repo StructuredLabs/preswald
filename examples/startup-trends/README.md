@@ -1,5 +1,9 @@
 # Startup Data Analysis Dashboard
 
+## Deployment
+[The example project is deployed here on Structured Cloud](https://startup-data-analysis-768210-zlntbzje-ndjz2ws6la-ue.a.run.app/)
+
+
 ## Dataset
 
 This project uses the [Startup Growth and Funding Trends](https://www.kaggle.com/datasets/samayashar/startup-growth-and-funding-trends) dataset from Kaggle. The dataset contains information about various startups including:
