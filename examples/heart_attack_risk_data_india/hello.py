@@ -13,6 +13,7 @@ from preswald import (
 import plotly.express as px
 
 def style_plot(fig, title=None):
+    # Apply a unified style to all plots (white background, margins, etc.)
     fig.update_traces(marker_line_width=1, marker_line_color="black")
     fig.update_layout(
         title=title if title else fig.layout.title.text,
@@ -23,8 +24,9 @@ def style_plot(fig, title=None):
     fig.update_xaxes(showline=True, linewidth=1, linecolor="black")
     fig.update_yaxes(showline=True, linewidth=1, linecolor="black")
     return fig
-
+# Establish connection to Preswald data sources
 connect()
+# Load the dataset named "heart_attack_prediction_india" from CSV
 df = get_df("heart_attack_prediction_india")
 
 text("# Cardiovascular Analysis")
@@ -36,6 +38,7 @@ else:
 
 text("## 1. Aggregation by State_Name")
 text("Aggregating average Heart_Attack_Risk and Systolic_BP across states.")
+# Aggregation via SQL
 sql = """
 SELECT
     State_Name,
@@ -60,7 +63,7 @@ if not df_agg.empty:
     )
     style_plot(fig_agg)
     plotly(fig_agg)
-
+#  Correlation Heatmap
 text("## 2. Correlation Heatmap")
 text("Examining correlations among key numeric features.")
 corr_cols = ["Age", "Systolic_BP", "Diastolic_BP", "Heart_Attack_Risk"]
@@ -81,9 +84,10 @@ if not df_corr.empty:
     plotly(fig_cm)
 else:
     text("No numeric data found for correlation.")
-
+# Additional Visualizations
 text("## 3. Additional Visualizations")
 
+# Pie chart showing heart attack history distribution
 if "Heart_Attack_History" in df.columns:
     text("### Heart Attack History Distribution (Pie Chart)")
     fig_pie = px.pie(
@@ -100,6 +104,7 @@ if "Heart_Attack_History" in df.columns:
     )
     plotly(fig_pie)
 
+# Box plot to compare systolic BP by gender
 if all(col in df.columns for col in ["Systolic_BP", "Gender"]):
     text("### Systolic BP by Gender (Box Plot)")
     df_box = df.copy()
@@ -117,6 +122,7 @@ if all(col in df.columns for col in ["Systolic_BP", "Gender"]):
     )
     plotly(fig_box)
 
+# Histogram of Age distribution
 if "Age" in df.columns:
     text("### Age Distribution (Histogram)")
     df_hist = df.copy()
@@ -135,6 +141,7 @@ if "Age" in df.columns:
     fig_hist.update_yaxes(showline=True, linewidth=1, linecolor="black")
     plotly(fig_hist)
 
+# Interactive filter + bubble chart
 text("## 4. Age Range Filter + Bubble Chart with Dropdown for Y-axis")
 text("Use the sliders to define an Age range and select **any column** from the dataset for the Y-axis.")
 
@@ -156,6 +163,7 @@ text(f"Showing rows where Age is between {min_age} and {max_age}, plotting Age o
 
 if not df_bubble.empty:
     table(df_bubble.head(10), title="Sample of Filtered Patients")
+    # Bubble chart with Age on X, user-chosen column on Y, bubble size by Cholesterol_Level
     fig_bubble = px.scatter(
         df_bubble,
         x="Age",
