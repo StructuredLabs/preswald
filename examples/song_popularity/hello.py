@@ -1,6 +1,8 @@
-from preswald import text, plotly, connect, get_df, table, query, slider
 import pandas as pd
 import plotly.express as px
+
+from preswald import connect, get_df, plotly, query, slider, table, text
+
 
 dataset = "top_songs"
 
