@@ -1,6 +1,68 @@
-# Preswald Project
+# English Premier League Analysis Dashboard
 
-## Setup
-1. Configure your data connections in `preswald.toml`
-2. Add sensitive information (passwords, API keys) to `secrets.toml`
-3. Run your app with `preswald run hello.py`
+An interactive data analysis dashboard for exploring English Premier League football statistics.
+
+## 🎯 Overview
+
+This dashboard provides real-time analysis of football match data, including:
+- Shot conversion rates and scoring patterns
+- Team performance metrics and league standings
+- Goal distribution across teams
+- Detailed match statistics
+
+## 📊 Dataset
+
+The analysis uses the English Premier League & Championship Full Dataset which contains:
+- 30 years of match data (1993/94 - 2024/25 mid-season)
+- 25 statistical variables per match
+- Complete coverage of Premier League and Championship matches
+
+Data includes:
+- Match results and scores
+- Shot statistics
+- Cards and fouls
+- Corner kicks
+- Team performance metrics
+
+## 🚀 Quick Start
+
+1. Install Preswald:
+```bash
+pip install preswald
+```
+
+2. Clone and run the project:
+```bash
+cd examples/english-premier-league
+preswald run
+```
+
+3. View the dashboard at: `http://localhost:8501`
+
+
+## 🌐 Live Demo
+
+Access the live dashboard here:
+[EPL Analysis Dashboard](https://my-project-956493-exfiibib-ndjz2ws6la-ue.a.run.app/)
+
+
+## 🙏 Credits
+
+- Built with [Preswald](https://preswald.com)
+- Data provided by [English Premier League & Championship Full Dataset](https://www.kaggle.com/datasets/panaaaaa/english-premier-league-and-championship-full-dataset?resource=download)
+
+
+Special thanks to:
+
+- Special thanks to [kaggle.com](https://www.kaggle.com/) for providing the dataset that powers this plugin.
+- The Preswald development team.
+- The Preswald community for their contributions and feedback
+
+For more information about Preswald integration capabilities:
+
+- [Preswald Documentation](https://docs.preswald.com/introduction)
+- [Preswald Developer Community](https://preswald-community.slack.com/join/shared_invite/zt-313yzc9hu-6olRuzf8B9RZU6lwnlZyCA#/shared-invite/email)
+
+## License
+
+This plugin is part of the Preswald project. See the main project repository for license information.
