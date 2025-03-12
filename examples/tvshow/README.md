@@ -65,7 +65,7 @@ The **TV Show and Movie Explorer** is an interactive dashboard that allows users
      preswald deploy --target structured --github username --api-key YOUR_API_KEY hello.py
      ```
 
-   Replace `YOUR_API_KEY` with your actual Preswald API key.
+   Replace `username` with your actual github username `YOUR_API_KEY` with your actual Preswald API key.
 
 ### 2. **Deployment Steps**:
 
