@@ -27,7 +27,7 @@ text("Use the dropdown and slider below to filter Type and Release Year.")
 selected_club = selectbox("Select Type", options=df["type"].unique().tolist(), default="Movie")
 
 # Slider for Minimum Overall Rating
-min_overall_rating = slider("Minimum Overall Rating", min_val=2000, max_val=2025, default=2010)
+min_overall_rating = slider("Minimum Release Year", min_val=2000, max_val=2025, default=2010)
 
 # 🔍 Step 2: SQL Query for Filtering
 text("### Step 2: Filtered Type Data")
