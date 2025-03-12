@@ -62,7 +62,7 @@ The **TV Show and Movie Explorer** is an interactive dashboard that allows users
    
    - Run the following command to deploy the app to **Preswald**:
      ```bash
-     preswald deploy --target structured --github --api-key YOUR_API_KEY hello.py
+     preswald deploy --target structured --github username --api-key YOUR_API_KEY hello.py
      ```
 
    Replace `YOUR_API_KEY` with your actual Preswald API key.
