@@ -1,0 +1,11 @@
+id,host_id,host_name,neighbourhood,room_type,price,minimum_nights,reviews_per_month
+1,101,John Doe,Mission,Entire home/apt,150,2,4.5
+2,102,Jane Smith,Castro,Private room,100,1,3.2
+3,101,John Doe,Mission,Shared room,75,1,2.8
+4,103,Bob Johnson,Marina,Entire home/apt,200,3,5.0
+5,104,Alice Brown,SoMa,Private room,120,2,4.0
+6,105,Charlie Green,Nob Hill,Entire home/apt,180,2,3.5
+7,106,David White,Richmond,Private room,90,1,4.2
+8,107,Eva Black,Sunset,Shared room,60,1,3.0
+9,108,Frank Gray,Tenderloin,Entire home/apt,160,2,2.5
+10,109,Grace Blue,Haight-Ashbury,Private room,110,1,4.8
