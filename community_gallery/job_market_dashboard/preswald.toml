@@ -1,0 +1,20 @@
+[project]
+title = "AI-Powered Job Market Insights"
+version = "0.1.0"
+port = 8501
+slug = "job-market-insights-453233"  # Required: Unique identifier for your project
+entrypoint = "hello.py"    # Required: Main script to run when executing preswald run
+
+[branding]
+name = "Job Market Dashboard"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#F89613"
+
+[data.job_market_data]
+type = "csv"
+path = "data/job_market_data.csv"
+
+[logging]
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

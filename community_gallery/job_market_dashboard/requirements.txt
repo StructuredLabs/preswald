@@ -1,0 +1,3 @@
+preswald==0.1.0
+pandas==1.5.3
+plotly==5.8.0
