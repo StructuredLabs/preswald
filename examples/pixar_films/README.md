@@ -3,6 +3,8 @@
 ## Dataset
 The dataset contains information about pixar films such as release dates, box office, and rotten tomato scores.
 
+Dataset source: https://www.kaggle.com/datasets/willianoliveiragibin/pixar-films
+
 ## What the app does
 1. This app displays a table displaying all films released on or after 2005. A threshold bar allows you to filter out films above a certain rotten tomato score.
 2. This app also displays a plot of all films released on or after 2005 with their box office and rotten tomato scores.
