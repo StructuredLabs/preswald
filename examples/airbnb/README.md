@@ -58,8 +58,8 @@ This project uses the San Francisco Airbnb dataset, which contains detailed info
 
 1. **Set Up Your Environment**
    ```bash
-   # Install Preswald
-   pip install preswald
+   # Install Preswald and other libraries
+   pip install preswald pandas numpy matplotlib plotly scikit-learn
 
    # Create a new project directory
    preswald init airbnb_dashboard
