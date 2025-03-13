@@ -35,19 +35,62 @@ for dir in examples/*/; do
     end_time=$(date +%s)
     deploy_time=$((end_time - start_time))
 
-    APP_URL=""
+    CLOUD_RUN_URL=""
+    PRESWALD_APP_URL=""
     
-    if echo "$output" | grep -q "Deployment completed successfully"; then
+    if [[ "$output" == *"Starting production deployment"* ]]; then
 		echo -e "${GREEN}[ OK ]${NC} Deployment successful! [Time: $(format_time $deploy_time)]"
-        APP_URL=$(echo "$output" | grep -o 'https://[^"]*')
-		echo "   App URL: $APP_URL"
+        
+        # Extract both URLs
+        CLOUD_RUN_URL=$(echo "$output" | grep -o 'https://.*\.a\.run\.app' | head -1)
+        PRESWALD_APP_URL=$(echo "$output" | grep -o 'https://.*\.preswald\.app' | head -1)
+        
+        # If PRESWALD_APP_URL is empty, try to extract from the custom domain line
+        if [ -z "$PRESWALD_APP_URL" ]; then
+            DOMAIN=$(echo "$output" | grep 'Custom domain assigned at' | sed 's/.*Custom domain assigned at \(.*\)/\1/' | head -1)
+            if [ ! -z "$DOMAIN" ]; then
+                PRESWALD_APP_URL="https://$DOMAIN"
+            fi
+        fi
+        
+		echo "   Cloud Run URL: $CLOUD_RUN_URL"
+		echo "   Preswald App URL: $PRESWALD_APP_URL"
 
-		start_time=$(date +%s)
-        curl_output=$(curl -f "$APP_URL" 2>/dev/null)
-        end_time=$(date +%s)
-        echo -e "${GREEN}[ OK ]${NC} Verified app accessibility [Time: $(format_time $((end_time - start_time)))]"
-        echo "   Response preview:"
-        echo "$curl_output" | sed 's/^/     /'
+        # Check Cloud Run URL
+        if [ ! -z "$CLOUD_RUN_URL" ]; then
+            start_time=$(date +%s)
+            curl_output=$(curl -f "$CLOUD_RUN_URL" 2>/dev/null)
+            curl_status=$?
+            end_time=$(date +%s)
+            
+            if [ $curl_status -eq 0 ]; then
+                echo -e "${GREEN}[ OK ]${NC} Verified Cloud Run URL accessibility [Time: $(format_time $((end_time - start_time)))]"
+                echo "   Response preview:"
+                echo "$curl_output" | head -5 | sed 's/^/     /'
+            else
+                echo -e "${RED}[FAIL]${NC} Could not access Cloud Run URL [Time: $(format_time $((end_time - start_time)))]"
+            fi
+        else
+            echo -e "${RED}[WARN]${NC} Could not extract Cloud Run URL from output"
+        fi
+        
+        # Check Preswald App URL
+        if [ ! -z "$PRESWALD_APP_URL" ]; then
+            start_time=$(date +%s)
+            curl_output=$(curl -f "$PRESWALD_APP_URL" 2>/dev/null)
+            curl_status=$?
+            end_time=$(date +%s)
+            
+            if [ $curl_status -eq 0 ]; then
+                echo -e "${GREEN}[ OK ]${NC} Verified Preswald App URL accessibility [Time: $(format_time $((end_time - start_time)))]"
+                echo "   Response preview:"
+                echo "$curl_output" | head -5 | sed 's/^/     /'
+            else
+                echo -e "${RED}[FAIL]${NC} Could not access Preswald App URL [Time: $(format_time $((end_time - start_time)))]"
+            fi
+        else
+            echo -e "${RED}[WARN]${NC} Could not extract Preswald App URL from output"
+        fi
     else
 		echo -e "${RED}[FAIL]${NC} Deployment failed [Time: $(format_time $deploy_time)]"
         echo "   Output: $output"
@@ -60,17 +103,59 @@ for dir in examples/*/; do
     end_time=$(date +%s)
     revise_time=$((end_time - start_time))
 
-    if echo "$output" | grep -q "Deployment completed successfully"; then
+    if [[ "$output" == *"Starting production deployment"* ]]; then
 		echo -e "${GREEN}[ OK ]${NC} Revision successful! [Time: $(format_time $revise_time)]"
-        APP_URL=$(echo "$output" | grep -o 'https://[^"]*')
-        echo "   App URL: $APP_URL"
+        
+        # Extract both URLs
+        CLOUD_RUN_URL=$(echo "$output" | grep -o 'https://.*\.a\.run\.app' | head -1)
+        PRESWALD_APP_URL=$(echo "$output" | grep -o 'https://.*\.preswald\.app' | head -1)
+        
+        # If PRESWALD_APP_URL is empty, try to extract from the custom domain line
+        if [ -z "$PRESWALD_APP_URL" ]; then
+            DOMAIN=$(echo "$output" | grep 'Custom domain assigned at' | sed 's/.*Custom domain assigned at \(.*\)/\1/' | head -1)
+            if [ ! -z "$DOMAIN" ]; then
+                PRESWALD_APP_URL="https://$DOMAIN"
+            fi
+        fi
+        
+		echo "   Cloud Run URL: $CLOUD_RUN_URL"
+		echo "   Preswald App URL: $PRESWALD_APP_URL"
 
-        start_time=$(date +%s)
-        curl_output=$(curl -f "$APP_URL" 2>/dev/null)
-        end_time=$(date +%s)
-        echo -e "${GREEN}[ OK ]${NC} Verified app accessibility [Time: $(format_time $((end_time - start_time)))]"
-        echo "   Response preview:"
-        echo "$curl_output" | sed 's/^/     /'
+        # Check Cloud Run URL
+        if [ ! -z "$CLOUD_RUN_URL" ]; then
+            start_time=$(date +%s)
+            curl_output=$(curl -f "$CLOUD_RUN_URL" 2>/dev/null)
+            curl_status=$?
+            end_time=$(date +%s)
+            
+            if [ $curl_status -eq 0 ]; then
+                echo -e "${GREEN}[ OK ]${NC} Verified Cloud Run URL accessibility [Time: $(format_time $((end_time - start_time)))]"
+                echo "   Response preview:"
+                echo "$curl_output" | head -5 | sed 's/^/     /'
+            else
+                echo -e "${RED}[FAIL]${NC} Could not access Cloud Run URL [Time: $(format_time $((end_time - start_time)))]"
+            fi
+        else
+            echo -e "${RED}[WARN]${NC} Could not extract Cloud Run URL from output"
+        fi
+        
+        # Check Preswald App URL
+        if [ ! -z "$PRESWALD_APP_URL" ]; then
+            start_time=$(date +%s)
+            curl_output=$(curl -f "$PRESWALD_APP_URL" 2>/dev/null)
+            curl_status=$?
+            end_time=$(date +%s)
+            
+            if [ $curl_status -eq 0 ]; then
+                echo -e "${GREEN}[ OK ]${NC} Verified Preswald App URL accessibility [Time: $(format_time $((end_time - start_time)))]"
+                echo "   Response preview:"
+                echo "$curl_output" | head -5 | sed 's/^/     /'
+            else
+                echo -e "${RED}[FAIL]${NC} Could not access Preswald App URL [Time: $(format_time $((end_time - start_time)))]"
+            fi
+        else
+            echo -e "${RED}[WARN]${NC} Could not extract Preswald App URL from output"
+        fi
     else
 		echo -e "${RED}[FAIL]${NC} Revision failed [Time: $(format_time $revise_time)]"
         echo "   Output: $output"
@@ -83,17 +168,35 @@ for dir in examples/*/; do
     end_time=$(date +%s)
     stop_time=$((end_time - start_time))
 
-    if echo "$output" | grep -q "Deployment stopped successfully"; then
+    if [[ "$output" == *"Deployment stopped successfully"* ]]; then
         echo -e "${GREEN}[ OK ]${NC} Stop successful! [Time: $(format_time $stop_time)]"
 
+        # Check both URLs are down
         start_time=$(date +%s)
-        if curl -f "$APP_URL" 2>/dev/null; then
-            end_time=$(date +%s)
-            echo -e "${RED}[FAIL]${NC} Error: App still accessible [Check time: $(format_time $((end_time - start_time)))]"
-            exit 1
-        else
-            end_time=$(date +%s)
-            echo -e "${GREEN}[ OK ]${NC} Confirmed app is down [Check time: $(format_time $((end_time - start_time)))]"
+        
+        # Check Cloud Run URL is down
+        if [ ! -z "$CLOUD_RUN_URL" ]; then
+            if curl -f "$CLOUD_RUN_URL" 2>/dev/null; then
+                end_time=$(date +%s)
+                echo -e "${RED}[FAIL]${NC} Error: Cloud Run URL still accessible [Check time: $(format_time $((end_time - start_time)))]"
+                exit 1
+            else
+                end_time=$(date +%s)
+                echo -e "${GREEN}[ OK ]${NC} Confirmed Cloud Run URL is down [Check time: $(format_time $((end_time - start_time)))]"
+            fi
+        fi
+        
+        # Check Preswald App URL is down
+        if [ ! -z "$PRESWALD_APP_URL" ]; then
+            start_time=$(date +%s)
+            if curl -f "$PRESWALD_APP_URL" 2>/dev/null; then
+                end_time=$(date +%s)
+                echo -e "${RED}[FAIL]${NC} Error: Preswald App URL still accessible [Check time: $(format_time $((end_time - start_time)))]"
+                exit 1
+            else
+                end_time=$(date +%s)
+                echo -e "${GREEN}[ OK ]${NC} Confirmed Preswald App URL is down [Check time: $(format_time $((end_time - start_time)))]"
+            fi
         fi
     else
         echo -e "${RED}[FAIL]${NC} Stop failed [Time: $(format_time $stop_time)]"
