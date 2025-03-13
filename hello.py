@@ -1,32 +1,50 @@
 from preswald import connect, get_df, table, text, slider, plotly
+import pandas as pd
 import plotly.express as px
 
-# Initialize connection
-connect()
+# 🟢 Display a title
+text("# 📊 My Data Analysis App")
 
-# Load the dataset
-df = get_df("sample")
-print(df)
+# 🟢 Step 1: Connect to Preswald
+try:
+    connect()
+    text("✅ Connection to Preswald initialized successfully!")
+except Exception as e:
+    text(f"🚨 Error initializing connection: {e}")
+    exit()
 
-# Debugging step: Print df to check if it's loading
-text(f"Dataset Loaded: {df}")
+# 🟢 Step 2: Load the dataset
+try:
+    df = get_df("sample")  # Ensure "sample" matches `preswald.toml`
+    if df is None:
+        raise ValueError("Dataset returned None")
 
-# If df is None, stop execution
-if df is None:
-    text("Error: Dataset not found. Please check your data path.")
-else:
-    # Display a title
-    text("# Inventory Data Analysis App")
+    text(f"✅ Dataset Loaded: {df.shape[0]} rows, {df.shape[1]} columns")
+    print("Dataset columns:", df.columns.tolist())  # Debugging
 
-    # Create a filter using a slider for minimum value
-    threshold = slider("Minimum Value", min_val=0, max_val=200, default=50)
+except Exception as e:
+    text("🚨 Error: Dataset could not be loaded!")
+    text(f"Details: {e}")
+    print("🚨 ERROR: Dataset failed to load:", e)
+    df = None
 
-    # Filter dataset based on value
+# 🟢 Step 3: UI Component - Add a slider
+text("📌 Adjust the slider below to filter data.")
+threshold = slider("Filter Threshold", min_val=0, max_val=100, default=50)
+
+# 🟢 Step 4: Ensure the dataset has required columns
+if df is not None and "value" in df.columns:
+    # Filter data based on slider
     filtered_df = df[df["value"] > threshold]
+    table(filtered_df, title="🔍 Filtered Data")
 
-    # Show filtered data
-    table(filtered_df, title="Filtered Inventory Data")
+    # Generate a scatter plot (ensure required columns exist)
+    if "quantity" in df.columns:
+        fig = px.scatter(df, x="quantity", y="value", color="item", title="🔍 Quantity vs. Value")
+        plotly(fig)
+    else:
+        text("🚨 Error: Column 'quantity' not found!")
 
-    # Create a bar chart for item values
-    fig = px.bar(df, x="item", y="value", color="quantity", title="Item Values in Inventory")
-    plotly(fig)
+else:
+    text("🚨 Error: Required column 'value' is missing! Dataset might be incorrect.")
+
