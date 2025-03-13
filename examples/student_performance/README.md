@@ -2,7 +2,7 @@
 
 ## Dataset Source
 
-This app utilizes the Student Performance Dataset from the UCI Machine Learning Repository. The dataset was introduced in Cortez and Silva (2008) and contains student academic records, demographics, and school-related attributes for secondary education students in Portugal.
+This app utilizes the [Student Performance Dataset](https://archive.ics.uci.edu/dataset/320/student+performance) from the UCI Machine Learning Repository. The dataset was introduced in Cortez and Silva (2008) and contains student academic records, demographics, and school-related attributes for secondary education students in Portugal.
 
 ## Overview of the App
 
