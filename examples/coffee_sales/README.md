@@ -43,7 +43,7 @@ This app helps business owners, analysts, and managers optimize pricing, marketi
    ```bash
    pip install pandas plotly preswald numpy
 
-   ### Running the App
+### Running the App
 
 1. **Clone the repository** or download the necessary files.
 
