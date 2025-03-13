@@ -174,4 +174,7 @@ notes.md
 .pre-commit/
 .ruff_cache/
 
+secrets.toml
+.preswald_deploy
+eea1990 ( first)
 .env.structured
