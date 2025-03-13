@@ -36,9 +36,21 @@ This app helps business owners, analysts, and managers optimize pricing, marketi
    - `pandas` for data manipulation
    - `plotly` for visualizations
    - `preswald` for app functionality
-   - `numpy` for numerical operations
+   
 
    To install the required packages, run the following command in your terminal:
 
    ```bash
    pip install pandas plotly preswald numpy
+
+   ### Running the App
+
+1. **Clone the repository** or download the necessary files.
+
+2. **Ensure the dataset is available**: The dataset file `DatasetForCoffeeSales2.csv` should be placed in the `data` directory.
+
+3. **Run the app with Preswald**: The application entry point is `hello.py`. Execute the following command to start the app locally:
+
+   ```bash
+   preswald run
+
