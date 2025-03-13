@@ -12,6 +12,7 @@ from typing import Generator, Optional
 
 import pkg_resources
 import requests
+import toml
 
 from preswald.utils import get_project_slug, read_template
 
@@ -21,7 +22,6 @@ logger = logging.getLogger(__name__)
 # Default Structured Cloud service URL
 # STRUCTURED_CLOUD_SERVICE_URL = os.getenv('STRUCTURED_CLOUD_SERVICE_URL', 'http://127.0.0.1:8080')
 STRUCTURED_CLOUD_SERVICE_URL = "https://deployer.preswald.com"
-
 
 def get_deploy_dir(script_path: str) -> Path:
     """
@@ -36,7 +36,11 @@ def get_deploy_dir(script_path: str) -> Path:
 
 def get_container_name(script_path: str) -> str:
     """Generate a consistent container name for a given script"""
-    container_name = f"preswald-app-{Path(script_path).stem}"
+    script_dir = Path(script_path).parent
+    with open(script_dir / "preswald.toml", "r") as f:
+        preswald_toml = f.read()
+    config = toml.loads(preswald_toml)
+    container_name = f"preswald-app-{config['project']['slug']}"
     container_name = container_name.lower()
     container_name = re.sub(r"[^a-z0-9-]", "", container_name)
     container_name = container_name.strip("-")
@@ -354,100 +358,208 @@ def deploy_to_prod(  # noqa: C901
         raise Exception(f"Production deployment failed: {e!s}") from e
 
 
+def check_gcloud_auth_for_gcr() -> bool:
+    try:
+        result = subprocess.run(
+            ["gcloud", "auth", "configure-docker", "--quiet"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return result.returncode == 0
+    except subprocess.CalledProcessError:
+        return False
+
+
+def authenticate_gcr() -> None:
+    try:
+        subprocess.run(
+            ["gcloud", "auth", "configure-docker", "--quiet"],
+            check=True,
+            capture_output=True,
+        )
+    except subprocess.CalledProcessError as e:
+        raise Exception(f"Failed to authenticate with GCR: {e!s}") from e
+
+
 def deploy_to_gcp(script_path: str, port: int = 8501) -> str:
     """
-    Deploy a Preswald app to Google Cloud Run.
-    This function creates a Docker container locally and deploys it to Cloud Run.
-
+    Deploy a Preswald app to Google Cloud Run using a simplified Docker approach.
+    
     Args:
         script_path: Path to the Preswald application script
         port: Port number for the deployment
-
+        
     Returns:
-        str: The URL where the application is deployed on Cloud Run
+        str: The URL where the app is deployed
     """
     script_path = os.path.abspath(script_path)
     script_dir = Path(script_path).parent
     container_name = get_container_name(script_path)
     deploy_dir = get_deploy_dir(script_path)
 
-    # Get preswald version for exact version matching
-    preswald_version = pkg_resources.get_distribution("preswald").version
-
-    # Clear out old deployment directory contents while preserving the directory itself
-    for item in deploy_dir.iterdir():
-        if item.is_file():
-            item.unlink()
-        elif item.is_dir():
-            shutil.rmtree(item)
-
-    # Copy everything from script's directory to deployment directory
-    for item in script_dir.iterdir():
-        if item.name == ".preswald_deploy":
-            continue
-        if item.is_file():
-            shutil.copy2(item, deploy_dir / item.name)
-        elif item.is_dir():
-            shutil.copytree(item, deploy_dir / item.name)
-
-    # Rename main script to app.py if needed
-    if Path(script_path).name != "app.py":
-        shutil.move(deploy_dir / Path(script_path).name, deploy_dir / "app.py")
-
-    # Create startup script
-    startup_template = read_template("run.py")
-    startup_script = startup_template.format(port=port)
-    with open(deploy_dir / "run.py", "w") as f:
-        f.write(startup_script)
-
-    # Create Dockerfile
-    dockerfile_template = read_template("Dockerfile")
-    dockerfile_content = dockerfile_template.format(
-        port=port, preswald_version=preswald_version
-    )
-    with open(deploy_dir / "Dockerfile", "w") as f:
-        f.write(dockerfile_content)
-
-    # Store deployment info
-    deployment_info = {
-        "script": script_path,
-        "container_name": container_name,
-        "preswald_version": preswald_version,
-    }
-    with open(deploy_dir / "deployment.json", "w") as f:
-        json.dump(deployment_info, f, indent=2)
-
     try:
-        # Stop any existing container
-        print("Stopping existing deployment (if any)...")
-        stop_existing_container(container_name)
+        if not check_gcloud_installation():
+            raise Exception(
+                "Google Cloud SDK not found. Please install from: "
+                "https://cloud.google.com/sdk/docs/install"
+            )
 
-        # Build the Docker image for GCP (using linux/amd64 platform)
-        print(f"Building Docker image {container_name} for GCP deployment...")
+        if not check_gcloud_auth():
+            print("\nYou need to authenticate with Google Cloud.")
+            print("Opening browser for authentication...")
+            subprocess.run(["gcloud", "auth", "login"], check=True)
+
+        project_id = ensure_project_selected()
+        print(f"\nUsing Google Cloud project: {project_id}")
+
+        if not check_gcloud_auth_for_gcr():
+            authenticate_gcr()
+
+        with open(script_dir / "preswald.toml", "r") as f:
+            preswald_toml = f.read()
+        config = toml.loads(preswald_toml)
+        original_port = config['project']['port']
+        config['project']['port'] = 8080
+        
+        with open(script_dir / "preswald.toml", "w") as f:
+            toml.dump(config, f)
+
+        # Clear out old deployment directory contents while preserving the directory itself
+        for item in deploy_dir.iterdir():
+            if item.is_file():
+                item.unlink()
+            elif item.is_dir():
+                shutil.rmtree(item)
+
+        dockerfile_content = f"""FROM structuredlabs/preswald-base:latest
+COPY . /app/project
+"""
+        with open(deploy_dir / "Dockerfile", "w") as f:
+            f.write(dockerfile_content)
+
+        for item in script_dir.iterdir():
+            if item.name == ".preswald_deploy":
+                continue
+            if item.is_file():
+                shutil.copy2(item, deploy_dir / item.name)
+            elif item.is_dir():
+                shutil.copytree(item, deploy_dir / item.name, dirs_exist_ok=True)
+
+        region = "us-west1"
+        gcr_image = f"gcr.io/{project_id}/{container_name}"
+
+        print(f"\nBuilding Docker image {container_name} for GCP deployment...")
+        build_cmd = [
+            "docker",
+            "buildx",
+            "build",
+            "--platform",
+            "linux/amd64",
+            "-t",
+            container_name,
+            "--load",
+            ".",
+        ]
+        print(f"Running build command in {deploy_dir}: {' '.join(build_cmd)}")
         subprocess.run(
-            [
-                "docker",
-                "build",
-                "--platform",
-                "linux/amd64",
-                "-t",
-                container_name,
-                ".",
-            ],
+            build_cmd,
             check=True,
-            cwd=deploy_dir,
+            cwd=str(deploy_dir),
         )
 
-        # Deploy to Cloud Run
-        return deploy_to_cloud_run(deploy_dir, container_name, port=port)
+        print("\nPushing image to Google Container Registry...")
+        subprocess.run(
+            ["docker", "tag", container_name, gcr_image], check=True, cwd=str(deploy_dir)
+        )
+        
+        try:
+            subprocess.run(["docker", "push", gcr_image], check=True, cwd=str(deploy_dir))
+        except subprocess.CalledProcessError as e:
+            if "unauthorized" in str(e) or "authentication required" in str(e):
+                print("\nAuthentication failed. Trying to reauthenticate...")
+                authenticate_gcr()
+                # Try pushing again after reauthentication
+                subprocess.run(["docker", "push", gcr_image], check=True, cwd=str(deploy_dir))
+            else:
+                raise
+
+        print("\nDeploying to Cloud Run...")
+        subprocess.run(
+            [
+                "gcloud",
+                "run",
+                "deploy",
+                container_name,
+                "--image",
+                gcr_image,
+                "--platform",
+                "managed",
+                "--region",
+                region,
+                "--allow-unauthenticated"
+            ],
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+
+        url_result = subprocess.run(
+            [
+                "gcloud",
+                "run",
+                "services",
+                "describe",
+                container_name,
+                "--platform",
+                "managed",
+                "--region",
+                region,
+                "--format=value(status.url)",
+            ],
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+
+        config['project']['port'] = original_port
+        with open(script_dir / "preswald.toml", "w") as f:
+            toml.dump(config, f)
+
+        deployed_url = url_result.stdout.strip()
+        print(f"\n✨ Successfully deployed to: {deployed_url}")
+        return deployed_url
 
     except subprocess.CalledProcessError as e:
-        raise Exception(f"Docker operation failed: {e!s}") from e
+        if "not installed" in str(e):
+            raise Exception(
+                "Google Cloud SDK not found. Please install from: "
+                "https://cloud.google.com/sdk/docs/install"
+            ) from e
+        elif "unauthorized" in str(e) or "authentication required" in str(e):
+            raise Exception(
+                "Authentication failed. Please run:\n"
+                "1. gcloud auth login\n"
+                "2. gcloud auth configure-docker\n"
+                "Then try deploying again."
+            ) from e
+        raise Exception(f"Cloud Run deployment failed: {e!s}") from e
     except FileNotFoundError as e:
         raise Exception(
             "Docker not found. Please install Docker Desktop from "
             "https://www.docker.com/products/docker-desktop"
         ) from e
+    except Exception as e:
+        raise Exception(f"Deployment failed: {e!s}") from e
+    finally:
+        try:
+            with open(script_dir / "preswald.toml", "r") as f:
+                config = toml.loads(f.read())
+            config['project']['port'] = original_port
+            with open(script_dir / "preswald.toml", "w") as f:
+                toml.dump(config, f)
+        except Exception:
+            pass
 
 
 def deploy(  # noqa: C901
