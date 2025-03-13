@@ -1,16 +1,18 @@
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Set, Callable, Union
+import hashlib
+import inspect
+import logging
+import pickle
+import time
+import uuid
 from dataclasses import dataclass, field
-from functools import wraps
+from datetime import datetime
 from enum import Enum
+from functools import wraps
+from typing import Any, Callable, Dict, List, Optional, Set
+
 import networkx as nx
 import plotly.graph_objects as go
-import inspect
-import uuid
-import time
-import logging
-import hashlib
-import pickle
+
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -152,7 +154,7 @@ class Atom:
                 return result
             except Exception as e:
                 logger.error(
-                    f"Atom {self.name} failed with error: {str(e)}", exc_info=True
+                    f"Atom {self.name} failed with error: {e!s}", exc_info=True
                 )
                 raise
             finally:

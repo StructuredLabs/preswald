@@ -63,10 +63,10 @@ class BuildFrontendCommand(Command):
             self._copy_assets(frontend_dir)
 
         except subprocess.CalledProcessError as e:
-            print(f"Failed to build frontend: {str(e)}", file=sys.stderr)
+            print(f"Failed to build frontend: {e!s}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Unexpected error building frontend: {str(e)}", file=sys.stderr)
+            print(f"Unexpected error building frontend: {e!s}", file=sys.stderr)
             raise
 
     def _copy_assets(self, frontend_dir):

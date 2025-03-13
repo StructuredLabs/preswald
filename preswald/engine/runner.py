@@ -1,6 +1,6 @@
-import os
 import asyncio
 import logging
+import os
 import sys
 import threading
 import time
@@ -9,6 +9,7 @@ from contextlib import contextmanager
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional
+
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +86,7 @@ class ScriptRunner:
         try:
             await self.run_script()
         except Exception as e:
-            await self._send_error(f"Failed to start script: {str(e)}")
+            await self._send_error(f"Failed to start script: {e!s}")
             self._state = ScriptState.ERROR
 
     async def stop(self):
@@ -133,7 +134,7 @@ class ScriptRunner:
             await self.run_script()
 
         except Exception as e:
-            error_msg = f"Error updating widget states: {str(e)}"
+            error_msg = f"Error updating widget states: {e!s}"
             logger.error(f"[ScriptRunner] {error_msg}")
             await self._send_error(error_msg)
             self._state = ScriptState.ERROR
@@ -210,12 +211,15 @@ class ScriptRunner:
             logger.warning("[ScriptRunner] Not running or no script path set")
             return
 
-        logger.info(f"[ScriptRunner] Running script: {self.script_path} (run #{self._run_count})")
+        logger.info(
+            f"[ScriptRunner] Running script: {self.script_path} (run #{self._run_count})"
+        )
 
         try:
             from .service import PreswaldService
+
             service = PreswaldService.get_instance()
-            
+
             # Clear previous components before execution
             service.clear_components()
 
@@ -227,7 +231,7 @@ class ScriptRunner:
             # Capture script output
             with self._redirect_stdout():
                 # Execute script
-                with open(self.script_path, "r", encoding='utf-8') as f:
+                with open(self.script_path, encoding="utf-8") as f:
                     # Save current cwd
                     current_working_dir = os.getcwd()
                     # Execute script with script directory set as cwd
@@ -252,7 +256,7 @@ class ScriptRunner:
                     logger.debug("[ScriptRunner] Sent components to frontend")
 
         except Exception as e:
-            error_msg = f"Error executing script: {str(e)}"
+            error_msg = f"Error executing script: {e!s}"
             logger.error(f"[ScriptRunner] {error_msg}", exc_info=True)
             await self._send_error(error_msg)
             self._state = ScriptState.ERROR

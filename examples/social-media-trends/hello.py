@@ -1,11 +1,13 @@
 # Import the Required Components & Libraries Needed
-from preswald import text, plotly, connect, get_df, table, query, slider
 import plotly.express as px
+
+from preswald import connect, get_df, plotly, query, slider, table, text
+
 
 # Initialize the Connection
 connect()
 # Load the CSV(You can Change the Data Source in preswald.toml)
-df = get_df('sample_csv')
+df = get_df("sample_csv")
 
 # Manipulate the DataSet Based On Custom SQL Query
 sql = "SELECT * FROM sample_csv WHERE Comments < 6376 LIMIT 10;"
@@ -20,14 +22,19 @@ table(filtered_df, title="Custom Filtered Data")
 # Add a Custom Visualization
 text("# Engagement-Based Analysis")
 # Create a scatter plot Based On Custom Analysis Requirements & Styling
-fig = px.scatter(filtered_df, x='Content_Type', y='Region', text='Engagement_Level',
-                 title='Content-Type vs. Region',
-                 labels={'content-type': 'Content-Type', 'region': 'Region'})
+fig = px.scatter(
+    filtered_df,
+    x="Content_Type",
+    y="Region",
+    text="Engagement_Level",
+    title="Content-Type vs. Region",
+    labels={"content-type": "Content-Type", "region": "Region"},
+)
 
 # Add labels for each point
-fig.update_traces(textposition='top center', marker=dict(size=12, color='green'))
+fig.update_traces(textposition="top center", marker=dict(size=12, color="green"))
 # Style the plot
-fig.update_layout(template='plotly_white')
+fig.update_layout(template="plotly_white")
 # Display the plot
 plotly(fig)
 
