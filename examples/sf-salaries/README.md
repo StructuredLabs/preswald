@@ -6,6 +6,8 @@ This application utilizes the SF Salaries Dataset available on Kaggle. You can f
 ## About the App
 The SF Salaries Explorer App is designed to analyze and visualize salary data from San Francisco city employees. The app explores trends in compensation, overtime pay, and employee benefits over the years. Users can interact with the data through dynamic visualizations and custom filters, gaining insights into pay distributions, the impact of benefits, and changes in total pay over time.
 
+App available at: [SF Salaries Explorer App](https://examples-sf-salaries-758995-qvlitla1-ndjz2ws6la-ue.a.run.app/)
+
 ## How to Run and Deploy the App
 
 ### Setup
