@@ -2,6 +2,8 @@
 
 Welcome to the **AI-Powered Job Market Insights Dashboard**! This interactive data dashboard lets you explore current AI job market trends, including in-demand **job titles**, **salary distribution**, and **skills required**. The app uses real-world data from the **AI-powered job market dataset** to give you valuable insights into what's trending in the job market right now.
 
+You can access the dataset used in this project from [Kaggle's AI-Powered Job Market Insights Dataset](https://www.kaggle.com/datasets/uom190346a/ai-powered-job-market-insights).
+
 ### **📝 Overview**
 The dataset used in this project provides a comprehensive overview of AI job market data, covering job titles, salary figures, required skills, and job trends.
 
