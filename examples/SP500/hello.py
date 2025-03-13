@@ -1,7 +1,7 @@
+from preswald import text, plotly, connect, get_df, table, query, slider
+import pandas as pd
 import plotly.express as px
-
-from preswald import connect, get_df, plotly, query, slider, table, text
-
+import datetime
 
 text("# Welcome to Preswald!")
 text("This is your first app. 🎉")
@@ -10,7 +10,7 @@ text("This is your first app. 🎉")
 connect()
 
 # Load dataset using Preswald
-data = get_df("sample_csv")
+data = get_df("sample_csv")  
 
 if "Date" in data.columns:
     data["Date"] = data["Date"].astype(str)
@@ -28,5 +28,6 @@ threshold = slider("Stock Price Threshold", min_val=0, max_val=5000, default=200
 table(data[data["Close"] > threshold], title="Dynamic Stock View")
 
 # Create visualization: Stock price trends
-fig = px.line(data, x="Date", y="Close", title="S&P 500 Stock Price Trends")
+fig = px.line(data, x="Date", y="Close", 
+              title="S&P 500 Stock Price Trends")
 plotly(fig)

@@ -1,8 +1,6 @@
+from preswald import connect, get_df, query, table, text, plotly, slider, selectbox
 import plotly.express as px
 import plotly.graph_objects as go
-
-from preswald import connect, get_df, plotly, query, selectbox, slider, table, text
-
 
 # Initialize connection
 connect()
@@ -25,22 +23,14 @@ text("## Step 1: Select a Club and Set Filters")
 text("Use the dropdown and slider below to filter players by club and overall rating.")
 
 # Selectbox for Club Selection
-selected_club = selectbox(
-    "Select Club",
-    options=df["Club Name"].unique().tolist(),
-    default="Paris Saint-Germain",
-)
+selected_club = selectbox("Select Club", options=df["Club Name"].unique().tolist(), default="Paris Saint-Germain")
 
 # Slider for Minimum Overall Rating
-min_overall_rating = slider(
-    "Minimum Overall Rating", min_val=0, max_val=100, default=80
-)
+min_overall_rating = slider("Minimum Overall Rating", min_val=0, max_val=100, default=80)
 
 # 🔍 Step 2: SQL Query for Filtering
 text("## Step 2: Filtered Player Data")
-text(
-    f"Displaying players from **{selected_club}** with an overall rating >= **{min_overall_rating}**."
-)
+text(f"Displaying players from **{selected_club}** with an overall rating >= **{min_overall_rating}**.")
 
 sql = f"""
 SELECT * FROM data 
@@ -51,9 +41,7 @@ filtered_df = query(sql, "data")
 
 # 🔍 Step 3: Display Table for Filtered Data
 text("### Player Table")
-text(
-    "The table below shows the filtered players, including their names, nationalities, and overall ratings."
-)
+text("The table below shows the filtered players, including their names, nationalities, and overall ratings.")
 table(filtered_df[["Known As", "Nationality", "Overall"]])
 
 # 🔍 Step 4: Map with Player Locations
@@ -66,16 +54,10 @@ Hover over a point to see the player's name, role, and rating.
 """)
 
 # Map: Size = Overall Rating, Color = Role
-fig_map = px.scatter_geo(
-    filtered_df,
-    locations="Nationality",
-    locationmode="country names",
-    size="Overall",
-    hover_name="Known As",
-    color="Best Position",
-    title=f"🌍 Player Locations from {selected_club}",
-    color_discrete_sequence=px.colors.qualitative.Plotly,
-)  # Use a color palette for roles
+fig_map = px.scatter_geo(filtered_df, locations="Nationality", locationmode="country names",
+                         size="Overall", hover_name="Known As", color="Best Position",
+                         title=f"🌍 Player Locations from {selected_club}",
+                         color_discrete_sequence=px.colors.qualitative.Plotly)  # Use a color palette for roles
 
 # Display Map
 plotly(fig_map)
@@ -97,28 +79,19 @@ text(f"### Selected Players: {', '.join(selected_players)}")
 filtered_players_df = filtered_df[filtered_df["Known As"].isin(selected_players)]
 
 # Selected Attributes for Radar Chart
-selected_attributes = [
-    "Pace Total",
-    "Shooting Total",
-    "Dribbling Total",
-    "Passing Total",
-    "Defending Total",
-    "Physicality Total",
-]
+selected_attributes = ["Pace Total", "Shooting Total", "Dribbling Total", "Passing Total", "Defending Total", "Physicality Total"]
 
 # Radar Chart
 fig_radar = go.Figure()
 
 # Add a trace for each selected player
 for _, row in filtered_players_df.iterrows():
-    fig_radar.add_trace(
-        go.Scatterpolar(
-            r=[row[attr] for attr in selected_attributes],  # Attribute values
-            theta=selected_attributes,  # Attribute names
-            fill="toself",  # Fill the area under the line
-            name=row["Known As"],  # Player name
-        )
-    )
+    fig_radar.add_trace(go.Scatterpolar(
+        r=[row[attr] for attr in selected_attributes],  # Attribute values
+        theta=selected_attributes,  # Attribute names
+        fill='toself',  # Fill the area under the line
+        name=row["Known As"]  # Player name
+    ))
 
 # Update layout for better readability
 fig_radar.update_layout(
@@ -126,7 +99,7 @@ fig_radar.update_layout(
     polar=dict(
         radialaxis=dict(visible=True, range=[0, 100])  # Set axis range for consistency
     ),
-    showlegend=True,  # Show legend with player names
+    showlegend=True  # Show legend with player names
 )
 
 # Display Radar Chart

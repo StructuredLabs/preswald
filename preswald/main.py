@@ -137,7 +137,6 @@ def start_server(script: Optional[str] = None, port: int = 8501):
 
     try:
         import asyncio
-
         asyncio.run(server.serve())
     except KeyboardInterrupt:
         asyncio.run(handle_shutdown())

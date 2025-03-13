@@ -1,16 +1,14 @@
-import logging
 import os
 from pathlib import Path
 from typing import Dict, List, Optional
+import logging
 
 import requests
 import tomli
 from pkg_resources import get_distribution
 
-
 STRUCTURED_CLOUD_SERVICE_URL = "http://deployer.preswald.com"
 logger = logging.getLogger(__name__)
-
 
 class TelemetryService:
     def __init__(self, script_path: Optional[str] = None):
@@ -25,14 +23,14 @@ class TelemetryService:
         try:
             config = self._read_config()
             telemetry_config = config.get("telemetry", {})
-
+            
             if isinstance(telemetry_config, dict):
                 enabled = telemetry_config.get("enabled", True)
                 if isinstance(enabled, bool):
                     return enabled
                 elif isinstance(enabled, str):
                     return enabled.lower() not in ("false", "off", "0", "no")
-
+            
             return True
         except Exception as e:
             logger.debug(f"Error reading telemetry configuration: {e}")
@@ -120,9 +118,7 @@ class TelemetryService:
             )
 
             if response.status_code != 200:
-                logger.debug(
-                    f"Failed to send telemetry data: HTTP {response.status_code}"
-                )
+                logger.debug(f"Failed to send telemetry data: HTTP {response.status_code}")
 
             return response.status_code == 200
 
@@ -134,7 +130,7 @@ class TelemetryService:
         if args and "script" in args:
             script_path = args["script"]
             self.update_script_path(script_path)
-
+        
         if not self._telemetry_enabled:
             logger.debug("Telemetry is disabled, skipping command tracking")
             return False

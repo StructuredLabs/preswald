@@ -1,8 +1,6 @@
-import pandas as pd
 import plotly.express as px
-
-from preswald import connect, get_df, plotly, slider, table, text
-
+from preswald import connect, get_df, plotly, table, text, slider
+import pandas as pd
 
 # Report Title
 text(
@@ -14,10 +12,7 @@ connect()
 df = get_df("disasters_csv")
 
 # Add a new column which calculates the duration of disasters in days (by using "End Date" and "Start Date")
-df["Days Duration"] = (
-    df["End Date"].apply(lambda x: pd.to_datetime(str(x), format="%Y%m%d"))
-    - df["Begin Date"].apply(lambda x: pd.to_datetime(str(x), format="%Y%m%d"))
-).dt.days
+df["Days Duration"] = (df["End Date"].apply(lambda x: pd.to_datetime(str(x), format='%Y%m%d')) - df["Begin Date"].apply(lambda x: pd.to_datetime(str(x), format='%Y%m%d'))).dt.days
 
 # Disaster Death Tolls
 text(
@@ -31,13 +26,7 @@ plotly(fig1)
 text(
     "## Disaster Cost \n This bar graph allows us to visualize which disasters correlate with higher cost."
 )
-fig2 = px.bar(
-    df,
-    x="Disaster",
-    y="CPI-Adjusted Cost",
-    labels={"CPI-Adjusted Cost": "Cost (in millions)"},
-    hover_data=["CPI-Adjusted Cost", "Disaster", "Name"],
-)
+fig2 = px.bar(df, x="Disaster", y="CPI-Adjusted Cost", labels={"CPI-Adjusted Cost": "Cost (in millions)"}, hover_data=["CPI-Adjusted Cost", "Disaster", "Name"])
 fig2.update_layout(template="plotly_white")
 plotly(fig2)
 
@@ -45,12 +34,7 @@ plotly(fig2)
 text(
     "## Deaths in Relation to Cost \n This scatter plot shows the relationship between deaths and CPI-Adjusted Cost. We can see that in most cases, higher cost disasters tend to have higher death tolls."
 )
-cost_filter = slider(
-    "Max cost displayed (lower value = more zoom)",
-    min_val=0,
-    max_val=220000,
-    default=220000,
-)
+cost_filter = slider("Max cost displayed (lower value = more zoom)", min_val=0, max_val=220000, default=220000)
 fig3 = px.scatter(
     df[df["CPI-Adjusted Cost"] < cost_filter],
     x="CPI-Adjusted Cost",
@@ -86,7 +70,7 @@ fig5 = px.scatter(
     y="CPI-Adjusted Cost",
     color="Disaster",
     title="Cost vs Disaster Duration",
-    labels={"CPI-Adjusted Cost": "Cost (in millions)"},
+    labels={"CPI-Adjusted Cost": "Cost (in millions)"}
 )
 fig5.update_layout(template="plotly_white")
 plotly(fig5)
