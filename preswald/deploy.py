@@ -797,11 +797,7 @@ def get_structured_deployments(script_path: str) -> dict:
         raise Exception(f"Failed to fetch deployments: {e!s}") from e
 
 
-def cleanup_gcp_deployment(script_path: str):  # noqa: C901
-    import json
-    import subprocess
-    from datetime import datetime
-
+def cleanup_gcp_deployment(script_dir: str):  # noqa: C901
     def log_status(status, message):
         return {
             "status": status,
@@ -811,16 +807,32 @@ def cleanup_gcp_deployment(script_path: str):  # noqa: C901
 
     try:
         yield log_status("info", "Gathering deployment information...")
-        script_path = os.path.abspath(script_path)
-        # script_dir = Path(script_path).parent
-        container_name = get_container_name(script_path)
+        script_dir = Path(script_dir)
+        
+        preswald_toml = script_dir / "preswald.toml"
+        if not preswald_toml.exists():
+            raise FileNotFoundError(f"preswald.toml not found in {script_dir}")
+
+        with open(preswald_toml) as f:
+            config = toml.loads(f.read())
+            slug = config['project']['slug']
+            container_name = f"preswald-app-{slug}"
+            container_name = container_name.lower()
+            container_name = re.sub(r"[^a-z0-9-]", "", container_name)
+            container_name = container_name.strip("-")
 
         yield log_status("info", "Verifying Google Cloud SDK setup...")
-        try:
-            setup_gcloud()
-        except Exception as e:
-            yield log_status("error", f"Failed to setup Google Cloud SDK: {e!s}")
+        if not check_gcloud_installation():
+            yield log_status("error", "Google Cloud SDK not found. Please install from: https://cloud.google.com/sdk/docs/install")
             return
+
+        if not check_gcloud_auth():
+            yield log_status("info", "Authentication required. Opening browser for login...")
+            try:
+                subprocess.run(["gcloud", "auth", "login"], check=True)
+            except subprocess.CalledProcessError as e:
+                yield log_status("error", f"Failed to authenticate: {e}")
+                return
 
         try:
             project_id = ensure_project_selected()
@@ -832,11 +844,10 @@ def cleanup_gcp_deployment(script_path: str):  # noqa: C901
         region = "us-west1"
         gcr_image = f"gcr.io/{project_id}/{container_name}"
 
-        yield log_status(
-            "info", f"Attempting to delete Cloud Run service: {container_name}"
-        )
+        # Delete Cloud Run service
+        yield log_status("info", f"Checking Cloud Run service: {container_name}")
         try:
-            service_check = subprocess.run(
+            service_exists = subprocess.run(
                 [
                     "gcloud",
                     "run",
@@ -851,9 +862,10 @@ def cleanup_gcp_deployment(script_path: str):  # noqa: C901
                 ],
                 capture_output=True,
                 text=True,
-            )
+            ).returncode == 0
 
-            if service_check.returncode == 0:
+            if service_exists:
+                yield log_status("info", f"Deleting Cloud Run service: {container_name}")
                 delete_result = subprocess.run(
                     [
                         "gcloud",
@@ -872,139 +884,79 @@ def cleanup_gcp_deployment(script_path: str):  # noqa: C901
                 )
 
                 if delete_result.returncode == 0:
-                    yield log_status(
-                        "success",
-                        f"Successfully deleted Cloud Run service: {container_name}",
-                    )
+                    yield log_status("success", f"Deleted Cloud Run service: {container_name}")
                 else:
-                    yield log_status(
-                        "error",
-                        f"Failed to delete Cloud Run service: {delete_result.stderr}",
-                    )
+                    yield log_status("error", f"Failed to delete service: {delete_result.stderr}")
             else:
-                yield log_status(
-                    "info", f"No Cloud Run service found with name: {container_name}"
-                )
-        except Exception as e:
-            yield log_status("error", f"Error while deleting Cloud Run service: {e!s}")
+                yield log_status("info", f"No Cloud Run service found: {container_name}")
 
-        yield log_status("info", f"Cleaning up container images from GCR: {gcr_image}")
+        except Exception as e:
+            yield log_status("error", f"Error checking/deleting Cloud Run service: {e!s}")
+
+        # Clean up container images
+        yield log_status("info", "Checking for container images...")
         try:
-            list_result = subprocess.run(
+            images_exist = subprocess.run(
                 [
                     "gcloud",
                     "container",
                     "images",
-                    "list-tags",
+                    "describe",
                     gcr_image,
                     "--format=json",
                 ],
                 capture_output=True,
                 text=True,
-            )
+            ).returncode == 0
 
-            if list_result.returncode == 0:
-                images = json.loads(list_result.stdout)
-                if images:
-                    yield log_status("info", "Removing image tags...")
-                    for image in images:
-                        tags = image.get("tags", [])
-                        for tag in tags:
-                            untag_result = subprocess.run(
-                                [
-                                    "gcloud",
-                                    "container",
-                                    "images",
-                                    "untag",
-                                    f"{gcr_image}:{tag}",
-                                    "--quiet",
-                                ],
-                                capture_output=True,
-                                text=True,
-                            )
-                            if untag_result.returncode == 0:
-                                yield log_status("success", f"Removed tag: {tag}")
-                            else:
-                                yield log_status(
-                                    "warning",
-                                    f"Failed to remove tag {tag}: {untag_result.stderr}",
-                                )
-
-                    for image in images:
-                        digest = image.get("digest")
-                        if digest:
-                            delete_image_result = subprocess.run(
-                                [
-                                    "gcloud",
-                                    "container",
-                                    "images",
-                                    "delete",
-                                    f"{gcr_image}@{digest}",
-                                    "--force-delete-tags",
-                                    "--quiet",
-                                ],
-                                capture_output=True,
-                                text=True,
-                            )
-
-                            if delete_image_result.returncode == 0:
-                                yield log_status(
-                                    "success", f"Deleted container image: {digest[:12]}"
-                                )
-                            else:
-                                yield log_status(
-                                    "error",
-                                    f"Failed to delete image {digest[:12]}: {delete_image_result.stderr}",
-                                )
-
-                    repo_delete_result = subprocess.run(
-                        [
-                            "gcloud",
-                            "container",
-                            "images",
-                            "delete",
-                            gcr_image,
-                            "--force-delete-tags",
-                            "--quiet",
-                        ],
-                        capture_output=True,
-                        text=True,
-                    )
-
-                    if repo_delete_result.returncode == 0:
-                        yield log_status(
-                            "success", "Successfully deleted container image repository"
-                        )
-                    else:
-                        yield log_status(
-                            "error",
-                            f"Failed to delete image repository: {repo_delete_result.stderr}",
-                        )
-                else:
-                    yield log_status("info", "No container images found to clean up")
-            else:
-                yield log_status(
-                    "error", f"Failed to list container images: {list_result.stderr}"
+            if images_exist:
+                yield log_status("info", f"Deleting container image: {gcr_image}")
+                delete_result = subprocess.run(
+                    [
+                        "gcloud",
+                        "container",
+                        "images",
+                        "delete",
+                        gcr_image,
+                        "--force-delete-tags",
+                        "--quiet",
+                    ],
+                    capture_output=True,
+                    text=True,
                 )
-        except Exception as e:
-            yield log_status(
-                "error", f"Error while cleaning up container images: {e!s}"
-            )
 
+                if delete_result.returncode == 0:
+                    yield log_status("success", f"Deleted container image: {gcr_image}")
+                else:
+                    yield log_status("error", f"Failed to delete image: {delete_result.stderr}")
+            else:
+                yield log_status("info", "No container images found")
+
+        except Exception as e:
+            yield log_status("error", f"Error cleaning up container images: {e!s}")
+
+        # Clean up local Docker images
         yield log_status("info", "Cleaning up local Docker images...")
         try:
             subprocess.run(
-                ["docker", "rmi", container_name], capture_output=True, text=True
+                ["docker", "rmi", container_name],
+                capture_output=True,
+                text=True,
+                check=False,
             )
-            subprocess.run(["docker", "rmi", gcr_image], capture_output=True, text=True)
+            subprocess.run(
+                ["docker", "rmi", gcr_image],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
             yield log_status("success", "Cleaned up local Docker images")
         except Exception as e:
-            yield log_status(
-                "info", f"Note: Could not clean local Docker images: {e!s}"
-            )
+            yield log_status("info", f"Note: Could not clean local Docker images: {e!s}")
 
         yield log_status("success", "GCP cleanup completed successfully!")
 
+    except FileNotFoundError as e:
+        yield log_status("error", f"Configuration error: {e!s}")
     except Exception as e:
         yield log_status("error", f"Unexpected error during cleanup: {e!s}")
-        raise
