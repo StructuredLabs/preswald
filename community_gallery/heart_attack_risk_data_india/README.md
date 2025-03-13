@@ -6,6 +6,8 @@ This Preswald application loads and analyzes a cardiovascular dataset (heart_att
 3. Additional visualizations (pie chart, box plot, histogram)
 4. An interactive age-based filter plus a configurable bubble chart
 The dataset is collected from Kaggle: https://www.kaggle.com/datasets/ankushpanday2/heart-attack-risk-and-prediction-dataset-in-india
+The csv file can be found here : https://drive.google.com/file/d/19MYbprJG44NGOfNr0ESZB-R4bwzCwjFk/view?usp=drive_link
+This can be placed in data folder
 
 ## Prerequisites
 1. Python 3.10+
