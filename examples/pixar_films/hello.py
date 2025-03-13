@@ -10,7 +10,7 @@ sql = "SELECT film, release_date, box_office_worldwide, rotten_tomatoes_score FR
 filtered_df = query(sql, "pixar_films")
 
 text(
-    "## Pixar rilms released on or after 2005 with their box office revenue and associated rotten tomatoes score"
+    "## Pixar films released on or after 2005 with their box office revenue and associated rotten tomatoes score"
 )
 threshold = slider("Threshold", min_val=70, max_val=100, default=50)
 table(
@@ -19,7 +19,7 @@ table(
 )
 
 text(
-    "## A plot of box office revenue and rotten tomato scores for Pixar rilms released on or after 2005"
+    "## A plot of box office revenue and rotten tomato scores for Pixar films released on or after 2005"
 )
 fig = px.scatter(df, x="rotten_tomatoes_score", y="box_office_worldwide")
 plotly(fig)
