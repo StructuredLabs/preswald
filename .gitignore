@@ -175,3 +175,5 @@ notes.md
 .ruff_cache/
 
 .env.structured
+
+community_gallery/**/data
