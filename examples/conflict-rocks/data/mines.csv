@@ -1,0 +1,1016 @@
+PRIMKEY,COUNTRY,FIPSCODE,COWCODE,CONTCODE,SITENUM,NAME,LAT,LONG
+AG001DIA,Algeria,AG,615,4,1,Djebel - Aberraz,26.63,0.50
+AG002DIA,Algeria,AG,615,4,2,Bled El Mass,26.60,0.65
+AO001DIA,Angola,AO,540,4,1,Cafunfo,-8.77,18.00
+AO002DIA,Angola,AO,540,4,2,Dundo,-7.35,20.82
+AO003DIA,Angola,AO,540,4,3,Catoca,-9.18,20.47
+AO004DIA,Angola,AO,540,4,4,Andrade,-7.70,21.37
+AO005DIA,Angola,AO,540,4,5,Lucapa,-8.42,20.75
+AO006DIA,Angola,AO,540,4,6,Calonda,-8.44,20.55
+AO007DIA,Angola,AO,540,4,7,Mufuto,-11.30,20.82
+AO008DIA,Angola,AO,540,4,8,Luo (DiamondWorks),-9.12,20.38
+AO009DIA,Angola,AO,540,4,9,Luo (SouthernEra),-9.00,20.43
+AO010DIA,Angola,AO,540,4,10,Cuango,-9.00,18.00
+AO011DIA,Angola,AO,540,4,11,Luzamba,-9.12,18.05
+AO012DIA,Angola,AO,540,4,12,Yetwene,-8.08,20.50
+AO013DIA,Angola,AO,540,4,13,Luarica,-8.42,20.75
+AO014DIA,Angola,AO,540,4,14,Luremo,-8.52,17.83
+AO015DIA,Angola,AO,540,4,15,Lumbala Nguimbo,-14.10,21.45
+AO016DIA,Angola,AO,540,4,16,Alto Cuilo,-13.43,18.87
+AO017DIA,Angola,AO,540,4,17,Muriege,-9.90,21.22
+AO018DIA,Angola,AO,540,4,18,Medio Kwanza,-13.43,20.73
+AO019DIA,Angola,AO,540,4,19,Camafuca - Camazambo,-8.64,20.87
+AO020DIA,Angola,AO,540,4,20,Soma Kwanza,-13.50,17.77
+AO021DIA,Angola,AO,540,4,21,Tejok,-7.35,20.82
+AO022DIA,Angola,AO,540,4,22,Lucanga,-6.38,15.73
+AO023DIA,Angola,AO,540,4,23,Camajico,-9.12,20.38
+AO024DIA,Angola,AO,540,4,24,Camaxia,-9.12,20.38
+AO025DIA,Angola,AO,540,4,25,Cemetue,-8.49,20.83
+AO026DIA,Angola,AO,540,4,26,Caixea,0.00,0.00
+AO027DIA,Angola,AO,540,4,27,Luembe,-8.57,20.57
+AO028DIA,Angola,AO,540,4,28,Chitotolo,-7.78,21.31
+AO029DIA,Angola,AO,540,4,29,Cassanguidi,-7.59,21.00
+AO030DIA,Angola,AO,540,4,30,Maludi,-7.77,21.46
+AO031DIA,Angola,AO,540,4,31,Uari,-8.31,20.78
+AO032DIA,Angola,AO,540,4,32,Mafutu,-8.23,20.71
+AO033DIA,Angola,AO,540,4,33,Huambo,-12.78,15.74
+AO034DIA,Angola,AO,540,4,34,Andulo,-11.48,16.70
+AO035DIA,Angola,AO,540,4,35,Saurimo,-9.65,20.40
+AO036DIA,Angola,AO,540,4,36,Mavinga,-15.80,20.25
+AO037DIA,Angola,AO,540,4,37,Mussende,-11.47,16.97
+AO038DIA,Angola,AO,540,4,38,Calai,-17.33,19.33
+AO039DIA,Angola,AO,540,4,39,Lovua,-7.33,20.17
+AO040DIA,Angola,AO,540,4,40,Lunda,-8.00,21.00
+AO041DIA,Angola,AO,540,4,41,Quela,-9.27,17.08
+AO042DIA,Angola,AO,540,4,42,Dunge,-8.37,17.22
+AO043DIA,Angola,AO,540,4,43,Luachimo River Valley,-9.67,20.58
+AO044DIA,Angola,AO,540,4,44,Luana,-7.93,21.07
+AO045DIA,Angola,AO,540,4,45,Chiumbe,-12.43,20.80
+AO046DIA,Angola,AO,540,4,46,Cucumbi,-9.83,18.63
+AO047DIA,Angola,AO,540,4,47,Cacuilo,-9.32,18.70
+AO048DIA,Angola,AO,540,4,48,Lufule,0.00,0.00
+AO049DIA,Angola,AO,540,4,49,Nova Lisboa,-12.78,15.74
+AO050DIA,Angola,AO,540,4,50,Cuango River,-9.51,16.32
+AO051DIA,Angola,AO,540,4,51,Cuanza,-8.62,16.22
+AO052DIA,Angola,AO,540,4,52,Fucuama,0.00,0.00
+AS001DIA,Australia,AS,900,3,1,Bow River,-16.64,128.58
+AS002DIA,Australia,AS,900,3,2,Bingara,-29.75,150.42
+AS003DIA,Australia,AS,900,3,3,Copeton,-29.92,151.03
+AS004DIA,Australia,AS,900,3,4,Wellington Alluvials; MacQuarie River Alluvials; 8 Mi,-32.63,149.11
+AS005DIA,Australia,AS,900,3,5,Airly Mountain Deep,-33.11,150.05
+AS006DIA,Australia,AS,900,3,6,Beechworth area,-36.37,146.72
+AS007DIA,Australia,AS,900,3,7,Echunga,-35.10,138.80
+AS008DIA,Australia,AS,900,3,8,Argyle AK1 mine,-16.71,128.38
+AS009DIA,Australia,AS,900,3,9,Limestone Creek,-16.73,128.40
+AS010DIA,Australia,AS,900,3,10,Lower Smoke Creek,-16.68,128.40
+AS011DIA,Australia,AS,900,3,11,Upper Smoke Creek,-16.70,128.39
+AS012DIA,Australia,AS,900,3,12,Ellendale diamond field,-17.55,124.71
+AS013DIA,Australia,AS,900,3,13,Ellendale Pipe 4 (Satellite),-17.67,124.93
+AS014DIA,Australia,AS,900,3,14,Ellendale Pipe 9,-17.57,124.86
+AS015DIA,Australia,AS,900,3,15,Ellendale 11,-17.56,124.84
+AS016DIA,Australia,AS,900,3,16,Ellendale 7,-17.60,124.86
+AS017DIA,Australia,AS,900,3,17,Merlin Mine,-16.83,136.35
+AS018DIA,Australia,AS,900,3,18,Merlin Mine,-16.83,136.35
+AS019DIA,Australia,AS,900,3,19,Sacramore,-16.85,136.34
+AS020DIA,Australia,AS,900,3,20,Palomides,-16.85,136.34
+AS021DIA,Australia,AS,900,3,21,Ector,-16.81,136.33
+AS022DIA,Australia,AS,900,3,22,Excalibur,-16.86,136.34
+AS023DIA,Australia,AS,900,3,23,Gareth,-16.83,136.33
+AS024DIA,Australia,AS,900,3,24,Gawain,-16.83,136.34
+AS025DIA,Australia,AS,900,3,25,Kay,-16.81,136.33
+AS026DIA,Australia,AS,900,3,26,Launtal,-16.86,136.34
+AS027DIA,Australia,AS,900,3,27,Tristram,-16.82,136.34
+AS028DIA,Australia,AS,900,3,28,Ywain,-16.82,136.34
+AS029DIA,Australia,AS,900,3,29,Coanjula,-17.97,136.53
+AS030DIA,Australia,AS,900,3,30,Emu 1,-16.77,136.35
+AS031DIA,Australia,AS,900,3,31,Emu 2,-16.77,136.35
+AS032DIA,Australia,AS,900,3,32,Packsaddle 1,-14.90,133.91
+AS033DIA,Australia,AS,900,3,33,Aries Pipe,-16.90,126.13
+AS034DIA,Australia,AS,900,3,34,Aries Pipe,-16.90,126.13
+AS035DIA,Australia,AS,900,3,35,Nabberu project,-25.00,120.00
+AS036DIA,Australia,AS,900,3,36,Beta Creek,-14.31,127.27
+AS037DIA,Australia,AS,900,3,37,Beta Creek,-14.31,127.27
+AS038DIA,Australia,AS,900,3,38,Seppelt,-14.44,127.38
+AS039DIA,Australia,AS,900,3,39,Seppelt,-14.44,127.38
+AS040DIA,Australia,AS,900,3,40,Blina,-17.55,124.71
+AS041DIA,Australia,AS,900,3,41,Abminga Area,-26.33,134.75
+AS042DIA,Australia,AS,900,3,42,Mount Ross,-29.92,151.03
+AS043DIA,Australia,AS,900,3,43,Round Mount (Mt. Ross),-29.92,151.03
+AS044DIA,Australia,AS,900,3,44,Streak of Luck (Mt. Ross),-29.92,151.03
+AS045DIA,Australia,AS,900,3,45,Collas Hill,-29.94,151.01
+AS046DIA,Australia,AS,900,3,46,Boolcunda,-32.28,138.42
+AS047DIA,Australia,AS,900,3,47,Snodgrass (Duchess),-36.84,148.77
+AS048DIA,Australia,AS,900,3,48,Nandewar Range,-30.29,150.51
+AS049DIA,Australia,AS,900,3,49,Alpha,-30.31,149.92
+AS050DIA,Australia,AS,900,3,50,Lissadell Road Dykes,-16.75,128.30
+AS051DIA,Australia,AS,900,3,51,Calwynyardah; Laymans Bore East,-18.00,124.79
+AS052DIA,Australia,AS,900,3,52,Walgidee Hills,-18.31,124.87
+AS053DIA,Australia,AS,900,3,53,Unnamed - 1,-30.27,151.68
+AS054DIA,Australia,AS,900,3,54,Barn Gully,-30.08,151.32
+AS055DIA,Australia,AS,900,3,55,Policeman Creek,-23.42,147.71
+AS056DIA,Australia,AS,900,3,56,Six Mile Creek,-17.97,143.99
+AS057DIA,Australia,AS,900,3,57,Mather Creek,-37.27,141.77
+AS058DIA,Australia,AS,900,3,58,Slashers Flat Alluvials,-32.48,149.50
+AS059DIA,Australia,AS,900,3,59,Jordans Hill,-32.37,149.40
+AS060DIA,Australia,AS,900,3,60,Lost River; Spring Creek; Potten Creek; Wheeo Creek,-34.40,149.26
+AS061DIA,Australia,AS,900,3,61,Cooyal Creek,-32.43,149.72
+AS062DIA,Australia,AS,900,3,62,Beryl Lead; Diamond Fields Lead,-32.35,149.45
+AS063DIA,Australia,AS,900,3,63,Unnamed - 2,-33.04,149.40
+AS064DIA,Australia,AS,900,3,64,Monkey Hill,-33.04,149.59
+AS065DIA,Australia,AS,900,3,65,Orroroo,-32.73,138.62
+AS066DIA,Australia,AS,900,3,66,Nullagine,-21.88,120.08
+AS067DIA,Australia,AS,900,3,67,Cudgegong River,-32.62,149.27
+BO001DIA,Belarus,BO,370,1,1,Belarus Area,51.83,30.50
+BL001DIA,Bolivia,BL,145,5,1,Rio Tuichi,-14.60,-67.58
+BL002DIA,Bolivia,BL,145,5,2,Rio Tequeje,-13.53,-67.40
+BL003DIA,Bolivia,BL,145,5,3,Rio Unduma,-13.50,-67.35
+BL004DIA,Bolivia,BL,145,5,4,Upper Rio Beni,-14.52,-67.50
+BC001DIA,Botswana,BC,571,4,1,Jwaneng Mine,-24.58,24.70
+BC002DIA,Botswana,BC,571,4,2,Letlhakane Mine,-21.52,25.68
+BC003DIA,Botswana,BC,571,4,3,Orapa Mine,-21.28,25.35
+BC004DIA,Botswana,BC,571,4,4,Damtshaa,-21.28,25.35
+BC005DIA,Botswana,BC,571,4,5,Kokong,-24.35,22.23
+BC006DIA,Botswana,BC,571,4,6,Gope,-22.62,24.78
+BC007DIA,Botswana,BC,571,4,7,Tsabong,-26.05,22.45
+BC008DIA,Botswana,BC,571,4,8,Tandeka,-21.52,25.68
+BC009DIA,Botswana,BC,571,4,9,Martin's Drift,-22.98,27.93
+BR001DIA,Brazil,BR,140,5,1,Juina Area,-11.75,-59.25
+BR002DIA,Brazil,BR,140,5,2,Rio Claro (MT),-13.73,-56.68
+BR003DIA,Brazil,BR,140,5,3,Rio Jauru,-18.53,-52.88
+BR004DIA,Brazil,BR,140,5,4,Rio Batoui,-13.55,-53.97
+BR005DIA,Brazil,BR,140,5,5,Rio Batovi - 1,-13.82,-54.10
+BR006DIA,Brazil,BR,140,5,6,Rio Batovi - 2,-15.85,-53.62
+BR007DIA,Brazil,BR,140,5,7,Rio Araguaia,-16.17,-52.52
+BR008DIA,Brazil,BR,140,5,8,Agua Fria - Fazenda Roncador,-15.10,-55.28
+BR009DIA,Brazil,BR,140,5,9,Agua Fria - Rio Quilombo,-15.28,-55.63
+BR010DIA,Brazil,BR,140,5,10,Rio Cuiaba,-14.67,-56.03
+BR011DIA,Brazil,BR,140,5,11,Tres Barras,-14.63,-56.73
+BR012DIA,Brazil,BR,140,5,12,Rio Cavalco,-14.93,-54.88
+BR013DIA,Brazil,BR,140,5,13,Agua Branca,-14.90,-56.42
+BR014DIA,Brazil,BR,140,5,14,Garimpo Cervo,-17.08,-54.03
+BR015DIA,Brazil,BR,140,5,15,Rio Pires,-14.32,-54.80
+BR016DIA,Brazil,BR,140,5,16,Rio das Garcas - 1,-16.33,-53.75
+BR017DIA,Brazil,BR,140,5,17,Rio das Garcas - 2,-15.87,-52.75
+BR018DIA,Brazil,BR,140,5,18,Jauru,-18.58,-54.27
+BR019DIA,Brazil,BR,140,5,19,Alto Araguaia,-16.65,-52.80
+BR020DIA,Brazil,BR,140,5,20,Alto Araguaia,-13.70,-54.15
+BR021DIA,Brazil,BR,140,5,21,Rio Sonho Azul,-14.40,-57.08
+BR022DIA,Brazil,BR,140,5,22,Rio Barreio,-15.75,-53.60
+BR023DIA,Brazil,BR,140,5,23,Simoes Lopes,-14.03,-54.18
+BR024DIA,Brazil,BR,140,5,24,Rio Sumidouro - Rio Agua Verde,-14.03,-56.83
+BR025DIA,Brazil,BR,140,5,25,Garimpo Novo,-15.85,-54.47
+BR026DIA,Brazil,BR,140,5,26,Nortelandia,-14.42,-56.80
+BR027DIA,Brazil,BR,140,5,27,Chapada dos Guimaraes,-15.43,-55.75
+BR028DIA,Brazil,BR,140,5,28,Poxoreu,-15.83,-54.38
+BR029DIA,Brazil,BR,140,5,29,Barra do Garcas,-15.88,-52.25
+BR030DIA,Brazil,BR,140,5,30,Alto Garcas,-16.93,-53.53
+BR031DIA,Brazil,BR,140,5,31,Sao Lourenco,-16.53,-55.03
+BR032DIA,Brazil,BR,140,5,32,Itiquira Rivers,-17.30,-56.73
+BR033DIA,Brazil,BR,140,5,33,Baliza,-16.25,-54.42
+BR034DIA,Brazil,BR,140,5,34,Tesouro,-16.07,-53.57
+BR035DIA,Brazil,BR,140,5,35,Guiratinga,-16.35,-53.75
+BR036DIA,Brazil,BR,140,5,36,Sao Joao,0.00,0.00
+BR037DIA,Brazil,BR,140,5,37,Alcantilado,-16.38,-53.52
+BR038DIA,Brazil,BR,140,5,38,Pombas,-15.93,-54.70
+BR039DIA,Brazil,BR,140,5,39,Papagaio,0.00,0.00
+BR040DIA,Brazil,BR,140,5,40,Jacomo,0.00,0.00
+BR041DIA,Brazil,BR,140,5,41,Rio Diamantino,-14.50,-56.50
+BR042DIA,Brazil,BR,140,5,42,Rio Diamantino - 1,-16.75,-53.22
+BR043DIA,Brazil,BR,140,5,43,Rio Diamantino - 2,-14.33,-50.43
+BR044DIA,Brazil,BR,140,5,44,Rio Sao Francisco,-14.47,-56.83
+BR045DIA,Brazil,BR,140,5,45,Rio Santana,-14.45,-56.78
+BR046DIA,Brazil,BR,140,5,46,Rio Desperta,-14.47,-56.97
+BR047DIA,Brazil,BR,140,5,47,Rio Paraguai - Coreggo Sao Pedro,-14.52,-56.38
+BR048DIA,Brazil,BR,140,5,48,Rio Paranatinga,-14.43,-54.22
+BR049DIA,Brazil,BR,140,5,49,Rio Coluene,-13.92,-53.37
+BR050DIA,Brazil,BR,140,5,50,Rio Paraguaizinho - Mergueiro,-14.52,-56.98
+BR051DIA,Brazil,BR,140,5,51,Rio Coxim (MS),-18.73,-54.55
+BR052DIA,Brazil,BR,140,5,52,Aquidauana River,-19.73,-56.83
+BR053DIA,Brazil,BR,140,5,53,Brilhante River,-21.80,-54.55
+BR054DIA,Brazil,BR,140,5,54,Rio Dourados,-18.45,-47.43
+BR055DIA,Brazil,BR,140,5,55,Riberao Varadouro,-20.62,-54.92
+BR056DIA,Brazil,BR,140,5,56,Norte de Pedro Gomes,-18.03,-54.62
+BR057DIA,Brazil,BR,140,5,57,Riberao Fala Verdada,-19.77,-54.78
+BR058DIA,Brazil,BR,140,5,58,Rio Santa Maria,-21.87,-54.02
+BR059DIA,Brazil,BR,140,5,59,Rio Figueria,-18.37,-54.60
+BR060DIA,Brazil,BR,140,5,60,Anastacio,-20.50,-55.87
+BR061DIA,Brazil,BR,140,5,61,Rio Piquiri - 1,-17.93,-54.53
+BR062DIA,Brazil,BR,140,5,62,Rio Piquiri - 2,-17.70,-54.43
+BR063DIA,Brazil,BR,140,5,63,Rio Taquari - Mirim - 1,-18.68,-54.82
+BR064DIA,Brazil,BR,140,5,64,Rio Taquari - Mirim - 2,-18.87,-54.82
+BR065DIA,Brazil,BR,140,5,65,Rio Taquari - 1,-18.28,-54.47
+BR066DIA,Brazil,BR,140,5,66,Rio Taquari - 2,-18.30,-54.62
+BR067DIA,Brazil,BR,140,5,67,Rio Taquari - 3,-17.90,-53.70
+BR068DIA,Brazil,BR,140,5,68,Chapada Diamantina,-12.50,-42.25
+BR069DIA,Brazil,BR,140,5,69,Sincora,-13.62,-41.07
+BR070DIA,Brazil,BR,140,5,70,Andarai,-14.20,-40.03
+BR071DIA,Brazil,BR,140,5,71,Camprestre,-12.45,-40.13
+BR072DIA,Brazil,BR,140,5,72,Palmeiras,-14.63,-42.30
+BR073DIA,Brazil,BR,140,5,73,Assurua,-11.30,-42.67
+BR074DIA,Brazil,BR,140,5,74,Brotas,-14.17,-43.70
+BR075DIA,Brazil,BR,140,5,75,Lencois,-12.57,-41.38
+BR076DIA,Brazil,BR,140,5,76,Moro do Chapeu,-11.55,-41.15
+BR077DIA,Brazil,BR,140,5,77,Ferro Doido; Garmipos Boiada,-11.58,-41.10
+BR078DIA,Brazil,BR,140,5,78,Mucuge River,-12.95,-41.35
+BR079DIA,Brazil,BR,140,5,79,Barra do Tarrachi,-8.93,-38.33
+BR080DIA,Brazil,BR,140,5,80,Santo Inacio,-11.10,-42.73
+BR081DIA,Brazil,BR,140,5,81,Rio Preto,-18.27,-47.40
+BR082DIA,Brazil,BR,140,5,82,Pocos,-11.08,-42.73
+BR083DIA,Brazil,BR,140,5,83,Diamantina,-18.25,-43.60
+BR084DIA,Brazil,BR,140,5,84,Maria Nunes,-18.25,-43.60
+BR085DIA,Brazil,BR,140,5,85,Extracao,-18.30,-43.53
+BR086DIA,Brazil,BR,140,5,86,Serrinha,-18.30,-43.60
+BR087DIA,Brazil,BR,140,5,87,Sopa,-18.20,-43.73
+BR088DIA,Brazil,BR,140,5,88,Damasio (Damasio Sapa),-18.10,-43.72
+BR089DIA,Brazil,BR,140,5,89,Datas,-18.42,-43.67
+BR090DIA,Brazil,BR,140,5,90,Guinda,-18.25,-43.70
+BR091DIA,Brazil,BR,140,5,91,Mendanha,-18.12,-43.60
+BR092DIA,Brazil,BR,140,5,92,Sao Joao da Chapada,-18.08,-43.78
+BR093DIA,Brazil,BR,140,5,93,Campo do Sampaio,-18.08,-43.78
+BR094DIA,Brazil,BR,140,5,94,Jequitinhonha,-17.67,-43.67
+BR095DIA,Brazil,BR,140,5,95,Cocaes,-19.85,-43.45
+BR096DIA,Brazil,BR,140,5,96,Grao Mogol,-16.67,-42.67
+BR097DIA,Brazil,BR,140,5,97,Canabrava,-17.30,-45.57
+BR098DIA,Brazil,BR,140,5,98,Rio Uberaba,-19.36,-47.85
+BR099DIA,Brazil,BR,140,5,99,Coromandel,-18.50,-47.17
+BR100DIA,Brazil,BR,140,5,100,Santo Antonio,-18.40,-46.97
+BR101DIA,Brazil,BR,140,5,101,Alto Paranaiba - 1,-18.63,-47.20
+BR102DIA,Brazil,BR,140,5,102,Rio Santo Inacio,-18.47,-47.22
+BR103DIA,Brazil,BR,140,5,103,Fazenda Gamela,-18.50,-47.17
+BR104DIA,Brazil,BR,140,5,104,Rio Douradinho,-18.62,-47.13
+BR105DIA,Brazil,BR,140,5,105,Estrela do Sul,-18.77,-47.70
+BR106DIA,Brazil,BR,140,5,106,Parauna,-18.63,-43.78
+BR107DIA,Brazil,BR,140,5,107,Rio Do Sono,-18.50,-47.93
+BR108DIA,Brazil,BR,140,5,108,Abaete,-18.93,-46.03
+BR109DIA,Brazil,BR,140,5,109,Rio Pardo Pequena,-18.40,-43.80
+BR110DIA,Brazil,BR,140,5,110,Rio Pardo,-21.58,-47.00
+BR111DIA,Brazil,BR,140,5,111,Sao Goncalo do Rio das Pedras,-18.53,-43.50
+BR112DIA,Brazil,BR,140,5,112,Rio Manso,-14.85,-56.05
+BR113DIA,Brazil,BR,140,5,113,Corrego Velho,-17.93,-43.55
+BR114DIA,Brazil,BR,140,5,114,Ribeirao Morrinhos,-16.90,-51.23
+BR115DIA,Brazil,BR,140,5,115,Garimpo Mateiro,-18.83,-50.47
+BR116DIA,Brazil,BR,140,5,116,Desemboque,-18.13,-43.47
+BR117DIA,Brazil,BR,140,5,117,Rio Parauna,-18.67,-43.60
+BR118DIA,Brazil,BR,140,5,118,Santa Maria (MG),-17.83,-43.45
+BR119DIA,Brazil,BR,140,5,119,Corrego Bom Sucesso,-18.65,-43.47
+BR120DIA,Brazil,BR,140,5,120,Rio Bora,-19.92,-47.50
+BR121DIA,Brazil,BR,140,5,121,Fazenda Velha,-19.72,-47.97
+BR122DIA,Brazil,BR,140,5,122,Tiros,-19.00,-45.97
+BR123DIA,Brazil,BR,140,5,123,Romaria,-18.88,-47.63
+BR124DIA,Brazil,BR,140,5,124,Barao de Cocais,-19.93,-43.47
+BR125DIA,Brazil,BR,140,5,125,Corrego Lamarao,-18.08,-47.33
+BR126DIA,Brazil,BR,140,5,126,Cabeceiras do Sao Francisco,-20.43,-46.40
+BR127DIA,Brazil,BR,140,5,127,Rio Canoas,-20.40,-47.33
+BR128DIA,Brazil,BR,140,5,128,Jequitai,-17.25,-44.47
+BR129DIA,Brazil,BR,140,5,129,Serra Nova,-15.65,-42.73
+BR130DIA,Brazil,BR,140,5,130,Porteirinha,-15.73,-43.03
+BR131DIA,Brazil,BR,140,5,131,Itacambira,-17.07,-43.30
+BR132DIA,Brazil,BR,140,5,132,Serra do Cipo,-19.00,-42.65
+BR133DIA,Brazil,BR,140,5,133,Serra das Cambotas,-19.68,-43.60
+BR134DIA,Brazil,BR,140,5,134,Rio Aiuruoca,-22.06,-44.52
+BR135DIA,Brazil,BR,140,5,135,Delfinopolis,-20.33,-46.85
+BR136DIA,Brazil,BR,140,5,136,Vargem Bonita,-20.33,-46.37
+BR137DIA,Brazil,BR,140,5,137,Rio Ibia,-19.48,-46.53
+BR138DIA,Brazil,BR,140,5,138,Santa Fe de Minas,-16.66,-45.48
+BR139DIA,Brazil,BR,140,5,139,Francisco Dumont,-17.30,-43.87
+BR140DIA,Brazil,BR,140,5,140,Carmo do Paranaiba,-18.98,-46.35
+BR141DIA,Brazil,BR,140,5,141,Grupiara,-18.50,-47.73
+BR142DIA,Brazil,BR,140,5,142,Cascalho Rico,-18.57,-47.87
+BR143DIA,Brazil,BR,140,5,143,Tupaciguara,-18.58,-48.70
+BR144DIA,Brazil,BR,140,5,144,Monte Carmelo,-18.72,-47.48
+BR145DIA,Brazil,BR,140,5,145,Ituiutaba,-18.97,-49.47
+BR146DIA,Brazil,BR,140,5,146,Patos,-18.59,-46.52
+BR147DIA,Brazil,BR,140,5,147,Rio Bagagem - 1,-18.85,-47.57
+BR148DIA,Brazil,BR,140,5,148,Rio Bagagem - 2,-18.57,-47.77
+BR149DIA,Brazil,BR,140,5,149,Agua Suja,-10.90,-48.28
+BR150DIA,Brazil,BR,140,5,150,Rio Tocantins,-5.28,-48.87
+BR151DIA,Brazil,BR,140,5,151,Tocantins,-5.33,-48.50
+BR152DIA,Brazil,BR,140,5,152,Rio Taquaracu,-1.32,-48.30
+BR153DIA,Brazil,BR,140,5,153,Filadelfia,-7.35,-47.50
+BR154DIA,Brazil,BR,140,5,154,Wanderlandia,-6.88,-47.88
+BR155DIA,Brazil,BR,140,5,155,Nova Olinda,0.00,0.00
+BR156DIA,Brazil,BR,140,5,156,Miracema do Norte,-9.65,-48.37
+BR157DIA,Brazil,BR,140,5,157,Presidente Kennedy,-8.63,-48.63
+BR158DIA,Brazil,BR,140,5,158,Taquaracu River,-10.25,-48.40
+BR159DIA,Brazil,BR,140,5,159,Garrafas River,-11.40,-47.27
+BR160DIA,Brazil,BR,140,5,160,Gameleira River,0.00,0.00
+BR161DIA,Brazil,BR,140,5,161,Rio Lajeado,-10.00,-47.60
+BR162DIA,Brazil,BR,140,5,162,Fazenda Rio Vermelho,-10.38,-47.22
+BR163DIA,Brazil,BR,140,5,163,Rio Tabacao,-9.22,-48.35
+BR164DIA,Brazil,BR,140,5,164,Lajeado,-9.77,-48.35
+BR165DIA,Brazil,BR,140,5,165,Areias River,0.00,0.00
+BR166DIA,Brazil,BR,140,5,166,Rio Areais,-14.50,-57.00
+BR167DIA,Brazil,BR,140,5,167,Barra Grande,-20.00,-49.00
+BR168DIA,Brazil,BR,140,5,168,Franca,-20.53,-47.40
+BR169DIA,Brazil,BR,140,5,169,Patrocinio Paulista,-20.63,-47.28
+BR170DIA,Brazil,BR,140,5,170,Verde River (SP),0.00,0.00
+BR171DIA,Brazil,BR,140,5,171,Itarare (SP),-23.17,-49.70
+BR172DIA,Brazil,BR,140,5,172,Aragarcas,-15.75,-52.13
+BR173DIA,Brazil,BR,140,5,173,Rio Claro (GO),-17.82,-51.80
+BR174DIA,Brazil,BR,140,5,174,Rio Piloes,-16.13,-51.03
+BR175DIA,Brazil,BR,140,5,175,Rio Piranhas,-16.60,-51.80
+BR176DIA,Brazil,BR,140,5,176,Rio Verde - 1,-19.03,-50.85
+BR177DIA,Brazil,BR,140,5,177,Rio Verde - 2,-17.68,-52.68
+BR178DIA,Brazil,BR,140,5,178,Rio Caiapo,-14.40,-54.45
+BR179DIA,Brazil,BR,140,5,179,Mineiros,-17.57,-52.57
+BR180DIA,Brazil,BR,140,5,180,Colinas,-14.15,-48.13
+BR181DIA,Brazil,BR,140,5,181,Santa Marta River,-16.68,-49.73
+BR182DIA,Brazil,BR,140,5,182,Bonito River,-16.95,-51.82
+BR183DIA,Brazil,BR,140,5,183,Apore River,-18.97,-52.02
+BR184DIA,Brazil,BR,140,5,184,Verde River,0.00,0.00
+BR185DIA,Brazil,BR,140,5,185,Verissimo River,-18.38,-48.33
+BR186DIA,Brazil,BR,140,5,186,Rio Vai et Vem,-17.90,-48.12
+BR187DIA,Brazil,BR,140,5,187,Rio Gerrado de Fora,-16.33,-50.33
+BR188DIA,Brazil,BR,140,5,188,Maraba,-5.35,-49.12
+BR189DIA,Brazil,BR,140,5,189,Vila Bela,-4.62,-49.37
+BR190DIA,Brazil,BR,140,5,190,Anuera,-4.17,-49.62
+BR191DIA,Brazil,BR,140,5,191,Cerro Capitari,-4.50,-49.50
+BR192DIA,Brazil,BR,140,5,192,East of Aveiro,-3.82,-55.05
+BR193DIA,Brazil,BR,140,5,193,Rio Jamanxim - 1,-6.05,-55.85
+BR194DIA,Brazil,BR,140,5,194,Manuelzinho,-7.40,-54.80
+BR195DIA,Brazil,BR,140,5,195,Rio Jamanxim - 2,-5.73,-55.82
+BR196DIA,Brazil,BR,140,5,196,Gilbues,-9.75,-45.25
+BR197DIA,Brazil,BR,140,5,197,Monte Alegre,-10.08,-45.53
+BR198DIA,Brazil,BR,140,5,198,Paus,-9.58,-44.80
+BR199DIA,Brazil,BR,140,5,199,Rio Bomjardim,-9.80,-45.40
+BR200DIA,Brazil,BR,140,5,200,Rio Gargueia,-8.67,-44.07
+BR201DIA,Brazil,BR,140,5,201,Djilbers,-8.57,-44.87
+BR202DIA,Brazil,BR,140,5,202,Santa Filomena,-9.62,-45.62
+BR203DIA,Brazil,BR,140,5,203,Rio das Cinzas,-23.83,-49.97
+BR204DIA,Brazil,BR,140,5,204,Tibagi,-24.52,-50.42
+BR205DIA,Brazil,BR,140,5,205,Itarare (Parana),-23.17,-49.70
+BR206DIA,Brazil,BR,140,5,206,Laranjinhas Basin,-23.25,-50.67
+BR207DIA,Brazil,BR,140,5,207,Jaguariaiva Basin,-23.93,-49.55
+BR208DIA,Brazil,BR,140,5,208,Vila Nova,-1.15,-51.97
+BR209DIA,Brazil,BR,140,5,209,Santa Maria (AP),0.37,-51.83
+BR210DIA,Brazil,BR,140,5,210,Vila Santa Maria placers,0.50,-52.00
+BR211DIA,Brazil,BR,140,5,211,Rio Mau; Aperatar da Hora,4.42,-59.75
+BR212DIA,Brazil,BR,140,5,212,Rio Cotingo,4.65,-60.50
+BR213DIA,Brazil,BR,140,5,213,Rio Quino,4.67,-60.67
+BR214DIA,Brazil,BR,140,5,214,Mau/Xiriqui,4.47,-59.87
+BR215DIA,Brazil,BR,140,5,215,Fazenda Suapi,4.60,-60.85
+BR216DIA,Brazil,BR,140,5,216,Tepequem,3.75,-61.75
+BR217DIA,Brazil,BR,140,5,217,Rio Tacutu,3.63,-60.10
+BR218DIA,Brazil,BR,140,5,218,Uraricoera,3.03,-60.50
+BR219DIA,Brazil,BR,140,5,219,Rio Mao,4.28,-60.00
+BR220DIA,Brazil,BR,140,5,220,Rio Urarica,3.60,-62.38
+BR221DIA,Brazil,BR,140,5,221,Mina Velha,4.55,-60.17
+BR222DIA,Brazil,BR,140,5,222,Orindunque,4.72,-60.07
+BR223DIA,Brazil,BR,140,5,223,Boa Vista Municipio,4.57,-60.25
+BR224DIA,Brazil,BR,140,5,224,Serra do Tucano,3.42,-59.92
+BR225DIA,Brazil,BR,140,5,225,Rio Branco,4.50,-60.00
+BR226DIA,Brazil,BR,140,5,226,Serra do Araca,0.50,-63.05
+BR227DIA,Brazil,BR,140,5,227,Santo Antonio do Pao,4.50,-60.47
+BR228DIA,Brazil,BR,140,5,228,Imperatriz,-5.53,-47.48
+BR229DIA,Brazil,BR,140,5,229,Rio Manuel Alves,-7.62,-47.33
+BR230DIA,Brazil,BR,140,5,230,Pau Grosso,-14.38,-57.00
+BR231DIA,Brazil,BR,140,5,231,Rio Roosevelt,-11.48,-60.43
+BR232DIA,Brazil,BR,140,5,232,Rio Jiparana,-9.28,-61.72
+BR233DIA,Brazil,BR,140,5,233,Machado,-4.92,-62.36
+BR234DIA,Brazil,BR,140,5,234,Pimenta Bueno,-11.65,-61.20
+BR235DIA,Brazil,BR,140,5,235,Rio Aripuana,-5.12,-60.38
+BR236DIA,Brazil,BR,140,5,236,Seco do Brasil,-11.63,-61.22
+BR237DIA,Brazil,BR,140,5,237,Rio Tenente Marques,-11.48,-59.97
+BR238DIA,Brazil,BR,140,5,238,Seco de Araca,-13.00,-60.82
+BR239DIA,Brazil,BR,140,5,239,Alto Paranaiba - 2,-9.53,-44.72
+UV001DIA,Burkina Faso,UV,439,4,1,Barsalogo,13.42,-1.05
+UV002DIA,Burkina Faso,UV,439,4,2,Soudougou,13.95,-1.52
+UV003DIA,Burkina Faso,UV,439,4,3,Baorolega,0.00,0.00
+UV004DIA,Burkina Faso,UV,439,4,4,Zabre,11.17,-0.63
+BM001DIA,Burma,BM,775,3,1,Tanai,25.62,96.32
+BM002DIA,Burma,BM,775,3,2,Momeik,22.92,96.48
+BM003DIA,Burma,BM,775,3,3,Ohngaing,22.92,96.48
+BM004DIA,Burma,BM,775,3,4,Putao,27.36,97.40
+BM005DIA,Burma,BM,775,3,5,Theindaw,12.32,99.15
+BM006DIA,Burma,BM,775,3,6,Myatsawnyinaung,18.93,96.43
+BM007DIA,Burma,BM,775,3,7,Kayaukmedaung - Shwechaung Area,13.67,99.15
+CM001DIA,Cameroon,CM,471,4,1,Vina River,7.80,15.08
+CA001DIA,Canada,CA,20,5,1,Diavik Mine,64.30,-109.90
+CA002DIA,Canada,CA,20,5,2,Ekati Mine,64.75,-110.50
+CA003DIA,Canada,CA,20,5,3,Lac de Gras,64.50,-110.00
+CA004DIA,Canada,CA,20,5,4,Jericho Project,65.92,-111.00
+CA005DIA,Canada,CA,20,5,5,AK/CJ,63.50,-109.50
+CA006DIA,Canada,CA,20,5,6,Wawa,48.00,-84.78
+CA007DIA,Canada,CA,20,5,7,Wemindji,53.78,-77.62
+CA008DIA,Canada,CA,20,5,8,Coronation Gulf,65.97,-104.98
+CA009DIA,Canada,CA,20,5,9,Buffalo Hills,56.90,-114.25
+CA010DIA,Canada,CA,20,5,10,Otish Mountains,52.67,-72.18
+CA011DIA,Canada,CA,20,5,11,Kirkland Lake Area,48.25,-79.88
+CA012DIA,Canada,CA,20,5,12,Fort a la Corne,53.47,-104.68
+CA013DIA,Canada,CA,20,5,13,Crossing Creek,49.83,-114.88
+CA014DIA,Canada,CA,20,5,14,Kikerk Lake,67.42,-113.03
+CA015DIA,Canada,CA,20,5,15,Somerset Island,73.00,-94.00
+CA016DIA,Canada,CA,20,5,16,Attawapsikat region,52.92,-82.43
+CA017DIA,Canada,CA,20,5,17,Snap Lake,63.58,-111.25
+CA018DIA,Canada,CA,20,5,18,Torngat - Twin Mining,59.50,-63.88
+CA019DIA,Canada,CA,20,5,19,Jasper Area,54.00,-117.00
+CA020DIA,Canada,CA,20,5,20,Hudson Bay,52.83,-83.83
+CA021DIA,Canada,CA,20,5,21,Letac Area,49.33,-76.50
+CA022DIA,Canada,CA,20,5,22,Sturgeon Lake,53.20,-105.75
+CA023DIA,Canada,CA,20,5,23,Jackson Inlet Property,73.25,-88.28
+CT001DIA,Central African Republic,CT,482,4,1,Trouapou-Boungou,7.97,21.90
+CT002DIA,Central African Republic,CT,482,4,2,Djourou,6.93,21.75
+CT003DIA,Central African Republic,CT,482,4,3,Aigbando,7.97,21.90
+CT004DIA,Central African Republic,CT,482,4,4,Mbala mine,6.82,22.32
+CT005DIA,Central African Republic,CT,482,4,5,Mouka,7.00,22.00
+CT006DIA,Central African Republic,CT,482,4,6,Ouadda,7.00,22.00
+CT007DIA,Central African Republic,CT,482,4,7,Yalinga,6.52,23.25
+CT008DIA,Central African Republic,CT,482,4,8,Bamingui Region,6.82,22.32
+CT009DIA,Central African Republic,CT,482,4,9,Ouandjia,9.25,22.70
+CT010DIA,Central African Republic,CT,482,4,10,Mambere,4.49,15.76
+CT011DIA,Central African Republic,CT,482,4,11,Batouri Bole,4.27,15.78
+CT012DIA,Central African Republic,CT,482,4,12,Ngoele,4.27,15.78
+CT013DIA,Central African Republic,CT,482,4,13,Bangoran,7.99,20.45
+CT014DIA,Central African Republic,CT,482,4,14,Bria,6.46,21.72
+CT015DIA,Central African Republic,CT,482,4,15,N'Sako,6.73,22.97
+CT016DIA,Central African Republic,CT,482,4,16,Loabe/M'Baere,4.53,16.74
+CT017DIA,Central African Republic,CT,482,4,17,Sosso,3.49,15.81
+CT018DIA,Central African Republic,CT,482,4,18,Nola,3.17,16.11
+CT019DIA,Central African Republic,CT,482,4,19,Lobaye,3.68,18.58
+CT020DIA,Central African Republic,CT,482,4,20,Iromou,6.52,22.17
+CT021DIA,Central African Republic,CT,482,4,21,Goudjembe,4.88,15.87
+CT022DIA,Central African Republic,CT,482,4,22,Lopo,3.57,16.12
+CT023DIA,Central African Republic,CT,482,4,23,Carnot,4.78,15.73
+CT024DIA,Central African Republic,CT,482,4,24,Berberati,4.27,15.78
+CT025DIA,Central African Republic,CT,482,4,25,Goumbiri,7.73,20.78
+CT026DIA,Central African Republic,CT,482,4,26,Bangana,0.00,0.00
+CT027DIA,Central African Republic,CT,482,4,27,Gbali,5.23,14.85
+CD001DIA,Chad,CD,483,4,1,Mayo Kebbi,10.00,15.70
+CD002DIA,Chad,CD,483,4,2,Quaddai,0.00,0.00
+CD003DIA,Chad,CD,483,4,3,Biltine,15.00,21.00
+CD004DIA,Chad,CD,483,4,4,Guera,11.50,18.50
+CD005DIA,Chad,CD,483,4,5,Baibokoum,7.75,15.68
+CH001DIA,China,CH,710,3,1,Pipe 50 diamond mine,39.62,122.00
+CH002DIA,China,CH,710,3,2,Changma Diamond Mine,35.67,117.77
+CH003DIA,China,CH,710,3,3,Xiyu diamond project,35.82,117.92
+CH004DIA,China,CH,710,3,4,Linyi diamond project,35.32,117.72
+CH005DIA,China,CH,710,3,5,Tancheng area,34.73,118.47
+CH006DIA,China,CH,710,3,6,Yuan R. Area,28.50,111.50
+CH007DIA,China,CH,710,3,7,Dabie Shan Mountains,31.25,115.00
+CH008DIA,China,CH,710,3,8,Wafangdian,39.62,122.00
+CH009DIA,China,CH,710,3,9,Mengshan,35.67,117.77
+CH010DIA,China,CH,710,3,10,Dingjiagang Diamond Mine,0.00,0.00
+CO001DIA,Colombia,CO,100,5,1,Guapayito River,4.00,-68.80
+CF001DIA,Congo,CF,484,4,1,Komono,-2.90,13.63
+CG001DIA,Democratic Republic of Con,CG,490,4,1,Mbuji-Mayi,-6.17,23.58
+CG002DIA,Democratic Republic of Con,CG,490,4,2,Mbuji-Mayi,-6.17,23.58
+CG003DIA,Democratic Republic of Con,CG,490,4,3,Kasai River,-6.36,20.73
+CG004DIA,Democratic Republic of Con,CG,490,4,4,Kananga,-5.90,22.42
+CG005DIA,Democratic Republic of Con,CG,490,4,5,Kwango,-7.50,17.30
+CG006DIA,Democratic Republic of Con,CG,490,4,6,Sankuru,-4.28,20.42
+CG007DIA,Democratic Republic of Con,CG,490,4,7,Lodja,-3.48,23.43
+CG008DIA,Democratic Republic of Con,CG,490,4,8,Bozala,0.00,0.00
+CG009DIA,Democratic Republic of Con,CG,490,4,9,Kanshi,-8.63,28.55
+CG010DIA,Democratic Republic of Con,CG,490,4,10,Tshikapa,-6.33,20.75
+CG011DIA,Democratic Republic of Con,CG,490,4,11,Tchibua,-6.17,23.58
+CG012DIA,Democratic Republic of Con,CG,490,4,12,Tshinyama,-5.70,22.40
+CG013DIA,Democratic Republic of Con,CG,490,4,13,Mudiba,-6.28,23.58
+CG014DIA,Democratic Republic of Con,CG,490,4,14,Haute Zaire Area,3.50,24.67
+CG015DIA,Democratic Republic of Con,CG,490,4,15,Yakoma,4.08,22.45
+CG016DIA,Democratic Republic of Con,CG,490,4,16,Senga Senga River,-6.17,23.58
+CG017DIA,Democratic Republic of Con,CG,490,4,17,Kikwit,-5.38,19.02
+CG018DIA,Democratic Republic of Con,CG,490,4,18,Fatunda,-3.82,17.94
+CG019DIA,Democratic Republic of Con,CG,490,4,19,Bagata,-4.32,17.28
+CG020DIA,Democratic Republic of Con,CG,490,4,20,Disile,-6.33,22.99
+CG021DIA,Democratic Republic of Con,CG,490,4,21,Maji Munene,-6.33,20.75
+CG022DIA,Democratic Republic of Con,CG,490,4,22,Movo,-6.17,23.58
+CG023DIA,Democratic Republic of Con,CG,490,4,23,Katubabala,-5.46,21.33
+CG024DIA,Democratic Republic of Con,CG,490,4,24,Tshitala,-6.00,20.63
+CG025DIA,Democratic Republic of Con,CG,490,4,25,Bonkala,-6.25,21.63
+CG026DIA,Democratic Republic of Con,CG,490,4,26,Kakutu,-5.92,21.63
+CG027DIA,Democratic Republic of Con,CG,490,4,27,Katsha,-6.33,23.33
+CG028DIA,Democratic Republic of Con,CG,490,4,28,Tshimanga,-6.42,23.50
+CG029DIA,Democratic Republic of Con,CG,490,4,29,Katoka,-6.33,21.21
+CG030DIA,Democratic Republic of Con,CG,490,4,30,Ramona,-6.67,20.67
+CG031DIA,Democratic Republic of Con,CG,490,4,31,Basanga,-6.54,21.00
+CG032DIA,Democratic Republic of Con,CG,490,4,32,Ngombe,-6.75,21.29
+CG033DIA,Democratic Republic of Con,CG,490,4,33,Lubami,-7.13,20.92
+CG034DIA,Democratic Republic of Con,CG,490,4,34,Kamuanga,-7.25,21.17
+CG035DIA,Democratic Republic of Con,CG,490,4,35,Lukelenge,-7.22,26.38
+CG036DIA,Democratic Republic of Con,CG,490,4,36,Kapopo Mine,0.00,0.00
+FI001DIA,Finland,FI,375,1,1,Kaavi,62.98,28.50
+FI002DIA,Finland,FI,375,1,2,Kuopio,62.90,27.68
+FI003DIA,Finland,FI,375,1,3,Lentiira,64.35,29.83
+FG001DIA,French Guiana,FG,-9999,5,1,Dachine IT 33,3.68,-54.03
+FG002DIA,French Guiana,FG,-9999,5,2,Palofini,3.46,-53.33
+FG003DIA,French Guiana,FG,-9999,5,3,Vitoria,0.00,0.00
+FG004DIA,French Guiana,FG,-9999,5,4,Kaw River,4.46,-52.12
+GB001DIA,Gabon,GB,481,4,1,Mitzic,0.78,11.57
+GB002DIA,Gabon,GB,481,4,2,Monkongonio,-1.92,11.48
+GB003DIA,Gabon,GB,481,4,3,Ikoy River,0.00,0.00
+GB004DIA,Gabon,GB,481,4,4,Waka River,-1.40,10.75
+GB005DIA,Gabon,GB,481,4,5,Ivindo River,-0.15,12.15
+GB006DIA,Gabon,GB,481,4,6,N'Djole,-0.18,10.75
+GB007DIA,Gabon,GB,481,4,7,Pounga,-1.48,11.58
+GH001DIA,Ghana,GH,452,4,1,Akim-Oda,5.92,-0.98
+GH002DIA,Ghana,GH,452,4,2,Kade,6.17,-0.80
+GH003DIA,Ghana,GH,452,4,3,Akwatia diamond mine,6.08,-0.83
+GH004DIA,Ghana,GH,452,4,4,Birim Diamond Field,6.00,-0.83
+GH005DIA,Ghana,GH,452,4,5,Agona Alluvial Concession,4.95,-1.70
+GH006DIA,Ghana,GH,452,4,6,Jowak Concession,6.05,-0.80
+GH007DIA,Ghana,GH,452,4,7,Volta,6.17,-1.13
+GH008DIA,Ghana,GH,452,4,8,Tarkwa,5.20,-2.08
+GH009DIA,Ghana,GH,452,4,9,Aboabo,6.00,-0.83
+GH010DIA,Ghana,GH,452,4,10,Atiankama Subinsa,5.95,-0.83
+GH011DIA,Ghana,GH,452,4,11,Subin,6.00,-0.83
+GH012DIA,Ghana,GH,452,4,12,Supong,6.00,-0.83
+GH013DIA,Ghana,GH,452,4,13,Abansa,6.00,-0.83
+GH014DIA,Ghana,GH,452,4,14,Esuboni,6.00,-0.82
+GH015DIA,Ghana,GH,452,4,15,Bonsa,5.20,-2.08
+GH016DIA,Ghana,GH,452,4,16,Afram,7.00,-0.87
+GH017DIA,Ghana,GH,452,4,17,Pra,6.45,-1.78
+GH018DIA,Ghana,GH,452,4,18,Kokotintin,5.95,-0.82
+GH019DIA,Ghana,GH,452,4,19,Amaw,6.05,-0.83
+GH020DIA,Ghana,GH,452,4,20,Sensenkwak,5.97,-0.92
+GL001DIA,Greenland,GL,-9999,1,1,West Greenland,65.00,-52.00
+GV001DIA,Guinea,GV,438,4,1,Aredor,7.45,-9.42
+GV002DIA,Guinea,GV,438,4,2,Aredor,7.45,-9.42
+GV003DIA,Guinea,GV,438,4,3,Kentaye River,0.00,0.00
+GV004DIA,Guinea,GV,438,4,4,Apredor,9.57,-9.30
+GV005DIA,Guinea,GV,438,4,5,N'Zerekore,7.75,-8.82
+GV006DIA,Guinea,GV,438,4,6,Banankoro,9.00,-9.33
+GV007DIA,Guinea,GV,438,4,7,Banankoro,9.00,-9.33
+GV008DIA,Guinea,GV,438,4,8,Beyla,8.68,-8.63
+GV009DIA,Guinea,GV,438,4,9,Beyla,8.68,-8.63
+GV010DIA,Guinea,GV,438,4,10,Somolo,8.50,-9.07
+GV011DIA,Guinea,GV,438,4,11,River Diani,8.56,-9.04
+GV012DIA,Guinea,GV,438,4,12,Bounoudou,8.56,-9.04
+GV013DIA,Guinea,GV,438,4,13,Fenaria,9.29,-9.39
+GV014DIA,Guinea,GV,438,4,14,Fenaria,9.29,-9.39
+GV015DIA,Guinea,GV,438,4,15,Kindia,10.08,-12.80
+GV016DIA,Guinea,GV,438,4,16,Avili,8.52,-9.08
+GV017DIA,Guinea,GV,438,4,17,Avili,8.52,-9.08
+GV018DIA,Guinea,GV,438,4,18,Feredou,8.92,-9.18
+GV019DIA,Guinea,GV,438,4,19,Baradou,8.99,-9.53
+GV020DIA,Guinea,GV,438,4,20,Gourbarako,8.56,-9.04
+GV021DIA,Guinea,GV,438,4,21,Gourbarako,8.56,-9.04
+GV022DIA,Guinea,GV,438,4,22,Kolokoro,8.56,-9.04
+GV023DIA,Guinea,GV,438,4,23,Kolokoro,8.56,-9.04
+GV024DIA,Guinea,GV,438,4,24,Sabarakoni,8.56,-9.04
+GV025DIA,Guinea,GV,438,4,25,Bolamba,8.56,-9.04
+GV026DIA,Guinea,GV,438,4,26,Dalla,8.56,-9.04
+GV027DIA,Guinea,GV,438,4,27,Droujiba,8.56,-9.04
+GV028DIA,Guinea,GV,438,4,28,Mandala River,8.84,-9.46
+GV029DIA,Guinea,GV,438,4,29,N'keleyani,8.84,-9.46
+GV030DIA,Guinea,GV,438,4,30,Mininko,9.10,-9.38
+GV031DIA,Guinea,GV,438,4,31,Kabaradou,8.97,-9.13
+GV032DIA,Guinea,GV,438,4,32,Sibiribaro,9.07,-9.22
+GV033DIA,Guinea,GV,438,4,33,Bougban,9.20,-9.32
+GV034DIA,Guinea,GV,438,4,34,Pougban,0.00,0.00
+GV035DIA,Guinea,GV,438,4,35,Bouro,8.00,-8.62
+GV036DIA,Guinea,GV,438,4,36,Jougbarako,0.00,0.00
+GV037DIA,Guinea,GV,438,4,37,Ferougban,0.00,0.00
+GV038DIA,Guinea,GV,438,4,38,Guekedou,8.56,-10.13
+GV039DIA,Guinea,GV,438,4,39,Moa,0.00,0.00
+GV040DIA,Guinea,GV,438,4,40,Milo,0.00,0.00
+GV041DIA,Guinea,GV,438,4,41,Kankan,10.38,-9.30
+GV042DIA,Guinea,GV,438,4,42,Makona,8.55,-9.47
+GV043DIA,Guinea,GV,438,4,43,Baoulé River,9.55,-9.15
+GV044DIA,Guinea,GV,438,4,44,Bimboko River,9.00,-9.33
+GV045DIA,Guinea,GV,438,4,45,Kerouane,9.27,-9.02
+GV046DIA,Guinea,GV,438,4,46,Bonodou,9.33,-8.33
+GV047DIA,Guinea,GV,438,4,47,Somassania,9.27,-9.02
+GV048DIA,Guinea,GV,438,4,48,Morigbadou,8.00,-8.62
+GV049DIA,Guinea,GV,438,4,49,Flegni,9.29,-9.39
+GV050DIA,Guinea,GV,438,4,50,Famorodou,8.69,-9.07
+GV051DIA,Guinea,GV,438,4,51,Bereko,9.00,-9.33
+GV052DIA,Guinea,GV,438,4,52,Tisinkoro,9.00,-9.33
+GV053DIA,Guinea,GV,438,4,53,Ferouba,9.00,-9.33
+GV054DIA,Guinea,GV,438,4,54,Macenta,8.55,-9.47
+GY001DIA,Guyana,GY,110,5,1,Perenong,6.13,-60.12
+GY002DIA,Guyana,GY,110,5,2,Eping River,6.11,-60.11
+GY003DIA,Guyana,GY,110,5,3,Upper Eping River,6.08,-60.13
+GY004DIA,Guyana,GY,110,5,4,Takatu,6.15,-58.92
+GY005DIA,Guyana,GY,110,5,5,Maple Creek,5.33,-59.30
+GY006DIA,Guyana,GY,110,5,6,Potaro,5.35,-59.00
+GY007DIA,Guyana,GY,110,5,7,Mazaruni River,5.92,-59.75
+GY008DIA,Guyana,GY,110,5,8,Chinese Landing Workings,6.67,-59.57
+GY009DIA,Guyana,GY,110,5,9,Putareng River,6.26,-60.15
+GY010DIA,Guyana,GY,110,5,10,Tomasing River,6.08,-59.98
+GY011DIA,Guyana,GY,110,5,11,Chisholm's Workings,6.64,-59.57
+GY012DIA,Guyana,GY,110,5,12,Whitewater Creek - Apiqua Falls,6.36,-60.37
+GY013DIA,Guyana,GY,110,5,13,De Santos Working,0.00,0.00
+GY014DIA,Guyana,GY,110,5,14,Dukwarri Fall,6.86,-59.90
+GY015DIA,Guyana,GY,110,5,15,Upper Merume,5.80,-59.95
+GY016DIA,Guyana,GY,110,5,16,Lower Pilgrim Creek,6.19,-60.26
+GY017DIA,Guyana,GY,110,5,17,C. Alves,6.32,-60.30
+GY018DIA,Guyana,GY,110,5,18,Upper Sagenang Creek,6.19,-60.32
+GY019DIA,Guyana,GY,110,5,19,Lower Merume River,5.85,-59.92
+GY020DIA,Guyana,GY,110,5,20,Rupununi Diamond District,4.47,-59.83
+GY021DIA,Guyana,GY,110,5,21,Cash Boy Creek,6.22,-60.17
+GY022DIA,Guyana,GY,110,5,22,Iwang Creek Left Bank,6.19,-60.24
+GY023DIA,Guyana,GY,110,5,23,Lower Fortune Creek,6.21,-60.19
+GY024DIA,Guyana,GY,110,5,24,Upper Aricheng Creek,6.25,-60.24
+GY025DIA,Guyana,GY,110,5,25,Venus Creek,4.78,-58.24
+GY026DIA,Guyana,GY,110,5,26,Kamwatta River,4.92,-58.25
+GY027DIA,Guyana,GY,110,5,27,Puruni Diamond District,6.32,-59.87
+GY028DIA,Guyana,GY,110,5,28,M.C. Correia's Claim,6.15,-60.36
+GY029DIA,Guyana,GY,110,5,29,Lower Kurupung Left Bank,6.22,-60.16
+GY030DIA,Guyana,GY,110,5,30,No Hill Left Bank,6.21,-60.24
+GY031DIA,Guyana,GY,110,5,31,Lower Kurupung Right Bank,6.22,-60.16
+GY032DIA,Guyana,GY,110,5,32,Enachu River,6.23,-60.04
+GY033DIA,Guyana,GY,110,5,33,Oranapai Landing - The Sands,6.09,-59.91
+GY034DIA,Guyana,GY,110,5,34,Omboparu Creek,6.25,-60.10
+GY035DIA,Guyana,GY,110,5,35,Lower Arichceng Creek,6.22,-60.23
+GY036DIA,Guyana,GY,110,5,36,Berbice District,4.93,-58.22
+GY037DIA,Guyana,GY,110,5,37,Anzac Creek,6.22,-60.20
+GY038DIA,Guyana,GY,110,5,38,Ludgate Hill,6.24,-60.12
+GY039DIA,Guyana,GY,110,5,39,Robert's Workings,6.65,-59.57
+GY040DIA,Guyana,GY,110,5,40,Upper Fortune Creek,6.18,-60.19
+GY041DIA,Guyana,GY,110,5,41,Karatukapai Creek,6.40,-60.39
+GY042DIA,Guyana,GY,110,5,42,Meruwinni Creek Area,5.85,-59.72
+GY043DIA,Guyana,GY,110,5,43,Haimaraka River,6.45,-60.38
+GY044DIA,Guyana,GY,110,5,44,McNaughten's Diamond Workings,6.86,-60.53
+GY045DIA,Guyana,GY,110,5,45,Deer Creek,6.49,-60.30
+GY046DIA,Guyana,GY,110,5,46,Kurashi Diamond Area,6.93,-60.33
+GY047DIA,Guyana,GY,110,5,47,Tributary of Caracaramu Creek,6.48,-60.22
+GY048DIA,Guyana,GY,110,5,48,Le Desir,6.38,-60.37
+GY049DIA,Guyana,GY,110,5,49,Sagenang Creek Right Bank of Kurupung River,6.16,-60.33
+GY050DIA,Guyana,GY,110,5,50,No Hill Right Bank of Kurupung,6.20,-60.23
+GY051DIA,Guyana,GY,110,5,51,Tacounba Creek Right Bank of Kurupung,6.17,-60.27
+GY052DIA,Guyana,GY,110,5,52,Imatta Creek Left Bank of Kurupung,6.18,-60.28
+GY053DIA,Guyana,GY,110,5,53,Anabarong Creek,6.29,-60.21
+GY054DIA,Guyana,GY,110,5,54,Gem Creek,5.71,-59.07
+GY055DIA,Guyana,GY,110,5,55,Amu Creek,5.28,-59.30
+GY056DIA,Guyana,GY,110,5,56,Tappa River,4.92,-59.76
+GY057DIA,Guyana,GY,110,5,57,Oewang and Tukeit,5.32,-59.32
+GY058DIA,Guyana,GY,110,5,58,La Rose Creek,6.98,-59.45
+GY059DIA,Guyana,GY,110,5,59,Koama River,6.79,-60.41
+GY060DIA,Guyana,GY,110,5,60,Kangaruma,5.38,-59.18
+GY061DIA,Guyana,GY,110,5,61,Iwang Creek Right Bank of Kurupung,6.18,-60.25
+GY062DIA,Guyana,GY,110,5,62,Ireng Creek Goldfield,4.72,-58.04
+GY063DIA,Guyana,GY,110,5,63,Upper Kuribrong Gold and Diamond Field,5.50,-59.43
+GY064DIA,Guyana,GY,110,5,64,Issineru River,6.48,-60.33
+GY065DIA,Guyana,GY,110,5,65,Upper Tamakay Creek,6.47,-60.25
+GY066DIA,Guyana,GY,110,5,66,Mukru Creek,6.85,-60.37
+GY067DIA,Guyana,GY,110,5,67,Kaieteur Falls,5.19,-59.48
+GY068DIA,Guyana,GY,110,5,68,Akaiwong River,6.63,-59.55
+GY069DIA,Guyana,GY,110,5,69,McGillivray Landing,6.22,-60.21
+GY070DIA,Guyana,GY,110,5,70,Unnamed Tributary of Upper Konawaruk River,5.09,-59.26
+GY071DIA,Guyana,GY,110,5,71,Queen of Diamonds - Ohio Area,5.33,-59.21
+GY072DIA,Guyana,GY,110,5,72,Unnamed Placer on Barama,7.37,-60.41
+GY073DIA,Guyana,GY,110,5,73,Kanaima Creek,5.32,-59.33
+GY074DIA,Guyana,GY,110,5,74,Itaburu Creek,4.86,-58.24
+GY075DIA,Guyana,GY,110,5,75,Ilu Creek,5.30,-59.25
+GY076DIA,Guyana,GY,110,5,76,Lindo Creek,4.82,-58.24
+GY077DIA,Guyana,GY,110,5,77,Iabaratuik Creek,5.29,-59.39
+GY078DIA,Guyana,GY,110,5,78,Marlissa River,4.90,-58.26
+GY079DIA,Guyana,GY,110,5,79,Moscow Creek,4.75,-58.24
+GY080DIA,Guyana,GY,110,5,80,Robin Creek,4.85,-58.26
+GY081DIA,Guyana,GY,110,5,81,Ianna Creek,7.35,-59.81
+GY082DIA,Guyana,GY,110,5,82,Semang River,5.63,-59.68
+GY083DIA,Guyana,GY,110,5,83,Kumaka Landing Right Bank of Kurupung,6.21,-60.22
+GY084DIA,Guyana,GY,110,5,84,Karanang River,5.69,-59.75
+GY085DIA,Guyana,GY,110,5,85,Imatta Creek Right Bank of Kurupung,6.17,-60.29
+GY086DIA,Guyana,GY,110,5,86,Bumbumparu Creek (Upper Part and Mouth),6.36,-60.42
+GY087DIA,Guyana,GY,110,5,87,Lower Sagenang Creek,6.18,-60.31
+GY088DIA,Guyana,GY,110,5,88,Unnamed Tributary of Mazaruni River,6.26,-60.20
+GY089DIA,Guyana,GY,110,5,89,Meamu River,6.32,-60.36
+GY090DIA,Guyana,GY,110,5,90,Ewang River,5.35,-59.29
+GY091DIA,Guyana,GY,110,5,91,Hoit Creek,5.31,-59.30
+GY092DIA,Guyana,GY,110,5,92,Upper Pilgrim Creek,6.21,-60.27
+GY093DIA,Guyana,GY,110,5,93,Cuyuni,7.12,-59.48
+IN001DIA,India,IN,750,3,1,Majhgawan,24.65,80.03
+IN002DIA,India,IN,750,3,2,Panna,24.65,80.03
+IN003DIA,India,IN,750,3,3,Kollur,16.67,80.00
+IN004DIA,India,IN,750,3,4,Raipur,20.20,82.20
+IN005DIA,India,IN,750,3,5,Ramhkeria,20.20,82.20
+IN006DIA,India,IN,750,3,6,Mahanadi River,20.67,84.25
+IN007DIA,India,IN,750,3,7,Gangpur,24.17,85.08
+IN008DIA,India,IN,750,3,8,Sumelpur,0.00,0.00
+IN009DIA,India,IN,750,3,9,Wajrakurur,15.03,77.38
+IN010DIA,India,IN,750,3,10,Wajrakurur,15.03,77.38
+IN011DIA,India,IN,750,3,11,Wairagarh,20.42,80.10
+IN012DIA,India,IN,750,3,12,Karnul,15.83,78.05
+IN013DIA,India,IN,750,3,13,Cuddapah,14.47,78.82
+IN014DIA,India,IN,750,3,14,Bellary,15.15,76.93
+ID001DIA,Indonesia,ID,850,3,1,Cempaka,-3.50,114.75
+ID002DIA,Indonesia,ID,850,3,2,Martapura,-3.42,114.85
+ID003DIA,Indonesia,ID,850,3,3,Pleihari,-3.80,114.75
+ID004DIA,Indonesia,ID,850,3,4,Landak River,0.32,109.93
+ID005DIA,Indonesia,ID,850,3,5,Barito River,-0.90,114.23
+ID006DIA,Indonesia,ID,850,3,6,Sungai Alalak,-3.28,114.55
+ID007DIA,Indonesia,ID,850,3,7,Sunda Shelf Area,0.00,0.00
+ID008DIA,Indonesia,ID,850,3,8,Samarinda,-0.50,117.15
+ID009DIA,Indonesia,ID,850,3,9,Mahakam,-0.58,117.28
+ID010DIA,Indonesia,ID,850,3,10,Sampit,-2.73,112.90
+ID011DIA,Indonesia,ID,850,3,11,Bandjermasin Ulin,-3.33,114.58
+ID012DIA,Indonesia,ID,850,3,12,Sekajam,0.12,110.63
+ID013DIA,Indonesia,ID,850,3,13,Tjampaka,0.00,0.00
+ID014DIA,Indonesia,ID,850,3,14,Riam Kanan,-3.40,114.90
+ID015DIA,Indonesia,ID,850,3,15,Pembuang,-3.40,112.55
+ID016DIA,Indonesia,ID,850,3,16,Kotawaringin,-2.90,111.42
+IV001DIA,Cote d'Ivoire,IV,437,4,1,Bobi Mine,8.17,-6.58
+IV002DIA,Cote d'Ivoire,IV,437,4,2,Bobi Mine,8.17,-6.58
+IV003DIA,Cote d'Ivoire,IV,437,4,3,Toubabouko dyke,8.17,-6.58
+IV004DIA,Cote d'Ivoire,IV,437,4,4,Toubabouko,8.17,-6.58
+IV005DIA,Cote d'Ivoire,IV,437,4,5,Seguela,8.17,-6.58
+IV006DIA,Cote d'Ivoire,IV,437,4,6,Upper Sassandra,8.43,-7.17
+IV007DIA,Cote d'Ivoire,IV,437,4,7,Bandama,6.57,-5.06
+IV008DIA,Cote d'Ivoire,IV,437,4,8,Comoe,5.20,-3.73
+IV009DIA,Cote d'Ivoire,IV,437,4,9,Tortiya,8.72,-5.33
+IV010DIA,Cote d'Ivoire,IV,437,4,10,Tortiya,8.72,-5.33
+IV011DIA,Cote d'Ivoire,IV,437,4,11,Kanangone,0.00,0.00
+IV012DIA,Cote d'Ivoire,IV,437,4,12,Niema,0.00,0.00
+IV013DIA,Cote d'Ivoire,IV,437,4,13,Berelenko,0.00,0.00
+IV014DIA,Cote d'Ivoire,IV,437,4,14,Marahoue,7.88,-6.25
+IV015DIA,Cote d'Ivoire,IV,437,4,15,Legbo,8.13,-6.62
+IV016DIA,Cote d'Ivoire,IV,437,4,16,Mossikro,0.00,0.00
+IV017DIA,Cote d'Ivoire,IV,437,4,17,Kohoue,6.78,-5.10
+KZ001DIA,Kazakhstan,KZ,705,3,1,Kumdy Kol,52.93,69.05
+LT001DIA,Lesotho,LT,570,4,1,Kao,-29.10,28.48
+LT002DIA,Lesotho,LT,570,4,2,Liqhobong,-29.32,27.48
+LT003DIA,Lesotho,LT,570,4,3,Ngopetvou,-29.57,27.70
+LT004DIA,Lesotho,LT,570,4,4,Tsepine Berea,-29.25,27.55
+LT005DIA,Lesotho,LT,570,4,5,Molibi Bere,0.00,0.00
+LT006DIA,Lesotho,LT,570,4,6,Thabantvonyana,-29.47,29.27
+LT007DIA,Lesotho,LT,570,4,7,Letseng-la-terai,-29.03,28.88
+LT008DIA,Lesotho,LT,570,4,8,Lemphane,-29.33,28.47
+LT009DIA,Lesotho,LT,570,4,9,Lemphane,-29.33,28.47
+LT010DIA,Lesotho,LT,570,4,10,Fiksburg/Taba,-29.03,27.85
+LI001DIA,Liberia,LI,450,4,1,Lofa River/Weasua,7.40,-10.50
+LI002DIA,Liberia,LI,450,4,2,Butulu,7.31,-10.51
+LI003DIA,Liberia,LI,450,4,3,Wuegbeni,7.33,-10.47
+LI004DIA,Liberia,LI,450,4,4,Wuedakena,7.32,-10.50
+LI005DIA,Liberia,LI,450,4,5,Mano Godua,7.16,-10.89
+LI006DIA,Liberia,LI,450,4,6,Mano Godua,7.16,-10.89
+LI007DIA,Liberia,LI,450,4,7,Kakata,6.67,-10.33
+LI008DIA,Liberia,LI,450,4,8,Tapeta,6.49,-8.86
+LI009DIA,Liberia,LI,450,4,9,Camp Alfa,7.63,-10.33
+LI010DIA,Liberia,LI,450,4,10,Mt. Nimba,7.28,-9.52
+LI011DIA,Liberia,LI,450,4,11,Gbapa,7.48,-8.69
+LI012DIA,Liberia,LI,450,4,12,Bahn,7.03,-8.72
+LI013DIA,Liberia,LI,450,4,13,Zogoway,7.48,-8.69
+LI014DIA,Liberia,LI,450,4,14,Morro River,7.42,-11.00
+LI015DIA,Liberia,LI,450,4,15,Wealula,7.60,-10.78
+LI016DIA,Liberia,LI,450,4,16,Weatomi,7.42,-11.00
+LI017DIA,Liberia,LI,450,4,17,Cutiya Creek - 1,7.42,-11.00
+LI018DIA,Liberia,LI,450,4,18,Yambesei River,7.08,-10.87
+LI019DIA,Liberia,LI,450,4,19,Pa MaYa Creek,7.43,-10.82
+LI020DIA,Liberia,LI,450,4,20,Musa Creek,7.27,-10.58
+LI021DIA,Liberia,LI,450,4,21,Wuefa Creek,7.09,-10.83
+LI022DIA,Liberia,LI,450,4,22,Kumgba Creek,6.27,-10.29
+LI023DIA,Liberia,LI,450,4,23,Mabong Creek,7.09,-11.15
+LI024DIA,Liberia,LI,450,4,24,Mafe Creek,6.93,-10.41
+LI025DIA,Liberia,LI,450,4,25,Gorlu,7.52,-9.48
+LI026DIA,Liberia,LI,450,4,26,Make Creek,6.99,-10.79
+LI027DIA,Liberia,LI,450,4,27,Bomi Hills Mine,6.99,-10.79
+LI028DIA,Liberia,LI,450,4,28,Tiaba,7.13,-8.73
+LI029DIA,Liberia,LI,450,4,29,Bing,7.10,-8.89
+LI030DIA,Liberia,LI,450,4,30,Congo Diamond,7.10,-10.84
+LI031DIA,Liberia,LI,450,4,31,Pegle,7.11,-8.74
+LI032DIA,Liberia,LI,450,4,32,Zigli,7.07,-8.74
+MY001DIA,Malaysia,MY,820,3,1,Sungai Sarawak Kiri,1.45,110.27
+ML001DIA,Mali,ML,432,4,1,Sansanto,12.88,-11.23
+ML002DIA,Mali,ML,432,4,2,Guindissou,12.97,-11.10
+ML003DIA,Mali,ML,432,4,3,Kenieba,13.00,-11.17
+MR001DIA,Mauritania,MR,435,4,1,Touajil,22.15,-12.80
+MR002DIA,Mauritania,MR,435,4,2,Akchar,20.52,-13.05
+MR003DIA,Mauritania,MR,435,4,3,El Hammami,23.05,-11.50
+MR004DIA,Mauritania,MR,435,4,4,Tenoumer,22.92,-10.40
+MZ001DIA,Mozambique,MZ,541,4,1,Limpopo River,-25.21,33.51
+MZ002DIA,Mozambique,MZ,541,4,2,Pafuri River,0.00,0.00
+MZ003DIA,Mozambique,MZ,541,4,3,Niassa,-13.00,37.00
+MZ004DIA,Mozambique,MZ,541,4,4,Zumbo,-15.50,31.00
+MZ005DIA,Mozambique,MZ,541,4,5,Mapai - Massingir,-23.50,33.00
+MZ006DIA,Mozambique,MZ,541,4,6,Maputo,-26.50,32.50
+WA001DIA,Namibia,WA,565,4,1,Luderitz,-26.68,15.02
+WA023DIA,Namibia,WA,565,4,1,Luderitz,-26.68,15.02
+WA002DIA,Namibia,WA,565,4,2,Woduna concession,-26.65,15.16
+WA024DIA,Namibia,WA,565,4,2,Woduna concession,-26.65,15.16
+WA003DIA,Namibia,WA,565,4,3,Elizabeth Bay Mine,-27.00,15.17
+WA004DIA,Namibia,WA,565,4,4,Auchas,-28.33,16.70
+WA005DIA,Namibia,WA,565,4,5,Orange River,-28.55,16.43
+WA006DIA,Namibia,WA,565,4,6,Henties Bay,-22.12,14.28
+WA025DIA,Namibia,WA,565,4,6,Henties Bay,-22.12,14.28
+WA007DIA,Namibia,WA,565,4,7,Mowe Bay,-19.33,12.67
+WA026DIA,Namibia,WA,565,4,7,Mowe Bay,-19.33,12.67
+WA008DIA,Namibia,WA,565,4,8,Cape Fria,-18.45,12.02
+WA027DIA,Namibia,WA,565,4,8,Cape Fria,-18.45,12.02
+WA009DIA,Namibia,WA,565,4,9,Chameis Bay,-27.80,15.57
+WA010DIA,Namibia,WA,565,4,10,Hottentot Bay,-26.18,14.90
+WA028DIA,Namibia,WA,565,4,10,Hottentot Bay,-26.18,14.90
+WA011DIA,Namibia,WA,565,4,11,CDM Marine,-28.00,16.00
+WA012DIA,Namibia,WA,565,4,12,Bogenfels,-27.45,15.40
+WA013DIA,Namibia,WA,565,4,13,Pomona,-27.20,15.28
+WA014DIA,Namibia,WA,565,4,14,Otjua,-26.68,15.02
+WA015DIA,Namibia,WA,565,4,15,Oranjemund,-28.55,16.43
+WA016DIA,Namibia,WA,565,4,16,Conception Bay,-23.92,14.50
+WA017DIA,Namibia,WA,565,4,17,Saddle Hill,-25.90,14.92
+WA018DIA,Namibia,WA,565,4,18,Penguin Islands,-26.62,15.15
+WA019DIA,Namibia,WA,565,4,19,Guano Isles Area,-27.17,15.00
+WA029DIA,Namibia,WA,565,4,19,Guano Isles Area,-27.17,15.00
+WA020DIA,Namibia,WA,565,4,20,Hosetia,-24.24,14.54
+WA021DIA,Namibia,WA,565,4,21,Spenserbay,-25.50,14.90
+WA022DIA,Namibia,WA,565,4,22,Rocky Point,-20.49,13.28
+NI001DIA,Nigeria,NI,475,4,1,Unnamed - 1,11.19,5.63
+NI002DIA,Nigeria,NI,475,4,2,Unnamed - 2,11.30,6.94
+NI003DIA,Nigeria,NI,475,4,3,Unnamed - 3,12.17,6.37
+NO001DIA,Norway,NO,385,1,1,Fjortoft,62.70,6.38
+NO002DIA,Norway,NO,385,1,2,Finnmarksvidda,69.50,24.00
+PA001DIA,Paraguay,PA,150,5,1,Aquidaban River,-23.11,-57.62
+RS001DIA,Russia,RS,365,1,1,Daldyn - Alakit Area,66.25,112.67
+RS002DIA,Russia,RS,365,1,2,Dalnaya pipe,66.25,112.67
+RS003DIA,Russia,RS,365,1,3,Udachnaya-Vostochnaya kimberlite pipe,66.49,112.70
+RS004DIA,Russia,RS,365,1,4,Sytykanskaya,66.36,111.99
+RS005DIA,Russia,RS,365,1,5,Zarnitsa,66.25,112.67
+RS006DIA,Russia,RS,365,1,6,Yubileynaya,66.17,111.35
+RS007DIA,Russia,RS,365,1,7,Aikhal,66.17,111.35
+RS008DIA,Russia,RS,365,1,8,Mirnyy Mine,63.00,112.00
+RS009DIA,Russia,RS,365,1,9,Verkhotina diamond field,64.00,44.00
+RS010DIA,Russia,RS,365,1,10,Vol'sk-Vym Ridge,65.50,50.00
+RS011DIA,Russia,RS,365,1,11,Pre - Sayan Area,53.27,101.00
+RS012DIA,Russia,RS,365,1,12,Malo Botuobiya Area,62.50,115.80
+RS013DIA,Russia,RS,365,1,13,Internatsionalnaya,62.50,115.80
+RS014DIA,Russia,RS,365,1,14,23rd Congress,62.50,115.80
+RS015DIA,Russia,RS,365,1,15,Irelyakh River,62.45,114.35
+RS016DIA,Russia,RS,365,1,16,Obnazhennaya,73.00,119.92
+RS017DIA,Russia,RS,365,1,17,Vodorazdelnye Galechniki,0.00,0.00
+RS018DIA,Russia,RS,365,1,18,Yraas-Yuryakh Creek,0.00,0.00
+RS019DIA,Russia,RS,365,1,19,Vilyui River,64.37,126.41
+RS020DIA,Russia,RS,365,1,20,Zapolyarnaya,67.28,115.64
+RS021DIA,Russia,RS,365,1,21,Festival'naya,68.72,118.37
+RS022DIA,Russia,RS,365,1,22,Imeni Lomonosova,65.36,41.54
+RS023DIA,Russia,RS,365,1,23,Visherskiy,60.31,57.69
+RS024DIA,Russia,RS,365,1,24,Us'vinskoye,58.60,57.78
+RS025DIA,Russia,RS,365,1,25,Vizhayskoye,58.39,58.08
+RS026DIA,Russia,RS,365,1,26,Molodo,69.58,122.38
+RS027DIA,Russia,RS,365,1,27,Ebelyakhskoye,70.95,114.55
+RS028DIA,Russia,RS,365,1,28,Udarnyy - Popigayskiy Krater,71.68,110.83
+RS029DIA,Russia,RS,365,1,29,Archangelsk,65.63,40.55
+RS030DIA,Russia,RS,365,1,30,Kaleria,64.55,30.75
+RS031DIA,Russia,RS,365,1,31,Aldan,58.40,118.67
+RS032DIA,Russia,RS,365,1,32,Marhka River,63.47,118.89
+RS033DIA,Russia,RS,365,1,33,Nyurba pipe,63.28,118.33
+RS034DIA,Russia,RS,365,1,34,Anabar,73.13,113.60
+SL001DIA,Sierra Leone,SL,451,4,1,Koidu Diamond Field,8.45,-10.78
+SL002DIA,Sierra Leone,SL,451,4,2,Koidu Diamond Field,8.45,-10.78
+SL003DIA,Sierra Leone,SL,451,4,3,Yengema area,8.63,-10.98
+SL004DIA,Sierra Leone,SL,451,4,4,Sefadu,8.65,-10.98
+SL005DIA,Sierra Leone,SL,451,4,5,Njei Bafi,8.70,-11.25
+SL006DIA,Sierra Leone,SL,451,4,6,Kundiyi & Mansayi,8.67,-10.78
+SL007DIA,Sierra Leone,SL,451,4,7,Peyima & Tefeya,8.67,-11.08
+SL008DIA,Sierra Leone,SL,451,4,8,Tongo Field,8.20,-11.07
+SL009DIA,Sierra Leone,SL,451,4,9,Tongo Field,8.20,-11.07
+SL010DIA,Sierra Leone,SL,451,4,10,Matemu,8.20,-11.07
+SL011DIA,Sierra Leone,SL,451,4,11,Lando,8.20,-11.07
+SL012DIA,Sierra Leone,SL,451,4,12,Kundu,8.20,-11.07
+SL013DIA,Sierra Leone,SL,451,4,13,Panguma,8.20,-11.07
+SL014DIA,Sierra Leone,SL,451,4,14,Zimmi,7.32,-11.31
+SL015DIA,Sierra Leone,SL,451,4,15,Gbahama,7.30,-11.35
+SL016DIA,Sierra Leone,SL,451,4,16,Hima Section (Lower Sewa River),7.72,-11.90
+SL017DIA,Sierra Leone,SL,451,4,17,Sewa River,7.75,-11.68
+SL018DIA,Sierra Leone,SL,451,4,18,Mano Marine,6.93,-11.49
+SL019DIA,Sierra Leone,SL,451,4,19,Moa Marine,6.98,-11.59
+SL020DIA,Sierra Leone,SL,451,4,20,Gori Hills,8.25,-10.78
+SL021DIA,Sierra Leone,SL,451,4,21,Moinde River,8.77,-11.03
+SL022DIA,Sierra Leone,SL,451,4,22,Meya,8.65,-11.00
+SL023DIA,Sierra Leone,SL,451,4,23,Woyie,8.45,-10.78
+SL024DIA,Sierra Leone,SL,451,4,24,Kamakwie,9.50,-12.23
+SL025DIA,Sierra Leone,SL,451,4,25,Waiima,7.95,-11.76
+SL026DIA,Sierra Leone,SL,451,4,26,Ngelehun village,8.10,-11.42
+BP001DIA,Solomon Islands,BP,940,3,1,Malaita Island,-9.00,161.00
+SF001DIA,South Africa,SF,560,4,1,Koffiefontein Mine,-29.42,25.02
+SF002DIA,South Africa,SF,560,4,2,Premier Mine,-25.70,28.50
+SF003DIA,South Africa,SF,560,4,3,Annex Kleinzee Mine,-29.65,17.05
+SF004DIA,South Africa,SF,560,4,4,Kleinzee,-28.67,17.00
+SF005DIA,South Africa,SF,560,4,5,Buffels River,-28.58,17.33
+SF006DIA,South Africa,SF,560,4,6,Koingnaas,-29.58,17.05
+SF007DIA,South Africa,SF,560,4,7,Langhoogte Mine,-29.62,17.43
+SF008DIA,South Africa,SF,560,4,8,Langhoogte Mine,-29.62,17.43
+SF009DIA,South Africa,SF,560,4,9,Kimberley,-28.73,24.77
+SF010DIA,South Africa,SF,560,4,10,Bultfontein Mine,-28.77,24.87
+SF011DIA,South Africa,SF,560,4,11,De Beers Mine,-28.73,24.78
+SF012DIA,South Africa,SF,560,4,12,Dutoitspan Mine,-28.77,24.87
+SF013DIA,South Africa,SF,560,4,13,Wesselton Mine,-28.77,24.90
+SF014DIA,South Africa,SF,560,4,14,Roberts Victor Mine,-28.08,25.47
+SF015DIA,South Africa,SF,560,4,15,Jagersfontein Mine,-29.77,25.42
+SF016DIA,South Africa,SF,560,4,16,Alexkor,-29.33,16.50
+SF017DIA,South Africa,SF,560,4,17,Oena Mine,-29.00,17.00
+SF018DIA,South Africa,SF,560,4,18,Baken Mine,-29.00,17.00
+SF019DIA,South Africa,SF,560,4,19,Octha,-29.00,17.00
+SF020DIA,South Africa,SF,560,4,20,Grasdrif,-28.30,17.08
+SF021DIA,South Africa,SF,560,4,21,Avontuur mine,-29.00,17.00
+SF022DIA,South Africa,SF,560,4,22,Lorelei mine,-29.00,17.00
+SF023DIA,South Africa,SF,560,4,23,Monastery Diamond Mine,-28.50,27.50
+SF024DIA,South Africa,SF,560,4,24,Loxton Dal,-28.55,24.95
+SF025DIA,South Africa,SF,560,4,25,Star Mine,-28.37,26.80
+SF026DIA,South Africa,SF,560,4,26,Messina Mine,-29.00,24.87
+SF027DIA,South Africa,SF,560,4,27,Goedgevonden,-26.87,26.67
+SF028DIA,South Africa,SF,560,4,28,Syferfontein,-26.87,26.67
+SF029DIA,South Africa,SF,560,4,29,Klerksdorp,-26.87,26.67
+SF030DIA,South Africa,SF,560,4,30,Kareefontein,0.00,0.00
+SF031DIA,South Africa,SF,560,4,31,Gansvley,0.00,0.00
+SF032DIA,South Africa,SF,560,4,32,Ventersdorp,-26.18,26.62
+SF033DIA,South Africa,SF,560,4,33,Nooitgedacht,-26.18,26.62
+SF034DIA,South Africa,SF,560,4,34,Groen River Valley,-30.82,17.57
+SF035DIA,South Africa,SF,560,4,35,Breektand,-31.62,18.73
+SF036DIA,South Africa,SF,560,4,36,Bellsbank Mine,-28.15,24.12
+SF037DIA,South Africa,SF,560,4,37,Rex Mine,-28.25,26.67
+SF038DIA,South Africa,SF,560,4,38,Ardo Mine,-28.20,24.17
+SF039DIA,South Africa,SF,560,4,39,Bonte Koe,-29.58,17.32
+SF040DIA,South Africa,SF,560,4,40,Marsfontein,-24.23,29.47
+SF041DIA,South Africa,SF,560,4,41,Klipspringer,-24.23,29.47
+SF042DIA,South Africa,SF,560,4,42,Palmietgat,-25.10,28.20
+SF043DIA,South Africa,SF,560,4,43,Finsch,-28.38,23.45
+SF044DIA,South Africa,SF,560,4,44,Venetia,-28.73,24.00
+SF045DIA,South Africa,SF,560,4,45,Frank Smith,-28.20,24.17
+SF046DIA,South Africa,SF,560,4,46,Seven Carat Fissure,-28.50,24.52
+SF047DIA,South Africa,SF,560,4,47,Klipdam,-28.73,24.77
+SF048DIA,South Africa,SF,560,4,48,Leicester Diamond Mine,-28.48,24.47
+SF049DIA,South Africa,SF,560,4,49,Mooi River,-26.18,26.62
+SF050DIA,South Africa,SF,560,4,50,Lichtenburg,-26.15,26.17
+SF051DIA,South Africa,SF,560,4,51,Vaal River/Orange River,-29.00,24.00
+SF052DIA,South Africa,SF,560,4,52,Quaggas Kop,-24.78,27.75
+SF053DIA,South Africa,SF,560,4,53,Rooiberg,-24.78,27.75
+SF054DIA,South Africa,SF,560,4,54,Schweizer Reneke,-27.18,25.33
+SF055DIA,South Africa,SF,560,4,55,Zoet En Zuur,-28.52,25.47
+SF056DIA,South Africa,SF,560,4,56,Port Nolloth,-29.25,16.87
+SF057DIA,South Africa,SF,560,4,57,Hondeklip Bay,-30.32,17.27
+SF058DIA,South Africa,SF,560,4,58,Doring Bay,-31.82,18.23
+SF059DIA,South Africa,SF,560,4,59,Lamberts Bay,-32.10,18.30
+SF060DIA,South Africa,SF,560,4,60,Weskus,0.00,0.00
+SF061DIA,South Africa,SF,560,4,61,De Punt,0.00,0.00
+SF062DIA,South Africa,SF,560,4,62,Crown Diamond Mine,-27.43,26.70
+SF063DIA,South Africa,SF,560,4,63,Postmas,-28.13,23.17
+SF064DIA,South Africa,SF,560,4,64,Theunissen,-28.62,26.46
+SF065DIA,South Africa,SF,560,4,65,Postmasburg,-28.70,22.52
+SF066DIA,South Africa,SF,560,4,66,Caerwinning,-28.33,24.32
+SF067DIA,South Africa,SF,560,4,67,Klipvley Karoo Kop,-31.67,18.20
+SF068DIA,South Africa,SF,560,4,68,Witkrans,-26.18,26.62
+SF069DIA,South Africa,SF,560,4,69,Wildfontein,-26.18,26.92
+SF070DIA,South Africa,SF,560,4,70,Lena Schuller Mine,-25.70,28.50
+SF071DIA,South Africa,SF,560,4,71,London,-28.08,25.97
+SF072DIA,South Africa,SF,560,4,72,Sandrift,-29.88,23.45
+SF073DIA,South Africa,SF,560,4,73,Kamaggas,-29.72,17.48
+SF074DIA,South Africa,SF,560,4,74,Brazil,-29.82,17.13
+SF075DIA,South Africa,SF,560,4,75,Strykloof,-30.90,18.40
+SF076DIA,South Africa,SF,560,4,76,Rovic,-28.48,25.55
+SF077DIA,South Africa,SF,560,4,77,Pniel,-28.53,24.55
+SF078DIA,South Africa,SF,560,4,78,Riet River,-29.00,24.42
+SF079DIA,South Africa,SF,560,4,79,The Oaks,0.00,0.00
+SF080DIA,South Africa,SF,560,4,80,Saxendrift,-29.30,23.30
+SF081DIA,South Africa,SF,560,4,81,Peiserton Mine,-28.73,23.32
+SF082DIA,South Africa,SF,560,4,82,Offshore Area,-31.00,17.50
+SF083DIA,South Africa,SF,560,4,83,Dreyers Pan Mine,-29.58,17.02
+SF084DIA,South Africa,SF,560,4,84,Fosburg,-30.81,22.36
+SF085DIA,South Africa,SF,560,4,85,Island Point,-30.74,17.54
+SF086DIA,South Africa,SF,560,4,86,Barkly,-28.53,24.55
+SF087DIA,South Africa,SF,560,4,87,Barkly,-28.53,24.55
+SF088DIA,South Africa,SF,560,4,88,Bellshank Diamond Mines,-28.07,24.40
+SF089DIA,South Africa,SF,560,4,89,Voorspoed Diamond Mine,-27.38,27.20
+SF090DIA,South Africa,SF,560,4,90,Komggigas,-30.21,17.28
+SF091DIA,South Africa,SF,560,4,91,Windstorton,-28.33,24.72
+SF092DIA,South Africa,SF,560,4,92,Newlands,-28.32,24.37
+SF093DIA,South Africa,SF,560,4,93,Ebenezer,-29.23,25.38
+SF094DIA,South Africa,SF,560,4,94,Bethel,-29.72,25.85
+SF095DIA,South Africa,SF,560,4,95,Lion Hill,-28.33,26.77
+SF096DIA,South Africa,SF,560,4,96,Driekopjes,-28.33,26.77
+SF097DIA,South Africa,SF,560,4,97,Kampferdam,0.00,0.00
+SF098DIA,South Africa,SF,560,4,98,Benfontien,-28.82,24.82
+SF099DIA,South Africa,SF,560,4,99,Belgravia,-28.90,25.18
+SF100DIA,South Africa,SF,560,4,100,Phoenix,-28.30,26.82
+SF101DIA,South Africa,SF,560,4,101,St - Augustine,0.00,0.00
+SF102DIA,South Africa,SF,560,4,102,Wimbledon,-28.80,24.72
+SF103DIA,South Africa,SF,560,4,103,Van Druten,-28.05,22.37
+SF104DIA,South Africa,SF,560,4,104,West End Mine,-28.70,22.52
+SF105DIA,South Africa,SF,560,4,105,Jubilee,-28.53,24.55
+SF106DIA,South Africa,SF,560,4,106,Blauvbosch,-28.50,25.58
+SF107DIA,South Africa,SF,560,4,107,Swartruggens,-25.65,26.70
+SF108DIA,South Africa,SF,560,4,108,Moorfontein,-29.00,24.00
+SF109DIA,South Africa,SF,560,4,109,Grasfontein,0.00,0.00
+SF110DIA,South Africa,SF,560,4,110,Welverdiend,0.00,0.00
+SF111DIA,South Africa,SF,560,4,111,Putfontein,0.00,0.00
+SF112DIA,South Africa,SF,560,4,112,Woldfontein,0.00,0.00
+SF113DIA,South Africa,SF,560,4,113,Goedvoorruitzich,0.00,0.00
+SF114DIA,South Africa,SF,560,4,114,Holfontein,0.00,0.00
+NS001DIA,Suriname,NS,115,5,1,Rosebel Creek,5.08,-55.20
+NS002DIA,Suriname,NS,115,5,2,Unknown - 1,1.95,-55.95
+NS003DIA,Suriname,NS,115,5,3,Unknown - 2,1.92,-56.03
+NS004DIA,Suriname,NS,115,5,4,Mindrinetti Creek,5.17,-55.17
+NS005DIA,Suriname,NS,115,5,5,Surinam River,5.92,-55.17
+NS006DIA,Suriname,NS,115,5,6,Saramacca,5.85,-55.88
+NS007DIA,Suriname,NS,115,5,7,Berg en Dal,5.15,-55.07
+NS008DIA,Suriname,NS,115,5,8,Kwamalesemutu,2.33,-56.78
+NS009DIA,Suriname,NS,115,5,9,Sabanpassie,5.22,-55.37
+WZ001DIA,Swaziland,WZ,572,4,1,Dokolwayo,-26.08,31.50
+SW001DIA,Sweden,SW,380,1,1,Sundsvall,62.77,17.42
+SW002DIA,Sweden,SW,380,1,2,Kiruna,67.85,20.22
+TZ001DIA,Tanzania,TZ,510,5,1,Mwadui Mine,-3.50,33.55
+TZ002DIA,Tanzania,TZ,510,5,2,Alamasi Mine,-3.52,33.61
+TZ003DIA,Tanzania,TZ,510,5,3,Kahama,-3.75,32.67
+TZ004DIA,Tanzania,TZ,510,5,4,Kahama,-3.75,32.67
+TZ005DIA,Tanzania,TZ,510,5,5,Mabuki,-3.08,33.25
+TZ006DIA,Tanzania,TZ,510,5,6,Mabuki,-3.08,33.25
+TZ007DIA,Tanzania,TZ,510,5,7,Tabora,-3.90,34.08
+TZ008DIA,Tanzania,TZ,510,5,8,Iramba,-4.59,34.47
+TZ009DIA,Tanzania,TZ,510,5,9,Ngualla,-7.75,33.00
+TZ010DIA,Tanzania,TZ,510,5,10,Kizumbi,-3.80,33.42
+TZ011DIA,Tanzania,TZ,510,5,11,Usongo,-4.07,33.42
+TZ011DIA,Tanzania,TZ,510,5,11,Uduhe,-3.37,34.17
+TZ012DIA,Tanzania,TZ,510,5,12,Singida,-4.80,33.42
+TH001DIA,Thailand,TH,800,3,1,Tongkah harbour,7.85,98.42
+TH002DIA,Thailand,TH,800,3,2,Amphoe Kathu,7.87,98.27
+TH003DIA,Thailand,TH,800,3,3,Khlong Lei,0.00,0.00
+TH004DIA,Thailand,TH,800,3,4,Khlong Phangna,0.00,0.00
+UP001DIA,Ukraine,UP,369,1,1,Ukraine diamond deposit,47.50,37.17
