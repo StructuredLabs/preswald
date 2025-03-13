@@ -2,10 +2,6 @@ import plotly.express as px
 
 from preswald import connect, get_df, plotly, query, slider, table, text
 
-
-text("# Welcome to Preswald!")
-text("This is your first app. 🎉")
-
 # Load the CSV
 connect()  # load in all sources, which by default is the sample_csv
 df = get_df("pixar_films")
