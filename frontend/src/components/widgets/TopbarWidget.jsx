@@ -13,7 +13,7 @@ const TopbarWidget = ({
   branding = window.PRESWALD_BRANDING, // default to PRESWALD_BRANDING if nothing is passed
 }) => {
   return (
-    <div className="top-0 left-0 right-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-background -mx-8 sm:-mx-10 lg:-mx-12 -my-10 shadow-sm  w-fill">
+    <div className="fixed top-0 left-0 right-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-background -mx-8 sm:-mx-10 lg:-mx-12 shadow-sm  w-fill">
       {/* Separator */}
       <Separator orientation="vertical" className="separator" />
 
