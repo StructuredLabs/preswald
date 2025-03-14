@@ -196,7 +196,7 @@ def deploy(script, target, port, log_level, github, api_key):  # noqa: C901
     Deploy your Preswald app.
 
     This allows you to share the app within your local network or deploy to production.
-    If no script is provided, it will use the entrypoint defined in preswald.tomli.
+    If no script is provided, it will use the entrypoint defined in preswald.toml.
     """
     try:
         if target == "aws":
