@@ -118,6 +118,30 @@ async def shutdown():
         return {"success": False, "error": str(e)}
 
 
+async def deploy():
+    """Dummy deploy function"""
+    global _service
+
+    if not _service:
+        return {"success": False, "error": "Preswald not initialized"}
+
+    try:
+        console.log("Starting dummy deployment...")
+        logger.info("Dummy deployment in progress...")
+
+        import asyncio
+
+        await asyncio.sleep(2)  # Simulating deployment time delay
+
+        console.log("Deployment successful!")
+        logger.info("Dummy deployment completed.")
+
+        return {"success": True, "message": "https://structuredlabs.com"}  # Updated URL
+    except Exception as e:
+        logger.error(f"Error during deployment: {e}")
+        return {"success": False, "error": str(e)}
+
+
 # Create JavaScript-callable async function proxies
 def expose_to_js():
     """Expose Python functions to JavaScript"""
@@ -142,6 +166,7 @@ def expose_to_js():
     window.preswaldRunScript = wrap_async_function(run_script)
     window.preswaldUpdateComponent = wrap_async_function(update_component)
     window.preswaldShutdown = wrap_async_function(shutdown)
+    window.preswaldDeploy = wrap_async_function(deploy)
 
     # Message handling from JS to Python
     def handle_js_message(client_id, message_type, data):
