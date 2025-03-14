@@ -177,3 +177,6 @@ notes.md
 .env.structured
 
 community_gallery/**/data
+"__pycache__/" 
+"*.log" 
+".venv/" 
