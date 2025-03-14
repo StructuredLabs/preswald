@@ -1,7 +1,7 @@
 # Global Sustainable Energy Investigation 🌎
 
 ## Dataset
-"To access the main dataset, checkout [Kaggle's Global Data on Sustainable Energy](https://www.kaggle.com/datasets/anshtanwar/global-data-on-sustainable-energy)")
+To download the main dataset, checkout [Kaggle's Global Data on Sustainable Energy](https://www.kaggle.com/datasets/anshtanwar/global-data-on-sustainable-energy)
 
 For this project, the following features were used from the dataset: 
 - Entity: The name of the country or region for which the data is reported.
@@ -21,7 +21,7 @@ This project explores the world’s progress toward sustainable electricity acce
 2. Install the required packages using (if not already installed):
     - ```pip install preswald pandas plotly```
 3. Clone this repository 
-    -  Ensure all files are in correct directory!
+    -  Ensure all files are in correct directory! Check the directory structure below
     ``` git clone <this-repo-url>
         cd sustainability_energy
     ```
