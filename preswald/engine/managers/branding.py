@@ -3,7 +3,7 @@ import os
 import shutil
 from typing import Any, Dict, Optional
 import time
-import toml
+import tomli
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,8 @@ class BrandingManager:
                 script_dir = os.path.dirname(script_path)
                 config_path = os.path.join(script_dir, "preswald.toml")
                 if os.path.exists(config_path):
-                    config = toml.load(config_path)
+                    with open(config_path, 'rb') as f:
+                        config = tomli.load(f)
                     logger.info(f"Loading config from {config_path}")
 
                     if "branding" in config:
