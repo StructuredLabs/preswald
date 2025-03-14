@@ -80,10 +80,6 @@ export default function Layout({ branding, children }) {
     }
   }, []);
 
-  const handleToggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
-  };
-
   return (
     <div className="min-h-screen bg-background">
       {/* Mobile Sidebar */}
@@ -103,15 +99,6 @@ export default function Layout({ branding, children }) {
           isCollapsed && 'lg:pl-20'
         )}
       >
-        {/*
-        <TopBar
-          setSidebarOpen={setSidebarOpen}
-          onToggleSidebar={handleToggleSidebar}
-          isCollapsed={isCollapsed}
-          branding={branding || window.PRESWALD_BRANDING}
-        />
-        */}
-
         <main className="flex-1 py-10">
           <div className="px-4 sm:px-6 lg:px-8">{children}</div>
         </main>
