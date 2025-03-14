@@ -1,5 +1,5 @@
 # Global Sustainable Energy Investigation 🌎
-
+[Visit Deployed App Here](https://sustainability-energy-963320-ghaf3o10-ndjz2ws6la-ue.a.run.app)  
 ## Dataset
 To download the main dataset, checkout [Kaggle's Global Data on Sustainable Energy](https://www.kaggle.com/datasets/anshtanwar/global-data-on-sustainable-energy)
 
