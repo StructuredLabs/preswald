@@ -3,8 +3,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-preswald/community_gallery/chat_with_your_stocks/secrets.toml
-community_gallery/chat_with_your_stocks/secrets.toml
 
 # C extensions
 *.so
