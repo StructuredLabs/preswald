@@ -22,7 +22,7 @@ An interactive data analysis application built with Preswald for analyzing stude
 - Preswald framework
 - Required Python packages (install via pip):
   ```bash
-  pip install preswald plotly pandas
+  pip install preswald plotly
   ```
 
 ### Configuration
@@ -89,11 +89,3 @@ The analysis uses the following key metrics:
 - Participation Score
 - Grade
 - And more...
-
-## 🔒 Privacy
-
-This application handles student data. Ensure you have appropriate permissions and follow data privacy regulations when using real student information.
-
-## 📫 Support
-
-For questions or issues, please open an issue in the repository or contact the maintainers.
