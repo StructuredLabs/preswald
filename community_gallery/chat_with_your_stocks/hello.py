@@ -285,34 +285,11 @@ text(""" ### 📝 Example Questions You Can Ask:
 
     #### Price Analysis
     - What was the highest stock price ever recorded and on which date?
+    - Whats the day and quantity of the most crash in a day 
     - What was the lowest closing price in 2020?
     - Show me the days where the closing price was above $300
     - What's the average closing price for the last 30 days?
-
-    #### Volume Analysis
-    - Which day had the highest trading volume?
-    - What was the average trading volume in 2021?
-    - Show me the top 5 days with highest trading volume
-    - List days where volume exceeded 100 million shares
-
-    #### Trading Patterns
-    - What days had the biggest price difference between high and low?
-    - Show me days where closing price was higher than opening price
-    - What was the largest single-day price increase?
-    - Find days with unusual trading patterns (high volume + large price swing)
-
-    #### Time-based Analysis
-    - How did the stock perform in January 2023?
-    - Compare average prices between 2021 and 2022
-    - What was the stock's performance in the first quarter of 2022?
-    - Show me the highest price for each year
-
-    #### Investment Analysis
-    - What were the best days to buy (lowest prices)?
-    - What were the best days to sell (highest prices)?
-    - Calculate the monthly average closing prices
-    - Show days with significant price drops (>10%)
-
+    - what was the best day to buy this stock
     """)
 
 user_question = text_input(label="What would you like to know about the data?", 
