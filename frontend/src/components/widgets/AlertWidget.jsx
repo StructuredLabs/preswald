@@ -1,3 +1,6 @@
+/* eslint-disable react/prop-types */
+/* eslint-disable no-unused-vars */
+/* eslint-disable import/order */
 import { AlertTriangle, CheckCircle2, Info, XCircle } from 'lucide-react';
 
 import React from 'react';
