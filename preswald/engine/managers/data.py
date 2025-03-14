@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional
 
 import duckdb
 import pandas as pd
-import toml
+import tomli
 
 
 logger = logging.getLogger(__name__)
@@ -253,12 +253,14 @@ class DataManager:
                     f"preswald.toml file not found at: {self.preswald_path}"
                 )
 
-            config = toml.load(self.preswald_path)
+            with open(self.preswald_path, 'rb') as f:
+                config = tomli.load(f)
             data_config = config.get("data", {})
             logger.info("Successfully loaded preswald.toml")
 
             if self.secrets_path and os.path.exists(self.secrets_path):
-                secrets = toml.load(self.secrets_path)
+                with open(self.secrets_path, 'rb') as f:
+                    secrets = tomli.load(f)
                 logger.info("Successfully loaded secrets.toml")
 
                 secret_sources = secrets.get("data", {})
