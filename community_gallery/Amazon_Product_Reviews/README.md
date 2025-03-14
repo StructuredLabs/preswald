@@ -80,7 +80,8 @@ python -m venv myvenv
 cd myvenv/Scripts
 activate
 ```
-4. Execute ```preswald run``` in cloned repo
+4. Download Dataset from URL above, and add this CSV file to data/ folder
+5. Execute ```preswald run``` in cloned repo
 
 ---
 
