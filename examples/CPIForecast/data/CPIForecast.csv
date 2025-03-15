@@ -1,0 +1,243 @@
+"Top-level","Aggregate","Mid-level","Low-level","Disaggregate","Attribute","Unit","Value"
+"All food","","","","","Relative importance","Percent",100
+"All food","","","","","Month-to-month December 2024 to January 2025","Percent change",0.6
+"All food","","","","","Year-over-year January 2024 to January 2025","Percent change",2.5
+"All food","","","","","Year-to-date avg. 2025 to avg. 2024","Percent change",1.6
+"All food","","","","","Annual 2022","Percent change",9.9
+"All food","","","","","Annual 2023","Percent change",5.8
+"All food","","","","","Annual 2024","Percent change",2.3
+"All food","","","","","20-year historical average","Percent change",2.9
+"All food","","","","","Lower bound of prediction interval 2025","Percent change",1.1
+"All food","","","","","Mid point of prediction interval 2025","Percent change",3.4
+"All food","","","","","Upper bound of prediction interval 2025","Percent change",5.9
+"All food","Food away from home","","","","Relative importance","Percent",41.3
+"All food","Food away from home","","","","Month-to-month December 2024 to January 2025","Percent change",0.2
+"All food","Food away from home","","","","Year-over-year January 2024 to January 2025","Percent change",3.4
+"All food","Food away from home","","","","Year-to-date avg. 2025 to avg. 2024","Percent change",1.8
+"All food","Food away from home","","","","Annual 2022","Percent change",7.7
+"All food","Food away from home","","","","Annual 2023","Percent change",7.1
+"All food","Food away from home","","","","Annual 2024","Percent change",4.1
+"All food","Food away from home","","","","20-year historical average","Percent change",3.5
+"All food","Food away from home","","","","Lower bound of prediction interval 2025","Percent change",2.1
+"All food","Food away from home","","","","Mid point of prediction interval 2025","Percent change",3.4
+"All food","Food away from home","","","","Upper bound of prediction interval 2025","Percent change",4.7
+"All food","Food at home","","","","Relative importance","Percent",58.7
+"All food","Food at home","","","","Month-to-month December 2024 to January 2025","Percent change",0.8
+"All food","Food at home","","","","Year-over-year January 2024 to January 2025","Percent change",1.9
+"All food","Food at home","","","","Year-to-date avg. 2025 to avg. 2024","Percent change",1.4
+"All food","Food at home","","","","Annual 2022","Percent change",11.4
+"All food","Food at home","","","","Annual 2023","Percent change",5
+"All food","Food at home","","","","Annual 2024","Percent change",1.2
+"All food","Food at home","","","","20-year historical average","Percent change",2.6
+"All food","Food at home","","","","Lower bound of prediction interval 2025","Percent change",-0.2
+"All food","Food at home","","","","Mid point of prediction interval 2025","Percent change",3.3
+"All food","Food at home","","","","Upper bound of prediction interval 2025","Percent change",7
+"All food","Food at home","Meats, poultry, and fish","","","Relative importance","Percent",10.6
+"All food","Food at home","Meats, poultry, and fish","","","Month-to-month December 2024 to January 2025","Percent change",0.2
+"All food","Food at home","Meats, poultry, and fish","","","Year-over-year January 2024 to January 2025","Percent change",2.3
+"All food","Food at home","Meats, poultry, and fish","","","Year-to-date avg. 2025 to avg. 2024","Percent change",1
+"All food","Food at home","Meats, poultry, and fish","","","Annual 2022","Percent change",9.6
+"All food","Food at home","Meats, poultry, and fish","","","Annual 2023","Percent change",2
+"All food","Food at home","Meats, poultry, and fish","","","Annual 2024","Percent change",1.7
+"All food","Food at home","Meats, poultry, and fish","","","20-year historical average","Percent change",3
+"All food","Food at home","Meats, poultry, and fish","","","Lower bound of prediction interval 2025","Percent change",-3.6
+"All food","Food at home","Meats, poultry, and fish","","","Mid point of prediction interval 2025","Percent change",1
+"All food","Food at home","Meats, poultry, and fish","","","Upper bound of prediction interval 2025","Percent change",6.1
+"All food","Food at home","Meats, poultry, and fish","Meats","","Relative importance","Percent",6.7
+"All food","Food at home","Meats, poultry, and fish","Meats","","Month-to-month December 2024 to January 2025","Percent change",0.2
+"All food","Food at home","Meats, poultry, and fish","Meats","","Year-over-year January 2024 to January 2025","Percent change",3.2
+"All food","Food at home","Meats, poultry, and fish","Meats","","Year-to-date avg. 2025 to avg. 2024","Percent change",1.3
+"All food","Food at home","Meats, poultry, and fish","Meats","","Annual 2022","Percent change",8.2
+"All food","Food at home","Meats, poultry, and fish","Meats","","Annual 2023","Percent change",2.1
+"All food","Food at home","Meats, poultry, and fish","Meats","","Annual 2024","Percent change",2.8
+"All food","Food at home","Meats, poultry, and fish","Meats","","20-year historical average","Percent change",3.1
+"All food","Food at home","Meats, poultry, and fish","Meats","","Lower bound of prediction interval 2025","Percent change",-4.5
+"All food","Food at home","Meats, poultry, and fish","Meats","","Mid point of prediction interval 2025","Percent change",1.4
+"All food","Food at home","Meats, poultry, and fish","Meats","","Upper bound of prediction interval 2025","Percent change",8
+"All food","Food at home","Meats, poultry, and fish","Meats","Beef and veal","Relative importance","Percent",3.3
+"All food","Food at home","Meats, poultry, and fish","Meats","Beef and veal","Month-to-month December 2024 to January 2025","Percent change",0.3
+"All food","Food at home","Meats, poultry, and fish","Meats","Beef and veal","Year-over-year January 2024 to January 2025","Percent change",5.5
+"All food","Food at home","Meats, poultry, and fish","Meats","Beef and veal","Year-to-date avg. 2025 to avg. 2024","Percent change",2.6
+"All food","Food at home","Meats, poultry, and fish","Meats","Beef and veal","Annual 2022","Percent change",5.3
+"All food","Food at home","Meats, poultry, and fish","Meats","Beef and veal","Annual 2023","Percent change",3.6
+"All food","Food at home","Meats, poultry, and fish","Meats","Beef and veal","Annual 2024","Percent change",5.4
+"All food","Food at home","Meats, poultry, and fish","Meats","Beef and veal","20-year historical average","Percent change",4
+"All food","Food at home","Meats, poultry, and fish","Meats","Beef and veal","Lower bound of prediction interval 2025","Percent change",-4.6
+"All food","Food at home","Meats, poultry, and fish","Meats","Beef and veal","Mid point of prediction interval 2025","Percent change",3.2
+"All food","Food at home","Meats, poultry, and fish","Meats","Beef and veal","Upper bound of prediction interval 2025","Percent change",11.8
+"All food","Food at home","Meats, poultry, and fish","Meats","Pork","Relative importance","Percent",2.1
+"All food","Food at home","Meats, poultry, and fish","Meats","Pork","Month-to-month December 2024 to January 2025","Percent change",0.7
+"All food","Food at home","Meats, poultry, and fish","Meats","Pork","Year-over-year January 2024 to January 2025","Percent change",2.8
+"All food","Food at home","Meats, poultry, and fish","Meats","Pork","Year-to-date avg. 2025 to avg. 2024","Percent change",0.6
+"All food","Food at home","Meats, poultry, and fish","Meats","Pork","Annual 2022","Percent change",8.7
+"All food","Food at home","Meats, poultry, and fish","Meats","Pork","Annual 2023","Percent change",-1.2
+"All food","Food at home","Meats, poultry, and fish","Meats","Pork","Annual 2024","Percent change",1.3
+"All food","Food at home","Meats, poultry, and fish","Meats","Pork","20-year historical average","Percent change",2.2
+"All food","Food at home","Meats, poultry, and fish","Meats","Pork","Lower bound of prediction interval 2025","Percent change",-5.7
+"All food","Food at home","Meats, poultry, and fish","Meats","Pork","Mid point of prediction interval 2025","Percent change",1.2
+"All food","Food at home","Meats, poultry, and fish","Meats","Pork","Upper bound of prediction interval 2025","Percent change",8.5
+"All food","Food at home","Meats, poultry, and fish","Meats","Other meats","Relative importance","Percent",1.4
+"All food","Food at home","Meats, poultry, and fish","Meats","Other meats","Month-to-month December 2024 to January 2025","Percent change",-0.8
+"All food","Food at home","Meats, poultry, and fish","Meats","Other meats","Year-over-year January 2024 to January 2025","Percent change",-0.7
+"All food","Food at home","Meats, poultry, and fish","Meats","Other meats","Year-to-date avg. 2025 to avg. 2024","Percent change",-0.5
+"All food","Food at home","Meats, poultry, and fish","Meats","Other meats","Annual 2022","Percent change",14.2
+"All food","Food at home","Meats, poultry, and fish","Meats","Other meats","Annual 2023","Percent change",4.5
+"All food","Food at home","Meats, poultry, and fish","Meats","Other meats","Annual 2024","Percent change",0.3
+"All food","Food at home","Meats, poultry, and fish","Meats","Other meats","20-year historical average","Percent change",2.6
+"All food","Food at home","Meats, poultry, and fish","Meats","Other meats","Lower bound of prediction interval 2025","Percent change",-2.7
+"All food","Food at home","Meats, poultry, and fish","Meats","Other meats","Mid point of prediction interval 2025","Percent change",0.6
+"All food","Food at home","Meats, poultry, and fish","Meats","Other meats","Upper bound of prediction interval 2025","Percent change",4
+"All food","Food at home","Meats, poultry, and fish","Poultry","","Relative importance","Percent",2.1
+"All food","Food at home","Meats, poultry, and fish","Poultry","","Month-to-month December 2024 to January 2025","Percent change",-0.3
+"All food","Food at home","Meats, poultry, and fish","Poultry","","Year-over-year January 2024 to January 2025","Percent change",0.4
+"All food","Food at home","Meats, poultry, and fish","Poultry","","Year-to-date avg. 2025 to avg. 2024","Percent change",0.1
+"All food","Food at home","Meats, poultry, and fish","Poultry","","Annual 2022","Percent change",14.6
+"All food","Food at home","Meats, poultry, and fish","Poultry","","Annual 2023","Percent change",3.1
+"All food","Food at home","Meats, poultry, and fish","Poultry","","Annual 2024","Percent change",0.8
+"All food","Food at home","Meats, poultry, and fish","Poultry","","20-year historical average","Percent change",2.7
+"All food","Food at home","Meats, poultry, and fish","Poultry","","Lower bound of prediction interval 2025","Percent change",-4.7
+"All food","Food at home","Meats, poultry, and fish","Poultry","","Mid point of prediction interval 2025","Percent change",0
+"All food","Food at home","Meats, poultry, and fish","Poultry","","Upper bound of prediction interval 2025","Percent change",5
+"All food","Food at home","Meats, poultry, and fish","Fish and seafood","","Relative importance","Percent",1.8
+"All food","Food at home","Meats, poultry, and fish","Fish and seafood","","Month-to-month December 2024 to January 2025","Percent change",0.8
+"All food","Food at home","Meats, poultry, and fish","Fish and seafood","","Year-over-year January 2024 to January 2025","Percent change",0.9
+"All food","Food at home","Meats, poultry, and fish","Fish and seafood","","Year-to-date avg. 2025 to avg. 2024","Percent change",0.8
+"All food","Food at home","Meats, poultry, and fish","Fish and seafood","","Annual 2022","Percent change",9.1
+"All food","Food at home","Meats, poultry, and fish","Fish and seafood","","Annual 2023","Percent change",0.3
+"All food","Food at home","Meats, poultry, and fish","Fish and seafood","","Annual 2024","Percent change",-1.9
+"All food","Food at home","Meats, poultry, and fish","Fish and seafood","","20-year historical average","Percent change",3
+"All food","Food at home","Meats, poultry, and fish","Fish and seafood","","Lower bound of prediction interval 2025","Percent change",-1.6
+"All food","Food at home","Meats, poultry, and fish","Fish and seafood","","Mid point of prediction interval 2025","Percent change",1.8
+"All food","Food at home","Meats, poultry, and fish","Fish and seafood","","Upper bound of prediction interval 2025","Percent change",5.3
+"All food","Food at home","Eggs","","","Relative importance","Percent",1.3
+"All food","Food at home","Eggs","","","Month-to-month December 2024 to January 2025","Percent change",13.8
+"All food","Food at home","Eggs","","","Year-over-year January 2024 to January 2025","Percent change",53
+"All food","Food at home","Eggs","","","Year-to-date avg. 2025 to avg. 2024","Percent change",37
+"All food","Food at home","Eggs","","","Annual 2022","Percent change",32.2
+"All food","Food at home","Eggs","","","Annual 2023","Percent change",1.4
+"All food","Food at home","Eggs","","","Annual 2024","Percent change",8.5
+"All food","Food at home","Eggs","","","20-year historical average","Percent change",4.2
+"All food","Food at home","Eggs","","","Lower bound of prediction interval 2025","Percent change",15
+"All food","Food at home","Eggs","","","Mid point of prediction interval 2025","Percent change",41.1
+"All food","Food at home","Eggs","","","Upper bound of prediction interval 2025","Percent change",74.9
+"All food","Food at home","Dairy products","","","Relative importance","Percent",5.4
+"All food","Food at home","Dairy products","","","Month-to-month December 2024 to January 2025","Percent change",0.3
+"All food","Food at home","Dairy products","","","Year-over-year January 2024 to January 2025","Percent change",1.2
+"All food","Food at home","Dairy products","","","Year-to-date avg. 2025 to avg. 2024","Percent change",1.2
+"All food","Food at home","Dairy products","","","Annual 2022","Percent change",12
+"All food","Food at home","Dairy products","","","Annual 2023","Percent change",4
+"All food","Food at home","Dairy products","","","Annual 2024","Percent change",-0.2
+"All food","Food at home","Dairy products","","","20-year historical average","Percent change",2.1
+"All food","Food at home","Dairy products","","","Lower bound of prediction interval 2025","Percent change",-2.9
+"All food","Food at home","Dairy products","","","Mid point of prediction interval 2025","Percent change",2.2
+"All food","Food at home","Dairy products","","","Upper bound of prediction interval 2025","Percent change",7.6
+"All food","Food at home","Fats and oils","","","Relative importance","Percent",1.8
+"All food","Food at home","Fats and oils","","","Month-to-month December 2024 to January 2025","Percent change",1.1
+"All food","Food at home","Fats and oils","","","Year-over-year January 2024 to January 2025","Percent change",0.4
+"All food","Food at home","Fats and oils","","","Year-to-date avg. 2025 to avg. 2024","Percent change",-0.1
+"All food","Food at home","Fats and oils","","","Annual 2022","Percent change",18.5
+"All food","Food at home","Fats and oils","","","Annual 2023","Percent change",9
+"All food","Food at home","Fats and oils","","","Annual 2024","Percent change",2.4
+"All food","Food at home","Fats and oils","","","20-year historical average","Percent change",3.4
+"All food","Food at home","Fats and oils","","","Lower bound of prediction interval 2025","Percent change",-4.4
+"All food","Food at home","Fats and oils","","","Mid point of prediction interval 2025","Percent change",0.6
+"All food","Food at home","Fats and oils","","","Upper bound of prediction interval 2025","Percent change",5.9
+"All food","Food at home","Fruits and vegetables","","","Relative importance","Percent",9.8
+"All food","Food at home","Fruits and vegetables","","","Month-to-month December 2024 to January 2025","Percent change",0.6
+"All food","Food at home","Fruits and vegetables","","","Year-over-year January 2024 to January 2025","Percent change",0.3
+"All food","Food at home","Fruits and vegetables","","","Year-to-date avg. 2025 to avg. 2024","Percent change",0.9
+"All food","Food at home","Fruits and vegetables","","","Annual 2022","Percent change",8.5
+"All food","Food at home","Fruits and vegetables","","","Annual 2023","Percent change",2.5
+"All food","Food at home","Fruits and vegetables","","","Annual 2024","Percent change",0.7
+"All food","Food at home","Fruits and vegetables","","","20-year historical average","Percent change",2.1
+"All food","Food at home","Fruits and vegetables","","","Lower bound of prediction interval 2025","Percent change",-1.2
+"All food","Food at home","Fruits and vegetables","","","Mid point of prediction interval 2025","Percent change",1.7
+"All food","Food at home","Fruits and vegetables","","","Upper bound of prediction interval 2025","Percent change",4.6
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","","Relative importance","Percent",8.2
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","","Month-to-month December 2024 to January 2025","Percent change",0.5
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","","Year-over-year January 2024 to January 2025","Percent change",0.4
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","","Year-to-date avg. 2025 to avg. 2024","Percent change",1.3
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","","Annual 2022","Percent change",7.5
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","","Annual 2023","Percent change",0.8
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","","Annual 2024","Percent change",0.7
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","","20-year historical average","Percent change",1.9
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","","Lower bound of prediction interval 2025","Percent change",-3
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","","Mid point of prediction interval 2025","Percent change",1.3
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","","Upper bound of prediction interval 2025","Percent change",5.8
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","Fresh fruits","Relative importance","Percent",4.1
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","Fresh fruits","Month-to-month December 2024 to January 2025","Percent change",1.9
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","Fresh fruits","Year-over-year January 2024 to January 2025","Percent change",1.4
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","Fresh fruits","Year-to-date avg. 2025 to avg. 2024","Percent change",2.3
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","Fresh fruits","Annual 2022","Percent change",7.9
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","Fresh fruits","Annual 2023","Percent change",0.7
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","Fresh fruits","Annual 2024","Percent change",0.4
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","Fresh fruits","20-year historical average","Percent change",1.9
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","Fresh fruits","Lower bound of prediction interval 2025","Percent change",-2.9
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","Fresh fruits","Mid point of prediction interval 2025","Percent change",2.4
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","Fresh fruits","Upper bound of prediction interval 2025","Percent change",8.1
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","Fresh vegetables","Relative importance","Percent",4.1
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","Fresh vegetables","Month-to-month December 2024 to January 2025","Percent change",-0.8
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","Fresh vegetables","Year-over-year January 2024 to January 2025","Percent change",-0.6
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","Fresh vegetables","Year-to-date avg. 2025 to avg. 2024","Percent change",0.2
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","Fresh vegetables","Annual 2022","Percent change",7
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","Fresh vegetables","Annual 2023","Percent change",0.9
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","Fresh vegetables","Annual 2024","Percent change",1
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","Fresh vegetables","20-year historical average","Percent change",1.9
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","Fresh vegetables","Lower bound of prediction interval 2025","Percent change",-2.4
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","Fresh vegetables","Mid point of prediction interval 2025","Percent change",1.1
+"All food","Food at home","Fruits and vegetables","Fresh fruits and vegetables","Fresh vegetables","Upper bound of prediction interval 2025","Percent change",4.7
+"All food","Food at home","Fruits and vegetables","Processed fruits and vegetables","","Relative importance","Percent",1.6
+"All food","Food at home","Fruits and vegetables","Processed fruits and vegetables","","Month-to-month December 2024 to January 2025","Percent change",1.1
+"All food","Food at home","Fruits and vegetables","Processed fruits and vegetables","","Year-over-year January 2024 to January 2025","Percent change",0.2
+"All food","Food at home","Fruits and vegetables","Processed fruits and vegetables","","Year-to-date avg. 2025 to avg. 2024","Percent change",-0.2
+"All food","Food at home","Fruits and vegetables","Processed fruits and vegetables","","Annual 2022","Percent change",12
+"All food","Food at home","Fruits and vegetables","Processed fruits and vegetables","","Annual 2023","Percent change",8
+"All food","Food at home","Fruits and vegetables","Processed fruits and vegetables","","Annual 2024","Percent change",0.9
+"All food","Food at home","Fruits and vegetables","Processed fruits and vegetables","","20-year historical average","Percent change",2.9
+"All food","Food at home","Fruits and vegetables","Processed fruits and vegetables","","Lower bound of prediction interval 2025","Percent change",-3.3
+"All food","Food at home","Fruits and vegetables","Processed fruits and vegetables","","Mid point of prediction interval 2025","Percent change",1.1
+"All food","Food at home","Fruits and vegetables","Processed fruits and vegetables","","Upper bound of prediction interval 2025","Percent change",5.7
+"All food","Food at home","Sugar and sweets","","","Relative importance","Percent",2.4
+"All food","Food at home","Sugar and sweets","","","Month-to-month December 2024 to January 2025","Percent change",2.2
+"All food","Food at home","Sugar and sweets","","","Year-over-year January 2024 to January 2025","Percent change",4.3
+"All food","Food at home","Sugar and sweets","","","Year-to-date avg. 2025 to avg. 2024","Percent change",3.6
+"All food","Food at home","Sugar and sweets","","","Annual 2022","Percent change",10.4
+"All food","Food at home","Sugar and sweets","","","Annual 2023","Percent change",8.7
+"All food","Food at home","Sugar and sweets","","","Annual 2024","Percent change",3
+"All food","Food at home","Sugar and sweets","","","20-year historical average","Percent change",3
+"All food","Food at home","Sugar and sweets","","","Lower bound of prediction interval 2025","Percent change",2.9
+"All food","Food at home","Sugar and sweets","","","Mid point of prediction interval 2025","Percent change",6.4
+"All food","Food at home","Sugar and sweets","","","Upper bound of prediction interval 2025","Percent change",10.1
+"All food","Food at home","Cereals and bakery products","","","Relative importance","Percent",8.1
+"All food","Food at home","Cereals and bakery products","","","Month-to-month December 2024 to January 2025","Percent change",-0.2
+"All food","Food at home","Cereals and bakery products","","","Year-over-year January 2024 to January 2025","Percent change",0.4
+"All food","Food at home","Cereals and bakery products","","","Year-to-date avg. 2025 to avg. 2024","Percent change",0
+"All food","Food at home","Cereals and bakery products","","","Annual 2022","Percent change",13
+"All food","Food at home","Cereals and bakery products","","","Annual 2023","Percent change",8.4
+"All food","Food at home","Cereals and bakery products","","","Annual 2024","Percent change",0.5
+"All food","Food at home","Cereals and bakery products","","","20-year historical average","Percent change",2.8
+"All food","Food at home","Cereals and bakery products","","","Lower bound of prediction interval 2025","Percent change",-3.6
+"All food","Food at home","Cereals and bakery products","","","Mid point of prediction interval 2025","Percent change",-0.1
+"All food","Food at home","Cereals and bakery products","","","Upper bound of prediction interval 2025","Percent change",3.6
+"All food","Food at home","Nonalcoholic beverages","","","Relative importance","Percent",6.6
+"All food","Food at home","Nonalcoholic beverages","","","Month-to-month December 2024 to January 2025","Percent change",2.2
+"All food","Food at home","Nonalcoholic beverages","","","Year-over-year January 2024 to January 2025","Percent change",2.2
+"All food","Food at home","Nonalcoholic beverages","","","Year-to-date avg. 2025 to avg. 2024","Percent change",2.3
+"All food","Food at home","Nonalcoholic beverages","","","Annual 2022","Percent change",11
+"All food","Food at home","Nonalcoholic beverages","","","Annual 2023","Percent change",7
+"All food","Food at home","Nonalcoholic beverages","","","Annual 2024","Percent change",2
+"All food","Food at home","Nonalcoholic beverages","","","20-year historical average","Percent change",2.3
+"All food","Food at home","Nonalcoholic beverages","","","Lower bound of prediction interval 2025","Percent change",1
+"All food","Food at home","Nonalcoholic beverages","","","Mid point of prediction interval 2025","Percent change",4.4
+"All food","Food at home","Nonalcoholic beverages","","","Upper bound of prediction interval 2025","Percent change",7.9
+"All food","Food at home","Other foods","","","Relative importance","Percent",12.8
+"All food","Food at home","Other foods","","","Month-to-month December 2024 to January 2025","Percent change",0.1
+"All food","Food at home","Other foods","","","Year-over-year January 2024 to January 2025","Percent change",0.2
+"All food","Food at home","Other foods","","","Year-to-date avg. 2025 to avg. 2024","Percent change",-0.2
+"All food","Food at home","Other foods","","","Annual 2022","Percent change",12.7
+"All food","Food at home","Other foods","","","Annual 2023","Percent change",6.6
+"All food","Food at home","Other foods","","","Annual 2024","Percent change",0.6
+"All food","Food at home","Other foods","","","20-year historical average","Percent change",2.4
+"All food","Food at home","Other foods","","","Lower bound of prediction interval 2025","Percent change",-2.3
+"All food","Food at home","Other foods","","","Mid point of prediction interval 2025","Percent change",1
+"All food","Food at home","Other foods","","","Upper bound of prediction interval 2025","Percent change",4.5
