@@ -1,80 +1,56 @@
-from preswald import text, plotly, table
-import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
+# Bitcoin Market Analysis Dashboard
 
-# Set up the dashboard title and description
-text("# Bitcoin Market Analysis Dashboard")
-text("### Historical Price and Volume Analysis")
+A dashboard application for analyzing historical Bitcoin market trends and price movements.
 
-# Load Bitcoin market data from a CSV file
-df = pd.read_csv('data/Bitcoin.csv')
+## Overview
 
-# Convert the 'Date' column from string format to a proper datetime format
-df['Date'] = pd.to_datetime(df['Date'], format='%d-%m-%Y')
+This application provides a comprehensive view of Bitcoin market data, featuring interactive charts, price analysis tools, and market indicators to help users make informed trading decisions.
 
-# Convert the 'Date' column back to a string format to avoid JSON serialization issues
-df['Date'] = df['Date'].dt.strftime('%Y-%m-%d')
+## Features
 
-# Create a candlestick chart to visualize Bitcoin's price movements over time
-fig_candlestick = go.Figure(data=[
-    go.Candlestick(
-        x=df['Date'],  # Dates for the x-axis
-        open=df['Open'],  # Opening prices
-        high=df['High'],  # Highest prices
-        low=df['Low'],  # Lowest prices
-        close=df['Close'],  # Closing prices
-        name='OHLC'  # Name of the candlestick chart
-    )
-])
+- Historical Bitcoin price data visualization
+- Technical analysis indicators
+- Market trend analysis
+- Interactive price charts
+- User-friendly interface
 
-# Customize the appearance of the candlestick chart
-fig_candlestick.update_layout(
-    title='Bitcoin Price History (OHLC)',  # Set chart title
-    yaxis_title='Price (USD)',  # Label for the y-axis
-    xaxis_title='Date',  # Label for the x-axis
-    height=600,  # Set chart height
-    template='plotly_white'  # Use a clean, white background theme
-)
+## Prerequisites
 
-# Create a bar chart to show trading volume trends over time
-fig_volume = px.bar(
-    df,
-    x='Date',  # Dates for the x-axis
-    y='Volume',  # Trading volume for the y-axis
-    title='Trading Volume Over Time',  # Set chart title
-    height=400,  # Set chart height
-    color_discrete_sequence=['rgba(0, 128, 255, 0.7)']  # Use a blue color for bars
-)
+Before running the application, ensure you have the following installed:
 
-# Customize the appearance of the volume chart
-fig_volume.update_layout(
-    yaxis_title='Volume (USD)',  # Label for the y-axis
-    xaxis_title='Date',  # Label for the x-axis
-    template='plotly_white'  # Use a clean, white background theme
-)
+- Node.js (v14 or higher)
+- npm (Node Package Manager)
+- Modern web browser
 
-# Extract key statistics from the dataset
-latest_price = df['Close'].iloc[0]  # Most recent closing price
-max_price = df['High'].max()  # Highest price ever recorded
-min_price = df['Low'].min()  # Lowest price ever recorded
-avg_volume = df['Volume'].mean() / 1e9  # Average daily trading volume in billions
+## Installation
 
-# Display key statistics in the dashboard
-text(f"### Key Statistics")
-text(f"Latest Price: ${latest_price:,.2f}")  # Show latest Bitcoin price
-text(f"All-Time High: ${max_price:,.2f}")  # Show highest price ever
-text(f"All-Time Low: ${min_price:,.2f}")  # Show lowest price ever
-text(f"Average Daily Volume: ${avg_volume:,.2f}B")  # Show average volume in billions
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/Bitcoin_market_app.git
+   cd Bitcoin_market_app
+   ```
 
-# Show the interactive candlestick chart
-plotly(fig_candlestick)
-text("")
+2. Install dependencies:
+   ```bash
+   pip install preswald
+   ```
 
-# Show the interactive volume chart
-plotly(fig_volume)
-text("")
+3. Start the development server:
+   ```bash
+   preswald run
+   ```
 
-# Display a table with the first 10 rows of historical Bitcoin data
-text("### Historical Data Table")
-table(df.head(10))
+4. Open your browser and navigate to `http://localhost:8501/`
+
+## Data Sources
+
+The application uses historical data from:
+- Kaggle Cryptocurrency Datasets (Primary source for historical Bitcoin market data analysis)
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
