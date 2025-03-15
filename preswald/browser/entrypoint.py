@@ -118,7 +118,7 @@ async def shutdown():
         return {"success": False, "error": str(e)}
 
 
-async def deploy():
+async def deploy(github_username: str, api_key: str):
     """Dummy deploy function"""
     global _service
 
@@ -126,8 +126,12 @@ async def deploy():
         return {"success": False, "error": "Preswald not initialized"}
 
     try:
-        console.log("Starting dummy deployment...")
-        logger.info("Dummy deployment in progress...")
+        console.log(
+            f"from entrypoint.py -- Deployment in progress for {github_username}... {api_key}"
+        )
+        logger.info(
+            f"from entrypoint.py -- Deployment in progress for {github_username}... {api_key}"
+        )
 
         import asyncio
 
@@ -142,25 +146,25 @@ async def deploy():
         return {"success": False, "error": str(e)}
 
 
-# Create JavaScript-callable async function proxies
 def expose_to_js():
     """Expose Python functions to JavaScript"""
     import asyncio
 
+    from js import window  # type: ignore
     from pyodide.ffi import create_proxy, to_js  # type: ignore
 
-    # Helper to convert async functions to JS-callable proxies
     def wrap_async_function(func):
-        """Wrap an async function to be callable from JavaScript"""
+        """Wrap an async function to be callable from JavaScript, handling both with and without arguments"""
 
-        def wrapper(*args, **kwargs):
-            future = asyncio.ensure_future(func(*args, **kwargs))
-            return to_js(future)
+        async def wrapper(*args, **kwargs):
+            result = await func(
+                *args, **kwargs
+            )  # ✅ Allows both args and no-args cases
+            return to_js(result)
 
         return create_proxy(wrapper)
 
     # Export functions to JavaScript
-    from js import window  # type: ignore
 
     window.preswaldInit = wrap_async_function(initialize_preswald)
     window.preswaldRunScript = wrap_async_function(run_script)
