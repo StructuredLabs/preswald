@@ -1,0 +1,16 @@
+[project]
+title = "Voice Log Debugger"
+version = "0.1.0"
+port = 8501
+entrypoint = "hello.py"
+slug = "voice-log-debugger"
+
+[branding]
+name = "Voice Log Debugger"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#057dcd"
+
+[logging]
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

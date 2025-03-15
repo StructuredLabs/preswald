@@ -1,0 +1,131 @@
+---
+title: "connect"
+icon: "database"
+description: "Initialize and connect to configured data sources in preswald.toml"
+---
+
+```python
+connect() -> duckdb.DuckDBPyConnection
+```
+
+The `connect` function brings together all the data sources defined in `preswald.toml`. It initializes connections to configured data sources and returns a DuckDB connection object that serves as the unified query interface.
+
+## Returns
+
+- `duckdb.DuckDBPyConnection`: the same connect object returned if you run `duckdb.connect()`. Note, while you can use this object directly, it's not the supported path and it's better to use `preswald.get_df` and `preswald.query`
+
+## Supported Sources
+
+### CSV
+
+CSV sources can be configured with the following parameters:
+
+```toml
+[data.source_name]
+type = "csv"
+path = "path/to/file.csv"  # Path to the CSV file
+```
+
+The CSV source supports:
+- Automatic type inference via DuckDB's `read_csv_auto`
+- Direct SQL querying capabilities
+- Full DataFrame conversion
+
+### Postgres
+
+PostgreSQL sources require the following configuration:
+
+```toml
+[data.source_name]
+type = "postgres"
+host = "localhost"     # PostgreSQL server hostname
+port = 5432           # Server port
+dbname = "database"   # Database name
+user = "username"     # Database user
+```
+
+Features:
+- Uses DuckDB's postgres_scanner extension
+- Supports schema-qualified table names
+- Enables direct SQL querying of PostgreSQL tables
+- Provides DataFrame conversion for specific tables
+
+### Clickhouse
+
+ClickHouse sources can be configured with these parameters:
+
+```toml
+[data.source_name]
+type = "clickhouse"
+host = "localhost"     # ClickHouse server hostname
+port = 8123           # HTTP port
+database = "default"  # Database name
+user = "default"      # Username
+secure = false        # Optional: Enable HTTPS
+verify = true         # Optional: Verify SSL certificates
+```
+
+Features:
+- Utilizes DuckDB's ClickHouse scanner extension
+- Supports both HTTP and HTTPS connections
+- Enables direct SQL querying
+- Provides DataFrame conversion capabilities
+
+## Usage Example
+
+`connect` only needs to be called once in the app, before any use of `preswald.data` functions. Here's an example of how to add `connect` to your app:
+
+```toml
+# preswald.toml
+...
+[data.eq_clickhouse]
+type = "clickhouse"
+host = "localhost"
+port = 8123
+database = "default"
+user = "default"
+
+[data.eq_pg]
+type = "postgres"
+host = "localhost"            # PostgreSQL host
+port = 5432                   # PostgreSQL port
+dbname = "earthquakes"        # Database name
+user = "user"                 # Username
+
+[data.eq_csv]
+type = "csv"
+path = "data/customers.csv"
+
+...
+
+#secrets.toml
+...
+[data.eq_clickhouse]
+password = ""
+
+[data.earthquake_db]
+password = ""
+...
+```
+
+```python
+# hello.py
+from preswald import connect
+
+connect() # after this, eq_csv, eq_pg, and eq_clickhouse are all query-able data sources available with other preswald.data functions
+```
+
+### Key Features
+
+1. **Unified Query Interface**: Access all data sources through a single DuckDB connection
+2. **Automatic Extension Loading**: Required DuckDB extensions are automatically installed and loaded
+3. **Secure Configuration**: Supports separate secrets file for sensitive credentials
+4. **Error Handling**: Robust error handling for connection and query operations
+5. **Logging**: Comprehensive logging of connection and query operations
+
+### Best Practices
+
+1. Call `connect()` once at application startup
+2. Store credentials in `secrets.toml` separate from main configuration
+3. Use `preswald.query()` and `preswald.get_df()` instead of direct DuckDB connection
+4. Check returned source names to verify successful connections

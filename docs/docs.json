@@ -1,0 +1,145 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "maple",
+  "name": "Preswald",
+  "colors": {
+    "primary": "#000000",
+    "light": "#000000",
+    "dark": "#000000"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "configuration",
+              "coreconcepts"
+            ]
+          },
+          {
+            "group": "CLI Reference",
+            "pages": [
+              "cli/tutorial",
+              "cli/init",
+              "cli/run",
+              "cli/deploy",
+              "cli/deployments",
+              "cli/stop"
+            ]
+          },
+          {
+            "group": "Usage",
+            "pages": [
+              "usage/examples",
+              "usage/troubleshooting"
+            ]
+          },
+          {
+            "group": "Contributing",
+            "pages": [
+              "contributing",
+              "addnewcomponent"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "SDK Reference",
+        "groups": [
+          {
+            "group": "UI",
+            "pages": [
+              "sdk/alert",
+              "sdk/checkbox",
+              "sdk/plotly",
+              "sdk/progress",
+              "sdk/selectbox",
+              "sdk/separator",
+              "sdk/slider",
+              "sdk/table",
+              "sdk/text",
+              "sdk/text_input",
+              "sdk/workflow_dag"
+            ]
+          },
+          {
+            "group": "Data",
+            "pages": [
+              "sdk/connect",
+              "sdk/get_df",
+              "sdk/query"
+            ]
+          },
+          {
+            "group": "Workflow",
+            "pages": [
+              "sdk/retrypolicy",
+              "sdk/workflow",
+              "sdk/workflow_analyzer"
+            ]
+          },
+          {
+            "group": "Layout",
+            "pages": [
+              "layout/guide"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Community",
+          "href": "https://preswald-community.slack.com/join/shared_invite/zt-313yzc9hu-6olRuzf8B9RZU6lwnlZyCA#/shared-invite/email",
+          "icon": "slack"
+        },
+        {
+          "anchor": "Blog",
+          "href": "https://preswald.com/blog",
+          "icon": "newspaper"
+        },
+        {
+          "anchor": "PyPI",
+          "href": "https://pypi.org/project/preswald/",
+          "icon": "code"
+        }
+      ]
+    }
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "appearance": {
+    "default": "light",
+    "strict": true
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Website",
+        "href": "https://preswald.com"
+      }
+    ],
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/StructuredLabs/preswald"
+    }
+  },
+  "footer": {
+    "socials": {
+      "linkedin": "https://www.linkedin.com/company/structuredlabs/",
+      "twitter": "https://twitter.com/StructuredLabs",
+      "website": "https://www.structuredlabs.com",
+      "slack": "https://structured-users.slack.com/",
+      "github": "https://github.com/StructuredLabs"
+    }
+  }
+}

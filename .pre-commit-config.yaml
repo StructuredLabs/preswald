@@ -1,0 +1,30 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-format
+        name: ruff (format)
+        entry: ruff format
+        language: system
+        types: [python]
+        exclude: ^setup\.py$
+
+      - id: ruff-lint
+        name: ruff (lint)
+        entry: ruff check
+        language: system
+        types: [python]
+        exclude: ^(setup\.py|community_gallery/.*)$
+
+      - id: prettier
+        name: prettier
+        entry: bash -c 'cd frontend && npx prettier --write "src/**/*.{js,jsx,css,scss,json}"'
+        language: system
+        types_or: [javascript, jsx, css, scss, json]
+        files: ^frontend/
+
+      # - id: eslint
+      #   name: eslint
+      #   entry: bash -c 'cd frontend && npx eslint'
+      #   language: system
+      #   types_or: [javascript, jsx]
+      #   files: ^frontend/

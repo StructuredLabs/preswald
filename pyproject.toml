@@ -1,0 +1,68 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+# Ruff configuration
+[tool.ruff]
+line-length = 88
+target-version = "py37"
+
+# Enable specific rule sets
+lint.select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "B",   # flake8-bugbear
+    "C",   # flake8-comprehensions
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "PT",  # pytest
+    "RUF", # Ruff-specific rules
+    "W",   # pycodestyle warnings
+]
+
+# Ignore specific rules that don't fit your codebase
+lint.ignore = [
+    "E501",    # Line length (handled by Black)
+    "B008",    # Do not perform function call in argument defaults (common in FastAPI)
+]
+
+# Exclude directories that shouldn't be linted
+exclude = [
+    ".git",
+    ".ruff_cache",
+    "__pycache__",
+    "build",
+    "dist",
+    "frontend",
+    "*.egg-info",
+    ".eggs",
+    "community_gallery",
+]
+
+# Allow automatic fixes
+fix = true
+unsafe-fixes = false
+
+# Configure specific rules
+[tool.ruff.lint.per-file-ignores]
+"setup.py" = ["E402"]  # Module level import not at top of file
+"tests/*" = ["PLR2004"]  # Magic numbers in tests are fine
+"__init__.py" = ["F401"] # Unused imports in __init__ files are fine
+
+[tool.ruff.lint.mccabe]
+max-complexity = 12  # Slightly higher than default to accommodate your build commands
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"  # Using Google style docstrings
+
+[tool.ruff.lint.isort]
+lines-after-imports = 2
+known-first-party = []  # Add your project's modules here
+known-third-party = []  # Add specific third-party modules here if needed
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+
+# Format configuration (replacing Black)
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

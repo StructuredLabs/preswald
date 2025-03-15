@@ -1,0 +1,20 @@
+[project]
+title = "English Football Analysis"
+version = "0.1.0"
+port = 8501
+slug = "my-project-956493"
+entrypoint = "hello.py"
+
+[branding]
+name = "English Football Analysis"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#3D195B"  # Premier League purple
+
+[data.sample_csv]
+type = "csv"
+path = "data/England-league.csv"
+
+[logging]
+level = "INFO"
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

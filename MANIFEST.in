@@ -1,0 +1,7 @@
+recursive-include preswald/static *
+recursive-include preswald/static/assets *
+include preswald/static/*.html
+include preswald/static/*.js
+include preswald/static/*.css
+include preswald/static/*.png
+include preswald/static/*.ico
