@@ -4,7 +4,6 @@ This app analyzes the most streamed songs on Spotify in 2024. It provides insigh
 
 ## Dataset Source
 The dataset used in this app contains information about Spotify streams, YouTube views, and other metrics for popular tracks.  
-- **Source**: [Link to dataset] (if applicable)
 - **File**: `data/Most_Streamed_Spotify_Songs_2024_utf8.csv`
 
 ## What the App Does
