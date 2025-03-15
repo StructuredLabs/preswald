@@ -12,7 +12,7 @@ While the data set has over 200K rows, I used a subset of just 9 rows for this p
   
 ## Running the App:
 The production app is pending some trouble shooting with the team. However, locally you may run the app by installing Preswald, then running 'preswald run' from your command line.
-Here's a quick [demo video](https://drive.google.com/file/d/1exwL1adEfWTMJRWUwMeqPWj2KeqjZf1I/view?usp=drive_link)
+Here's a quick [demo video](https://drive.google.com/file/d/1exwL1adEfWTMJRWUwMeqPWj2KeqjZf1I/view?usp=drive_link).
   
 ## Credits:
 This project was created by Johann Zaroli. Github: Jzaroli
