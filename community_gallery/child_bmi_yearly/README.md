@@ -1,33 +1,51 @@
 # Child BMI Data Visualization
 
-This app visualizes child BMI data extracted from a CSV file. The data includes school year, hospital details, sex, and four key BMI indicators: Underweight, Healthy Weight, Overweight, and Obese.
+## Dataset Source
 
-## Key Features
+This application uses a CSV file named **BMIData.csv** containing child BMI data collected from **2001 to 2023**. The dataset includes the following fields:
 
-- **Data Transformation:**  
-  Converts the raw, wide-format BMI data into a long format, making it easier to compare different BMI categories side by side.
+- **SchoolYear:** Academic year of the record.
+- **NameHospital:** Hospital associated with the data.
+- **Sex:** Gender information.
+- **EpiUnderweight, EpiHealthyWeight, EpiOverweight, EpiObese:** Percentage values for various BMI categories.
 
-- **Data Aggregation:**  
-  Aggregates BMI percentages by school year and BMI category (using averages) to provide a clear, comparative overview.
+## What the App Does
 
-- **Grouped Bar Chart:**  
-  Displays an interactive grouped bar chart that shows the average BMI distribution across all school years. Each BMI category is color-coded for quick visual differentiation.
+The application transforms and visualizes the BMI dataset to provide clear insights into child health trends over time. It:
 
-- **Trend Line Chart:**  
-  Features a line chart with markers that connects average BMI values over time. This visualization highlights trends and shifts in BMI categories across the years.
+- **Transforms the Data:**  
+  Converts the raw, wide-format dataset into a long format so that different BMI categories can be compared side by side.
+- **Aggregates the Data:**  
+  Computes average BMI percentages for each school year and BMI category, summarizing the data for better clarity.
+- **Visualizes the Data:**
+  - **Grouped Bar Chart:** Displays the average distribution of BMI categories across all school years.
+  - **Trend Line Chart:** Connects average BMI values over time with markers to highlight trends.
+  - **Dynamic Filtering:** Provides a slider that lets users select a specific school year and view a detailed bar chart for that year.
+- **Displays Data Tables:**  
+  Presents both raw and aggregated data in table format for users interested in the underlying numbers.
 
-- **Dynamic Year Filtering:**  
-  Implements a slider that allows users to select a specific school year. When a year is chosen, a detailed bar chart updates dynamically to display the BMI distribution for that year.
+## How to Run and Deploy
 
-- **Comprehensive Data Tables:**  
-  Presents both the raw and aggregated data in table format for users who wish to inspect the underlying numbers in detail.
+1. Install Preswald via pip: `pip install preswald`
 
-## Overview
+2. Initialize a new project:  
+   `preswald init my_project`  
+   `cd my_project`
 
-This application delivers a comprehensive and interactive view of child BMI trends, enabling users to:
+   This creates a folder named `my_project` with the basic files:
 
-- Quickly compare BMI category distributions across different school years.
-- Observe long-term trends with smooth, connected line charts.
-- Drill down into specific school years using dynamic filtering.
+   - **hello.py:** Your main application file.
+   - **preswald.toml:** Configuration for your app’s settings and style.
+   - **secrets.toml:** Secure storage for API keys and sensitive information.
+   - **.gitignore:** Preconfigured to exclude sensitive files.
 
-The visualization tools provided here enhance data interpretability, making it easier to draw insights from the BMI dataset.
+3. Add the Application Code:  
+   Replace the contents of `hello.py` with the BMI data visualization code. Ensure that the **BMIData.csv** file is available in your project’s data directory so that it can be accessed by the app.
+
+4. Run the Application Locally:  
+   Run `preswald run` to start the development server.  
+   The app will typically be accessible at [http://localhost:8501](http://localhost:8501).
+
+5. Deploy the Application:  
+   Run `preswald deploy --target structured` to deploy your app to the Preswald cloud platform.  
+   During the first deployment, you'll be prompted to authenticate with GitHub and enter your Preswald API key. Once deployed, your app will be accessible online at a URL provided by Preswald.
