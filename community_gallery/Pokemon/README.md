@@ -51,7 +51,9 @@ The dataset includes:
 
 ## Run the app
 
-To run the app, you can use the following command:
+### [🔴 Live Demo: Pokemon Data Visualization App](https://pokemon-383896-hpjyikke-ndjz2ws6la-ue.a.run.app/)
+
+To run the app locally, you can use the following command:
 
 ```
 preswald run
