@@ -1,0 +1,201 @@
+/* app.css */
+.topbar {
+  @apply sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-background px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8;
+}
+
+.mobile-menu-button {
+  @apply lg:hidden;
+}
+
+.desktop-collapse-button {
+  @apply hidden lg:flex;
+}
+
+.icon-button {
+  @apply h-6 w-6 transition-transform duration-200;
+}
+
+.separator {
+  @apply h-6 lg:hidden;
+}
+
+.topbar-content {
+  @apply flex flex-1 gap-x-4 self-stretch lg:gap-x-6;
+}
+
+.branding-container {
+  @apply flex lg:hidden items-center;
+}
+
+.branding-logo {
+  @apply h-8 w-8;
+}
+
+.branding-name {
+  @apply ml-3 text-lg font-semibold;
+}
+
+.sidebar-container {
+  @apply flex grow flex-col h-full;
+}
+
+.sidebar-content {
+  @apply flex flex-col h-full justify-between;
+}
+
+.sidebar-nav {
+  @apply flex flex-col gap-y-5 w-full;
+}
+
+.sidebar-header {
+  @apply flex h-16 shrink-0 items-center;
+}
+
+.sidebar-logo {
+  @apply h-8 w-8;
+}
+
+.sidebar-title {
+  @apply ml-4 text-lg font-semibold transition-opacity duration-200;
+}
+
+.sidebar-nav-list {
+  @apply flex flex-1 flex-col;
+}
+
+.sidebar-nav-items {
+  @apply flex flex-1 flex-col gap-y-7;
+}
+
+.sidebar-nav-link {
+  @apply flex items-center gap-x-3 rounded-md px-2 py-2 text-sm font-semibold leading-6 transition-all duration-200 m-2;
+}
+
+.sidebar-nav-link-active {
+  @apply bg-accent hover:rounded-md;
+}
+
+.sidebar-nav-link-hover {
+  @apply hover:bg-accent;
+}
+
+.sidebar-icon {
+  @apply h-6 w-6 shrink-0 transition-transform duration-200;
+}
+
+.sidebar-footer {
+  @apply text-center text-sm text-gray-400 pb-2;
+}
+
+.sidebar-footer-link {
+  @apply hover:underline;
+}
+
+/* Mobile Sidebar */
+.sidebar-mobile {
+  @apply fixed inset-y-0 left-0 flex w-[280px] flex-col border-r bg-background p-0;
+}
+
+.sidebar-mobile-header {
+  @apply p-4 border-b;
+}
+
+.sidebar-mobile-title {
+  @apply flex items-center gap-2;
+}
+
+.sidebar-mobile-close-btn {
+  @apply top-4 right-4 h-8 w-8;
+}
+
+.sidebar-mobile-content {
+  @apply flex-1 overflow-hidden px-4 py-2;
+}
+
+/* Desktop Sidebar */
+.sidebar-desktop {
+  @apply hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col border-r bg-background transition-all duration-300 ease-in-out transform-gpu;
+}
+
+.sidebar-desktop-collapsed {
+  @apply lg:w-20;
+}
+
+.sidebar-desktop-expanded {
+  @apply lg:w-80;
+}
+
+.sidebar-desktop-content {
+  @apply flex-1 overflow-hidden px-4 py-2;
+}
+
+.loading-container {
+  @apply flex items-center justify-center h-screen;
+}
+
+.loading-content {
+  @apply text-center;
+}
+
+.loading-spinner {
+  @apply animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4;
+}
+
+.loading-text {
+  @apply text-gray-600;
+}
+
+.dynamiccomponent-container {
+  @apply flex flex-col w-full;
+}
+
+.dynamiccomponent-row {
+  @apply flex flex-row w-full;
+  margin-bottom: 1rem; /* Maintain inline style */
+}
+
+.dynamiccomponent-component {
+  @apply bg-background rounded-lg transition-all duration-200 hover:border-muted-foreground/20;
+  padding: 1rem; /* Maintain inline style */
+  min-width: 0; /* Prevent flex items from overflowing */
+}
+
+.dynamiccomponent-hidden {
+  @apply hidden;
+}
+
+.dynamiccomponent-separator {
+  @apply w-px bg-gray-200 my-4 mx-4 h-auto;
+}
+
+.dashboard-container {
+  @apply min-h-screen;
+}
+
+.dashboard-error {
+  @apply mb-4;
+}
+
+.dashboard-loading-container {
+  @apply flex items-center justify-center h-64;
+}
+
+.dashboard-loading-content {
+  @apply text-center space-y-4;
+}
+
+.dashboard-loading-spinner {
+  @apply animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto;
+}
+
+.dashboard-loading-text {
+  @apply text-sm text-muted-foreground;
+}
+
+.dashboard-empty {
+  @apply flex items-center justify-center h-64;
+}
+
+.dashboard-empty-text {
+  @apply text-sm text-muted-foreground;
+}
