@@ -286,10 +286,10 @@ elif selected_plot_type == "Radar Chart":
 
 
 # Pokemon Type Effectiveness Network Section
-text("## Enter a Pokemon name to see its type effectiveness relationships:")
+text("## Enter a Pokemon name to see its type effectiveness relationships:",size=0.7)
 
 # Text input for Pokemon name
-pokemon_name = text_input("Pokemon Name", placeholder="e.g. Pikachu", size=0.5)
+pokemon_name = text_input("Pokemon Name", placeholder="e.g. Pikachu", size=0.3)
 
 if pokemon_name:
     # Check if the Pokemon exists in the dataset
@@ -355,9 +355,9 @@ if pokemon_name:
         
         # Define effectiveness colors for different multipliers
         effectiveness_colors = {
-            0: '#888888',     # Gray for Immunity (No Effect)
-            0.25: '#00CCCC',  # Teal/Cyan for Doubly Resistant
-            0.5: '#00AA55',   # Green for Resistant
+            0: '#00AA00',     # Green for Immunity (No Effect)
+            0.25: '#0066CC',  # Dark Blue for Doubly Resistant
+            0.5: '#33CCFF',   # Light Blue for Resistant
             1: '#AAAAAA',     # Light Gray for Neutral
             2: '#FF8000',     # Orange for Vulnerable
             4: '#CC0066'      # Magenta/Purple for Highly Vulnerable
