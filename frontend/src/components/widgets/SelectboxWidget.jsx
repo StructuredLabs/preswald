@@ -77,13 +77,13 @@ const SelectboxWidget = ({
         >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="min-w-[var(--radix-select-trigger-width)]">
           {options.map((option, index) => (
             <SelectItem
               key={index}
               value={option}
               className={cn(
-                'cursor-pointer',
+                'cursor-pointer w-full data-[highlighted]:bg-muted data-[highlighted]:text-foreground px-4',
                 size === 'sm' && 'text-xs py-1.5',
                 size === 'lg' && 'text-base py-2.5'
               )}

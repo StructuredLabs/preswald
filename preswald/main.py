@@ -3,23 +3,20 @@ import logging
 import os
 import re
 import signal
+from importlib.resources import files
 from typing import Optional
 
-import pkg_resources
 import uvicorn
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
-from preswald.engine.celery import CeleryEngine
 from preswald.engine.managers.branding import BrandingManager
 from preswald.engine.service import PreswaldService
 
-logger = logging.getLogger(__name__)
 
-# Global celery engine instance
-celery_engine = None
+logger = logging.getLogger(__name__)
 
 
 def create_app(script_path: Optional[str] = None) -> FastAPI:
@@ -42,15 +39,9 @@ def create_app(script_path: Optional[str] = None) -> FastAPI:
     # Store service instance
     app.state.service = service
 
-    # Initialize CeleryEngine
-    global celery_engine
-    celery_engine = CeleryEngine()
-
     # Set script path if provided
     if script_path:
         service.script_path = script_path
-        # Start celery worker and trigger initial connection parsing
-        celery_engine.start_worker(script_path)
 
     # Register routes
     _register_routes(app)
@@ -93,23 +84,6 @@ def _register_static_routes(app: FastAPI):
         return await serve_index()
 
 
-def _register_api_routes(app: FastAPI):
-    """Register API routes"""
-
-    @app.get("/api/connections")
-    async def get_connections():
-        """Get all active connections and their states"""
-        global celery_engine
-        if celery_engine:
-            return celery_engine.get_latest_result()
-        return {
-            "connections": [],
-            "error": "Celery engine not initialized",
-            "timestamp": 0,
-            "is_parsing": False,
-        }
-
-
 def _register_websocket_routes(app: FastAPI):
     """Register WebSocket routes"""
 
@@ -135,7 +109,6 @@ def _register_websocket_routes(app: FastAPI):
 def _register_routes(app: FastAPI):
     """Register all application routes"""
 
-    _register_api_routes(app)
     _register_websocket_routes(app)
     _register_static_routes(app)  # order matters for static routes
 
@@ -144,41 +117,30 @@ def start_server(script: Optional[str] = None, port: int = 8501):
     """Start the FastAPI server"""
     app = create_app(script)
 
-    # Load port from config if available
-    if script:
-        try:
-            script_dir = os.path.dirname(script)
-            config_path = os.path.join(script_dir, "preswald.toml")
-            if os.path.exists(config_path):
-                import toml
-
-                config = toml.load(config_path)
-                if "project" in config and "port" in config["project"]:
-                    port = config["project"]["port"]
-        except Exception as e:
-            logger.error(f"Error loading config: {e}")
-
     config = uvicorn.Config(app, host="0.0.0.0", port=port, loop="asyncio")
     server = uvicorn.Server(config)
 
     # Handle shutdown signals
-    def handle_shutdown(signum, frame):
+    async def handle_shutdown(signum=None, frame=None):
+        """Handle graceful shutdown of the server"""
         logger.info("Shutting down server...")
-        global celery_engine
-        if celery_engine:
-            celery_engine.stop_worker()
-        app.state.service.shutdown()
+        await app.state.service.shutdown()
 
-    signal.signal(signal.SIGINT, handle_shutdown)
-    signal.signal(signal.SIGTERM, handle_shutdown)
+    # Handle shutdown signals
+    def sync_handle_shutdown(signum, frame):
+        """Synchronous wrapper for the async shutdown handler"""
+        loop = asyncio.get_event_loop()
+        loop.create_task(handle_shutdown(signum, frame))  # noqa: RUF006
+
+    signal.signal(signal.SIGINT, sync_handle_shutdown)
+    signal.signal(signal.SIGTERM, sync_handle_shutdown)
 
     try:
         import asyncio
 
         asyncio.run(server.serve())
-
     except KeyboardInterrupt:
-        handle_shutdown(None, None)
+        asyncio.run(handle_shutdown())
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         raise
@@ -187,9 +149,9 @@ def start_server(script: Optional[str] = None, port: int = 8501):
 def _setup_static_files(app: FastAPI) -> BrandingManager:
     """Set up static file serving and initialize branding manager"""
     # Get package directories
-    base_dir = pkg_resources.resource_filename("preswald", "")
-    static_dir = os.path.join(base_dir, "static")
-    assets_dir = os.path.join(static_dir, "assets")
+    base_dir = files("preswald")
+    static_dir = base_dir / "static"
+    assets_dir = static_dir / "assets"
 
     # Ensure directories exist
     os.makedirs(static_dir, exist_ok=True)
@@ -207,8 +169,8 @@ def _setup_static_files(app: FastAPI) -> BrandingManager:
 def _handle_index_request(service: PreswaldService) -> HTMLResponse:
     """Handle index.html requests with proper branding"""
     try:
-        static_dir = pkg_resources.resource_filename("preswald", "static")
-        index_path = os.path.join(static_dir, "index.html")
+        static_dir = files("preswald") / "static"
+        index_path = static_dir / "index.html"
 
         if not os.path.exists(index_path):
             logger.error(f"Index file not found at {index_path}")
@@ -225,10 +187,11 @@ def _handle_index_request(service: PreswaldService) -> HTMLResponse:
 
         # Replace title
         content = content.replace(
-            "<title>Vite + React</title>", f'<title>{branding["name"]}</title>'
+            "<title>Vite + React</title>", f"<title>{branding['name']}</title>"
         )
 
         import time
+
         # Add favicon links
         favicon_links = f"""    <link rel="icon" type="image/x-icon" href="{branding["favicon"]}" />
     <link rel="shortcut icon" type="image/x-icon" href="{branding["favicon"]}?timestamp={time.time()}" />"""

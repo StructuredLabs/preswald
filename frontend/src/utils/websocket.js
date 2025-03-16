@@ -37,20 +37,14 @@ class WebSocketClient {
         });
         this.pendingUpdates = {};
 
-        this._notifySubscribers({
-          type: 'connection_status',
-          connected: true,
-        });
+        this._notifySubscribers({ type: 'connection_status', connected: true });
       };
 
       this.socket.onclose = (event) => {
         console.log('[WebSocket] Connection closed:', event);
         this.isConnecting = false;
         this.socket = null;
-        this._notifySubscribers({
-          type: 'connection_status',
-          connected: false,
-        });
+        this._notifySubscribers({ type: 'connection_status', connected: false });
         this._handleReconnect();
       };
 
@@ -59,9 +53,7 @@ class WebSocketClient {
         this.isConnecting = false;
         this._notifySubscribers({
           type: 'error',
-          content: {
-            message: 'WebSocket connection error',
-          },
+          content: { message: 'WebSocket connection error' },
         });
       };
 
@@ -90,7 +82,6 @@ class WebSocketClient {
               break;
 
             case 'components':
-              // Handle new row-based layout structure
               if (data.components && data.components.rows) {
                 data.components.rows.forEach((row) => {
                   row.forEach((component) => {
@@ -112,15 +103,12 @@ class WebSocketClient {
               break;
           }
 
-          // Notify subscribers
           this._notifySubscribers(data);
         } catch (error) {
           console.error('[WebSocket] Error processing message:', error);
           this._notifySubscribers({
             type: 'error',
-            content: {
-              message: 'Error processing server message',
-            },
+            content: { message: 'Error processing server message' },
           });
         }
       };
@@ -129,9 +117,7 @@ class WebSocketClient {
       this.isConnecting = false;
       this._notifySubscribers({
         type: 'error',
-        content: {
-          message: 'Failed to create WebSocket connection',
-        },
+        content: { message: 'Failed to create WebSocket connection' },
       });
     }
   }
@@ -149,10 +135,9 @@ class WebSocketClient {
       console.log('[WebSocket] Max reconnection attempts reached');
       this._notifySubscribers({
         type: 'error',
-        content: {
-          message: 'Failed to reconnect after multiple attempts',
-        },
+        content: { message: 'Failed to reconnect after multiple attempts' },
       });
+      return;
     }
 
     this.reconnectAttempts++;
@@ -190,22 +175,14 @@ class WebSocketClient {
 
   updateComponentState(componentId, value) {
     if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
-      // Store update to send when connection is restored
       this.pendingUpdates.set(componentId, value);
       throw new Error('WebSocket connection not open');
     }
-
     return this._sendComponentUpdate(componentId, value);
   }
 
   _sendComponentUpdate(componentId, value) {
-    const message = {
-      type: 'component_update',
-      states: {
-        [componentId]: value,
-      },
-    };
-
+    const message = { type: 'component_update', states: { [componentId]: value } };
     try {
       this.socket.send(JSON.stringify(message));
       this.componentStates[componentId] = value;
@@ -221,4 +198,157 @@ class WebSocketClient {
   }
 }
 
-export const websocket = new WebSocketClient();
+class PostMessageClient {
+  constructor() {
+    this.callbacks = new Set();
+    this.componentStates = {};
+    this.isConnected = false;
+    this.pendingUpdates = {};
+  }
+
+  connect() {
+    console.log('[PostMessage] Setting up listener...');
+    window.addEventListener('message', this._handleMessage.bind(this));
+
+    // Assume connected in browser context
+    this.isConnected = true;
+    this._notifySubscribers({ type: 'connection_status', connected: true });
+    console.log('[PostMessage] Connected successfully');
+
+    // Send pending updates
+    Object.entries(this.pendingUpdates).forEach(([componentId, value]) => {
+      this._sendComponentUpdate(componentId, value);
+    });
+    this.pendingUpdates = {};
+  }
+
+  disconnect() {
+    console.log('[PostMessage] Disconnecting...');
+    window.removeEventListener('message', this._handleMessage.bind(this));
+    this.isConnected = false;
+    this._notifySubscribers({ type: 'connection_status', connected: false });
+  }
+
+  _handleMessage(event) {
+    if (!event.data) return;
+
+    let data;
+    try {
+      // Handle both string and object messages
+      data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+    } catch (error) {
+      console.error('[PostMessage] Error parsing message:', error);
+      return;
+    }
+    console.log('[PostMessage] Message received:', {
+      ...data,
+      timestamp: new Date().toISOString(),
+    });
+    switch (data.type) {
+      case 'connection_status':
+        this.isConnected = data.connected;
+        console.log('[PostMessage] Connection status:', this.isConnected);
+        this._notifySubscribers(data);
+        break;
+
+      case 'initial_state':
+        this.componentStates = { ...data.states };
+        console.log('[PostMessage] Initial states loaded:', this.componentStates);
+        this._notifySubscribers(data);
+        break;
+
+      case 'state_update':
+        if (data.component_id) {
+          this.componentStates[data.component_id] = data.value;
+        }
+        console.log('[PostMessage] Component state updated:', {
+          componentId: data.component_id,
+          value: data.value,
+        });
+        this._notifySubscribers(data);
+        break;
+
+      case 'components':
+        if (data.components && data.components.rows) {
+          data.components.rows.forEach((row) => {
+            row.forEach((component) => {
+              if (component.id && 'value' in component) {
+                this.componentStates[component.id] = component.value;
+                console.log('[PostMessage] Component state updated:', {
+                  componentId: component.id,
+                  value: component.value,
+                });
+              }
+            });
+          });
+        }
+        this._notifySubscribers(data);
+        break;
+
+      case 'error':
+        this._notifySubscribers(event.data);
+        break;
+    }
+  }
+
+  subscribe(callback) {
+    this.callbacks.add(callback);
+    return () => this.callbacks.delete(callback);
+  }
+
+  _notifySubscribers(message) {
+    this.callbacks.forEach((callback) => {
+      try {
+        callback(message);
+      } catch (error) {
+        console.error('[PostMessage] Error in subscriber callback:', error);
+      }
+    });
+  }
+
+  getComponentState(componentId) {
+    return this.componentStates[componentId];
+  }
+
+  updateComponentState(componentId, value) {
+    if (!this.isConnected) {
+      this.pendingUpdates.set(componentId, value);
+      throw new Error('PostMessage connection not ready');
+    }
+    return this._sendComponentUpdate(componentId, value);
+  }
+
+  _sendComponentUpdate(componentId, value) {
+    if (window.parent) {
+      window.parent.postMessage(
+        {
+          type: 'component_update',
+          id: componentId,
+          value,
+        },
+        '*'
+      );
+      this.componentStates[componentId] = value;
+      console.log('[PostMessage] Sent component update:', { id: componentId, value });
+    } else {
+      console.warn('[PostMessage] No parent window to send update');
+    }
+  }
+
+  getConnections() {
+    return [];
+  }
+}
+
+export const createCommunicationLayer = () => {
+  // Detect environment: server (WebSocket) or browser (PostMessage)
+  const isBrowser = window !== window.top;
+  console.log(
+    '[Communication] Detected environment:',
+    isBrowser ? 'browser (iframe)' : 'server (top-level)'
+  );
+
+  return isBrowser ? new PostMessageClient() : new WebSocketClient();
+};
+
+export const comm = createCommunicationLayer();

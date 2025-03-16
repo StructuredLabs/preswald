@@ -10,13 +10,15 @@ import {
   ServerIcon,
   Squares2X2Icon,
 } from '@heroicons/react/24/solid';
-import React, { useState } from 'react';
 
+import React, { useState } from 'react';
+import { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
+
+import { cn } from '@/lib/utils';
+
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
-import { cn } from '@/lib/utils';
-import { useEffect } from 'react';
 
 const navigation = [{ name: 'Dashboard', href: '/', icon: HomeIcon }];
 

@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 const ButtonWidget = ({
   label,
   onClick,
-  variant = 'outline',
+  variant = 'default',
   size = 'default',
   className,
   disabled = false,
@@ -19,17 +19,17 @@ const ButtonWidget = ({
       variant={variant}
       size={size}
       onClick={onClick || (() => alert('Button clicked!'))}
-      className={cn(className)}
+      className={cn('w-full sm:w-auto px-2 py-1', loading && 'cursor-not-allowed', className)}
       disabled={disabled || loading}
       {...props}
     >
       {loading ? (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center gap-2">
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-          {label}
+          <span>{label}</span>
         </div>
       ) : (
-        label
+        <span>{label}</span>
       )}
     </Button>
   );

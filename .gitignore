@@ -173,3 +173,7 @@ notes.md
 # Tool cache directories
 .pre-commit/
 .ruff_cache/
+
+.env.structured
+
+community_gallery/**/data

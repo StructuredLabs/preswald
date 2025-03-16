@@ -1,0 +1,94 @@
+---
+title: "workflow_dag"
+icon: "diagram-project"
+description: ""
+---
+
+```python
+workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -> Dict
+```
+
+The `workflow_dag` function renders a Directed Acyclic Graph (DAG) visualization for a given workflow. This helps you visualize dependencies, execution status, and relationships within the workflow, making it easier to understand and debug complex processes.
+
+## Parameters
+
+- **`workflow`** _(Workflow)_: A workflow object representing the process or pipeline to be visualized.
+- **`title`** _(str)_: _(Optional)_ The title displayed above the visualization. Defaults to `"Workflow Dependency Graph"`.
+
+<Frame>
+<img
+  className="block dark:hidden"
+  src="/images/workflow.png"
+  alt="Hero Light"
+/>
+</Frame>
+
+## Returns
+
+- `Dict`: A component containing the DAG visualization data with node information.
+
+## Node Information
+
+Each node in the DAG contains the following information:
+
+- **name**: The name of the task/node
+- **status**: Current execution status
+- **execution_time**: Time taken for execution
+- **attempts**: Number of execution attempts
+- **error**: Any error information if failed
+- **dependencies**: List of dependent tasks
+- **force_recompute**: Whether the task is marked for recomputation
+
+## Usage Example
+
+Here's an example of how to visualize a workflow using `workflow_dag`:
+
+```python
+from preswald import workflow_dag, Workflow
+
+# Create a workflow object
+workflow = Workflow()
+
+# Add some tasks to the workflow
+@workflow.task()
+def task_a():
+    return "A"
+
+@workflow.task(depends_on=[task_a])
+def task_b():
+    return "B"
+
+# Render the workflow DAG
+workflow_dag(workflow, title="Example Workflow")
+```
+
+### Key Features
+
+1. **Rich Node Data**: Each node shows detailed execution information
+2. **Dependency Visualization**: Clear representation of task dependencies
+3. **Status Tracking**: Visual indicators for task status (success/failure/pending)
+4. **Performance Insights**: Shows execution time and attempt counts
+5. **Error Visibility**: Displays error information for failed tasks
+
+### Common Use Cases
+
+Workflow DAGs are essential for:
+
+- Debugging complex workflows
+- Monitoring task execution
+- Understanding dependency chains
+- Identifying bottlenecks
+- Tracking execution progress
+- Visualizing pipeline structure
+
+### Why Use `workflow_dag`?
+
+The workflow DAG visualization helps you:
+
+- Understand complex task relationships
+- Monitor workflow execution status
+- Debug failed tasks
+- Optimize workflow structure
+- Share workflow insights with team members
+
+Perfect for both development and production monitoring of your workflow pipelines! 🔍

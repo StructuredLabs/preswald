@@ -1,0 +1,127 @@
+---
+title: "query"
+icon: "code"
+description: "Execute SQL queries against configured data sources"
+---
+
+```python
+query(sql: str, source_name: str) -> pd.DataFrame
+```
+
+The `query` function executes SQL queries against configured data sources and returns the results as a pandas DataFrame. It supports all data source types (CSV, PostgreSQL, ClickHouse).
+
+## Parameters
+
+- `sql` (str): SQL query to execute
+- `source_name` (str): Name of the data source as configured in preswald.toml
+
+## Returns
+
+- `pd.DataFrame`: Query results as a pandas DataFrame
+
+## Usage Examples
+
+### CSV Source
+
+For CSV sources, you can query the data using standard SQL:
+
+```python
+from preswald import query
+
+# Query CSV data
+sql = """
+    SELECT 
+        customer_id,
+        COUNT(*) as order_count
+    FROM eq_csv 
+    GROUP BY customer_id
+    HAVING COUNT(*) > 5
+"""
+frequent_customers = query(sql, 'eq_csv')
+```
+
+### PostgreSQL Source
+
+For PostgreSQL sources, queries are executed directly against the database:
+
+```python
+from preswald import query
+
+# Query PostgreSQL table
+sql = """
+    SELECT 
+        date,
+        magnitude,
+        location
+    FROM earthquake_events
+    WHERE magnitude > 5.0
+    ORDER BY magnitude DESC
+    LIMIT 10
+"""
+major_earthquakes = query(sql, 'eq_pg')
+```
+
+### ClickHouse Source
+
+ClickHouse queries are also supported:
+
+```python
+from preswald import query
+
+# Query ClickHouse table
+sql = """
+    SELECT 
+        toDate(timestamp) as date,
+        count() as event_count
+    FROM events
+    GROUP BY date
+    ORDER BY date DESC
+    LIMIT 7
+"""
+daily_events = query(sql, 'eq_clickhouse')
+```
+
+## Query Engine
+
+The query function uses DuckDB as the underlying query engine:
+
+1. For CSV files, DuckDB reads and processes the data directly
+2. For PostgreSQL, queries are executed through the postgres_scanner extension
+3. For ClickHouse, queries use the clickhouse_scanner extension
+
+## Error Handling
+
+The function includes comprehensive error handling:
+
+1. Validates source existence
+2. Validates SQL syntax
+3. Handles connection and query errors
+4. Provides detailed error messages through logging
+
+Example with error handling:
+
+```python
+from preswald import query
+
+try:
+    results = query("SELECT * FROM events", 'eq_clickhouse')
+except ValueError as e:
+    print(f"Configuration error: {e}")
+except Exception as e:
+    print(f"Query error: {e}")
+```
+
+## Best Practices
+
+1. Always call `connect()` before using
+2. Always check if source exists in preswald.toml before querying
+3. Use parameterized queries when possible to prevent SQL injection
+4. Consider query performance and data volume
+5. Include appropriate WHERE clauses to limit result sets
+6. Use error handling when executing queries
+
+## Related Functions
+
+- `connect()`: Must be called before using query
+- `get_df()`: For retrieving entire tables/datasets
+- `view()`: For rendering query result previews

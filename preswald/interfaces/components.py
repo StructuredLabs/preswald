@@ -2,22 +2,54 @@ import hashlib
 import json
 import logging
 import uuid
+from typing import Dict, List, Optional
 
 import numpy as np
 import pandas as pd
 
 from preswald.engine.service import PreswaldService
+from preswald.interfaces.workflow import Workflow
+
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# NOTE to Developers: Please keep the components organized alphabetically
 
-def generate_id(prefix="component"):
-    """Generate a unique ID for a component."""
-    return f"{prefix}-{uuid.uuid4().hex[:8]}"
+# Components
 
 
-def checkbox(label, default=False, size=1.0):
+def alert(message: str, level: str = "info", size: float = 1.0) -> str:
+    """Create an alert component."""
+    service = PreswaldService.get_instance()
+
+    id = generate_id("alert")
+    logger.debug(f"Creating alert component with id {id}, message: {message}")
+    component = {
+        "type": "alert",
+        "id": id,
+        "message": message,
+        "level": level,
+        "size": size,
+    }
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+    return message
+
+
+# TODO: Add button functionality
+def button(label: str, size: float = 1.0):
+    """Create a button component."""
+    service = PreswaldService.get_instance()
+    id = generate_id("button")
+    logger.debug(f"Creating button component with id {id}, label: {label}")
+    component = {"type": "button", "id": id, "label": label, "size": size}
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+    return component
+
+
+def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
     """Create a checkbox component with consistent ID based on label."""
     service = PreswaldService.get_instance()
 
@@ -39,161 +71,10 @@ def checkbox(label, default=False, size=1.0):
     }
     logger.debug(f"Created component: {component}")
     service.append_component(component)
-    return component
+    return current_value
 
 
-def slider(
-    label: str,
-    min_val: float = 0.0,
-    max_val: float = 100.0,
-    step: float = 1.0,
-    default: float = None,
-    size: float = 1.0,
-) -> dict:
-    """Create a slider component with consistent ID based on label"""
-    service = PreswaldService.get_instance()
-
-    # Create a consistent ID based on the label
-    component_id = f"slider-{hashlib.md5(label.encode()).hexdigest()[:8]}"
-
-    # Get current state or use default
-    current_value = service.get_component_state(component_id)
-    if current_value is None:
-        current_value = default if default is not None else min_val
-
-    component = {
-        "type": "slider",
-        "id": component_id,
-        "label": label,
-        "min": min_val,
-        "max": max_val,
-        "step": step,
-        "value": current_value,
-        "size": size,
-    }
-
-    logger.debug(f"Creating slider component with id {component_id}, label: {label}")
-    logger.debug(f"Current value from state: {current_value}")
-
-    service.append_component(component)
-
-    return component
-
-
-def button(label, size=1.0):
-    """Create a button component."""
-    service = PreswaldService.get_instance()
-    id = generate_id("button")
-    logger.debug(f"Creating button component with id {id}, label: {label}")
-    component = {"type": "button", "id": id, "label": label, "size": size}
-    logger.debug(f"Created component: {component}")
-    service.append_component(component)
-    return component
-
-
-def selectbox(label, options, default=None, size=1.0):
-    """Create a select component with consistent ID based on label."""
-    service = PreswaldService.get_instance()
-
-    # Create a consistent ID based on the label
-    component_id = f"selectbox-{hashlib.md5(label.encode()).hexdigest()[:8]}"
-
-    # Get current state or use default
-    current_value = service.get_component_state(component_id)
-    if current_value is None:
-        current_value = (
-            default if default is not None else (options[0] if options else None)
-        )
-
-    logger.debug(f"Creating selectbox component with id {component_id}, label: {label}")
-    component = {
-        "type": "selectbox",
-        "id": component_id,
-        "label": label,
-        "options": options,
-        "value": current_value,
-        "size": size,
-    }
-    logger.debug(f"Created component: {component}")
-    service.append_component(component)
-    return component
-
-
-def text_input(label, placeholder="", size=1.0):
-    """Create a text input component with consistent ID based on label."""
-    service = PreswaldService.get_instance()
-
-    # Create a consistent ID based on the label
-    component_id = f"text_input-{hashlib.md5(label.encode()).hexdigest()[:8]}"
-
-    # Get current state or use default
-    current_value = service.get_component_state(component_id)
-    if current_value is None:
-        current_value = ""
-
-    logger.debug(
-        f"Creating text input component with id {component_id}, label: {label}"
-    )
-    component = {
-        "type": "text_input",
-        "id": component_id,
-        "label": label,
-        "placeholder": placeholder,
-        "value": current_value,
-        "size": size,
-    }
-    logger.debug(f"Created component: {component}")
-    service.append_component(component)
-    return component
-
-
-def progress(label, value=0, size=1.0):
-    """Create a progress component."""
-    service = PreswaldService.get_instance()
-
-    id = generate_id("progress")
-    logger.debug(f"Creating progress component with id {id}, label: {label}")
-    component = {
-        "type": "progress",
-        "id": id,
-        "label": label,
-        "value": value,
-        "size": size,
-    }
-    logger.debug(f"Created component: {component}")
-    service.append_component(component)
-    return component
-
-
-def spinner(label, size=1.0):
-    """Create a spinner component."""
-    service = PreswaldService.get_instance()
-    id = generate_id("spinner")
-    logger.debug(f"Creating spinner component with id {id}, label: {label}")
-    component = {"type": "spinner", "id": id, "label": label, "size": size}
-    logger.debug(f"Created component: {component}")
-    service.append_component(component)
-    return component
-
-
-def alert(message, level="info", size=1.0):
-    """Create an alert component."""
-    service = PreswaldService.get_instance()
-
-    id = generate_id("alert")
-    logger.debug(f"Creating alert component with id {id}, message: {message}")
-    component = {
-        "type": "alert",
-        "id": id,
-        "message": message,
-        "level": level,
-        "size": size,
-    }
-    logger.debug(f"Created component: {component}")
-    service.append_component(component)
-    return component
-
-
+# TODO: requires testing
 def image(src, alt="Image", size=1.0):
     """Create an image component."""
     service = PreswaldService.get_instance()
@@ -205,47 +86,7 @@ def image(src, alt="Image", size=1.0):
     return component
 
 
-def text(markdown_str, size=1.0):
-    """Create a text/markdown component."""
-    service = PreswaldService.get_instance()
-    id = generate_id("text")
-    logger.debug(f"Creating text component with id {id}")
-    component = {
-        "type": "text",
-        "id": id,
-        "markdown": markdown_str,
-        "value": markdown_str,
-        "size": size,
-    }
-    logger.debug(f"Created component: {component}")
-    service.append_component(component)
-    return component
-
-
-def convert_to_serializable(obj):
-    """Convert numpy arrays and other non-serializable objects to Python native types."""
-    if isinstance(obj, np.ndarray):
-        return obj.tolist()
-    elif isinstance(obj, (np.int8, np.int16, np.int32, np.int64, np.integer)):
-        return int(obj)
-    elif isinstance(obj, (np.float16, np.float32, np.float64, np.floating)):
-        if np.isnan(obj):
-            return None
-        return float(obj)
-    elif isinstance(obj, np.bool_):
-        return bool(obj)
-    elif isinstance(obj, dict):
-        return {k: convert_to_serializable(v) for k, v in obj.items()}
-    elif isinstance(obj, (list, tuple)):
-        return [convert_to_serializable(item) for item in obj]
-    elif isinstance(obj, np.generic):
-        if np.isnan(obj):
-            return None
-        return obj.item()
-    return obj
-
-
-def plotly(fig, size=1.0):
+def plotly(fig, size: float = 1.0) -> Dict:  # noqa: C901
     """
     Render a Plotly figure.
 
@@ -257,7 +98,7 @@ def plotly(fig, size=1.0):
         import time
 
         start_time = time.time()
-        logger.debug(f"[PLOTLY] Starting plotly render")
+        logger.debug("[PLOTLY] Starting plotly render")
 
         id = generate_id("plot")
         logger.debug(f"[PLOTLY] Created plot component with id {id}")
@@ -280,13 +121,15 @@ def plotly(fig, size=1.0):
                     # Scale marker sizes to a reasonable range
                     sizes = np.array(trace.marker.size)
                     if len(sizes) > 0:
-                        min_size, max_size = (
+                        _min_size, max_size = (
                             5,
                             20,
                         )  # Reasonable size range for web rendering
-                        with np.errstate(divide='ignore', invalid='ignore'):
+                        with np.errstate(divide="ignore", invalid="ignore"):
                             scaled_sizes = (sizes / max_size) * max_size
-                            scaled_sizes = np.nan_to_num(scaled_sizes, nan=0.0, posinf=0.0, neginf=0.0)
+                            scaled_sizes = np.nan_to_num(
+                                scaled_sizes, nan=0.0, posinf=0.0, neginf=0.0
+                            )
 
                         # Ensure there's a minimum size if needed
                         scaled_sizes = np.clip(scaled_sizes, 1, max_size)
@@ -296,10 +139,12 @@ def plotly(fig, size=1.0):
         # Optimize layout
         if hasattr(fig, "layout"):
             # Set reasonable margins
-            fig.update_layout(margin=dict(l=50, r=50, t=50, b=50), autosize=True)
+            fig.update_layout(
+                margin={"l": 50, "r": 50, "t": 50, "b": 50}, autosize=True
+            )
 
             # Optimize font sizes
-            fig.update_layout(font=dict(size=12), title=dict(font=dict(size=14)))
+            fig.update_layout(font={"size": 12}, title={"font": {"size": 14}})
 
         logger.debug(
             f"[PLOTLY] Figure optimization took {time.time() - optimize_start:.3f}s"
@@ -375,22 +220,124 @@ def plotly(fig, size=1.0):
         return component
 
     except Exception as e:
-        logger.error(f"[PLOTLY] Error creating plot: {str(e)}", exc_info=True)
+        logger.error(f"[PLOTLY] Error creating plot: {e!s}", exc_info=True)
         error_component = {
             "type": "plot",
             "id": id,
-            "error": f"Failed to create plot: {str(e)}",
+            "error": f"Failed to create plot: {e!s}",
         }
         service.append_component(error_component)
         return error_component
 
 
-def table(data, title=None):
+def progress(label: str, value: float = 0.0, size: float = 1.0) -> float:
+    """Create a progress component."""
+    service = PreswaldService.get_instance()
+
+    id = generate_id("progress")
+    logger.debug(f"Creating progress component with id {id}, label: {label}")
+    component = {
+        "type": "progress",
+        "id": id,
+        "label": label,
+        "value": value,
+        "size": size,
+    }
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+    return value
+
+
+def selectbox(
+    label: str, options: List[str], default: Optional[str] = None, size: float = 1.0
+) -> str:
+    """Create a select component with consistent ID based on label."""
+    service = PreswaldService.get_instance()
+
+    component_id = f"selectbox-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+    current_value = service.get_component_state(component_id)
+    if current_value is None:
+        current_value = (
+            default if default is not None else (options[0] if options else None)
+        )
+
+    component = {
+        "type": "selectbox",
+        "id": component_id,
+        "label": label,
+        "options": options,
+        "value": current_value,
+        "size": size,
+    }
+    service.append_component(component)
+    return current_value
+
+
+def separator() -> Dict:
+    """Create a separator component that forces a new row."""
+    service = PreswaldService.get_instance()
+    component = {"type": "separator", "id": str(uuid.uuid4())}
+    service.append_component(component)
+    return component
+
+
+def slider(
+    label: str,
+    min_val: float = 0.0,
+    max_val: float = 100.0,
+    step: float = 1.0,
+    default: Optional[float] = None,
+    size: float = 1.0,
+) -> float:
+    """Create a slider component with consistent ID based on label"""
+    service = PreswaldService.get_instance()
+
+    # Create a consistent ID based on the label
+    component_id = f"slider-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+
+    # Get current state or use default
+    current_value = service.get_component_state(component_id)
+    if current_value is None:
+        current_value = default if default is not None else min_val
+
+    component = {
+        "type": "slider",
+        "id": component_id,
+        "label": label,
+        "min": min_val,
+        "max": max_val,
+        "step": step,
+        "value": current_value,
+        "size": size,
+    }
+
+    service.append_component(component)
+    return current_value
+
+
+# TODO: requires testing
+def spinner(label: str, size: float = 1.0):
+    """Create a spinner component."""
+    service = PreswaldService.get_instance()
+    id = generate_id("spinner")
+    logger.debug(f"Creating spinner component with id {id}, label: {label}")
+    component = {"type": "spinner", "id": id, "label": label, "size": size}
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+    return component
+
+
+def table(  # noqa: C901
+    data: pd.DataFrame, title: Optional[str] = None, limit: Optional[int] = None
+) -> Dict:
     """Create a table component that renders data using TableViewerWidget.
 
     Args:
-        data: List of dictionaries or pandas DataFrame to display
+        data: Pandas DataFrame or list of dictionaries to display
         title: Optional title for the table
+
+    Returns:
+        Dict: Component metadata and processed data
     """
     id = generate_id("table")
     logger.debug(f"Creating table component with id {id}")
@@ -399,9 +346,10 @@ def table(data, title=None):
     try:
         # Convert pandas DataFrame to list of dictionaries if needed
         if hasattr(data, "to_dict"):
-            # Reset index and drop it to avoid index column in output
             if isinstance(data, pd.DataFrame):
                 data = data.reset_index(drop=True)
+                if limit is not None:
+                    data = data.head(limit)
             data = data.to_dict("records")
 
         # Ensure data is a list
@@ -416,6 +364,7 @@ def table(data, title=None):
                 for key, value in row.items():
                     # Convert key to string to ensure it's serializable
                     key_str = str(key)
+
                     # Handle special cases and convert value
                     if pd.isna(value):
                         processed_row[key_str] = None
@@ -430,7 +379,7 @@ def table(data, title=None):
                             # Try to serialize to test if it's JSON-compatible
                             json.dumps(value)
                             processed_row[key_str] = value
-                        except:
+                        except:  # noqa: E722
                             # If serialization fails, convert to string
                             processed_row[key_str] = str(value)
                 processed_data.append(processed_row)
@@ -438,6 +387,7 @@ def table(data, title=None):
                 # If row is not a dict, convert it to a simple dict
                 processed_data.append({"value": str(row)})
 
+        # Create the component structure
         component = {
             "type": "table",
             "id": id,
@@ -453,18 +403,63 @@ def table(data, title=None):
         return component
 
     except Exception as e:
-        logger.error(f"Error creating table component: {str(e)}")
+        logger.error(f"Error creating table component: {e!s}")
         error_component = {
             "type": "table",
             "id": id,
             "data": [],
-            "title": f"Error: {str(e)}",
+            "title": f"Error: {e!s}",
         }
         service.append_component(error_component)
         return error_component
 
 
-def workflow_dag(workflow, title="Workflow Dependency Graph"):
+def text(markdown_str: str, size: float = 1.0) -> str:
+    """Create a text/markdown component."""
+    service = PreswaldService.get_instance()
+    id = generate_id("text")
+    logger.debug(f"Creating text component with id {id}")
+    component = {
+        "type": "text",
+        "id": id,
+        "markdown": markdown_str,
+        "value": markdown_str,
+        "size": size,
+    }
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+    return markdown_str
+
+
+def text_input(label: str, placeholder: str = "", size: float = 1.0) -> str:
+    """Create a text input component with consistent ID based on label."""
+    service = PreswaldService.get_instance()
+
+    # Create a consistent ID based on the label
+    component_id = f"text_input-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+
+    # Get current state or use default
+    current_value = service.get_component_state(component_id)
+    if current_value is None:
+        current_value = ""
+
+    logger.debug(
+        f"Creating text input component with id {component_id}, label: {label}"
+    )
+    component = {
+        "type": "text_input",
+        "id": component_id,
+        "label": label,
+        "placeholder": placeholder,
+        "value": current_value,
+        "size": size,
+    }
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+    return current_value
+
+
+def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -> Dict:
     """
     Render the workflow's DAG visualization.
 
@@ -517,21 +512,43 @@ def workflow_dag(workflow, title="Workflow Dependency Graph"):
 
     except Exception as e:
         logger.error(
-            f"[WORKFLOW_DAG] Error creating DAG visualization: {str(e)}", exc_info=True
+            f"[WORKFLOW_DAG] Error creating DAG visualization: {e!s}", exc_info=True
         )
         error_component = {
             "type": "dag",  # Changed from "plot" to "dag"
             "id": generate_id("dag"),
-            "error": f"Failed to create DAG visualization: {str(e)}",
+            "error": f"Failed to create DAG visualization: {e!s}",
         }
         service.append_component(error_component)
         return error_component
 
 
-# Add separator component function
-def separator():
-    """Create a separator component that forces a new row."""
-    service = PreswaldService.get_instance()
-    component = {"type": "separator", "id": str(uuid.uuid4())}
-    service.append_component(component)
-    return component
+# Helpers
+
+
+def convert_to_serializable(obj):
+    """Convert numpy arrays and other non-serializable objects to Python native types."""
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, (np.int8, np.int16, np.int32, np.int64, np.integer)):
+        return int(obj)
+    elif isinstance(obj, (np.float16, np.float32, np.float64, np.floating)):
+        if np.isnan(obj):
+            return None
+        return float(obj)
+    elif isinstance(obj, np.bool_):
+        return bool(obj)
+    elif isinstance(obj, dict):
+        return {k: convert_to_serializable(v) for k, v in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return [convert_to_serializable(item) for item in obj]
+    elif isinstance(obj, np.generic):
+        if np.isnan(obj):
+            return None
+        return obj.item()
+    return obj
+
+
+def generate_id(prefix: str = "component") -> str:
+    """Generate a unique ID for a component."""
+    return f"{prefix}-{uuid.uuid4().hex[:8]}"

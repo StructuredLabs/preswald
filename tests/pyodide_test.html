@@ -1,0 +1,69 @@
+# Create a simple HTML file with Pyodide (test_pyodide.html)
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.27.2/full/pyodide.js"></script>
+</head>
+<body>
+  <textarea id="output" style="width: 100%; height: 400px;"></textarea>
+  <script>
+    async function main() {
+      const output = document.getElementById("output");
+      const appendOutput = (text) => {
+        output.value += text + "\n";
+      };
+
+      appendOutput("Loading Pyodide...");
+      const pyodide = await loadPyodide({
+        stdout: (text) => appendOutput(text),
+        stderr: (text) => appendOutput("ERROR: " + text)
+      });
+      appendOutput("Pyodide loaded!");
+
+      // Load micropip package first
+      appendOutput("Loading micropip...");
+      await pyodide.loadPackagesFromImports("import micropip");
+      appendOutput("micropip loaded!");
+
+      // // Load typing-extensions package next
+      // appendOutput("Loading typing-extensions...");
+      // await pyodide.loadPackagesFromImports("import typing_extensions");
+      // appendOutput("typing-extensions loaded!");
+
+
+      // Test your package
+      try {
+        // Alternative 1: Install from PyPI if published
+        // await pyodide.runPythonAsync(`
+        //   import micropip
+        //   await micropip.install("preswald")
+          
+        //   # Try importing your modules
+        //   import preswald
+        //   print("Successfully imported preswald")
+          
+        //   # Test specific modules/functionality
+        //   # import preswald.submodule
+        //   # print(preswald.__version__)
+        // `);
+        
+        // Alternative 2: If not published, you can load from wheel
+        // First, build your wheel: python -m build --wheel
+        // Then serve it locally and load it:
+        await pyodide.runPythonAsync(`
+          import micropip
+          await micropip.install("http://localhost:8000/preswald-0.1.38-py3-none-any.whl")
+          import preswald
+          print("Successfully imported from wheel")
+        `);
+        
+        appendOutput("All tests completed!");
+      } catch (error) {
+        appendOutput("ERROR: " + error);
+      }
+    }
+    
+    main();
+  </script>
+</body>
+</html>

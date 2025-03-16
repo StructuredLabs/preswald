@@ -1,0 +1,73 @@
+---
+title: "selectbox"
+icon: "object-group"
+description: ""
+---
+
+```python
+selectbox(
+    label: str, 
+    options: List[str], 
+    default: Optional[str] = None, 
+    size: float = 1.0
+) -> str
+```
+
+The `selectbox` function creates a dropdown menu in your app, allowing users to select an option from a predefined list. This is ideal for scenarios where users need to choose from multiple options.
+
+## Parameters
+
+- **`label`** _(str)_: The label displayed above the dropdown, describing its purpose.
+- **`options`** _(list)_: A list of options that users can select from.
+- **`default`** _(str)_: _(Optional)_ The default option. Must be one of the options provided.
+- **`size`** _(float)_: _(Optional)_ The width of the component in a row. Defaults to `1.0` (full row). See the [Layout Guide](/layout/guide) for details.
+
+<Frame>
+<img
+  className="block dark:hidden"
+  src="/images/selectbox.png"
+  alt="Hero Light"
+/>
+</Frame>
+
+## Returns
+
+- `str` containing the current value.
+
+## Usage Example
+
+Here’s how to use the `selectbox` function:
+
+```python
+from preswald import selectbox
+
+# Create a dropdown menu to select a dataset
+choice = selectbox(
+    label="Choose Dataset",
+    options=["Dataset A", "Dataset B", "Dataset C"]
+)
+
+# Use the selected option
+print(f"User selected: {choice}")
+```
+
+### Key Features
+
+1. **Customizable Options**: Pass a list of options to tailor the dropdown to your needs.
+2. **Descriptive Labels**: Provide clear labels to guide users in making their selection.
+3. **Dynamic Outputs**: Capture the selected value and use it dynamically within your app.
+
+### Example Use Case
+
+Suppose you’re building a data visualization app:
+
+- Use a `selectbox` to let users choose a dataset to analyze or visualize.
+- Depending on the selection, display different charts or tables.
+
+### Why Use `selectbox`?
+
+- **Simplicity**: A dropdown menu is intuitive and familiar for users.
+- **Flexibility**: It handles a wide range of options without cluttering the interface.
+- **Interactivity**: The selected option can drive other app functionality.
+
+Streamline user choices with the `selectbox`! 🎛️

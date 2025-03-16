@@ -1,21 +1,18 @@
 import os
 import sys
 import tempfile
-import webbrowser
 
 import click
-import pkg_resources
 
-from preswald.deploy import cleanup_gcp_deployment, stop_structured_deployment
-from preswald.deploy import deploy as deploy_app
-from preswald.deploy import stop as stop_app
-from preswald.main import start_server
-from preswald.utils import configure_logging, read_template
+from preswald.engine.telemetry import TelemetryService
 
 
 # Create a temporary directory for IPC
 TEMP_DIR = os.path.join(tempfile.gettempdir(), "preswald")
 os.makedirs(TEMP_DIR, exist_ok=True)
+
+# Initialize telemetry service
+telemetry = TelemetryService()
 
 
 @click.group()
@@ -35,20 +32,26 @@ def init(name):
 
     This creates a directory with boilerplate files like `hello.py` and `preswald.toml`.
     """
+    from preswald.utils import generate_slug, read_template
+
     try:
         os.makedirs(name, exist_ok=True)
         os.makedirs(os.path.join(name, "images"), exist_ok=True)
         os.makedirs(os.path.join(name, "data"), exist_ok=True)
 
+        # Generate a unique slug for the project
+        project_slug = generate_slug(name)
+
         # Copy default branding files from package resources
         import shutil
+        from importlib.resources import as_file, files
 
-        default_static_dir = pkg_resources.resource_filename("preswald", "static")
-        default_favicon = os.path.join(default_static_dir, "favicon.ico")
-        default_logo = os.path.join(default_static_dir, "logo.png")
+        # Using a context manager to get the actual file path
+        with as_file(files("preswald").joinpath("static/favicon.ico")) as path:
+            shutil.copy2(path, os.path.join(name, "images", "favicon.ico"))
 
-        shutil.copy2(default_favicon, os.path.join(name, "images", "favicon.ico"))
-        shutil.copy2(default_logo, os.path.join(name, "images", "logo.png"))
+        with as_file(files("preswald").joinpath("static/logo.png")) as path:
+            shutil.copy2(path, os.path.join(name, "images", "logo.png"))
 
         file_templates = {
             "hello.py": "hello.py",
@@ -62,16 +65,28 @@ def init(name):
 
         for file_name, template_name in file_templates.items():
             content = read_template(template_name)
+
+            # Replace the default slug in preswald.toml with the generated one
+            if file_name == "preswald.toml":
+                content = content.replace(
+                    'slug = "preswald-project"', f'slug = "{project_slug}"'
+                )
+
             with open(os.path.join(name, file_name), "w") as f:
                 f.write(content)
 
+        # Track initialization
+        telemetry.track_command(
+            "init", {"project_name": name, "project_slug": project_slug}
+        )
+
         click.echo(f"Initialized a new Preswald project in '{name}/' 🎉!")
+        click.echo(f"Project slug: {project_slug}")
     except Exception as e:
         click.echo(f"Error initializing project: {e} ❌")
 
 
 @cli.command()
-@click.argument("script", default="hello.py")
 @click.option("--port", default=8501, help="Port to run the server on.")
 @click.option(
     "--log-level",
@@ -81,82 +96,78 @@ def init(name):
     default=None,
     help="Set the logging level (overrides config file)",
 )
-def run(script, port, log_level):
+@click.option(
+    "--disable-new-tab",
+    is_flag=True,
+    default=False,
+    help="Disable automatically opening a new browser tab",
+)
+def run(port, log_level, disable_new_tab):
     """
-    Run a Preswald app.
+    Run a Preswald app from the current directory.
 
-    By default, it runs the `hello.py` script on localhost:8501.
+    Looks for preswald.toml in the current directory and runs the script specified in the entrypoint.
     """
-    if not os.path.exists(script):
-        click.echo(f"Error: Script '{script}' not found. ❌")
+    config_path = "preswald.toml"
+    if not os.path.exists(config_path):
+        click.echo("Error: preswald.toml not found in current directory. ❌")
+        click.echo("Make sure you're in a Preswald project directory.")
         return
 
-    config_path = os.path.join(os.path.dirname(script), "preswald.toml")
+    import tomli
+
+    from preswald.main import start_server
+    from preswald.utils import configure_logging, read_port_from_config
+
+    try:
+        with open(config_path, "rb") as f:
+            config = tomli.load(f)
+    except Exception as e:
+        click.echo(f"Error reading preswald.toml: {e} ❌")
+        return
+
+    if "project" not in config or "entrypoint" not in config["project"]:
+        click.echo(
+            "Error: entrypoint not defined in preswald.toml under [project] section. ❌"
+        )
+        return
+
+    script = config["project"]["entrypoint"]
+    if not os.path.exists(script):
+        click.echo(f"Error: Entrypoint script '{script}' not found. ❌")
+        return
+
     log_level = configure_logging(config_path=config_path, level=log_level)
+    port = read_port_from_config(config_path=config_path, port=port)
+
+    # Track run command
+    telemetry.track_command(
+        "run",
+        {
+            "script": script,
+            "port": port,
+            "log_level": log_level,
+            "disable_new_tab": disable_new_tab,
+        },
+    )
 
     url = f"http://localhost:{port}"
     click.echo(f"Running '{script}' on {url} with log level {log_level}  🎉!")
 
-    # ipc_file = os.path.join(TEMP_DIR, f"preswald_connections_{os.getpid()}.json")
-    # os.environ["PRESWALD_IPC_FILE"] = ipc_file
-
-    # celery_cmd = [
-    #     "celery",
-    #     "-A", "preswald.celery_app",
-    #     "worker",
-    #     "--loglevel", log_level.lower(),
-    #     "--concurrency", "1",
-    #     "--pool", "solo",
-    #     "--without-heartbeat",
-    #     "--without-mingle",
-    #     "--without-gossip"
-    # ]
-
     try:
-        # click.echo("Starting Celery worker...")
-        # celery_process = subprocess.Popen(
-        #     celery_cmd,
-        #     env=dict(
-        #         os.environ,
-        #         SCRIPT_PATH=os.path.abspath(script),
-        #         PYTHONPATH=os.getcwd(),
-        #         PYTHONUNBUFFERED="1"
-        #     )
-        # )
+        if not disable_new_tab:
+            import webbrowser
 
-        # # Wait for Celery to start
-        # import time
-        # time.sleep(2)
+            webbrowser.open(url)
 
-        # if celery_process.poll() is not None:
-        #     out, err = celery_process.communicate()
-        #     click.echo(f"Error starting Celery worker: {err}")
-        #     return
-
-        webbrowser.open(url)
-
-        # try:
         start_server(script=script, port=port)
-        # finally:
-        #     click.echo("Shutting down Celery worker...")
-        #     celery_process.terminate()
-        #     celery_process.wait(timeout=5)
-
-        #     try:
-        #         if os.path.exists(ipc_file):
-        #             os.remove(ipc_file)
-        #     except Exception as e:
-        #         click.echo(f"Error removing IPC file: {e}")
 
     except Exception as e:
         click.echo(f"Error: {e}")
-        # if 'celery_process' in locals():
-        #     celery_process.terminate()
-        #     celery_process.wait(timeout=5)
 
 
 @cli.command()
-@click.argument("script", default="app.py")
+@click.argument("script", default=None, required=False)
 @click.option(
     "--target",
     type=click.Choice(["local", "gcp", "aws", "structured"], case_sensitive=False),
@@ -172,11 +183,20 @@ def run(script, port, log_level):
     default=None,
     help="Set the logging level (overrides config file)",
 )
-def deploy(script, target, port, log_level):
+@click.option(
+    "--github",
+    help="GitHub username for structured deployment",
+)
+@click.option(
+    "--api-key",
+    help="Structured Cloud API key for structured deployment",
+)
+def deploy(script, target, port, log_level, github, api_key):  # noqa: C901
     """
     Deploy your Preswald app.
 
     This allows you to share the app within your local network or deploy to production.
+    If no script is provided, it will use the entrypoint defined in preswald.toml.
     """
     try:
         if target == "aws":
@@ -185,17 +205,59 @@ def deploy(script, target, port, log_level):
             )
             return
 
+        # First try to read from preswald.toml in current directory
+        config_path = "preswald.toml"
+        if os.path.exists(config_path):
+            import tomli
+
+            try:
+                with open(config_path, "rb") as f:
+                    config = tomli.load(f)
+                if "project" in config and "entrypoint" in config["project"]:
+                    script = script or config["project"]["entrypoint"]
+            except Exception as e:
+                click.echo(f"Warning: Error reading preswald.toml: {e}")
+                # Continue with provided script argument if config reading fails
+
+        if not script:
+            click.echo(
+                "Error: No script specified and no entrypoint found in preswald.toml ❌"
+            )
+            click.echo(
+                "Either provide a script argument or define entrypoint in preswald.toml"
+            )
+            return
+
         if not os.path.exists(script):
             click.echo(f"Error: Script '{script}' not found. ❌")
             return
 
+        from preswald.deploy import deploy as deploy_app
+        from preswald.utils import configure_logging, read_port_from_config
+
         config_path = os.path.join(os.path.dirname(script), "preswald.toml")
         log_level = configure_logging(config_path=config_path, level=log_level)
+        port = read_port_from_config(config_path=config_path, port=port)
+
+        # Track deployment
+        telemetry.track_command(
+            "deploy",
+            {
+                "script": script,
+                "target": target,
+                "port": port,
+                "log_level": log_level,
+                "has_github": bool(github),
+                "has_api_key": bool(api_key),
+            },
+        )
 
         if target == "structured":
             click.echo("Starting production deployment... 🚀")
             try:
-                for status_update in deploy_app(script, target, port=port):
+                for status_update in deploy_app(
+                    script, target, port=port, github_username=github, api_key=api_key
+                ):
                     status = status_update.get("status", "")
                     message = status_update.get("message", "")
 
@@ -233,31 +295,40 @@ def deploy(script, target, port, log_level):
             click.echo(click.style(success_message, fg="green"))
 
     except Exception as e:
-        click.echo(f"Error deploying app: {e} ❌")
+        click.echo(click.style(f"Deployment failed: {e!s} ❌", fg="red"))
+        sys.exit(1)
 
 
 @cli.command()
-@click.argument("script", default="app.py")
 @click.option(
     "--target",
     type=click.Choice(["local", "gcp", "aws", "structured"], case_sensitive=False),
     default="local",
     help="Target platform to stop the deployment from.",
 )
-def stop(script, target):
+def stop(target):
     """
     Stop the currently running deployment.
 
     This command must be run from the same directory as your Preswald app.
     """
     try:
-        if not os.path.exists(script):
-            click.echo(f"Error: Script '{script}' not found. ❌")
+        from preswald.deploy import cleanup_gcp_deployment, stop_structured_deployment
+
+        # Track stop command
+        telemetry.track_command("stop", {"target": target})
+        config_path = "preswald.toml"
+        if not os.path.exists(config_path):
+            click.echo("Error: preswald.toml not found in current directory. ❌")
+            click.echo("Make sure you're in a Preswald project directory.")
             return
 
+        current_dir = os.getcwd()
+        print(f"Current directory: {current_dir}")
         if target == "structured":
             try:
-                stop_structured_deployment(script)
+                response_json = stop_structured_deployment(current_dir)
+                click.echo(response_json["message"])
                 click.echo(
                     click.style(
                         "✅ Production deployment stopped successfully.", fg="green"
@@ -268,7 +339,7 @@ def stop(script, target):
         if target == "gcp":
             try:
                 click.echo("Starting GCP deployment cleanup... 🧹")
-                for status_update in cleanup_gcp_deployment(script):
+                for status_update in cleanup_gcp_deployment(current_dir):
                     status = status_update.get("status", "")
                     message = status_update.get("message", "")
 
@@ -287,10 +358,11 @@ def stop(script, target):
                 click.echo(click.style(f"❌ GCP cleanup failed: {e!s}", fg="red"))
                 sys.exit(1)
         else:
-            stop_app(script)
+            from preswald.deploy import stop as stop_app
+
+            stop_app(current_dir)
             click.echo("Deployment stopped successfully. 🛑 ")
-    except Exception as e:
-        click.echo(f"Error stopping deployment: {e} ❌")
+    except Exception:
         sys.exit(1)
 
 
@@ -311,6 +383,9 @@ def deployments():
                 )
             )
             return
+
+        # Track deployments command
+        telemetry.track_command("deployments", {})
 
         from preswald.deploy import get_structured_deployments
 
@@ -372,19 +447,29 @@ def tutorial(ctx):
     """
     Run the Preswald tutorial app.
 
-    This command runs the tutorial app located in the 'tutorial/hello.py' file.
+    This command runs the tutorial app located in the package's tutorial directory.
     """
-    tutorial_script = os.path.join("tutorial", "hello.py")
+    import contextlib
 
-    if not os.path.exists(tutorial_script):
-        click.echo(f"Error: Tutorial script '{tutorial_script}' not found. ❌")
-        click.echo("👉 Please run this command from the root directory of the project.")
+    import preswald
+
+    package_dir = os.path.dirname(preswald.__file__)
+    tutorial_dir = os.path.join(package_dir, "tutorial")
+
+    if not os.path.exists(tutorial_dir):
+        click.echo(f"Error: Tutorial directory '{tutorial_dir}' not found. ❌")
+        click.echo("👉 The tutorial files may be missing from your installation.")
         return
+
+    # Track tutorial command
+    telemetry.track_command("tutorial", {})
 
     click.echo("🚀 Launching the Preswald tutorial app! 🎉")
 
-    # Invoke the 'run' command with 'tutorial/hello.py'
-    ctx.invoke(run, script=tutorial_script)
+    # Use context manager to temporarily change directory
+    with contextlib.chdir(tutorial_dir):
+        # Invoke the 'run' command from the tutorial directory
+        ctx.invoke(run, port=8501)
 
 
 if __name__ == "__main__":

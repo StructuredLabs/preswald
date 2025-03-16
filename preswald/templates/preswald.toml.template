@@ -2,6 +2,8 @@
 title = "Preswald Project"
 version = "0.1.0"
 port = 8501
+slug = "preswald-project"  # Required: Unique identifier for your project
+entrypoint = "hello.py"    # Required: Main script to run when executing preswald run
 
 [branding]
 name = "Preswald Project"
@@ -9,7 +11,8 @@ logo = "images/logo.png"
 favicon = "images/favicon.ico"
 primaryColor = "#F89613"
 
-[data.csv]
+[data.sample_csv]
+type = "csv"
 path = "data/sample.csv"
 
 [logging]
