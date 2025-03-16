@@ -1,8 +1,4 @@
-Below is a **sample** `README.md` you can include in your **community_gallery** folder (e.g., `community_gallery/my_finance_example/README.md`). Adapt the text if your dataset or features are different.
-
----
-
-# **My Finance Example with Preswald**
+# **My Finance Data App with Preswald**
 
 This example demonstrates how to build an **interactive finance dashboard** using [Preswald](https://github.com/StructuredLabs/preswald). It displays Tesla (TSLA) stock prices, offers a **slider** to filter data by “Close” price, and showcases both **candlestick** and **scatter** charts.
 
