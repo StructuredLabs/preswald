@@ -6,4 +6,4 @@
 3. Run your app with `preswald run hello.py`
 
 ## Data Source
-- Dataset was obtained from Kaggle: [Kaggle: NBA Player Stats 2023]((https://www.kaggle.com/datasets/amirhosseinmirzaie/nba-players-stats2023-season?resource=download))
+- Dataset was obtained from Kaggle: [Kaggle 2023 NBA Player Stats](https://www.kaggle.com/datasets/amirhosseinmirzaie/nba-players-stats2023-season?resource=download).
