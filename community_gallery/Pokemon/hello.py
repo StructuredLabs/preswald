@@ -310,52 +310,21 @@ if pokemon_name:
                 pokemon_api_data = response.json()
                 sprite_url = pokemon_api_data['sprites']['front_default']
                 
-                # Display Pokemon sprite using Plotly
-                if sprite_url:
-                    # Create a simple figure for the sprite
-                    sprite_fig = go.Figure()
-                    
-                    # Add image to the center of the figure
-                    sprite_fig.add_layout_image(
-                        dict(
-                            source=sprite_url,
-                            xref="paper", yref="paper",
-                            x=0.5, y=0.5,
-                            sizex=0.8, sizey=0.8,
-                            xanchor="center", yanchor="middle"
-                        )
-                    )
-                    
-                    # Configure layout to make image larger and remove all axes elements
-                    sprite_fig.update_layout(
-                        width=400,
-                        height=400,
-                        margin=dict(l=0, r=0, t=0, b=0),
-                        paper_bgcolor='rgba(0,0,0,0)',
-                        plot_bgcolor='rgba(0,0,0,0)',
-                        xaxis=dict(
-                            showgrid=False,
-                            zeroline=False,
-                            showticklabels=False,
-                            visible=False
-                        ),
-                        yaxis=dict(
-                            showgrid=False,
-                            zeroline=False,
-                            showticklabels=False,
-                            visible=False
-                        )
-                    )
-                    
-                    text(f"## {pokemon_data['name'].title()}")
-                    plotly(sprite_fig)
+                # Save sprite URL for network visualization
+                has_sprite = bool(sprite_url)
+                
+                text(f"## {pokemon_data['name'].title()}")
             else:
                 text(f"Could not fetch sprite for {pokemon_name} from PokeAPI (Status code: {response.status_code})")
+                has_sprite = False
+                sprite_url = None
                 
         except Exception as e:
             text(f"Error fetching Pokemon sprite: {str(e)}")
+            has_sprite = False
+            sprite_url = None
         
-        text(f"Type Effectiveness Network for {pokemon_data['name']}")
+        text(f"## Type Effectiveness Network for {pokemon_data['name']}")
         
         # Define all Pokemon types
         all_types = sorted(df['type1'].unique())
@@ -601,13 +570,34 @@ if pokemon_name:
                 ),
                 margin=dict(b=0, l=0, r=0, t=40),
                 paper_bgcolor='rgba(0,0,0,0)',
-
             )
         )
+        
+        # Add sprite image to the Pokemon node position if available
+        if has_sprite and sprite_url:
+            fig.add_layout_image(
+                dict(
+                    source=sprite_url,
+                    xref="x", yref="y",
+                    x=pos['pokemon'][0],
+                    y=pos['pokemon'][1],
+                    sizex=0.5,
+                    sizey=0.5,
+                    xanchor="center",
+                    yanchor="middle"
+                )
+            )
+            
+            # Make ONLY the Pokemon node smaller and less visible
+            # We need to find the specific trace that contains the Pokemon node
+            for i, trace in enumerate(fig.data):
+                if 'mode' in trace and trace.mode == 'markers+text' and 'text' in trace and pokemon_data['name'] in str(trace.text):
+                    # This is the Pokemon trace
+                    fig.data[i].marker.size = 1
+                    fig.data[i].marker.opacity = 0.3
+                    break
 
         plotly(fig)
-        
-        
         
     else:
         text(f"Pokemon '{pokemon_name}' not found. Please check the spelling or try another Pokemon.")
