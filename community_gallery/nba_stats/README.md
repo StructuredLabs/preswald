@@ -1,6 +1,7 @@
 # Preswald Project - 2023 NBA Stats Comparison 
 
-## 
+This project visualizes the relationship between field goal percentage and total points scored for each NBA player in a interactive scatter plot. 
+There is also a slider where you can filter out players based on the total number of points they scored for the entire 2023 NBA season. 
 
 ## Setup
 1. Configure your data connections in `preswald.toml`
