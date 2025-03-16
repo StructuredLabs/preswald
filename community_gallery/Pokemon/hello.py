@@ -41,7 +41,7 @@ if primary_type and primary_type != "Any":
 if secondary_type and secondary_type != "Any":
     df_table_display = df_table_display[df_table_display['type2'] == secondary_type]
 
-table(df_table_display,title="Pokemon Data")
+table(df_table_display,title="Pokemon Data",limit=10)
 
 
 # Data Visualization Section
@@ -286,11 +286,10 @@ elif selected_plot_type == "Radar Chart":
 
 
 # Pokemon Type Effectiveness Network Section
-text("## Pokemon Type Effectiveness Network")
-text("Enter a Pokemon name to see its type effectiveness relationships:")
+text("## Enter a Pokemon name to see its type effectiveness relationships:")
 
 # Text input for Pokemon name
-pokemon_name = text_input("Pokemon Name", placeholder="e.g. Pikachu")
+pokemon_name = text_input("Pokemon Name", placeholder="e.g. Pikachu", size=0.5)
 
 if pokemon_name:
     # Check if the Pokemon exists in the dataset
@@ -313,7 +312,6 @@ if pokemon_name:
                 # Save sprite URL for network visualization
                 has_sprite = bool(sprite_url)
                 
-                text(f"## {pokemon_data['name'].title()}")
             else:
                 text(f"Could not fetch sprite for {pokemon_name} from PokeAPI (Status code: {response.status_code})")
                 has_sprite = False
@@ -324,7 +322,7 @@ if pokemon_name:
             has_sprite = False
             sprite_url = None
         
-        text(f"## Type Effectiveness Network for {pokemon_data['name']}")
+        text(f"### Defensive Type Effectiveness Network for {pokemon_data['name']}")
         
         # Define all Pokemon types
         all_types = sorted(df['type1'].unique())
@@ -358,11 +356,11 @@ if pokemon_name:
         # Define effectiveness colors for different multipliers
         effectiveness_colors = {
             0: '#888888',     # Gray for Immunity (No Effect)
-            0.25: '#00AA00',  # Darker Green for Doubly Resistant
-            0.5: '#00FF00',   # Green for Resistant
+            0.25: '#00CCCC',  # Teal/Cyan for Doubly Resistant
+            0.5: '#00AA55',   # Green for Resistant
             1: '#AAAAAA',     # Light Gray for Neutral
-            2: '#FF0000',     # Red for Super Effective
-            4: '#CC0000'      # Darker Red for Doubly Super Effective
+            2: '#FF8000',     # Orange for Vulnerable
+            4: '#CC0066'      # Magenta/Purple for Highly Vulnerable
         }
         
         # Create a network graph
@@ -453,9 +451,9 @@ if pokemon_name:
             elif multiplier == 1:
                 label = "Neutral (1×)"
             elif multiplier == 2:
-                label = "Super Effective (2×)"
+                label = "Vulnerable (2×)"
             else:  # multiplier == 4
-                label = "Doubly Super Effective (4×)"
+                label = "Highly Vulnerable (4×)"
                 
             edge_traces[multiplier] = go.Scatter(
                 x=[], y=[],
@@ -491,7 +489,8 @@ if pokemon_name:
                 color='#FF5733',  # Orange-red for the Pokemon
                 size=70,  # Increased from 35
                 line=dict(width=2, color='white')
-            )
+            ),
+            showlegend=False  # Hide from legend
         )
         
         # Trace for type nodes
@@ -506,7 +505,8 @@ if pokemon_name:
                 color=[],
                 size=[],
                 line=dict(width=2, color='white')
-            )
+            ),
+            showlegend=False  # Hide from legend
         )
         
         # Add type nodes
@@ -543,32 +543,44 @@ if pokemon_name:
         fig = go.Figure(
             data=data,
             layout=go.Layout(
-                title=dict(
-                    text=f"Defensive Type Effectiveness for {pokemon_data['name']}",
-                    font=dict(size=26)
+                # title=dict(
+                #     text=f"Defensive Type Effectiveness for {pokemon_data['name']}",
+                #     font=dict(size=26)
+                # ),
+                showlegend=True,  # Show the legend
+                legend=dict(
+                    orientation="h",  # Horizontal orientation
+                    yanchor="bottom",
+                    y=1.02,           # Position above the plot
+                    xanchor="center",
+                    x=0.5,            # Center horizontally
+                    font=dict(size=14)
                 ),
-                showlegend=False,
                 hovermode='closest',
-                height=1200,
-                width=1600,
+                height=1000,
+                width=1000,
                 plot_bgcolor='rgba(240,240,240,0.8)',
                 xaxis=dict(
                     visible=False,
-                    range=[-1.5, 1.5],
+                    showticklabels=False,
+                    showgrid=False,
+                    zeroline=False,
+                    showline=False,
+                    showspikes=False,
                     fixedrange=True,
-                    showgrid=False,  # Explicitly disable grid
-                    zeroline=False,  # Remove zero line
-                    showspikes=False
+                    range=[-1.5, 1.5]
                 ),
                 yaxis=dict(
                     visible=False,
-                    range=[-1.5, 1.5],
+                    showticklabels=False,
+                    showgrid=False,
+                    zeroline=False,
+                    showline=False,
+                    showspikes=False,
                     fixedrange=True,
-                    showgrid=False,  # Explicitly disable grid
-                    zeroline=False,  # Remove zero line
-                    showspikes=False
+                    range=[-1.5, 1.5]
                 ),
-                margin=dict(b=0, l=0, r=0, t=40),
+                margin=dict(b=0, l=0, r=0, t=80),  # Increased top margin to make room for legend
                 paper_bgcolor='rgba(0,0,0,0)',
             )
         )
