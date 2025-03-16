@@ -3,8 +3,9 @@ import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
 from collections import Counter
-from wordcloud import WordCloud
-import matplotlib.pyplot as plt
+# Removing wordcloud and matplotlib imports that cause deployment issues
+# from wordcloud import WordCloud
+# import matplotlib.pyplot as plt
 import io
 import base64
 from datetime import datetime, timedelta
