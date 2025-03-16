@@ -1,15 +1,15 @@
 [project]
-title = "Preswald Project"
+title = "Manoj Assessment"
 version = "0.1.0"
 port = 8501
 slug = "pokemon-383896"  # Required: Unique identifier for your project
 entrypoint = "hello.py"    # Required: Main script to run when executing preswald run
 
 [branding]
-name = "Preswald Project"
+name = "Manoj Assessment"
 logo = "images/logo.png"
 favicon = "images/favicon.ico"
-primaryColor = "#F89613"
+primaryColor = "#CC0000"
 
 [data.pokemon_data]
 type = "csv"

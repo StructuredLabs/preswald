@@ -7,7 +7,7 @@ import numpy as np
 import requests
 import json
 
-text("# Manoj Assessment")
+text("# Pokemon Data")
 
 # Load the CSV
 connect() # load in all sources, which by default is the sample_csv
@@ -45,11 +45,11 @@ table(df_table_display,title="Pokemon Data",limit=10)
 
 
 # Data Visualization Section
-text("## Data Visualization")
+text("# Data Visualization")
 
-# Define available plot types
+# Define available plot types (remove unwanted entries)
 plot_types = ["Scatter", "Histogram", "Bar Chart", "Box Plot", "Violin Plot", 
-              "Density Contour", "Heatmap", "Bubble Chart", "Radar Chart", "3D Scatter"]
+              "Radar Chart", "3D Scatter"]
 
 # Define available fields for plotting
 numeric_fields = ['hp', 'attack', 'defense', 'sp_attack', 'sp_defense', 'speed', 'base_total', 
@@ -60,8 +60,8 @@ all_fields = numeric_fields + [f for f in categorical_fields if f not in numeric
 # Plot selection
 selected_plot_type = selectbox("Select Plot Type", plot_types)
 
-# Based on plot type, show appropriate field selection options
-if selected_plot_type in ["Scatter", "Bubble Chart", "3D Scatter", "Heatmap"]:
+# Plot selection and configuration (modified)
+if selected_plot_type in ["Scatter", "3D Scatter"]:
     # These plots need X and Y axes
     x_axis = selectbox("X-Axis", numeric_fields, default="attack", size=0.33)
     y_axis = selectbox("Y-Axis", numeric_fields, default="defense", size=0.33)
@@ -69,12 +69,12 @@ if selected_plot_type in ["Scatter", "Bubble Chart", "3D Scatter", "Heatmap"]:
     # For plots that can use a color dimension
     color_by = selectbox("Color By", ["None"] + all_fields, default="type1", size=0.33)
     
-    # For 3D scatter or bubble charts
-    if selected_plot_type in ["3D Scatter", "Bubble Chart"]:
-        z_axis = selectbox("Z-Axis/Size", numeric_fields, default="hp")
+    # Only 3D scatter needs Z-axis
+    if selected_plot_type == "3D Scatter":
+        z_axis = selectbox("Z-Axis", numeric_fields, default="hp",size=0.5)
     
     # Filter option
-    filter_by_type = selectbox("Filter by Type", ["All"] + df["type1"].unique().tolist(), default="All")
+    filter_by_type = selectbox("Filter by Type", ["All"] + df["type1"].unique().tolist(), default="All",size=0.5)
     
     # Create the plot based on selection
     if filter_by_type != "All":
@@ -92,17 +92,6 @@ if selected_plot_type in ["Scatter", "Bubble Chart", "3D Scatter", "Heatmap"]:
                                 y_axis: y_axis.replace('_', ' ').title()})
         plotly(fig)
     
-    elif selected_plot_type == "Bubble Chart":
-        text(f"### Bubble Chart: {x_axis} vs {y_axis} (Size: {z_axis})")
-        color_param = color_by if color_by != "None" else None
-        fig = px.scatter(plot_df, x=x_axis, y=y_axis, size=z_axis, color=color_param,
-                        hover_name="name", size_max=30,
-                        title=f"{y_axis} vs {x_axis} (Bubble Size: {z_axis})",
-                        labels={x_axis: x_axis.replace('_', ' ').title(), 
-                                y_axis: y_axis.replace('_', ' ').title(),
-                                z_axis: z_axis.replace('_', ' ').title()})
-        plotly(fig)
-    
     elif selected_plot_type == "3D Scatter":
         text(f"### 3D Scatter Plot: {x_axis} vs {y_axis} vs {z_axis}")
         color_param = color_by if color_by != "None" else None
@@ -112,26 +101,6 @@ if selected_plot_type in ["Scatter", "Bubble Chart", "3D Scatter", "Heatmap"]:
                            labels={x_axis: x_axis.replace('_', ' ').title(), 
                                    y_axis: y_axis.replace('_', ' ').title(),
                                    z_axis: z_axis.replace('_', ' ').title()})
-        plotly(fig)
-    
-    elif selected_plot_type == "Heatmap":
-        text(f"### Heatmap: {x_axis} vs {y_axis}")
-        # For heatmap, we need to aggregate data
-        if color_by != "None" and color_by in categorical_fields:
-            # Use a pivot table for categorical color variable
-            pivot_df = plot_df.pivot_table(index=y_axis, columns=x_axis, 
-                                         values=color_by, aggfunc='count')
-            title = f"Heatmap of Pokemon Count by {x_axis} and {y_axis}"
-        else:
-            # Use correlation for numeric variables
-            corr_cols = [col for col in numeric_fields if col in plot_df.columns]
-            pivot_df = plot_df[corr_cols].corr()
-            title = "Correlation Heatmap of Pokemon Stats"
-        
-        fig = px.imshow(pivot_df, title=title, 
-                       labels=dict(x=x_axis.replace('_', ' ').title(), 
-                                  y=y_axis.replace('_', ' ').title(), 
-                                  color="Value"))
         plotly(fig)
 
 elif selected_plot_type in ["Histogram", "Box Plot", "Violin Plot"]:
@@ -226,28 +195,6 @@ elif selected_plot_type == "Bar Chart":
                             value: value.replace('_', ' ').title()})
         plotly(fig)
 
-elif selected_plot_type == "Density Contour":
-    # Density contours work well with two numeric fields
-    x_axis = selectbox("X-Axis", numeric_fields, default="attack", size=0.33)
-    y_axis = selectbox("Y-Axis", numeric_fields, default="defense", size=0.33)
-    group_by = selectbox("Group By", ["None"] + categorical_fields, default="type1", size=0.33)
-    
-    text(f"### Density Contour: {x_axis} vs {y_axis}")
-    
-    if group_by != "None":
-        fig = px.density_contour(df, x=x_axis, y=y_axis, color=group_by,
-                                marginal_x="histogram", marginal_y="histogram",
-                                title=f"Density Contour of {y_axis} vs {x_axis} by {group_by}",
-                                labels={x_axis: x_axis.replace('_', ' ').title(),
-                                        y_axis: y_axis.replace('_', ' ').title()})
-    else:
-        fig = px.density_contour(df, x=x_axis, y=y_axis,
-                                marginal_x="histogram", marginal_y="histogram",
-                                title=f"Density Contour of {y_axis} vs {x_axis}",
-                                labels={x_axis: x_axis.replace('_', ' ').title(),
-                                        y_axis: y_axis.replace('_', ' ').title()})
-    plotly(fig)
-
 elif selected_plot_type == "Radar Chart":
     # Radar charts work well for comparing multiple dimensions
     text("### Radar Chart of Pokemon Stats")
@@ -286,10 +233,10 @@ elif selected_plot_type == "Radar Chart":
 
 
 # Pokemon Type Effectiveness Network Section
-text("## Enter a Pokemon name to see its type effectiveness relationships:",size=0.7)
+text("## Enter a Pokemon name to see its type effectiveness relationships:",size=0.5)
 
 # Text input for Pokemon name
-pokemon_name = text_input("Pokemon Name", placeholder="e.g. Pikachu", size=0.3)
+pokemon_name = text_input("Pokemon Name", placeholder="e.g. Pikachu", size=0.5)
 
 if pokemon_name:
     # Check if the Pokemon exists in the dataset
@@ -322,7 +269,7 @@ if pokemon_name:
             has_sprite = False
             sprite_url = None
         
-        text(f"### Defensive Type Effectiveness Network for {pokemon_data['name']}")
+        text(f"### Defense Type Effectiveness Network for {pokemon_data['name']}")
         
         # Define all Pokemon types
         all_types = sorted(df['type1'].unique())
