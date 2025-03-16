@@ -20,8 +20,8 @@ This app provides an **interactive analysis** of Shark Tank investments. It allo
 
 ---
 
-## How to Run Locally  
-Follow these steps to set up and run the app on your local machine:
+## 🚀 How to Run & Deploy  
+Follow these steps to set up, run, and deploy the app:
 
 ```bash
 # Step 1: Install Preswald (if not already installed)
@@ -36,14 +36,8 @@ nano secrets.toml  # Add API keys and passwords
 # Step 4: Run the app  
 preswald run hello.py  
 
----
-
-## How to Deploy
-
-```bash
-
-# Step 1: Navigate to your project directory  
+# Step 5: Navigate to your project directory  
 cd /path/to/project  
 
-# Step 2: Deploy the app  
+# Step 6: Deploy the app  
 preswald deploy --target structured --github hetparikh2003 --api-key <your-api-key> hello.py  
