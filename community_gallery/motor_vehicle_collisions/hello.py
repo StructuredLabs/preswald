@@ -215,4 +215,4 @@ except Exception as e:
 
 # Show a sample of the data
 text("## Data Sample")
-table(df.head(100), title="Motor Vehicle Collisions - Person Data (Sample)")
+table(df.head(10), title="Motor Vehicle Collisions - Person Data (Sample)")
