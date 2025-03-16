@@ -1,4 +1,6 @@
-# Preswald Project
+# Preswald Project - 2023 NBA Stats Comparison 
+
+## 
 
 ## Setup
 1. Configure your data connections in `preswald.toml`
