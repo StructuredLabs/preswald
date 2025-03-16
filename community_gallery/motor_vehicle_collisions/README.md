@@ -1,21 +1,32 @@
-# Iris Dataset Explorer
+# Motor Vehicle Collisions Explorer
 
-An interactive Preswald app to explore the famous Iris dataset.
+An interactive Preswald app to explore NYC Motor Vehicle Collision data, focusing on person-level information.
 
 ## Dataset Source
 
-The Iris dataset is a classic dataset in machine learning and statistics. It contains measurements of 150 iris flowers from three different species: Setosa, Versicolor, and Virginica. The dataset includes four features measured for each sample: sepal length, sepal width, petal length, and petal width (all in centimeters).
+The Motor Vehicle Collisions dataset is provided by the New York City Police Department (NYPD) and contains information about all traffic crashes in NYC. This specific dataset focuses on the person-level information for each collision, including details about the individuals involved, their injuries, and demographic information.
 
-The dataset was sourced from the [Seaborn data repository](https://github.com/mwaskom/seaborn-data).
+
+## Data Cleaning
+
+The app performs several data cleaning steps to ensure the visualizations are accurate and meaningful:
+
+1. Converting date fields to proper datetime format
+2. Converting age values to numeric and filtering out invalid ages
+3. Standardizing gender, person type, and injury status values
+4. Handling missing values appropriately
 
 ## App Features
 
-This app allows users to:
+This app provides five interactive visualizations to explore the NYC Motor Vehicle Collisions data:
 
-- Filter data by species
-- Select different features for X and Y axes
-- Add trend lines to visualize relationships
-- View the raw data in a table format
+1. **Injury Statistics by Person Type** - Bar chart showing injury outcomes across different person types (occupants, pedestrians, etc.)
+2. **Age Distribution of Involved Persons** - Histogram showing the age distribution of people involved in collisions, broken down by person type
+3. **Gender Distribution by Person Type** - Grouped bar chart comparing gender distribution across different person types
+4. **Collisions by Time of Day** - Line chart showing the frequency of collisions throughout the day
+5. **Safety Equipment Usage and Injury Outcomes** - Bar chart analyzing the relationship between safety equipment usage and injury severity
+
+The app also provides a data sample table to explore the raw data.
 
 ## How to Run
 
