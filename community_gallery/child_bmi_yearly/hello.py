@@ -16,7 +16,7 @@ table(df, title="All Data")
 # Filter the data using a SQL query
 sql = "SELECT SchoolYear, NameHospital, Sex, EpiUnderweight, EpiHealthyWeight, EpiOverweight, EpiObese FROM bmidata"
 filtered_df = query(sql, "bmidata")
-text("## Filtered BMI Data (2001-2023)")
+text("## Filtered BMI Data (2015-2023)")
 table(filtered_df, title="Filtered Data")
 
 # Transform the data into long format to compare BMI categories side by side

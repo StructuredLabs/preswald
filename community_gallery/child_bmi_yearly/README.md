@@ -1,6 +1,6 @@
 # Child BMI Data Visualization
 
-This pull request adds an interactive application that visualizes child BMI data extracted from a CSV file. The data includes school year, hospital details, sex, and four key BMI indicators: Underweight, Healthy Weight, Overweight, and Obese.
+This app visualizes child BMI data extracted from a CSV file. The data includes school year, hospital details, sex, and four key BMI indicators: Underweight, Healthy Weight, Overweight, and Obese.
 
 ## Key Features
 
