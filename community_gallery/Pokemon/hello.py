@@ -4,6 +4,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 import networkx as nx
 import numpy as np
+import requests
+import json
 
 text("# Manoj Assessment")
 
@@ -222,7 +224,7 @@ elif selected_plot_type == "Bar Chart":
                     title=f"Average {value} by {category}",
                     labels={category: category.replace('_', ' ').title(),
                             value: value.replace('_', ' ').title()})
-    plotly(fig)
+        plotly(fig)
 
 elif selected_plot_type == "Density Contour":
     # Density contours work well with two numeric fields
@@ -298,10 +300,62 @@ if pokemon_name:
         primary_type = pokemon_data['type1']
         secondary_type = pokemon_data['type2'] if not pd.isna(pokemon_data['type2']) else None
         
+        # Fetch Pokemon sprite from PokeAPI
+        try:
+            # Make API request to PokeAPI
+            api_url = f"https://pokeapi.co/api/v2/pokemon/{pokemon_name.lower()}"
+            response = requests.get(api_url)
+            
+            if response.status_code == 200:
+                pokemon_api_data = response.json()
+                sprite_url = pokemon_api_data['sprites']['front_default']
+                
+                # Display Pokemon sprite using Plotly
+                if sprite_url:
+                    # Create a simple figure for the sprite
+                    sprite_fig = go.Figure()
+                    
+                    # Add image to the center of the figure
+                    sprite_fig.add_layout_image(
+                        dict(
+                            source=sprite_url,
+                            xref="paper", yref="paper",
+                            x=0.5, y=0.5,
+                            sizex=0.8, sizey=0.8,
+                            xanchor="center", yanchor="middle"
+                        )
+                    )
+                    
+                    # Configure layout to make image larger and remove all axes elements
+                    sprite_fig.update_layout(
+                        width=400,
+                        height=400,
+                        margin=dict(l=0, r=0, t=0, b=0),
+                        paper_bgcolor='rgba(0,0,0,0)',
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        xaxis=dict(
+                            showgrid=False,
+                            zeroline=False,
+                            showticklabels=False,
+                            visible=False
+                        ),
+                        yaxis=dict(
+                            showgrid=False,
+                            zeroline=False,
+                            showticklabels=False,
+                            visible=False
+                        )
+                    )
+                    
+                    text(f"## {pokemon_data['name'].title()}")
+                    plotly(sprite_fig)
+            else:
+                text(f"Could not fetch sprite for {pokemon_name} from PokeAPI (Status code: {response.status_code})")
+                
+        except Exception as e:
+            text(f"Error fetching Pokemon sprite: {str(e)}")
+        
         text(f"Type Effectiveness Network for {pokemon_data['name']}")
-        # text(f"Primary Type: {primary_type}")
-        # if secondary_type:
-        #     text(f"Secondary Type: {secondary_type}")
         
         # Define all Pokemon types
         all_types = sorted(df['type1'].unique())
