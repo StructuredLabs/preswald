@@ -9,7 +9,7 @@ import zipfile
 from datetime import datetime
 from importlib.metadata import version
 from pathlib import Path
-from typing import Generator, Optional
+from typing import Union, Generator, Optional
 
 import requests
 import toml
@@ -634,7 +634,21 @@ def deploy(  # noqa: C901
     port: int = 8501,
     github_username: Optional[str] = None,
     api_key: Optional[str] = None,
-) -> str | Generator[dict, None, None]:
+) -> Union[str , Generator[dict, None, None]]:
+    """
+    Deploy a Preswald app.
+
+    Args:
+        script_path: Path to the Preswald application script
+        target: Deployment target ("local", "gcp", "aws", or "prod")
+        port: Port number for the deployment
+        github_username: Optional GitHub username for structured deployment
+        api_key: Optional Structured Cloud API key for structured deployment
+
+    Returns:
+        str | Generator: URL where the application can be accessed for local/cloud deployments,
+                        or a Generator yielding deployment status for production deployments
+    """
     if target == "structured":
         return deploy_to_prod(script_path, port, github_username, api_key)
     elif target == "gcp":
