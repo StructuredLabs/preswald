@@ -1,22 +1,33 @@
-# Child BMI Yearly
+# Child BMI Data Visualization
 
-This app displays the average body mass index (BMI) of children in the United States over time.
+This pull request adds an interactive application that visualizes child BMI data extracted from a CSV file. The data includes school year, hospital details, sex, and four key BMI indicators: Underweight, Healthy Weight, Overweight, and Obese.
 
-## Setup
+## Key Features
 
-1. Install the Preswald SDK with `pip install preswald`
-2. Configure your data connections in `preswald.toml`
-3. Add sensitive information (passwords, API keys) to `secrets.toml`
-4. Run the app with `preswald run hello.py`
+- **Data Transformation:**  
+  Converts the raw, wide-format BMI data into a long format, making it easier to compare different BMI categories side by side.
 
-The app will launch in your default web browser at `http://localhost:8501`. You can then explore the charts and filter the data by year.
+- **Data Aggregation:**  
+  Aggregates BMI percentages by school year and BMI category (using averages) to provide a clear, comparative overview.
 
-The data comes from the Centers for Disease Control and Prevention (CDC) and is available at https://www.cdc.gov/growthcharts/percentile_data_files.htm.
+- **Grouped Bar Chart:**  
+  Displays an interactive grouped bar chart that shows the average BMI distribution across all school years. Each BMI category is color-coded for quick visual differentiation.
 
-## Dataset
+- **Trend Line Chart:**  
+  Features a line chart with markers that connects average BMI values over time. This visualization highlights trends and shifts in BMI categories across the years.
 
-The dataset is included in the `data/` folder.
+- **Dynamic Year Filtering:**  
+  Implements a slider that allows users to select a specific school year. When a year is chosen, a detailed bar chart updates dynamically to display the BMI distribution for that year.
 
-## Script
+- **Comprehensive Data Tables:**  
+  Presents both the raw and aggregated data in table format for users who wish to inspect the underlying numbers in detail.
 
-The script is in `hello.py`.
+## Overview
+
+This application delivers a comprehensive and interactive view of child BMI trends, enabling users to:
+
+- Quickly compare BMI category distributions across different school years.
+- Observe long-term trends with smooth, connected line charts.
+- Drill down into specific school years using dynamic filtering.
+
+The visualization tools provided here enhance data interpretability, making it easier to draw insights from the BMI dataset.
