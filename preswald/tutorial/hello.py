@@ -4,14 +4,17 @@ from preswald import (
     Workflow,
     WorkflowAnalyzer,
     alert,
+    button,
     checkbox,
     connect,
     get_df,
+    image,
     plotly,
     progress,
     selectbox,
     separator,
     slider,
+    spinner,
     table,
     text,
     workflow_dag,
@@ -393,6 +396,35 @@ def progress_demo():
         "The `progress()` function displays a progress bar to indicate the completion status of a task."
     )
     progress(0.8)
+
+
+@workflow.atom()
+def button_demo():
+    text("## 13. Displaying buttons with `button()`")
+    text("The `button()` function displays a clickable button.")
+    button("Click me!", size=5.0)
+
+
+@workflow.atom()
+def image_demo():
+    text("## 13. Displaying Images with `image()`")
+    text("The `image()` function displays an image loaded with the src argument.")
+
+    text("Using data URL for the bliss image:")
+    # Load the data URL from the file
+    # Not working with
+    with open("images/bliss_data_url.txt") as f:
+        bliss_data_url = f.read().strip()
+    image(bliss_data_url, size=0.2)
+    image(bliss_data_url, size=0.2)
+    image(bliss_data_url, size=0.2)
+
+
+@workflow.atom()
+def spinner_demo():
+    text("## 13. Displaying spinners with `spinner()`")
+    text("The `spinner()` function displays an spinner.")
+    spinner("Wheeee")
 
 
 # --- FINAL MESSAGE ---

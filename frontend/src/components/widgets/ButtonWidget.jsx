@@ -12,15 +12,38 @@ const ButtonWidget = ({
   className,
   disabled = false,
   loading = false,
+  toggled = false,
+  onToggle,
   ...props
 }) => {
+  const handleClick = (e) => {
+    // Toggle the boolean state if onToggle is provided
+    if (onToggle) {
+      onToggle(!toggled);
+    }
+
+    // Also call the original onClick if provided
+    if (onClick) {
+      onClick(e);
+    } else if (!onToggle) {
+      // Only show alert if neither onClick nor onToggle is provided
+      alert('Button clicked!');
+    }
+  };
+
   return (
     <Button
       variant={variant}
       size={size}
-      onClick={onClick || (() => alert('Button clicked!'))}
-      className={cn('w-full sm:w-auto px-2 py-1', loading && 'cursor-not-allowed', className)}
+      onClick={handleClick}
+      className={cn(
+        'px-2 py-1',
+        loading && 'cursor-not-allowed',
+        toggled && 'bg-primary-foreground',
+        className
+      )}
       disabled={disabled || loading}
+      aria-pressed={toggled}
       {...props}
     >
       {loading ? (
