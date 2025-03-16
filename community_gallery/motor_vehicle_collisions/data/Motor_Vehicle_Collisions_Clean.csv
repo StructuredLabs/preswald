@@ -1,0 +1,31 @@
+UNIQUE_ID,COLLISION_ID,CRASH_DATE,CRASH_TIME,PERSON_TYPE,PERSON_INJURY,PERSON_AGE,PERSON_SEX,SAFETY_EQUIPMENT
+10249006,4229554,10/26/2019,9:43,Occupant,Unspecified,45,M,Lap Belt & Harness
+10255054,4230587,10/25/2019,15:15,Occupant,Unspecified,33,F,Lap Belt & Harness
+10253177,4230550,10/26/2019,17:55,Occupant,Unspecified,55,M,Lap Belt & Harness
+6650180,3565527,11/21/2016,13:05,Occupant,Unspecified,28,M,None
+10255516,4231168,10/25/2019,11:16,Occupant,Unspecified,7,F,Lap Belt
+10253606,4230743,10/24/2019,19:15,Occupant,Injured,27,M,Lap Belt & Harness
+10251336,4230047,10/26/2019,16:45,Occupant,Unspecified,41,F,Lap Belt & Harness
+10248708,4229547,10/26/2019,1:15,Pedestrian,Injured,24,F,None
+10250179,4229808,10/26/2019,13:04,Occupant,Unspecified,36,M,Lap Belt & Harness
+10252234,4230304,10/26/2019,14:30,Occupant,Unspecified,31,F,Lap Belt & Harness
+10252234,4230304,10/26/2019,14:30,Pedestrian,Injured,65,M,None
+10252234,4230304,10/26/2019,14:30,Occupant,Injured,42,F,Lap Belt
+10252234,4230304,10/26/2019,14:30,Occupant,Killed,19,M,None
+10252234,4230304,10/26/2019,14:30,Pedestrian,Injured,35,F,None
+10252234,4230304,10/26/2019,14:30,Occupant,Unspecified,27,M,Lap Belt & Harness
+10252234,4230304,10/26/2019,14:30,Occupant,Injured,52,F,Lap Belt
+10252234,4230304,10/26/2019,14:30,Occupant,Unspecified,38,M,Lap Belt & Harness
+10252234,4230304,10/26/2019,14:30,Pedestrian,Killed,71,M,None
+10252234,4230304,10/26/2019,14:30,Occupant,Injured,29,F,Lap Belt
+10252234,4230304,10/26/2019,14:30,Occupant,Unspecified,44,M,Lap Belt & Harness
+10252234,4230304,10/26/2019,14:30,Occupant,Unspecified,33,F,Lap Belt & Harness
+10252234,4230304,10/26/2019,14:30,Pedestrian,Injured,56,M,None
+10252234,4230304,10/26/2019,14:30,Occupant,Injured,22,F,Lap Belt
+10252234,4230304,10/26/2019,14:30,Occupant,Unspecified,47,M,Lap Belt & Harness
+10252234,4230304,10/26/2019,14:30,Occupant,Unspecified,39,F,Lap Belt & Harness
+10252234,4230304,10/26/2019,14:30,Pedestrian,Injured,61,M,None
+10252234,4230304,10/26/2019,14:30,Occupant,Injured,25,F,Lap Belt
+10252234,4230304,10/26/2019,14:30,Occupant,Killed,18,M,None
+10252234,4230304,10/26/2019,14:30,Occupant,Unspecified,50,F,Lap Belt & Harness
+10252234,4230304,10/26/2019,14:30,Occupant,Injured,34,M,Lap Belt & Harness 
