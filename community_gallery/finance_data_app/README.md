@@ -70,7 +70,7 @@ path = "data/TSLA.csv"
 
 ## **Troubleshooting**
 
-- Make sure you **run** via `preswald run hello.py` (not `python hello.py`).
+- Make sure you **run** via `preswald run hello.py`.
 - Check your CSV **column names** match your code (case-sensitive).
 - If the charts don’t appear, verify:
   - Plotly is installed.
