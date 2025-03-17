@@ -13,7 +13,7 @@ repos:
         entry: ruff check
         language: system
         types: [python]
-        exclude: ^setup\.py$
+        exclude: ^(setup\.py|community_gallery/.*)$
 
       - id: prettier
         name: prettier

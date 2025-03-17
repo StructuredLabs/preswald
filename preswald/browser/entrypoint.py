@@ -118,30 +118,59 @@ async def shutdown():
         return {"success": False, "error": str(e)}
 
 
-# Create JavaScript-callable async function proxies
+async def deploy(github_username: str, api_key: str):
+    """Dummy deploy function"""
+    global _service
+
+    if not _service:
+        return {"success": False, "error": "Preswald not initialized"}
+
+    try:
+        console.log(
+            f"from entrypoint.py -- Deployment in progress for {github_username}... {api_key}"
+        )
+        logger.info(
+            f"from entrypoint.py -- Deployment in progress for {github_username}... {api_key}"
+        )
+
+        import asyncio
+
+        await asyncio.sleep(2)  # Simulating deployment time delay
+
+        console.log("Deployment successful!")
+        logger.info("Dummy deployment completed.")
+
+        return {"success": True, "message": "https://structuredlabs.com"}  # Updated URL
+    except Exception as e:
+        logger.error(f"Error during deployment: {e}")
+        return {"success": False, "error": str(e)}
+
+
 def expose_to_js():
     """Expose Python functions to JavaScript"""
     import asyncio
 
+    from js import window  # type: ignore
     from pyodide.ffi import create_proxy, to_js  # type: ignore
 
-    # Helper to convert async functions to JS-callable proxies
     def wrap_async_function(func):
-        """Wrap an async function to be callable from JavaScript"""
+        """Wrap an async function to be callable from JavaScript, handling both with and without arguments"""
 
-        def wrapper(*args, **kwargs):
-            future = asyncio.ensure_future(func(*args, **kwargs))
-            return to_js(future)
+        async def wrapper(*args, **kwargs):
+            result = await func(
+                *args, **kwargs
+            )  # ✅ Allows both args and no-args cases
+            return to_js(result)
 
         return create_proxy(wrapper)
 
     # Export functions to JavaScript
-    from js import window  # type: ignore
 
     window.preswaldInit = wrap_async_function(initialize_preswald)
     window.preswaldRunScript = wrap_async_function(run_script)
     window.preswaldUpdateComponent = wrap_async_function(update_component)
     window.preswaldShutdown = wrap_async_function(shutdown)
+    window.preswaldDeploy = wrap_async_function(deploy)
 
     # Message handling from JS to Python
     def handle_js_message(client_id, message_type, data):

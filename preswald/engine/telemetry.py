@@ -1,19 +1,21 @@
+import logging
 import os
+from importlib.metadata import version
 from pathlib import Path
 from typing import Dict, List, Optional
-import logging
 
 import requests
 import tomli
-from pkg_resources import get_distribution
+
 
 STRUCTURED_CLOUD_SERVICE_URL = "http://deployer.preswald.com"
 logger = logging.getLogger(__name__)
 
+
 class TelemetryService:
     def __init__(self, script_path: Optional[str] = None):
         self.update_script_path(script_path)
-        self.preswald_version = get_distribution("preswald").version
+        self.preswald_version = version("preswald")
 
         self._config_cache: Optional[Dict] = None
         self._last_read_time = 0
@@ -23,14 +25,14 @@ class TelemetryService:
         try:
             config = self._read_config()
             telemetry_config = config.get("telemetry", {})
-            
+
             if isinstance(telemetry_config, dict):
                 enabled = telemetry_config.get("enabled", True)
                 if isinstance(enabled, bool):
                     return enabled
                 elif isinstance(enabled, str):
                     return enabled.lower() not in ("false", "off", "0", "no")
-            
+
             return True
         except Exception as e:
             logger.debug(f"Error reading telemetry configuration: {e}")
@@ -87,7 +89,7 @@ class TelemetryService:
 
         data_section = config.get("data", {})
         if data_section:
-            for source_name, source_config in data_section.items():
+            for _, source_config in data_section.items():
                 if isinstance(source_config, dict):
                     data_type = source_config.get("type")
                     if data_type:
@@ -118,7 +120,9 @@ class TelemetryService:
             )
 
             if response.status_code != 200:
-                logger.debug(f"Failed to send telemetry data: HTTP {response.status_code}")
+                logger.debug(
+                    f"Failed to send telemetry data: HTTP {response.status_code}"
+                )
 
             return response.status_code == 200
 
@@ -130,7 +134,7 @@ class TelemetryService:
         if args and "script" in args:
             script_path = args["script"]
             self.update_script_path(script_path)
-        
+
         if not self._telemetry_enabled:
             logger.debug("Telemetry is disabled, skipping command tracking")
             return False
