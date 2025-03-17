@@ -12,7 +12,7 @@ text(
 connect()  # Load in all sources, which by default is the iris_csv
 df = get_df("iris_csv")
 
-sidebar(defaultopen="true")
+sidebar(defaultopen=True)
 
 # 1. Scatter plot - Sepal Length vs Sepal Width
 text(
