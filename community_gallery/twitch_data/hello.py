@@ -43,10 +43,6 @@ if button("Apply Filters"):
         text_auto=True,
         color="Followers gained"
     )
-    fig1.update_layout(
-        xaxis_title="Streamer Channel",
-        yaxis_title="Watch Time (Minutes)"
-    )
     plotly(fig1)
     
     # Pie Chart: Language Distribution
@@ -70,10 +66,6 @@ if button("Apply Filters"):
         title=f"Top {top_n} Streamers by Average Viewers",
         text_auto=True,
         color="Followers gained"
-    )
-    fig4.update_layout(
-        xaxis_title="Streamer Channel",
-        yaxis_title="Average Viewers"
     )
     plotly(fig4)
     
