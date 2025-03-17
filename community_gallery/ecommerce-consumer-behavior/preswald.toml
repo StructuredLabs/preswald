@@ -1,0 +1,24 @@
+[project]
+title = "Preswald Project"
+version = "0.1.0"
+port = 8501
+slug = "ecommerce-example-485877"  # Required: Unique identifier for your project
+entrypoint = "hello.py"    # Required: Main script to run when executing preswald run
+
+[branding]
+name = "Ecommerce Consumer Behavior Analysis"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#F89613"
+
+[data.sample_csv]
+type = "csv"
+path = "data/sample.csv"
+
+[data.ecommerce_consumer_behavior_csv]
+type = "csv"
+path = "data/Ecommerce_Consumer_Behavior_Analysis_Data.csv"
+
+[logging]
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
