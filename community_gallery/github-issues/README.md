@@ -41,7 +41,7 @@ The dataset used consists of a CSV file of 50000 rows `github_issues_sample.csv`
 ### Running the App
 
 1. **Clone the repository** or download the files.
-2. **Prepare the Dataset**: Make sure the `data.csv` file is in the correct directory. The data should be properly cleaned, with any missing values filled by the median where appropriate.
+2. **Prepare the Dataset**: Make sure the csv file is in the correct directory.
 
 3. **Run the App**:
    Once all dependencies are installed and your dataset is in place, you can run the app locally by using the following command in your terminal:
