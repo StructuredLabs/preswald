@@ -1,4 +1,5 @@
 from preswald import connect, get_df, selectbox, table, text, plotly, separator, checkbox, slider
+import statsmodels.api as sm
 import plotly.express as px
 import pandas as pd
 import string
@@ -82,7 +83,15 @@ if current_tab == "📊 Experience vs. Compensation":
 
         separator()
 
-        import statsmodels.api as sm
+        # Display summary statistics
+        avg_salary = filtered_df["ConvertedCompYearly"].mean()
+        median_salary = filtered_df["ConvertedCompYearly"].median()
+        total_respondents = len(filtered_df)
+
+        text(f"### Summary Statistics")
+        text(f"**Average Salary:** ${avg_salary:,.2f}", size=0.3)
+        text(f"**Median Salary:** ${median_salary:,.2f}", size=0.3)
+        text(f"**Total Respondents:** {total_respondents}", size=0.3)
 
         # Perform linear regression to get trendline details
         X = sm.add_constant(filtered_df["YearsCodePro"])  # Add intercept
@@ -179,6 +188,23 @@ elif current_tab == "🌍 Compare Countries":
             template="plotly_white"
         )
         plotly(bar_fig)
+
+        # Salary comparison table with formatting
+        salary_comparison = filtered_df.groupby("Country")["ConvertedCompYearly"].agg(
+            min_salary="min",
+            max_salary="max",
+            avg_salary="mean",
+            median_salary="median"
+        ).reset_index()
+
+        # Format the salaries so that they are readable
+        salary_comparison["min_salary"] = salary_comparison["min_salary"].map("{:,.2f}".format)
+        salary_comparison["max_salary"] = salary_comparison["max_salary"].map("{:,.2f}".format)
+        salary_comparison["avg_salary"] = salary_comparison["avg_salary"].map("{:,.2f}".format)
+        salary_comparison["median_salary"] = salary_comparison["median_salary"].map("{:,.2f}".format)
+
+        # Display the salary comparison table with formatted values
+        table(salary_comparison, title="Salary Comparison by Country")
 
         separator()
 
