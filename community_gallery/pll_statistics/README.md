@@ -65,7 +65,7 @@ preswald-project/
 To start the **Preswald server**, run:
 
 ```sh
-python hello.py
+cd community_gallery\pll_statistics ; preswald run
 ```
 
 This will:
