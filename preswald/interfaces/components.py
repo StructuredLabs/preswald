@@ -552,3 +552,28 @@ def convert_to_serializable(obj):
 def generate_id(prefix: str = "component") -> str:
     """Generate a unique ID for a component."""
     return f"{prefix}-{uuid.uuid4().hex[:8]}"
+
+
+def chat(label: str, size: float = 1.0) -> str:
+    """Create an AI chatbot component to query data in natural language."""
+    service = PreswaldService.get_instance()
+
+    # Create a consistent ID based on the label
+    component_id = f"chat-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+
+    # Get current state or use default
+    current_value = service.get_component_state(component_id)
+    if current_value is None:
+        current_value = ""
+
+    logger.debug(f"Creating chat component with id {component_id}, label: {label}")
+    component = {
+        "type": "chat",
+        "id": component_id,
+        "label": label,
+        "value": current_value,
+        "size": size,
+    }
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+    return current_value
