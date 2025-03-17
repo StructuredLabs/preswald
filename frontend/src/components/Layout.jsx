@@ -99,7 +99,7 @@ export default function Layout({ branding, children }) {
           isCollapsed && 'lg:pl-20'
         )}
       >
-        <main className="relative flex-1 py-10">
+        <main className="flex-1 py-10">
           <div className="px-4 sm:px-6 lg:px-8">{children}</div>
         </main>
       </div>
