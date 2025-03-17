@@ -29,3 +29,7 @@ pip install preswald
 - `git clone https://github.com/StructuredLabs/preswald.git`
 - `cd preswald/community_gallery/US-Educational-Funds`
 - `preswald run`
+
+## **Note: Large Dataset & Memory Issue**
+Due to the large size of `districts.csv`, **the server may run out of memory while rendering visualizations**.  
+**To prevent crashes, please reduce the dataset size before running the app.**
