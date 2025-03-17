@@ -177,6 +177,3 @@ notes.md
 .env.structured
 
 community_gallery/**/data
-*.png
-*.mp4
-*.gif
