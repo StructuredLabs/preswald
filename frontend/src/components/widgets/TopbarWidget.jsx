@@ -1,12 +1,29 @@
 'use client';
 
+import { Menu, PanelLeft, PanelLeftClose } from 'lucide-react';
+
 import React from 'react';
 
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
-const TopbarWidget = ({ branding = window.PRESWALD_BRANDING }) => {
+const TopbarWidget = ({ branding = window.PRESWALD_BRANDING, isCollapsed = false }) => {
   return (
-    <div className="fixed top-0 left-0 right-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-background -mx-8 sm:-mx-10 lg:-mx-12 shadow-sm  w-fill">
+    <div className="topbar">
+      {/* Desktop collapse button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="desktop-collapse-button"
+        aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      >
+        {isCollapsed ? (
+          <PanelLeft className="icon-button" />
+        ) : (
+          <PanelLeftClose className="icon-button" />
+        )}
+      </Button>
+
       {/* Separator */}
       <Separator orientation="vertical" className="separator" />
 

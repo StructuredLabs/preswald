@@ -34,11 +34,19 @@ const MarkdownRendererWidget = ({
   };
 
   const components = {
-    h1: ({ className, ...props }) => <h1 className={cn('markdown-heading-1', className)} {...props} />,
-    h2: ({ className, ...props }) => <h2 className={cn('markdown-heading-2', className)} {...props} />,
-    h3: ({ className, ...props }) => <h3 className={cn('markdown-heading-3', className)} {...props} />,
+    h1: ({ className, ...props }) => (
+      <h1 className={cn('markdown-heading-1', className)} {...props} />
+    ),
+    h2: ({ className, ...props }) => (
+      <h2 className={cn('markdown-heading-2', className)} {...props} />
+    ),
+    h3: ({ className, ...props }) => (
+      <h3 className={cn('markdown-heading-3', className)} {...props} />
+    ),
     a: ({ className, ...props }) => <a className={cn('markdown-link', className)} {...props} />,
-    pre: ({ className, ...props }) => <pre className={cn('markdown-pre-wrapper', className)} {...props} />,
+    pre: ({ className, ...props }) => (
+      <pre className={cn('markdown-pre-wrapper', className)} {...props} />
+    ),
     code: ({ node, inline, className, children, ...props }) => {
       const match = /language-(\w+)/.exec(className || '');
       const lang = match ? match[1] : '';
@@ -65,7 +73,9 @@ const MarkdownRendererWidget = ({
         </div>
       );
     },
-    blockquote: ({ className, ...props }) => <blockquote className={cn('markdown-blockquote', className)} {...props} />,
+    blockquote: ({ className, ...props }) => (
+      <blockquote className={cn('markdown-blockquote', className)} {...props} />
+    ),
     ul: ({ className, ...props }) => <ul className={cn('markdown-ul', className)} {...props} />,
     ol: ({ className, ...props }) => <ol className={cn('markdown-ol', className)} {...props} />,
     table: ({ className, ...props }) => (
