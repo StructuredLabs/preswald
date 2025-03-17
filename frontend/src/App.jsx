@@ -142,10 +142,10 @@ const App = () => {
   };
 
   const LoadingState = () => (
-    <div className="flex items-center justify-center h-screen">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">Connecting...</p>
+    <div className="loading-container">
+      <div className="loading-content">
+        <div className="loading-spinner"></div>
+        <p className="loading-text">Connecting...</p>
       </div>
     </div>
   );
