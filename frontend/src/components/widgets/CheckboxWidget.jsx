@@ -37,21 +37,18 @@ const CheckboxWidget = ({
   };
 
   return (
-    <div className={cn('flex items-start space-x-3 space-y-0', className)}>
+    <div className={cn('checkbox-container', className)}>
       <Checkbox
         id={id}
         checked={checked}
         onCheckedChange={handleCheckedChange}
         disabled={disabled}
       />
-      <div className="space-y-1 leading-none">
-        <Label
-          htmlFor={id}
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-        >
+      <div className="checkbox-label-container">
+        <Label htmlFor={id} className="checkbox-label">
           {label}
         </Label>
-        {description && <p className="text-sm text-muted-foreground">{description}</p>}
+        {description && <p className="checkbox-description">{description}</p>}
       </div>
     </div>
   );

@@ -167,18 +167,18 @@ const DataVisualizationWidget = ({ id, data: rawData, content, error, className 
   }
 
   return (
-    <Card className={cn('w-full h-full', className)} ref={setRefs}>
-      <CardContent className="p-0">
+    <Card className={cn('plotly-container', className)} ref={setRefs}>
+      <CardContent className="plotly-card-content">
         {!inView || isLoading ? (
-          <div className="flex flex-col items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
-            <p className="text-sm text-muted-foreground">Loading visualization...</p>
+          <div className="plotly-loading-container">
+            <div className="plotly-loading-spinner"></div>
+            <p className="plotly-loading-text">Loading visualization...</p>
           </div>
         ) : processedData?.data ? (
-          <div className="relative w-full" style={{ minHeight: '400px' }}>
+          <div className="plotly-plot-container">
             {loadedDataPercentage > 0 && loadedDataPercentage < 100 && (
-              <div className="absolute top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm px-4 py-2">
-                <Progress value={loadedDataPercentage} className="w-full h-2" />
+              <div className="plotly-progress-container">
+                <Progress value={loadedDataPercentage} className="plotly-progress-bar" />
               </div>
             )}
             <Plot
@@ -208,7 +208,7 @@ const DataVisualizationWidget = ({ id, data: rawData, content, error, className 
                 showAxisRangeEntryBoxes: false,
                 ...processedData.config,
               }}
-              className="w-full h-full"
+              className="plotly-plot"
               useResizeHandler={true}
               style={{ width: '100%', height: '100%' }}
               onError={(err) => {
@@ -218,7 +218,7 @@ const DataVisualizationWidget = ({ id, data: rawData, content, error, className 
             />
           </div>
         ) : (
-          <div className="w-full h-full" ref={plotContainerRef} />
+          <div className="plotly-plot" ref={plotContainerRef} />
         )}
       </CardContent>
     </Card>

@@ -44,24 +44,24 @@ const TextInputWidget = ({
 
   // Size variants
   const sizeVariants = {
-    sm: 'h-8 text-xs',
-    default: 'h-10 text-sm',
-    lg: 'h-12 text-base',
+    sm: 'inputfield-size-sm',
+    default: 'inputfield-size-default',
+    lg: 'inputfield-size-lg',
   };
 
   return (
-    <div className={cn('space-y-2', className)}>
+    <div className={cn('inputfield-container', className)}>
       {label && (
         <Label
           htmlFor={id}
           className={cn(
-            'text-sm font-medium',
-            error && 'text-destructive',
-            disabled && 'opacity-50'
+            'inputfield-label',
+            error && 'inputfield-error',
+            disabled && 'inputfield-disabled'
           )}
         >
           {label}
-          {required && <span className="text-destructive ml-1">*</span>}
+          {required && <span className="inputfield-required">*</span>}
         </Label>
       )}
       <Input
@@ -74,13 +74,13 @@ const TextInputWidget = ({
         disabled={disabled}
         className={cn(
           sizeVariants[size],
-          variant === 'ghost' && 'border-none shadow-none',
-          error && 'border-destructive focus-visible:ring-destructive'
+          variant === 'ghost' && 'inputfield-variant-ghost',
+          error && 'inputfield-error-border'
         )}
         aria-invalid={error ? 'true' : undefined}
         required={required}
       />
-      {error && <p className="text-xs text-destructive mt-1">{error}</p>}
+      {error && <p className="inputfield-error-message">{error}</p>}
     </div>
   );
 };
