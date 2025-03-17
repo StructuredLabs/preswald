@@ -33,3 +33,12 @@ pip install preswald
 ## **Note: Large Dataset & Memory Issue**
 Due to the large size of `districts.csv`, **the server may run out of memory while rendering visualizations**.  
 **To prevent crashes, please reduce the dataset size before running the app.**
+
+## Deployment in Render 
+1. Go to https://render.com/
+2. Sign in with GitHub and connect your repository.
+3. Click "New Web Service".
+4. Select "GitHub" and choose your repository.
+5. Configure Deployment Settings
+6. Create a .txt file for the Build Command
+7. Start the app
