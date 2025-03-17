@@ -41,14 +41,13 @@ This application allows users to explore insights from the **Stack Overflow Deve
 
 ## 📖 How the App Works
 
-1. **Filter Countries**: Select one or more country groups using checkboxes to narrow down the available countries.
-2. **Choose a Dashboard View**: Navigate between **Experience vs. Compensation** and **Compare Countries** dashboards.
-3. **Select Countries**:
-   - In **Experience vs. Compensation**, choose a single country to analyze.
-   - In **Compare Countries**, select up to three countries to compare.
-4. **Apply Experience Filters**: Adjust minimum and maximum experience level using sliders to refine the dataset.
-5. **Explore Visualizations**: View interactive scatter plots, bar charts, and histograms to analyze salary trends.
-6. **Examine Raw Data**: The top 20 responses are displayed in a structured table.
+1. **Select a Dashboard View**: Navigate between **Experience vs. Compensation** and **Compare Countries** dashboards.
+2. **Select Countries**:
+   - In **Experience vs. Compensation**, choose a single country from the dropdown to analyze.
+   - In **Compare Countries**, select up to three countries from the dropdowns to compare.
+3. **Apply Experience Filters**: Adjust minimum and maximum experience level using sliders to refine the dataset.
+4. **Explore Visualizations**: View interactive scatter plots, bar charts, and histograms to analyze salary trends.
+5. **Examine Raw Data**: The top 20 responses are displayed in a structured table.
 
 ## 🚀 Features
 
@@ -61,6 +60,7 @@ This application allows users to explore insights from the **Stack Overflow Deve
 
 ### 🌍 Compare Countries
 - Select up to three countries to compare salary and experience trends.
+- **Salary Comparison Table:** Displays average, median, and range of salaries across the selected countries.
 - **Box plot visualization** of salary distribution across selected countries.
 - **Bar chart comparison** of median salaries per country.
 - Filter by:
@@ -70,6 +70,7 @@ This application allows users to explore insights from the **Stack Overflow Deve
 - **Dynamic filtering** of available countries based on selected country groups.
 - **Clear instructions and user-friendly navigation**.
 - **Responsive UI** with interactive visualizations.
+- **Salary Comparison Table** in the 'Compare Countries' dashboard showing average, median, and salary ranges.
 
 ### 📌 **Updated Deployment Instructions for README.md**
 Here’s how we should structure the deployment section to closely match the official coding assessment guide while making it specific to your project:
@@ -101,15 +102,6 @@ If you make changes to your app, redeploy using the same command:
 preswald deploy --target structured --github <your-github-username> --api-key <structured-api-key> hello.py
 ```
 
-## ⚠️ UI Design Decision: Checkbox Filtering for Country Selection
-
-Preswald's `selectbox` component does not currently support scrolling or searching within long lists. To enhance usability, checkboxes are used to pre-filter the country selection dropdowns. This allows users to:
-- Narrow down the list of available countries.
-- Avoid excessive scrolling through long lists.
-- Improve the user experience when selecting countries for analysis.
-
-If Preswald introduces scrollable or searchable selectboxes in the future, this approach can be revisited.
-
 ## ❗ Troubleshooting
 
 ### Issue: Dataset Not Found
@@ -118,10 +110,3 @@ If you see an error like:
 Error: Unable to load dataset. Please ensure the data file is in the 'data/' directory.
 ```
 ✅ **Solution:** Follow the dataset download instructions above and place the dataset files inside `data/` before running the app.
-
-### Issue: Country Select Boxes Not Updating Immediately
-In the **Compare Countries** section, when modifying the selected checkboxes for filtering countries, the **country dropdowns may not refresh immediately**. This appears to be a limitation in the current implementation of Preswald UI components.
-
-✅ **Workaround:** If the country dropdowns do not update after modifying checkboxes, try switching to a different dashboard tab (e.g., "Experience vs. Compensation") and then switching back.
-
-We will update the implementation if a better solution becomes available.
