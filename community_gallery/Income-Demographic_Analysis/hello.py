@@ -1,12 +1,20 @@
 from preswald import connect, get_df, query, text, table, slider, plotly, checkbox
 import plotly.express as px
 import pandas as pd
-
+import requests
+from io import StringIO
 # zconnectto data sources
 connect()
 
 # Load the income dataset
-df = get_df("Adult_data_csv")
+def load_data():
+    url = "https://raw.githubusercontent.com/Waleedprw22/income_dataset/refs/heads/main/Adult_data.csv"
+    response = requests.get(url)
+    return pd.read_csv(StringIO(response.text))
+
+# Load the income dataset
+df = load_data()
+
 
 # Style the Header UI
 text("# 📊 Census Demographic Analysis")
