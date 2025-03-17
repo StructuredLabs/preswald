@@ -1,5 +1,5 @@
 from preswald import connect, get_df, selectbox, table, text, plotly, separator, checkbox, slider
-import statsmodels.api as sm
+import scipy.stats as stats
 import plotly.express as px
 import pandas as pd
 import string
@@ -93,12 +93,10 @@ if current_tab == "📊 Experience vs. Compensation":
         text(f"**Median Salary:** ${median_salary:,.2f}", size=0.3)
         text(f"**Total Respondents:** {total_respondents}", size=0.3)
 
-        # Perform linear regression to get trendline details
-        X = sm.add_constant(filtered_df["YearsCodePro"])  # Add intercept
-        y = filtered_df["ConvertedCompYearly"]
-        model = sm.OLS(y, X).fit()
-        slope, intercept = model.params["YearsCodePro"], model.params["const"]
-        r_squared = model.rsquared
+        # Perform linear regression
+        slope, intercept, r_value, p_value, std_err = stats.linregress(filtered_df["YearsCodePro"], filtered_df["ConvertedCompYearly"])
+        # Calculate R^2
+        r_squared = r_value ** 2
 
         # Display trendline equation and R² value
         text(f"### Trendline: Salary = {slope:.2f} * Experience + {intercept:.2f}", size=0.5)
@@ -116,8 +114,31 @@ if current_tab == "📊 Experience vs. Compensation":
             title=f"Developer Compensation vs. Experience ({country})",
             log_y=True,
             opacity=0.6,
-            trendline="ols",
             template="plotly_white"
+        )
+
+        # Calculate the predicted salary values (trendline)
+        predicted_salaries = slope * filtered_df["YearsCodePro"] + intercept
+
+        # Add the linear regression trendline
+        fig.add_scatter(
+            x=filtered_df["YearsCodePro"],
+            y=predicted_salaries,
+            mode="lines",
+            name="Predicted Salaries",
+            line=dict(color="orange", dash="dot"),
+            legendgroup="trendline"  # Grouping the trendline in the legend
+        )
+
+        # Adjust the layout to ensure the labels don't overlap
+        fig.update_layout(
+            legend=dict(
+                orientation="h",  # Horizontal layout for legend
+                yanchor="bottom",  # Align the legend at the bottom
+                y=1.02,  # Slightly above the plot
+                xanchor="center",  # Center the legend horizontally
+                x=0.5
+            )
         )
 
         plotly(fig)

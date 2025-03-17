@@ -31,7 +31,7 @@ This application allows users to explore insights from the **Stack Overflow Deve
 
 3. **Install dependencies**
    ```bash
-   pip install -r requirements.txt
+   pip install preswald
    ```
 
 4. **Run the application**
