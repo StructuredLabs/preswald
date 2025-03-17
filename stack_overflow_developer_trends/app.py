@@ -18,9 +18,10 @@ def normalize_years_of_experience(filtered_df):
     return filtered_df
 
 def apply_experience_level_filter(filtered_df):
+
     numeric_experience_levels = sorted(set(filtered_df["YearsCodePro"].dropna().unique()))
-    min_experience = min(numeric_experience_levels)
-    max_experience = max(numeric_experience_levels)
+    min_experience = int(min(numeric_experience_levels))
+    max_experience = int(max(numeric_experience_levels))
 
     # Use slider for experience level selection
     selected_experience_min = slider(
@@ -55,29 +56,7 @@ except Exception as e:
 
 text("# Stack Overflow Developer Survey 2024 Explorer")
 
-# Global country filtering
-text("### Check one or more boxes below to filter the countries shown in the dropdowns")
-
-selected_letters = []
-for letter in string.ascii_uppercase:
-    matching_countries = sorted([c for c in df["Country"].dropna().unique() if c.upper().startswith(letter)])
-    matching_countries = [c for c in matching_countries if c != 'NA']
-    if matching_countries:
-        # Using checkboxes instead of a long dropdown list because
-        # Preswald's selectbox does not support scrolling or
-        # searching.  This allows users to pre-filter the available
-        # countries and improves usability.
-        checkbox_label = f"{matching_countries[0]} - {matching_countries[-1]}"
-        if checkbox(checkbox_label, size=0.15):
-            selected_letters.append(letter)
-
-separator()
-
-# Filter countries based on selected letters
-if selected_letters:
-    filtered_countries = sorted([c for c in df["Country"].dropna().unique() if c != 'NA' and c[0].upper() in selected_letters])
-else:
-    filtered_countries = sorted(df["Country"].dropna().unique())
+filtered_countries = sorted(df["Country"].dropna().unique())
 
 # dashboard navigation
 current_tab = selectbox(
@@ -92,14 +71,13 @@ current_tab = selectbox(
 separator()
 
 if current_tab == "📊 Experience vs. Compensation":
-    text("### Check one or more boxes below to filter the countries shown in the dropdown")
-
     # Only visualize data if at least one country was selected
-    if selected_letters and filtered_countries:
+    if filtered_countries:
         country = selectbox("Select Country", filtered_countries, default=filtered_countries[0])
 
         filtered_df = df[df["Country"] == country].copy()
         filtered_df = normalize_years_of_experience(filtered_df)
+
         filtered_df = apply_experience_level_filter(filtered_df)
 
         separator()
@@ -156,7 +134,7 @@ if current_tab == "📊 Experience vs. Compensation":
 elif current_tab == "🌍 Compare Countries":
     text("### Compare Developer Compensation and Experience Across Countries")
 
-    if selected_letters and filtered_countries:
+    if filtered_countries:
         # Remove 'None' selections
         selected_countries = [
             selectbox("Select First Country", filtered_countries, default=filtered_countries[0], size=0.3),
