@@ -1,5 +1,5 @@
 from preswald import connect, get_df, selectbox, table, text, plotly, separator, checkbox, slider
-import scipy.stats as stats
+import numpy as np
 import plotly.express as px
 import pandas as pd
 import string
@@ -93,15 +93,23 @@ if current_tab == "📊 Experience vs. Compensation":
         text(f"**Median Salary:** ${median_salary:,.2f}", size=0.3)
         text(f"**Total Respondents:** {total_respondents}", size=0.3)
 
-        # Perform linear regression
-        slope, intercept, r_value, p_value, std_err = stats.linregress(filtered_df["YearsCodePro"], filtered_df["ConvertedCompYearly"])
-        # Calculate R^2
-        r_squared = r_value ** 2
+        # Perform linear regression using numpy.polyfit
+        slope, intercept = np.polyfit(filtered_df["YearsCodePro"], filtered_df["ConvertedCompYearly"], 1)
+
+        # Calculate the predicted salary values (trendline)
+        predicted_salaries = slope * filtered_df["YearsCodePro"] + intercept
+
+        # Calculate R^2 manually
+        y_mean = np.mean(filtered_df["ConvertedCompYearly"])
+        ss_total = np.sum((filtered_df["ConvertedCompYearly"] - y_mean) ** 2)
+        ss_residual = np.sum((filtered_df["ConvertedCompYearly"] - predicted_salaries) ** 2)
+        r_squared = 1 - (ss_residual / ss_total)
 
         # Display trendline equation and R² value
         text(f"### Trendline: Salary = {slope:.2f} * Experience + {intercept:.2f}", size=0.5)
         text(f"### R² Value: {r_squared:.3f}", size=0.5)
 
+        # Generate scatter plot
         fig = px.scatter(
             filtered_df,
             x="YearsCodePro",
@@ -117,9 +125,6 @@ if current_tab == "📊 Experience vs. Compensation":
             template="plotly_white"
         )
 
-        # Calculate the predicted salary values (trendline)
-        predicted_salaries = slope * filtered_df["YearsCodePro"] + intercept
-
         # Add the linear regression trendline
         fig.add_scatter(
             x=filtered_df["YearsCodePro"],
@@ -127,16 +132,16 @@ if current_tab == "📊 Experience vs. Compensation":
             mode="lines",
             name="Predicted Salaries",
             line=dict(color="orange", dash="dot"),
-            legendgroup="trendline"  # Grouping the trendline in the legend
+            legendgroup="trendline"
         )
 
         # Adjust the layout to ensure the labels don't overlap
         fig.update_layout(
             legend=dict(
-                orientation="h",  # Horizontal layout for legend
-                yanchor="bottom",  # Align the legend at the bottom
-                y=1.02,  # Slightly above the plot
-                xanchor="center",  # Center the legend horizontally
+                orientation="h",
+                yanchor="bottom",
+                y=1.02,
+                xanchor="center",
                 x=0.5
             )
         )
