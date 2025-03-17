@@ -1,0 +1,21 @@
+[project]
+title = "Preswald Walmart Analysis"
+version = "0.1.0"
+port = 8501
+slug = "walmart-purchase-stats-342418"  # Required: Unique identifier for your project
+entrypoint = "hello.py"    # Required: Main script to run when executing preswald run
+
+[branding]
+name = "Preswald Walmart Analysis"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#F89613"
+
+[data.walmart_csv]
+type = "csv"
+path = "data/Walmart_customer_purchases.csv"
+
+
+[logging]
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
