@@ -3,7 +3,7 @@ title = "Preswald Project"
 version = "0.1.0"
 port = 8501
 slug = "amazon-stock-insights-259517"  # Required: Unique identifier for your project
-entrypoint = "main.py"    # Required: Main script to run when executing preswald run
+entrypoint = "hello.py"    # Required: Main script to run when executing preswald run
 
 [branding]
 name = "Preswald Project"

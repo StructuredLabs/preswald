@@ -66,3 +66,4 @@ To deploy this app to Structured Cloud:
 
 ## Live Demo
 
+Link: https://amazon-stock-insights-259517-by5tmb9g-ndjz2ws6la-ue.a.run.app/
