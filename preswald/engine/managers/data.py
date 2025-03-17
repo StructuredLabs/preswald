@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 import duckdb
 import pandas as pd
 import toml
-
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +38,11 @@ class PostgresConfig:
 class CSVConfig:
     path: str
 
+
+@dataclass
+class APIConfig:
+    url: str
+    token: str
 
 class DataSource:
     """Base class for all data sources"""
@@ -175,6 +180,24 @@ class ClickhouseSource(DataSource):
         except:  # noqa: E722
             pass  # Ignore cleanup errors on destruction
 
+class APISource(DataSource):
+    def __init__(
+        self, name: str, config: APIConfig, duckdb_conn: duckdb.DuckDBPyConnection
+    ):
+        super().__init__(name, duckdb_conn)
+        self.config = config
+
+    def query(self, endpoint: str) -> pd.DataFrame:
+        headers = {"Authorization": f"Bearer {self.config.token}"} if self.config.token else {}
+        response = requests.get(f"{self.config.url}/{endpoint}", headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        logger.info(f"API response: {data}")
+        return pd.DataFrame(data['data'])
+
+    def to_df(self) -> pd.DataFrame:
+        """Get entire API response as a DataFrame"""
+        return self.query("")
 
 class DataManager:
     def __init__(self, preswald_path: str, secrets_path: Optional[str] = None):
@@ -220,6 +243,14 @@ class DataManager:
                         verify=source_config.get("verify", True),
                     )
                     self.sources[name] = ClickhouseSource(name, cfg, self.duckdb_conn)
+                
+                elif source_type == "api":
+                    cfg = APIConfig(
+                        url=source_config["url"],
+                        token=source_config["token"]
+                    )
+                    self.sources[name] = APISource(name, cfg, self.duckdb_conn)
+
             except Exception as e:
                 logger.error(f"Error initializing {source_type} source '{name}': {e}")
                 continue
@@ -243,6 +274,8 @@ class DataManager:
             if table_name is None:
                 raise ValueError("table_name is required for Postgres sources")
             return source.to_df(table_name)
+        if isinstance(source, APISource):
+            return source.query(table_name)
         return source.to_df()
 
     def _load_sources(self) -> Dict[str, Any]:
