@@ -13,15 +13,18 @@ This app compares the launched prices of mobile phones across different countrie
 1. **Threshold Filtering**: Comparison based on Prices of phones in USA vs all the other countries ( one by one ).
 2. **Scatter Plots**: 3 Scatter plots based on the tables comparing Prices of Phones in USA vs other countries ( CHINA, INDIA, DUBAI ) 
 
-## How to Run and Deploy
- ```bash
-   pip install preswald
-   pip install plotly
-   pip install pandas
 
-## Clone the repo
-  preswald run
 
 ## Deployed Link
 https://preswald-demo-476391-c7j9qdsl-ndjz2ws6la-ue.a.run.app/
+
+## How to Run
+ ```bash
+pip install preswald
+pip install plotly
+pip install pandas
+
+## Clone the repo
+preswald run
+
  
