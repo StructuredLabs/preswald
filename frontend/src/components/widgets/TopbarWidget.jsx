@@ -1,12 +1,6 @@
 'use client';
 
-import { Menu, PanelLeft, PanelLeftClose } from 'lucide-react';
-
 import React from 'react';
-import { useEffect, useState } from 'react';
-
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 
 const TopbarWidget = ({ branding = window.PRESWALD_BRANDING, isCollapsed = false }) => {
   return (
