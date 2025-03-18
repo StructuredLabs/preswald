@@ -178,42 +178,96 @@ elif current_tab == "🌍 Compare Countries":
             selectbox("Select Third Country (Optional)", ["None", *filtered_countries], default="None", size=0.3)
         ]
 
-        # Filter data for selected countries
+        # additional comparison factor with human readable labels
+        factor_labels = {
+            "None": None,
+            "Age": "Age",
+            "DevType": "Development Role",
+            "JobSat": "Job Satisfaction",
+            "Industry": "Industry Sector",
+            "AISelect": "Uses AI Tools?",
+            "AISent": "AI Sentiment"
+        }
+
+        selected_factor_label = selectbox(
+            "Compare Salaries by Additional Factor (Optional)",
+            options=list(factor_labels.values()),
+            default="None",
+            size=0.5
+        )
+
+        # map the human-readable label back to the dataset column name
+        selected_factor = {v: k for k, v in factor_labels.items()}.get(selected_factor_label, None)
+
+        # filter data for selected countries
         filtered_df = df[df["Country"].isin(selected_countries)].copy()
         filtered_df = normalize_years_of_experience(filtered_df)
         filtered_df = apply_experience_level_filter(filtered_df)
 
         separator()
 
-        # Generate box plot comparing salary distributions
-        fig = px.box(
-            filtered_df,
-            x="Country",
-            y="ConvertedCompYearly",
-            color="Country",
-            labels={
-                "ConvertedCompYearly": "Annual Compensation (USD)",
-                "Country": "Country"
-            },
-            title="Salary Distribution by Country",
-            template="plotly_white"
-        )
-        plotly(fig)
+        # conditionally display salary distribution chart based on additional factor
+        if selected_factor and selected_factor in filtered_df.columns:
+            factor_chart = px.box(
+                filtered_df,
+                x=selected_factor,
+                y="ConvertedCompYearly",
+                color=selected_factor,
+                title=f"Salary Distribution by {selected_factor_label}",
+                labels={
+                    "ConvertedCompYearly": "Annual Compensation (USD)",
+                    selected_factor: selected_factor_label
+                },
+                template="plotly_white"
+            )
+        else:
+            factor_chart = px.box(
+                filtered_df,
+                x="Country",
+                y="ConvertedCompYearly",
+                color="Country",
+                title="Salary Distribution by Country",
+                labels={
+                    "ConvertedCompYearly": "Annual Compensation (USD)",
+                    "Country": "Country"
+                },
+                template="plotly_white"
+            )
 
-        # Generate bar chart comparing median salaries by country
-        median_salaries = filtered_df.groupby("Country")["ConvertedCompYearly"].median().reset_index()
-        bar_fig = px.bar(
-            median_salaries,
-            x="Country",
-            y="ConvertedCompYearly",
-            color="Country",
-            labels={
-                "ConvertedCompYearly": "Median Annual Compensation (USD)",
-                "Country": "Country"
-            },
-            title="Median Salary Comparison by Country",
-            template="plotly_white"
-        )
+        plotly(factor_chart)
+
+        # generate bar chart comparing median salaries by country or selected factor
+        if selected_factor and selected_factor in filtered_df.columns:
+            median_salaries = filtered_df.groupby([selected_factor, "Country"])["ConvertedCompYearly"].median().reset_index()
+            bar_fig = px.bar(
+                median_salaries,
+                x=selected_factor,
+                y="ConvertedCompYearly",
+                color="Country",
+                barmode="group",
+                title=f"Median Salary Comparison by {selected_factor_label} and Country",
+                labels={
+                    "ConvertedCompYearly": "Median Annual Compensation (USD)",
+                    selected_factor: selected_factor_label,
+                    "Country": "Country"
+                },
+                template="plotly_white"
+            )
+        else:
+            median_salaries = filtered_df.groupby("Country")["ConvertedCompYearly"].median().reset_index()
+            bar_fig = px.bar(
+                median_salaries,
+                x="Country",
+                y="ConvertedCompYearly",
+                color="Country",
+                title="Median Salary Comparison by Country",
+                labels={
+                    "ConvertedCompYearly": "Median Annual Compensation (USD)",
+                    "Country": "Country"
+                },
+                template="plotly_white"
+            )
+
         plotly(bar_fig)
 
         # Salary comparison table with formatting
@@ -224,18 +278,19 @@ elif current_tab == "🌍 Compare Countries":
             median_salary="median"
         ).reset_index()
 
-        # Format the salaries so that they are readable
+        # Format salaries for readability
         salary_comparison["min_salary"] = salary_comparison["min_salary"].map("{:,.2f}".format)
         salary_comparison["max_salary"] = salary_comparison["max_salary"].map("{:,.2f}".format)
         salary_comparison["avg_salary"] = salary_comparison["avg_salary"].map("{:,.2f}".format)
         salary_comparison["median_salary"] = salary_comparison["median_salary"].map("{:,.2f}".format)
 
-        # Display the salary comparison table with formatted values
+        # Display the salary comparison table
         table(salary_comparison, title="Salary Comparison by Country")
 
         separator()
 
         # Display filtered table
         table(filtered_df.head(20), title="Developer Responses from Selected Countries")
+
     else:
         text("Please select at least one letter group to filter countries.")

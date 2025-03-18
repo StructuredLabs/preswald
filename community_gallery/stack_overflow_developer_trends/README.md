@@ -61,8 +61,14 @@ This application allows users to explore insights from the **Stack Overflow Deve
 ### 🌍 Compare Countries
 - Select up to three countries to compare salary and experience trends.
 - **Salary Comparison Table:** Displays average, median, and range of salaries across the selected countries.
-- **Box plot visualization** of salary distribution across selected countries.
-- **Bar chart comparison** of median salaries per country.
+- **Choose an Additional Factor to Compare Salaries** (Optional).
+  - Select a factor like Job Satisfaction, AI Adoption, Industry Sector, or Age.
+  - If selected, Salary Distribution & Median Salary Charts will reflect this factor instead of only Country.
+- **Box plot visualization**:
+  - Shows salary distribution by Country (default).
+  - If a factor is selected, it compares salary distribution by that factor.
+- **Bar chart comparison**:
+  - If a factor is selected, groups the median salaries by Country AND the selected factor.
 - Filter by:
   - Experience level range using a slider.
 
