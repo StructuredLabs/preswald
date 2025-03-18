@@ -21,6 +21,7 @@ def cli():
     """
     Preswald CLI - A lightweight framework for interactive data apps.
     """
+    print("Running locally")
     pass
 
 
