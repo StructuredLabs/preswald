@@ -2,7 +2,7 @@
 
 ## Dataset Source
 
-This dataset is from Kaggle and contains information about the prices of various mobile phones in different countries. The data is sourced from a sample CSV file, which includes columns like "Company Name", "Model Name", and "Launched Prices" for multiple countries: USA, India, China, and Dubai.
+This dataset is from **Kaggle** and contains information about the prices of various mobile phones in different countries. The data is sourced from a sample CSV file, which includes columns like "Company Name", "Model Name", and "Launched Prices" for multiple countries: USA, India, China, and Dubai.
 
 The prices are given in their respective currencies which I then converted to USD for plotting.
 
@@ -20,7 +20,6 @@ This app compares the launched prices of mobile phones across different countrie
    pip install pandas
 
 ## Clone the repo
-```bash
   preswald run
 
 ## Deployed Link
