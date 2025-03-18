@@ -192,8 +192,7 @@ elif current_tab == "🌍 Compare Countries":
         selected_factor_label = selectbox(
             "Compare Salaries by Additional Factor (Optional)",
             options=list(factor_labels.values()),
-            default="None",
-            size=0.5
+            default="None"
         )
 
         # map the human-readable label back to the dataset column name
