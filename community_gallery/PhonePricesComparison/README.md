@@ -25,6 +25,9 @@ pip install plotly
 pip install pandas
 
 ## Clone the repo
+git clone <repo>
+
+## Navigate to directory and run
 preswald run
 
  
