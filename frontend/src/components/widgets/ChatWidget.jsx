@@ -1,0 +1,238 @@
+/* eslint-disable react/prop-types */
+'use client';
+
+import { Bot, Loader2, Send, User } from 'lucide-react';
+
+import { useEffect, useRef, useState } from 'react';
+
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+
+import { cn } from '@/lib/utils';
+import { createChatCompletion } from '@/services/openai';
+
+/* eslint-disable react/prop-types */
+
+const ChatWidget = ({
+  source = null,
+  sourceData = null,
+  value = { messages: [] },
+  onChange,
+  className,
+}) => {
+  const messages = Array.isArray(value?.messages)
+    ? value.messages
+    : Array.isArray(value)
+      ? value
+      : [];
+  const label = 'Chat Assistant';
+  const placeholder = 'Type your message here...';
+  const messagesEndRef = useRef(null);
+  const [inputValue, setInputValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Add this state to store the processed context
+  const [sourceContext, setSourceContext] = useState(null);
+  const [contextLoaded, setContextLoaded] = useState(false);
+
+  // Process the source context only once when the component mounts or source changes
+  useEffect(() => {
+    const loadSourceContext = async () => {
+      if (!source || contextLoaded) return;
+
+      try {
+        // Use the sourceData if provided directly from DuckDB
+        if (sourceData) {
+          const context = formatSourceContext(source, sourceData);
+          setSourceContext(context);
+        } else {
+          const context = await getSourceContext();
+          setSourceContext(context);
+        }
+      } catch (error) {
+        console.error('Error loading source context:', error);
+      } finally {
+        setContextLoaded(true);
+      }
+    };
+
+    loadSourceContext();
+  }, [source, sourceData, contextLoaded, getSourceContext]);
+
+  // Format the source data into a context string
+  const formatSourceContext = (sourceName, data) => {
+    if (!sourceName || !data || !Array.isArray(data) || data.length === 0) return null;
+
+    try {
+      // Create a summary of the data
+      const rowCount = data.length;
+      const sampleData = data.slice(0, 5);
+      const columns = Object.keys(sampleData[0] || {});
+
+      // Format the context as a system prompt
+      return `You are an AI assistant helping with data analysis. You have access to the following dataset from DuckDB:
+      - Source: ${sourceName}
+      - Total Rows: ${rowCount}
+      - Columns: ${columns.join(', ')}
+      - Sample Data: ${JSON.stringify(sampleData, null, 2)}
+      
+      When answering questions, refer to this dataset and provide insights based on the data.`;
+    } catch (error) {
+      console.error('Error formatting source context:', error);
+      return null;
+    }
+  };
+
+  // Original getSourceContext function (as fallback)
+  const getSourceContext = async () => {
+    if (!source) return null;
+    try {
+      // This would be replaced with actual API call to get data if not provided directly
+      console.log(
+        'Fallback method for getting source context - should not be called if sourceData is provided'
+      );
+      return null;
+    } catch (error) {
+      console.error('Error getting dataframe context:', error);
+      return null;
+    }
+  };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
+
+  // Update the handleSubmit function to use the cached context
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!inputValue.trim()) return;
+    setError(null);
+
+    const newMessage = {
+      role: 'user',
+      content: inputValue.trim(),
+      timestamp: new Date().toISOString(),
+    };
+
+    const newMessages = [...messages, newMessage];
+    onChange?.({ messages: newMessages });
+    setInputValue('');
+
+    setIsLoading(true);
+    try {
+      const response = await createChatCompletion(newMessages, source, sourceContext);
+      const assistantMessage = {
+        ...response,
+        timestamp: new Date().toISOString(),
+      };
+      onChange?.({ messages: [...newMessages, assistantMessage] });
+    } catch (err) {
+      setError(err.message || 'An error occurred');
+      console.error('Failed to get AI response:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatTimestamp = (timestamp) => {
+    return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  return (
+    <Card className={cn(`flex flex-col shadow-md h-[600px] w-full`, className)}>
+      <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center space-x-2">
+          <div>
+            <h3 className="font-semibold">{label}</h3>
+            <p className="text-sm animate-pulse [color:from-green-500_to-green-100]">Online</p>
+          </div>
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto p-4">
+        <div className="space-y-4">
+          <div className="text-xs text-gray-500">Messages count: {messages.length}</div>
+
+          {messages.map((message, index) => (
+            <div
+              key={index}
+              className={cn(
+                'flex w-full',
+                message.role === 'user' ? 'justify-end' : 'justify-start'
+              )}
+            >
+              <div
+                className={cn(
+                  'flex items-end space-x-2 max-w-[80%]',
+                  message.role === 'user' && 'flex-row-reverse space-x-reverse ml-auto'
+                )}
+              >
+                {message.role === 'user' ? (
+                  <User className="h-6 w-6 flex-shrink-0" />
+                ) : (
+                  <Bot className="h-6 w-6 flex-shrink-0" />
+                )}
+                <div
+                  className={cn(
+                    'rounded-lg p-4 shadow-sm break-words min-w-[60px] max-w-full',
+                    message.role === 'user'
+                      ? 'bg-primary text-primary-foreground rounded-tr-none'
+                      : 'bg-secondary text-secondary-foreground rounded-tl-none'
+                  )}
+                >
+                  <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+                    {message.content}
+                  </p>
+                  <span className="text-xs opacity-70 mt-2 block">
+                    {formatTimestamp(message.timestamp)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+          {isLoading && (
+            <div className="flex items-center space-x-2 text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>AI is typing...</span>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
+      {error && (
+        <div className="bg-destructive/15 text-destructive text-sm p-3 mx-4 mb-2 rounded">
+          Error: {error}
+        </div>
+      )}
+      <form onSubmit={handleSubmit} className="p-4 border-t">
+        <div className="flex items-center gap-2">
+          <Input
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder={placeholder}
+            className="flex-1 rounded-lg border-2 border-gray-200 px-4 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+            autoComplete="off"
+            autoFocus
+            spellCheck="true"
+            maxLength={1000}
+          />
+          <Button
+            type="submit"
+            size="icon"
+            className="bg-primary p-3 hover:bg-primary/90 transition-transform duration-200 rounded-md shadow-sm hover:scale-110"
+            disabled={!inputValue.trim() || isLoading}
+          >
+            <Send className="h-5 w-5 text-primary-foreground" />
+          </Button>
+        </div>
+      </form>
+    </Card>
+  );
+};
+
+export default ChatWidget;
