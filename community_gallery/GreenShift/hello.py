@@ -81,9 +81,3 @@ filtered_df = df[df["Country"].isin(initial_countries)]
 
 # Display the filtered table
 table(filtered_df)
-
-#api key = prswld-b8c56d7e-2b80-468e-905d-1919873c068e
-#i Custom domain assigned at greenshift-660129-inh5wcbv.preswald.app
-#i App is available here https://greenshift-660129-inh5wcbv-ndjz2ws6la-ue.a.run.app
-#i Custom domain assigned at greenshift-660129-inh5wcbv.preswald.app
-#preswald deploy --target structured --github kunalmore984 --api-key prswld-b8c56d7e-2b80-468e-905d-1919873c068e hello.py
