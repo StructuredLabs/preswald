@@ -1,6 +1,11 @@
-# Preswald Project
+# Mobile Usage Behavioral Analysis Dashboard
 
-## Setup
-1. Configure your data connections in `preswald.toml`
-2. Add sensitive information (passwords, API keys) to `secrets.toml`
-3. Run your app with `preswald run hello.py`
+## Dataset
+`data/mobile_usage_behavioral_analysis.csv` contains behavioral data tracking mobile device usage patterns.
+
+## Running the Dashboard
+```
+preswald run
+```
+
+This launches a simple dashboard application to visualize and analyze the mobile usage behavioral data.

@@ -7,7 +7,7 @@ entrypoint = "hello.py"    # Required: Main script to run when executing preswal
 
 [branding]
 name = "Preswald Project"
-logo = "images/logo.png"
+logo = "images/mobile-logo.png"
 favicon = "images/favicon.ico"
 primaryColor = "#F89613"
 
