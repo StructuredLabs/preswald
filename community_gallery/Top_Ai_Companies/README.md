@@ -2,7 +2,7 @@
 
 An interactive Preswald application that provides analytical insights into top AI companies, including revenue, employee satisfaction, industry classification, and geographical distribution.
 
-Link to my Deployed app : Link[https://new-coding-assessment-279836-ssvcjex7.preswald.app/](https://new-coding-assessment-279836-ssvcjex7.preswald.app/)
+Link to my Deployed app : [https://new-coding-assessment-279836-ssvcjex7.preswald.app/](https://new-coding-assessment-279836-ssvcjex7.preswald.app/)
 
 ## Folder Structure
 
