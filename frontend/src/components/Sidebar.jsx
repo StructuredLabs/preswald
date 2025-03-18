@@ -22,25 +22,21 @@ export default function Sidebar({
   const primaryColor = branding?.primaryColor || '#000000';
 
   const NavContent = ({ isMobile = false }) => (
-    <div className="flex grow flex-col h-full ">
-      <div className="flex flex-col h-full justify-between">
-        <div className="flex flex-col gap-y-5 w-full">
+    <div className="sidebar-container">
+      <div className="sidebar-content">
+        <div className="sidebar-nav">
           {!isMobile && (
-            <div className="flex h-16 shrink-0 items-center">
+            <div className="sidebar-header">
               <img
-                className="h-8 w-8"
+                className="sidebar-logo"
                 src={`${branding?.logo}?timstamp=${new Date().getTime()}`}
                 alt={branding?.name}
               />
-              {!isCollapsed && (
-                <span className="ml-4 text-lg font-semibold transition-opacity duration-200">
-                  {branding?.name}
-                </span>
-              )}
+              {!isCollapsed && <span className="sidebar-title">{branding?.name}</span>}
             </div>
           )}
-          <nav className="flex flex-1 flex-col">
-            <ul role="list" className="flex flex-1 flex-col gap-y-7">
+          <nav className="sidebar-nav-list">
+            <ul role="list" className="sidebar-nav-items">
               <li>
                 <ul role="list" className="-mx-2 space-y-1">
                   {navigation.map((item) => (
@@ -49,10 +45,10 @@ export default function Sidebar({
                         to={item.href}
                         onClick={() => isMobile && setSidebarOpen(false)}
                         className={cn(
-                          'flex items-center gap-x-3 rounded-md px-2 py-2 text-sm font-semibold leading-6 transition-all duration-200 m-2',
+                          'sidebar-nav-link',
                           location.pathname === item.href
-                            ? 'bg-accent hover:rounded-md'
-                            : 'hover:bg-accent',
+                            ? 'sidebar-nav-link-active'
+                            : 'sidebar-nav-link-hover',
                           isCollapsed && !isMobile && 'justify-center px-2',
                           location.pathname === item.href
                             ? { color: primaryColor }
@@ -62,7 +58,7 @@ export default function Sidebar({
                       >
                         <item.icon
                           className={cn(
-                            'h-6 w-6 shrink-0 transition-transform duration-200',
+                            'sidebar-icon',
                             isCollapsed && !isMobile && 'transform-gpu'
                           )}
                           style={{
@@ -81,9 +77,9 @@ export default function Sidebar({
             </ul>
           </nav>
         </div>
-        <div className="text-center text-sm text-gray-400 pb-2">
+        <div className="sidebar-footer">
           Built By{' '}
-          <a href="https://github.com/structuredlabs/preswald" className="hover:underline">
+          <a href="https://github.com/structuredlabs/preswald" className="sidebar-footer-link">
             Preswald
           </a>
         </div>
@@ -95,22 +91,12 @@ export default function Sidebar({
     <>
       {/* Mobile Sidebar */}
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent
-          side="left"
-          className={cn(
-            'fixed inset-y-0 left-0',
-            'flex w-[280px] flex-col',
-            'border-r bg-background p-0',
-            'data-[state=closed]:duration-300 data-[state=open]:duration-500',
-            'data-[state=closed]:animate-slide-to-left data-[state=open]:animate-slide-from-left',
-            '[&>button]:top-4 [&>button]:right-4 [&>button]:h-8 [&>button]:w-8'
-          )}
-        >
-          <SheetHeader className="p-4 border-b">
+        <SheetContent side="left" className="sidebar-mobile">
+          <SheetHeader className="sidebar-mobile-header">
             <div className="flex items-center justify-between">
-              <SheetTitle className="flex items-center gap-2">
+              <SheetTitle className="sidebar-mobile-title">
                 <img
-                  className="h-8 w-8"
+                  className="sidebar-logo"
                   src={`${branding?.logo}?timstamp=${new Date().getTime()}`}
                   alt={branding?.name}
                 />
@@ -118,7 +104,7 @@ export default function Sidebar({
               </SheetTitle>
             </div>
           </SheetHeader>
-          <div className="flex-1 overflow-hidden px-4 py-2">
+          <div className="sidebar-mobile-content">
             <NavContent isMobile={true} />
           </div>
         </SheetContent>
@@ -127,12 +113,11 @@ export default function Sidebar({
       {/* Desktop Sidebar */}
       <div
         className={cn(
-          'hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col',
-          isCollapsed ? 'lg:w-20' : 'lg:w-80',
-          'border-r bg-background transition-all duration-300 ease-in-out transform-gpu'
+          'sidebar-desktop',
+          isCollapsed ? 'sidebar-desktop-collapsed' : 'sidebar-desktop-expanded'
         )}
       >
-        <div className="flex-1 overflow-hidden px-4 py-2">
+        <div className="sidebar-desktop-content">
           <NavContent />
         </div>
       </div>

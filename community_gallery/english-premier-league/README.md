@@ -61,7 +61,7 @@ Special thanks to:
 For more information about Preswald integration capabilities:
 
 - [Preswald Documentation](https://docs.preswald.com/introduction)
-- [Preswald Developer Community](https://preswald-community.slack.com/join/shared_invite/zt-313yzc9hu-6olRuzf8B9RZU6lwnlZyCA#/shared-invite/email)
+- [Preswald Developer Community](https://join.slack.com/t/preswald-community/shared_invite/zt-31vvfitfm-_vG1HR9hYysR_56u_PfI8Q)
 
 ## License
 
