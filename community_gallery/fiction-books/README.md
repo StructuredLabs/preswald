@@ -25,9 +25,29 @@ This analysis explores a dataset of fiction books, focusing on user ratings and 
 - **Interactive Exploration**: Adjust filters dynamically to explore different subsets of data.
 - **Visual Insights**: Understand the relationship between user ratings and reviews through interactive plots.
 
-## Table
+## Dataset Source
 
-1. https://www.kaggle.com/datasets/sootersaalu/amazon-top-50-bestselling-books-2009-2019
+[Amazon Top 50 Bestselling Books 2009-2019](https://www.kaggle.com/datasets/sootersaalu/amazon-top-50-bestselling-books-2009-2019)
 
-## Setup
-1. Run your app with `preswald run`
+## Running the App
+
+To run the app, execute the following command:
+
+```
+preswarld run
+```
+
+## Deploy the App
+
+To deploy this app, create a preswald API key:
+
+1. Go to [preswald.com](https://preswald.com).
+2. Create a New Organization (top left corner).
+3. Navigate to **Settings > API Keys**.
+4. Generate and copy your Preswald API key.
+
+Then, add your GitHub username and Preswald API key in the following command:
+
+```
+preswald deploy --target structured --github <your-github-username> --api-key <structured-api-key> hello.py
+```
