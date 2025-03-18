@@ -34,11 +34,8 @@ const AlertWidget = ({ message, level = 'info', className }) => {
   const Icon = config.icon;
 
   return (
-    <Alert
-      variant={config.variant}
-      className={cn('relative flex gap-x-4 items-center p-4', className)}
-    >
-      <Icon className="h-4 w-4" />
+    <Alert variant={config.variant} className={cn('alertwidget-container', className)}>
+      <Icon className="alertwidget-icon" />
       <AlertTitle>{config.title}</AlertTitle>
       <AlertDescription>{message}</AlertDescription>
     </Alert>

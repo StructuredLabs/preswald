@@ -327,6 +327,17 @@ def spinner(label: str, size: float = 1.0):
     return component
 
 
+def sidebar(defaultopen: bool):
+    """Create a sidebar component."""
+    service = PreswaldService.get_instance()
+    id = generate_id("sidebar")
+    logger.debug(f"Creating sidebar component with id {id}")
+    component = {"type": "sidebar", "id": id, "defaultopen": defaultopen}
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+    return component
+
+
 def table(  # noqa: C901
     data: pd.DataFrame, title: Optional[str] = None, limit: Optional[int] = None
 ) -> Dict:

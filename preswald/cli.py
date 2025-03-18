@@ -359,9 +359,9 @@ def stop(target):
                 click.echo(click.style(f"❌ GCP cleanup failed: {e!s}", fg="red"))
                 sys.exit(1)
         else:
-            from preswald.deploy import stop as stop_app
+            from preswald.deploy import stop_local_deployment
 
-            stop_app(current_dir)
+            stop_local_deployment(current_dir)
             click.echo("Deployment stopped successfully. 🛑 ")
     except Exception:
         sys.exit(1)

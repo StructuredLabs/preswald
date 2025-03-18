@@ -29,43 +29,40 @@ const TableViewerWidget = ({
 
   if (!data || data.length === 0) {
     return (
-      <Card className={cn('w-full', className)}>
-        <CardContent className="flex items-center justify-center py-6">
-          <p className="text-sm text-muted-foreground">No data available</p>
+      <Card className={cn('tableviewer-card', className)}>
+        <CardContent className="tableviewer-card-content">
+          <p className="tableviewer-no-data-text">No data available</p>
         </CardContent>
       </Card>
     );
   }
 
   const TableContent = (
-    <div className={cn('w-full', className)}>
-      <div className="flex items-center justify-between mb-2">
-        {showTitle && <h3 className="text-lg font-medium">{title}</h3>}
+    <div className={cn('tableviewer-container', className)}>
+      <div className="tableviewer-header">
+        {showTitle && <h3 className="tableviewer-title">{title}</h3>}
         <Button
           variant="ghost"
           size="sm"
-          className="p-0 h-9 w-9 flex items-center justify-center"
+          className="tableviewer-toggle-button"
           onClick={() => setIsExpanded(!isExpanded)}
         >
           <ChevronDown
-            className={cn(
-              'h-4 w-4 transition-transform duration-200 m-auto',
-              isExpanded ? '' : '-rotate-90'
-            )}
+            className={cn('tableviewer-chevron', !isExpanded && 'tableviewer-chevron-rotated')}
           />
         </Button>
       </div>
       <div
         className={cn(
-          'overflow-auto transition-all duration-200 ease-in-out',
-          isExpanded ? 'opacity-100 max-h-[2000px]' : 'opacity-0 max-h-0'
+          'tableviewer-table-container',
+          isExpanded ? 'tableviewer-expanded' : 'tableviewer-collapsed'
         )}
       >
         <Table>
           <TableHeader>
             <TableRow>
               {Object.keys(data[0]).map((key) => (
-                <TableHead key={key} className="font-medium">
+                <TableHead key={key} className="tableviewer-header-cell">
                   {key}
                 </TableHead>
               ))}
@@ -76,13 +73,17 @@ const TableViewerWidget = ({
               <TableRow
                 key={index}
                 className={cn(
-                  hoverable && 'cursor-pointer hover:bg-muted/50',
-                  striped && index % 2 === 0 && 'bg-muted/50',
-                  dense ? 'h-8' : 'h-12'
+                  'tableviewer-row',
+                  hoverable && 'tableviewer-hoverable',
+                  striped && index % 2 === 0 && 'tableviewer-striped',
+                  dense ? 'tableviewer-dense' : 'tableviewer-normal'
                 )}
               >
                 {Object.values(row).map((value, idx) => (
-                  <TableCell key={idx} className={cn('p-2 md:p-4', dense && 'py-1 text-sm')}>
+                  <TableCell
+                    key={idx}
+                    className={cn('tableviewer-cell', dense && 'tableviewer-cell-dense')}
+                  >
                     {value !== null && value !== undefined ? value : 'N/A'}
                   </TableCell>
                 ))}
@@ -96,29 +97,25 @@ const TableViewerWidget = ({
 
   if (variant === 'card') {
     return (
-      <Card className={cn('w-full', className)}>
+      <Card className={cn('tableviewer-card', className)}>
         {showTitle && (
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="tableviewer-card-header">
             <CardTitle>{title}</CardTitle>
             <Button
               variant="ghost"
               size="sm"
-              className="p-0 h-9 w-9 flex items-center justify-center"
+              className="tableviewer-toggle-button"
               onClick={() => setIsExpanded(!isExpanded)}
             >
               <ChevronDown
-                className={cn(
-                  'h-4 w-4 transition-transform duration-200 m-auto',
-                  isExpanded ? '' : '-rotate-90'
-                )}
+                className={cn('tableviewer-chevron', !isExpanded && 'tableviewer-chevron-rotated')}
               />
             </Button>
           </CardHeader>
         )}
         <CardContent
           className={cn(
-            'transition-all duration-200 ease-in-out p-0',
-            isExpanded ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden'
+            isExpanded ? 'tableviewer-card-content-expanded' : 'tableviewer-card-content-collapsed'
           )}
         >
           {TableContent}

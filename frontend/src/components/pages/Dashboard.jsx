@@ -16,7 +16,7 @@ const Dashboard = ({ components, error, handleComponentUpdate }) => {
   const renderContent = () => {
     if (error) {
       return (
-        <Alert variant="destructive" className="mb-4">
+        <Alert variant="destructive" className="dashboard-error">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       );
@@ -24,10 +24,10 @@ const Dashboard = ({ components, error, handleComponentUpdate }) => {
 
     if (!isValidComponents) {
       return (
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center space-y-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="text-sm text-muted-foreground">
+        <div className="dashboard-loading-container">
+          <div className="dashboard-loading-content">
+            <div className="dashboard-loading-spinner"></div>
+            <p className="dashboard-loading-text">
               {!components ? 'Loading components...' : 'Invalid components data'}
             </p>
           </div>
@@ -37,8 +37,8 @@ const Dashboard = ({ components, error, handleComponentUpdate }) => {
 
     if (components.rows.length === 0) {
       return (
-        <div className="flex items-center justify-center h-64">
-          <p className="text-sm text-muted-foreground">No components to display</p>
+        <div className="dashboard-empty">
+          <p className="dashboard-empty-text">No components to display</p>
         </div>
       );
     }
@@ -46,7 +46,7 @@ const Dashboard = ({ components, error, handleComponentUpdate }) => {
     return <DynamicComponents components={components} onComponentUpdate={handleComponentUpdate} />;
   };
 
-  return <div className="min-h-screen">{renderContent()}</div>;
+  return <div className="dashboard-container">{renderContent()}</div>;
 };
 
 export default Dashboard;
