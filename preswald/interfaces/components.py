@@ -49,6 +49,46 @@ def button(label: str, size: float = 1.0):
     return component
 
 
+def chat(source: Optional[str] = None) -> Dict:
+    """Create a chat component with a ChatGPT-like interface.
+
+    Args:
+        source: Optional data source to query against. If None, queries all available sources.
+
+    Returns:
+        Dict: The created chat component configuration.
+    """
+    service = PreswaldService.get_instance()
+
+    # Create a consistent ID based on the source
+    component_id = f"chat-{hashlib.md5(str(source).encode()).hexdigest()[:8]}"
+
+    # Get current state or initialize empty
+    current_state = service.get_component_state(component_id)
+    if current_state is None:
+        current_state = {"messages": [], "source": source}
+
+    # Get dataframe from source if specified
+    df = None
+    if source:
+        df = service.data_manager.get_df(source)
+
+    logger.debug(f"Creating chat component with id {component_id}, source: {source}")
+    component = {
+        "type": "chat",
+        "id": component_id,
+        "value": current_state,
+        "config": {
+            "source": source,
+            "data": df.to_dict("records") if df is not None else None,
+        },
+    }
+
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+    return component
+
+
 def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
     """Create a checkbox component with consistent ID based on label."""
     service = PreswaldService.get_instance()

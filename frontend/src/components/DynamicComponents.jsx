@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 // Import all widgets
 import AlertWidget from './widgets/AlertWidget';
 import ButtonWidget from './widgets/ButtonWidget';
+import ChatWidget from './widgets/ChatWidget';
 import CheckboxWidget from './widgets/CheckboxWidget';
 import ConnectionInterfaceWidget from './widgets/ConnectionInterfaceWidget';
 import DAGVisualizationWidget from './widgets/DAGVisualizationWidget';
@@ -196,6 +197,29 @@ const MemoizedComponent = memo(
             markdown={component.markdown || component.content || component.value || ''}
             error={component.error}
             variant={component.variant || 'default'}
+            className={component.className}
+          />
+        );
+
+      case 'chat':
+        // ----------------------------------------
+        console.log(
+          '[DynamicCHATComponents] Chat component:',
+          `Component type: ${component.type}`,
+          component
+        );
+        // ----------------------------------------
+        return (
+          <ChatWidget
+            {...commonProps}
+            source={component.source || null}
+            sourceData={component.config?.data || null}
+            size={component.size || 1.0}
+            value={component.value || { messages: component.history || component.messages || [] }}
+            onChange={(value) => {
+              console.log('[DynamicComponents] Chat update:', value);
+              handleUpdate(componentId, value);
+            }}
             className={component.className}
           />
         );
