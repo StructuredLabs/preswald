@@ -1,8 +1,8 @@
 [project]
 title = "Preswald Project"
 version = "0.1.0"
-port = 8502
-slug = "demo-350816"  # Required: Unique identifier for your project
+port = 8501
+slug = "preswald-project-512583"  # Required: Unique identifier for your project
 entrypoint = "hello.py"    # Required: Main script to run when executing preswald run
 
 [branding]
