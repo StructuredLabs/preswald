@@ -26,16 +26,16 @@ GreenShift is a data visualization project that analyzes renewable energy adopti
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/yourusername/greenshift.git
-   cd greenshift
+   git clone [https://github.com/yourusername/greenshift.git](https://github.com/kunalmore984/preswald.git)
+   cd community_gallery/GreenShift
    ```
 2. Install dependencies:
    ```sh
-   pip install -r requirements.txt
+   pip install preswald
    ```
-3. Run the script:
+3. Run the app:
    ```sh
-   python app.py
+   preswald run
    ```
 
 ## Usage
@@ -52,12 +52,6 @@ GreenShift is a data visualization project that analyzes renewable energy adopti
 
 ## Contributors
 
-- **Your Name** ([Your GitHub Profile](https://github.com/yourusername))
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
+- **Kunal More** ([Your GitHub Profile]([https://github.com/yourusername](https://github.com/kunalmore984)))
 
 Feel free to contribute or suggest improvements!
