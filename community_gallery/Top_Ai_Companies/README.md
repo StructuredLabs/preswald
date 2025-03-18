@@ -6,11 +6,14 @@ Link to my Deployed app : Link[https://new-coding-assessment-279836-ssvcjex7.pre
 
 ## Folder Structure
 
+```
 community_gallery/Top_Ai_Companies/
 ├── hello.py
 ├── data/
-│ ├── Ai_Companies.csv
+    ├── Ai_Companies.csv
 ├── README.md
+
+```
 
 ## Dataset Source
 
