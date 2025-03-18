@@ -205,18 +205,25 @@ elif current_tab == "🌍 Compare Countries":
 
         separator()
 
+        # define a fixed color mapping and ordering for countries to ensure consistency
+        ordered_countries = sorted(filtered_df["Country"].unique())
+        country_colors = {country: px.colors.qualitative.Set2[i % 10] for i, country in enumerate(ordered_countries)}
+
         # conditionally display salary distribution chart based on additional factor
         if selected_factor and selected_factor in filtered_df.columns:
             factor_chart = px.box(
                 filtered_df,
                 x=selected_factor,
                 y="ConvertedCompYearly",
-                color=selected_factor,
+                color="Country",
+                category_orders={"Country": ordered_countries},
                 title=f"Salary Distribution by {selected_factor_label}",
                 labels={
                     "ConvertedCompYearly": "Annual Compensation (USD)",
-                    selected_factor: selected_factor_label
+                    selected_factor: selected_factor_label,
+                    "Country": "Country"
                 },
+                color_discrete_map=country_colors,
                 template="plotly_white"
             )
         else:
@@ -225,11 +232,13 @@ elif current_tab == "🌍 Compare Countries":
                 x="Country",
                 y="ConvertedCompYearly",
                 color="Country",
+                category_orders={"Country": ordered_countries},
                 title="Salary Distribution by Country",
                 labels={
                     "ConvertedCompYearly": "Annual Compensation (USD)",
                     "Country": "Country"
                 },
+                color_discrete_map=country_colors,
                 template="plotly_white"
             )
 
@@ -238,18 +247,23 @@ elif current_tab == "🌍 Compare Countries":
         # generate bar chart comparing median salaries by country or selected factor
         if selected_factor and selected_factor in filtered_df.columns:
             median_salaries = filtered_df.groupby([selected_factor, "Country"])["ConvertedCompYearly"].median().reset_index()
+
+            # combine country and factor label for readability
+            median_salaries["Label"] = median_salaries["Country"] + " - " + median_salaries[selected_factor].astype(str)
+
             bar_fig = px.bar(
                 median_salaries,
-                x=selected_factor,
+                x="Label",
                 y="ConvertedCompYearly",
                 color="Country",
                 barmode="group",
+                category_orders={"Country": ordered_countries},
                 title=f"Median Salary Comparison by {selected_factor_label} and Country",
                 labels={
                     "ConvertedCompYearly": "Median Annual Compensation (USD)",
-                    selected_factor: selected_factor_label,
-                    "Country": "Country"
+                    "Label": "Country - " + selected_factor_label
                 },
+                color_discrete_map=country_colors,
                 template="plotly_white"
             )
         else:
@@ -259,11 +273,13 @@ elif current_tab == "🌍 Compare Countries":
                 x="Country",
                 y="ConvertedCompYearly",
                 color="Country",
+                category_orders={"Country": ordered_countries},
                 title="Median Salary Comparison by Country",
                 labels={
                     "ConvertedCompYearly": "Median Annual Compensation (USD)",
                     "Country": "Country"
                 },
+                color_discrete_map=country_colors,
                 template="plotly_white"
             )
 
