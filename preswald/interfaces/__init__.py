@@ -13,6 +13,7 @@ from .components import (
     progress,
     selectbox,
     separator,
+    sidebar,
     slider,
     spinner,
     table,
