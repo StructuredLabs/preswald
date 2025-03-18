@@ -1,8 +1,9 @@
-from preswald import connect, get_df, selectbox, table, text, plotly, separator, checkbox, slider
 import numpy as np
-import plotly.express as px
 import pandas as pd
-import string
+import plotly.express as px
+
+from preswald import connect, get_df, plotly, selectbox, separator, slider, table, text
+
 
 def normalize_years_of_experience(filtered_df):
     filtered_df["YearsCodePro"] = filtered_df["YearsCodePro"].replace({
@@ -50,7 +51,7 @@ def apply_experience_level_filter(filtered_df):
 try:
     connect()
     df = get_df("stack_overflow_survey")
-except Exception as e:
+except Exception:
     text("Error: Unable to load dataset. Please ensure the data file is in the 'data/' directory.")
     text("Follow the instructions in the README to download the dataset and run the app.")
     df = pd.DataFrame()
@@ -88,7 +89,7 @@ if current_tab == "📊 Experience vs. Compensation":
         median_salary = filtered_df["ConvertedCompYearly"].median()
         total_respondents = len(filtered_df)
 
-        text(f"### Summary Statistics")
+        text("### Summary Statistics")
         text(f"**Average Salary:** ${avg_salary:,.2f}", size=0.3)
         text(f"**Median Salary:** ${median_salary:,.2f}", size=0.3)
         text(f"**Total Respondents:** {total_respondents}", size=0.3)
@@ -131,19 +132,19 @@ if current_tab == "📊 Experience vs. Compensation":
             y=predicted_salaries,
             mode="lines",
             name="Predicted Salaries",
-            line=dict(color="orange", dash="dot"),
+            line={"color": "orange", "dash": "dot"},
             legendgroup="trendline"
         )
 
         # Adjust the layout to ensure the labels don't overlap
         fig.update_layout(
-            legend=dict(
-                orientation="h",
-                yanchor="bottom",
-                y=1.02,
-                xanchor="center",
-                x=0.5
-            )
+            legend={
+                "orientation": "h",
+                "yanchor": "bottom",
+                "y": 1.02,
+                "xanchor": "center",
+                "x": 0.5
+            }
         )
 
         plotly(fig)
@@ -173,8 +174,8 @@ elif current_tab == "🌍 Compare Countries":
         # Remove 'None' selections
         selected_countries = [
             selectbox("Select First Country", filtered_countries, default=filtered_countries[0], size=0.3),
-            selectbox("Select Second Country (Optional)", ["None"] + filtered_countries, default="None", size=0.3),
-            selectbox("Select Third Country (Optional)", ["None"] + filtered_countries, default="None", size=0.3)
+            selectbox("Select Second Country (Optional)", ["None", *filtered_countries], default="None", size=0.3),
+            selectbox("Select Third Country (Optional)", ["None", *filtered_countries], default="None", size=0.3)
         ]
 
         # Filter data for selected countries
@@ -235,6 +236,6 @@ elif current_tab == "🌍 Compare Countries":
         separator()
 
         # Display filtered table
-        table(filtered_df.head(20), title=f"Developer Responses from Selected Countries")
+        table(filtered_df.head(20), title="Developer Responses from Selected Countries")
     else:
         text("Please select at least one letter group to filter countries.")
