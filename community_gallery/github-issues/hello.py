@@ -2,7 +2,6 @@ from preswald import (connect, get_df, slider, selectbox, table, plotly,
                      text, separator, checkbox, text_input, alert)
 from urllib.parse import urlparse
 import plotly.express as px
-from textblob import TextBlob
 from collections import Counter
 import pandas as pd
 import numpy as np
@@ -10,15 +9,30 @@ import numpy as np
 connect()
 df = get_df("github_issues_sample")
 
+text("# GitHub Issues Explorer")
+
 def parse_url(url):
     path = urlparse(url).path.split('/')
     return f"{path[1]}/{path[2]}" if len(path) > 3 else "unknown"
 
 df['repo'] = df['issue_url'].apply(parse_url)
-df['sentiment'] = df['body'].apply(lambda x: TextBlob(str(x)).sentiment.polarity)
 
-text("# GitHub Issues Explorer")
+positive_words = {"excellent": 3, "great": 2, "good": 1, "amazing": 3, "happy": 2, "love": 3, "like": 1, "wonderful": 3}
+negative_words = {"terrible": -3, "bad": -2, "poor": -1, "awful": -3, "sad": -2, "hate": -3, "horrible": -3, "worse": -2}
 
+def sentiment(text):
+    words = text.lower().split()
+    word_counts = Counter(words)
+
+    sentiment_sum = sum(positive_words.get(word, 0) * word_counts[word] for word in word_counts)
+    sentiment_sum += sum(negative_words.get(word, 0) * word_counts[word] for word in word_counts)
+
+    total_words = sum(word_counts.values())
+    score = sentiment_sum / (total_words + 1e-5)
+
+    return round(score, 2)
+
+df['sentiment'] = df['body'].apply(sentiment)
 
 filtered = df
 
