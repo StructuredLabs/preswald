@@ -108,7 +108,6 @@ class BuildFrontendCommand(Command):
 CORE_DEPENDENCIES = [
     # Dependencies that work in browser and server environments
     "pandas>=1.5",
-    "toml==0.10.2",
     "plotly==5.24.1",
     "Markdown>=3.4.0",
     # Server-only dependencies
