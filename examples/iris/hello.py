@@ -106,7 +106,3 @@ matplotlib(fig)
 text(
     "## Interactive Chat Interface\nUse this chat interface to ask questions about the iris dataset analysis. You can inquire about specific patterns, request explanations of the visualizations, or ask for additional insights."
 )
-
-
-# Configure and display the chat widget
-chat(source="iris_csv")
