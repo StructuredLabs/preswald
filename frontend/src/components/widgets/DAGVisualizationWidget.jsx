@@ -159,7 +159,10 @@ const DAGVisualizationWidget = ({ id, data: rawData, content, error }) => {
   }
 
   return (
-    <Card className={cn('dag-visualizer-container', isFullscreen && 'dag-visualizer-fullscreen')} ref={setRefs}>
+    <Card
+      className={cn('dag-visualizer-container', isFullscreen && 'dag-visualizer-fullscreen')}
+      ref={setRefs}
+    >
       {/* Header Controls */}
       <div className="dag-visualizer-controls">
         <TooltipProvider>
@@ -169,31 +172,50 @@ const DAGVisualizationWidget = ({ id, data: rawData, content, error }) => {
                 <FiInfo className="dag-visualizer-tooltip-trigger" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="dag-visualizer-tooltip-content">Toggle MiniMap</TooltipContent>
+            <TooltipContent className="dag-visualizer-tooltip-content">
+              Toggle MiniMap
+            </TooltipContent>
           </Tooltip>
 
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" onClick={toggleLock}>
-                {isLocked ? <FiLock className="dag-visualizer-tooltip-trigger" /> : <FiUnlock className="dag-visualizer-tooltip-trigger" />}
+                {isLocked ? (
+                  <FiLock className="dag-visualizer-tooltip-trigger" />
+                ) : (
+                  <FiUnlock className="dag-visualizer-tooltip-trigger" />
+                )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="dag-visualizer-tooltip-content">{isLocked ? 'Unlock Nodes' : 'Lock Nodes'}</TooltipContent>
+            <TooltipContent className="dag-visualizer-tooltip-content">
+              {isLocked ? 'Unlock Nodes' : 'Lock Nodes'}
+            </TooltipContent>
           </Tooltip>
 
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" onClick={toggleFullscreen}>
-                {isFullscreen ? <FiMinimize2 className="dag-visualizer-tooltip-trigger" /> : <FiMaximize2 className="dag-visualizer-tooltip-trigger" />}
+                {isFullscreen ? (
+                  <FiMinimize2 className="dag-visualizer-tooltip-trigger" />
+                ) : (
+                  <FiMaximize2 className="dag-visualizer-tooltip-trigger" />
+                )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="dag-visualizer-tooltip-content">{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</TooltipContent>
+            <TooltipContent className="dag-visualizer-tooltip-content">
+              {isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+            </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
 
       {/* Main Content */}
-      <CardContent className={cn('dag-visualizer-content', isFullscreen ? 'dag-visualizer-content-fullscreen' : 'dag-visualizer-content-default')}>
+      <CardContent
+        className={cn(
+          'dag-visualizer-content',
+          isFullscreen ? 'dag-visualizer-content-fullscreen' : 'dag-visualizer-content-default'
+        )}
+      >
         {isLoading ? (
           <div className="dag-visualizer-loading">
             <div className="dag-visualizer-spinner"></div>
@@ -223,7 +245,12 @@ const DAGVisualizationWidget = ({ id, data: rawData, content, error }) => {
 
       {/* Node Details Panel */}
       {selectedNode && (
-        <Card className={cn('dag-visualizer-node-panel', selectedNode ? 'dag-visualizer-node-panel-visible' : 'dag-visualizer-node-panel-hidden')}>
+        <Card
+          className={cn(
+            'dag-visualizer-node-panel',
+            selectedNode ? 'dag-visualizer-node-panel-visible' : 'dag-visualizer-node-panel-hidden'
+          )}
+        >
           <CardHeader className="dag-visualizer-node-header">
             <div className="flex justify-between items-center">
               <CardTitle className="dag-visualizer-node-title">{selectedNode.label}</CardTitle>

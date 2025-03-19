@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+
 import { cn } from '@/lib/utils';
 
 const SliderWidget = ({
@@ -43,10 +44,7 @@ const SliderWidget = ({
   const SliderContent = (
     <div className={cn('slider-container', className)}>
       <div className="slider-header">
-        <Label
-          htmlFor={id}
-          className={cn('slider-label', disabled && 'slider-label-disabled')}
-        >
+        <Label htmlFor={id} className={cn('slider-label', disabled && 'slider-label-disabled')}>
           {label}
         </Label>
         {showValue && <span className="slider-value">{localValue}</span>}
