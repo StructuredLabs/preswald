@@ -202,13 +202,6 @@ const MemoizedComponent = memo(
         );
 
       case 'chat':
-        // ----------------------------------------
-        console.log(
-          '[DynamicCHATComponents] Chat component:',
-          `Component type: ${component.type}`,
-          component
-        );
-        // ----------------------------------------
         return (
           <ChatWidget
             {...commonProps}
