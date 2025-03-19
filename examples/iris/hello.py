@@ -1,6 +1,6 @@
 import plotly.express as px
 
-from preswald import chat, connect, get_df, plotly, table, text
+from preswald import connect, get_df, plotly, table, text
 
 
 # Report Title
@@ -89,7 +89,3 @@ table(df, limit=10)
 text(
     "## Interactive Chat Interface\nUse this chat interface to ask questions about the iris dataset analysis. You can inquire about specific patterns, request explanations of the visualizations, or ask for additional insights."
 )
-
-
-# Configure and display the chat widget
-chat(source="iris_csv")
