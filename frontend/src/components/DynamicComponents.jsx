@@ -212,12 +212,10 @@ const MemoizedComponent = memo(
         return (
           <ChatWidget
             {...commonProps}
-            source={component.source || null}
+            sourceId={component.config?.source || null}
             sourceData={component.config?.data || null}
-            size={component.size || 1.0}
-            value={component.value || { messages: component.history || component.messages || [] }}
+            value={component.value || component.state || { messages: [] }}
             onChange={(value) => {
-              console.log('[DynamicComponents] Chat update:', value);
               handleUpdate(componentId, value);
             }}
             className={component.className}
