@@ -13,7 +13,7 @@
     <a href="https://www.python.org/downloads/">
         <img src="https://img.shields.io/badge/python-3.7%2B-blue.svg" alt="Python Version">
     </a>
-    <a href="https://preswald-community.slack.com/join/shared_invite/zt-313yzc9hu-6olRuzf8B9RZU6lwnlZyCA#/shared-invite/email">
+    <a href="https://join.slack.com/t/preswald-community/shared_invite/zt-31vvfitfm-_vG1HR9hYysR_56u_PfI8Q">
         <img src="https://img.shields.io/badge/Slack-Join%20Community-orange" alt="Slack Community">
     </a>
     <a href="https://pypi.org/project/preswald/">
@@ -199,7 +199,7 @@ Check out [CONTRIBUTING.md](CONTRIBUTING.md).
 ## **🎉 Join the Community**
 
 - **GitHub Issues**: Found a bug? Let us know [here](https://github.com/StructuredLabs/preswald/issues).
-- **Community Forum**: Reach out [here](https://preswald-community.slack.com/join/shared_invite/zt-313yzc9hu-6olRuzf8B9RZU6lwnlZyCA#/shared-invite/email)
+- **Community Forum**: Reach out [here](https://join.slack.com/t/preswald-community/shared_invite/zt-31vvfitfm-_vG1HR9hYysR_56u_PfI8Q)
 - **Discussions**: Share your ideas and ask questions in our [discussion forum](https://github.com/StructuredLabs/preswald/discussions).
 - **Contributors**: Meet the awesome people who make Preswald better [here](https://github.com/StructuredLabs/preswald/graphs/contributors).
 

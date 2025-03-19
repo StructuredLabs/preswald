@@ -1,0 +1,826 @@
+/* app.css */
+.main-content-collapsed-sidebar {
+  @apply lg:pl-20 transition-all duration-300;
+}
+
+.main-content-open-sidebar {
+  @apply lg:pl-80 transition-all duration-300;
+}
+
+.topbar {
+  @apply sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-background px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8;
+}
+
+.mobile-menu-button {
+  @apply lg:hidden;
+}
+
+.desktop-collapse-button {
+  @apply hidden lg:flex;
+}
+
+.icon-button {
+  @apply h-6 w-6 transition-transform duration-200;
+}
+
+.separator {
+  @apply h-6 lg:hidden;
+}
+
+.topbar-content {
+  @apply flex flex-1 gap-x-4 self-stretch lg:gap-x-6;
+}
+
+.branding-container {
+  @apply flex lg:hidden items-center;
+}
+
+.branding-logo {
+  @apply h-8 w-8;
+}
+
+.branding-name {
+  @apply ml-3 text-lg font-semibold;
+}
+
+.sidebar-container {
+  @apply flex grow flex-col h-full;
+}
+
+.sidebar-content {
+  @apply flex flex-col h-full justify-between;
+}
+
+.sidebar-nav {
+  @apply flex flex-col gap-y-5 w-full;
+}
+
+.sidebar-header {
+  @apply flex h-16 shrink-0 items-center;
+}
+
+.sidebar-logo {
+  @apply h-8 w-8;
+}
+
+.sidebar-title {
+  @apply ml-4 text-lg font-semibold transition-opacity duration-200;
+}
+
+.sidebar-nav-list {
+  @apply flex flex-1 flex-col;
+}
+
+.sidebar-nav-items {
+  @apply flex flex-1 flex-col gap-y-7;
+}
+
+.sidebar-nav-link {
+  @apply flex items-center gap-x-3 rounded-md px-2 py-2 text-sm font-semibold leading-6 transition-all duration-200 m-2;
+}
+
+.sidebar-nav-link-active {
+  @apply bg-accent hover:rounded-md;
+}
+
+.sidebar-nav-link-hover {
+  @apply hover:bg-accent;
+}
+
+.sidebar-icon {
+  @apply h-6 w-6 shrink-0 transition-transform duration-200;
+}
+
+.sidebar-footer {
+  @apply text-center text-sm text-gray-400 pb-2;
+}
+
+.sidebar-footer-link {
+  @apply hover:underline;
+}
+
+/* Mobile Sidebar */
+.sidebar-mobile {
+  @apply fixed inset-y-0 left-0 flex w-[280px] flex-col border-r bg-background p-0;
+}
+
+.sidebar-mobile-header {
+  @apply p-4 border-b;
+}
+
+.sidebar-mobile-title {
+  @apply flex items-center gap-2;
+}
+
+.sidebar-mobile-close-btn {
+  @apply top-4 right-4 h-8 w-8;
+}
+
+.sidebar-mobile-content {
+  @apply flex-1 overflow-hidden px-4 py-2;
+}
+
+/* Desktop Sidebar */
+.sidebar-desktop {
+  @apply hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col border-r bg-background transition-all duration-300 ease-in-out transform-gpu;
+}
+
+.sidebar-desktop-collapsed {
+  @apply lg:w-20 pt-6 items-center gap-y-4;
+}
+
+.sidebar-desktop-collapsed .sidebar-header {
+  @apply justify-center items-center;
+}
+
+.sidebar-desktop-expanded {
+  @apply lg:w-80;
+}
+
+.sidebar-desktop-expanded .desktop-collapse-button {
+  @apply fixed top-6 right-2;
+}
+
+.sidebar-desktop-content {
+  @apply flex-1 overflow-hidden px-4 py-2;
+}
+
+.loading-container {
+  @apply flex items-center justify-center h-screen;
+}
+
+.loading-content {
+  @apply text-center;
+}
+
+.loading-spinner {
+  @apply animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4;
+}
+
+.loading-text {
+  @apply text-gray-600;
+}
+
+.dynamiccomponent-container {
+  @apply flex flex-col w-full;
+}
+
+.dynamiccomponent-row {
+  @apply flex flex-row w-full;
+  margin-bottom: 1rem; /* Maintain inline style */
+}
+
+.dynamiccomponent-component {
+  @apply bg-background rounded-lg transition-all duration-200 hover:border-muted-foreground/20;
+  padding: 1rem; /* Maintain inline style */
+  min-width: 0; /* Prevent flex items from overflowing */
+}
+
+.dynamiccomponent-hidden {
+  @apply hidden;
+}
+
+.dynamiccomponent-separator {
+  @apply w-px bg-gray-200 my-4 mx-4 h-auto;
+}
+
+.dashboard-container {
+  @apply min-h-screen;
+}
+
+.dashboard-error {
+  @apply mb-4;
+}
+
+.dashboard-loading-container {
+  @apply flex items-center justify-center h-64;
+}
+
+.dashboard-loading-content {
+  @apply text-center space-y-4;
+}
+
+.dashboard-loading-spinner {
+  @apply animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto;
+}
+
+.dashboard-loading-text {
+  @apply text-sm text-muted-foreground;
+}
+
+.dashboard-empty {
+  @apply flex items-center justify-center h-64;
+}
+
+.dashboard-empty-text {
+  @apply text-sm text-muted-foreground;
+}
+
+.alertwidget-container {
+  @apply relative flex gap-x-4 items-center p-4;
+}
+
+.alertwidget-icon {
+  @apply h-4 w-4;
+}
+
+.button-container {
+  @apply w-full sm:w-auto px-2 py-1;
+}
+
+.button-disabled {
+  @apply cursor-not-allowed;
+}
+
+.button-loading {
+  @apply flex items-center justify-center gap-2;
+}
+
+.button-spinner {
+  @apply h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent;
+}
+
+.checkbox-container {
+  @apply flex items-start space-x-3 space-y-0;
+}
+
+.checkbox-label-container {
+  @apply space-y-1 leading-none;
+}
+
+.checkbox-label {
+  @apply text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70;
+}
+
+.checkbox-description {
+  @apply text-sm text-muted-foreground;
+}
+
+.connectioninterface-card {
+  @apply w-full;
+}
+
+.connectioninterface-card-content {
+  @apply space-y-4;
+}
+
+.connectioninterface-input-group {
+  @apply space-y-2;
+}
+
+.connectioninterface-button {
+  @apply w-full;
+}
+
+.unknownwidget-container {
+  @apply border-2;
+}
+
+.unknownwidget-icon {
+  @apply h-4 w-4;
+}
+
+.unknownwidget-description {
+  @apply mt-2;
+}
+
+.unknownwidget-text {
+  @apply space-y-2 text-sm;
+}
+
+.unknownwidget-code {
+  @apply font-mono bg-muted px-1 py-0.5 rounded;
+}
+
+.unknownwidget-muted-text {
+  @apply text-muted-foreground;
+}
+
+.inputfield-container {
+  @apply space-y-2;
+}
+
+.inputfield-label {
+  @apply text-sm font-medium;
+}
+
+.inputfield-error {
+  @apply text-destructive;
+}
+
+.inputfield-disabled {
+  @apply opacity-50;
+}
+
+.inputfield-required {
+  @apply text-destructive ml-1;
+}
+
+.inputfield-size-sm {
+  @apply h-8 text-xs;
+}
+
+.inputfield-size-default {
+  @apply h-10 text-sm;
+}
+
+.inputfield-size-lg {
+  @apply h-12 text-base;
+}
+
+.inputfield-variant-ghost {
+  @apply border-none shadow-none;
+}
+
+.inputfield-error-border {
+  @apply border-destructive focus-visible:ring-destructive;
+}
+
+.inputfield-error-message {
+  @apply text-xs text-destructive mt-1;
+}
+
+.tableviewer-container {
+  @apply w-full;
+}
+
+.tableviewer-card {
+  @apply w-full;
+}
+
+.tableviewer-card-content {
+  @apply flex items-center justify-center py-6;
+}
+
+.tableviewer-no-data-text {
+  @apply text-sm text-muted-foreground;
+}
+
+.tableviewer-header {
+  @apply flex items-center justify-between mb-2;
+}
+
+.tableviewer-title {
+  @apply text-lg font-medium;
+}
+
+.tableviewer-toggle-button {
+  @apply p-0 h-9 w-9 flex items-center justify-center;
+}
+
+.tableviewer-chevron {
+  @apply h-4 w-4 transition-transform duration-200 m-auto;
+}
+
+.tableviewer-chevron-rotated {
+  @apply -rotate-90;
+}
+
+.tableviewer-table-container {
+  @apply overflow-auto transition-all duration-200 ease-in-out;
+}
+
+.tableviewer-expanded {
+  @apply opacity-100 max-h-[2000px];
+}
+
+.tableviewer-collapsed {
+  @apply opacity-0 max-h-0;
+}
+
+.tableviewer-header-cell {
+  @apply font-medium;
+}
+
+.tableviewer-row {
+  @apply cursor-pointer;
+}
+
+.tableviewer-hoverable {
+  @apply hover:bg-muted/50;
+}
+
+.tableviewer-striped {
+  @apply bg-muted/50;
+}
+
+.tableviewer-dense {
+  @apply h-8;
+}
+
+.tableviewer-normal {
+  @apply h-12;
+}
+
+.tableviewer-cell {
+  @apply p-2 md:p-4;
+}
+
+.tableviewer-cell-dense {
+  @apply py-1 text-sm;
+}
+
+.tableviewer-card-header {
+  @apply flex flex-row items-center justify-between space-y-0 pb-2;
+}
+
+.tableviewer-card-content-collapsed {
+  @apply transition-all duration-200 ease-in-out p-0 opacity-0 h-0 overflow-hidden;
+}
+
+.tableviewer-card-content-expanded {
+  @apply transition-all duration-200 ease-in-out p-0 opacity-100;
+}
+
+.spinner-container {
+  @apply flex flex-col items-center justify-center gap-3 p-4;
+}
+
+.spinner-label {
+  @apply text-sm font-medium text-muted-foreground;
+}
+
+.spinner-animation {
+  @apply rounded-full animate-spin border-primary/30 border-t-primary;
+}
+
+.spinner-size-sm {
+  @apply w-4 h-4 border-2;
+}
+
+.spinner-size-default {
+  @apply w-8 h-8 border-2;
+}
+
+.spinner-size-lg {
+  @apply w-12 h-12 border-4;
+}
+
+.spinner-card-content {
+  @apply pt-6;
+}
+
+.slider-container {
+  @apply space-y-4;
+}
+
+.slider-header {
+  @apply flex items-center justify-between;
+}
+
+.slider-label {
+  @apply text-sm font-medium;
+}
+
+.slider-label-disabled {
+  @apply opacity-50;
+}
+
+.slider-value {
+  @apply text-sm text-muted-foreground font-medium;
+}
+
+.slider-wrapper {
+  @apply p-4 bg-white;
+}
+
+.slider-track {
+  @apply w-full h-2 bg-gray-200 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+}
+
+.slider-min-max {
+  @apply flex justify-between;
+}
+
+.slider-minmax-label {
+  @apply text-sm text-muted-foreground;
+}
+
+.slider-card-content {
+  @apply pt-6;
+}
+
+.progress-container {
+  @apply w-full;
+}
+
+.progress-header {
+  @apply pb-2;
+}
+
+.progress-header-content {
+  @apply flex items-center justify-between;
+}
+
+.progress-label {
+  @apply text-sm font-medium text-muted-foreground;
+}
+
+.progress-value {
+  @apply text-sm font-medium text-muted-foreground;
+}
+
+.progress-bar {
+  @apply transition-all duration-300;
+}
+
+.progress-size-sm {
+  @apply h-2;
+}
+
+.progress-size-default {
+  @apply h-3;
+}
+
+.progress-size-lg {
+  @apply h-4;
+}
+
+.progress-steps {
+  @apply mt-4 grid grid-cols-4 gap-2;
+}
+
+.progress-step {
+  @apply text-center text-sm transition-colors duration-200;
+}
+
+.progress-step-active {
+  @apply text-primary font-medium;
+}
+
+.progress-step-inactive {
+  @apply text-muted-foreground;
+}
+
+.markdown-container {
+  @apply w-full;
+}
+
+.markdown-card-variant-default {
+  @apply bg-card;
+}
+
+.markdown-card-variant-outline {
+  @apply border rounded-lg;
+}
+
+.markdown-card-variant-ghost {
+  @apply bg-transparent border-none shadow-none;
+}
+
+.markdown-card-content {
+  @apply prose prose-sm md:prose-base lg:prose-lg dark:prose-invert max-w-none;
+}
+
+.markdown-headings {
+  @apply prose-headings:scroll-m-20;
+}
+
+.markdown-paragraph {
+  @apply prose-p:leading-7;
+}
+
+.markdown-list {
+  @apply prose-li:marker:text-muted-foreground;
+}
+
+.markdown-pre {
+  @apply prose-pre:p-0 prose-pre:bg-transparent prose-pre:shadow-lg;
+}
+
+.markdown-code {
+  @apply prose-code:text-zinc-900 dark:prose-code:text-zinc-100;
+}
+
+.markdown-padding {
+  @apply p-0;
+}
+
+.markdown-heading-1 {
+  @apply scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl;
+}
+
+.markdown-heading-2 {
+  @apply scroll-m-20 pb-2 text-3xl font-semibold tracking-tight first:mt-0;
+}
+
+.markdown-heading-3 {
+  @apply scroll-m-20 text-2xl font-semibold tracking-tight;
+}
+
+.markdown-link {
+  @apply font-medium text-primary underline underline-offset-4;
+}
+
+.markdown-pre-wrapper {
+  @apply mb-2 mt-2 overflow-x-auto rounded-lg bg-zinc-950 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 shadow-sm;
+}
+
+.markdown-inline-code {
+  @apply relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 whitespace-normal inline-block;
+}
+
+.markdown-code-lang {
+  @apply absolute right-2 top-2 z-10 rounded-md bg-zinc-700 px-2 py-1 text-xs font-medium text-zinc-200;
+}
+
+.markdown-blockquote {
+  @apply mt-2 border-l-2 pl-6 italic;
+}
+
+.markdown-ul {
+  @apply my-2 ml-6 list-disc [&>li]:mt-2;
+}
+
+.markdown-ol {
+  @apply my-2 ml-6 list-decimal [&>li]:mt-2;
+}
+
+.markdown-table-wrapper {
+  @apply my-4 w-full overflow-y-auto;
+}
+
+.markdown-table {
+  @apply w-full;
+}
+
+.markdown-th {
+  @apply border px-4 py-2 text-left font-bold [&[align=center]]:text-center [&[align=right]]:text-right;
+}
+
+.markdown-td {
+  @apply border px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right;
+}
+
+.image-widget-container {
+  @apply overflow-hidden;
+}
+
+.image-widget-small {
+  @apply w-24;
+}
+
+.image-widget-medium {
+  @apply w-48;
+}
+
+.image-widget-large {
+  @apply w-96;
+}
+
+.image-widget-full {
+  @apply w-full;
+}
+
+.image-widget-img {
+  @apply h-full w-full object-cover transition-transform duration-200 hover:scale-105;
+}
+
+.image-widget-rounded {
+  @apply rounded-lg;
+}
+
+.image-widget-object-contain {
+  @apply object-contain;
+}
+
+.image-widget-card {
+  @apply p-2;
+}
+
+.plotly-container {
+  @apply w-full h-full;
+}
+
+.plotly-card-content {
+  @apply p-0;
+}
+
+.plotly-loading-container {
+  @apply flex flex-col items-center justify-center h-64;
+}
+
+.plotly-loading-spinner {
+  @apply animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4;
+}
+
+.plotly-loading-text {
+  @apply text-sm text-muted-foreground;
+}
+
+.plotly-plot-container {
+  @apply relative w-full;
+  min-height: 400px;
+}
+
+.plotly-progress-container {
+  @apply absolute top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm px-4 py-2;
+}
+
+.plotly-progress-bar {
+  @apply w-full h-2;
+}
+
+.plotly-plot {
+  @apply w-full h-full;
+}
+
+.dag-visualizer-container {
+  @apply relative transition-all duration-300;
+}
+
+.dag-visualizer-fullscreen {
+  @apply fixed inset-0 z-50 m-4;
+}
+
+.dag-visualizer-error-card {
+  @apply border-red-200 bg-red-50;
+}
+
+.dag-visualizer-error-title {
+  @apply text-red-700;
+}
+
+.dag-visualizer-error-text {
+  @apply text-red-600;
+}
+
+.dag-visualizer-controls {
+  @apply absolute top-2 right-2 z-10 flex items-center gap-2;
+}
+
+.dag-visualizer-content {
+  @apply p-0;
+}
+
+.dag-visualizer-content-fullscreen {
+  @apply h-full;
+}
+
+.dag-visualizer-content-default {
+  @apply h-[600px];
+}
+
+.dag-visualizer-loading {
+  @apply flex items-center justify-center h-full;
+}
+
+.dag-visualizer-spinner {
+  @apply animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900;
+}
+
+.dag-visualizer-node-panel {
+  @apply absolute bottom-4 left-4 right-4 max-w-md mx-auto transition-all duration-300;
+}
+
+.dag-visualizer-node-panel-visible {
+  @apply opacity-100 translate-y-0;
+}
+
+.dag-visualizer-node-panel-hidden {
+  @apply opacity-0 translate-y-5;
+}
+
+.dag-visualizer-node-header {
+  @apply pb-2;
+}
+
+.dag-visualizer-node-title {
+  @apply text-lg;
+}
+
+.dag-visualizer-node-close {
+  @apply sr-only;
+}
+
+.dag-visualizer-node-details {
+  @apply space-y-3;
+}
+
+.dag-visualizer-node-status {
+  @apply flex items-center gap-2;
+}
+
+.dag-visualizer-node-status-label {
+  @apply text-sm font-medium text-muted-foreground;
+}
+
+.dag-visualizer-node-error-label {
+  @apply text-sm font-medium text-red-500;
+}
+
+.dag-visualizer-node-error-text {
+  @apply mt-1 text-sm text-red-600 bg-red-50 p-2 rounded;
+}
+
+.dag-visualizer-node-dependencies {
+  @apply mt-1 flex flex-wrap gap-1;
+}
+
+.dag-visualizer-tooltip-trigger {
+  @apply h-4 w-4;
+}
+
+.dag-visualizer-tooltip-content {
+  @apply text-xs;
+}
