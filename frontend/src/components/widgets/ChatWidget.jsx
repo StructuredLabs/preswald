@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 'use client';
 
 import { Bot, Loader2, Send, User } from 'lucide-react';
@@ -12,8 +11,6 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { createChatCompletion } from '@/services/openai';
 
-/* eslint-disable react/prop-types */
-
 const ChatWidget = ({
   sourceId = null,
   sourceData = null,
@@ -25,6 +22,8 @@ const ChatWidget = ({
   const label = 'Chat Assistant';
   const placeholder = 'Type your message here...';
   const messagesEndRef = useRef(null);
+  const chatContainerRef = useRef(null);
+
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -115,7 +114,10 @@ const ChatWidget = ({
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (chatContainerRef.current) {
+      const scrollContainer = chatContainerRef.current;
+      scrollContainer.scrollTop = scrollContainer.scrollHeight;
+    }
   };
 
   useEffect(() => {
@@ -171,7 +173,7 @@ const ChatWidget = ({
           </div>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-4" ref={chatContainerRef}>
         <div className="space-y-4">
           <div className="text-xs text-gray-500">Messages count: {messages.length}</div>
 
@@ -218,7 +220,6 @@ const ChatWidget = ({
               <span>AI is typing...</span>
             </div>
           )}
-          <div ref={messagesEndRef} />
         </div>
       </div>
       {error && (
@@ -234,7 +235,6 @@ const ChatWidget = ({
             placeholder={placeholder}
             className="flex-1 rounded-lg border-2 border-gray-200 px-4 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
             autoComplete="off"
-            autoFocus
             spellCheck="true"
             maxLength={1000}
           />

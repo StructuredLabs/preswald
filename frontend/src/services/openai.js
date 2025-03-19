@@ -2,7 +2,23 @@
 
 const createChatCompletion = async (messages, source, systemContext = null) => {
   // For demo/development, you might want to use a hardcoded API key
-  const apiKey = process.env.REACT_APP_OPENAI_API_KEY;
+  // const apiKey = process.env.REACT_APP_OPENAI_API_KEY;
+  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+
+  // Prepare messages array with system context if provided
+  let formattedMessages = messages.map(({ role, content }) => ({ role, content }));
+
+  // Add system context as the first message if available
+  if (systemContext) {
+    formattedMessages.unshift({ role: 'system', content: systemContext });
+  }
+  // Add a specific instruction about using DuckDB data if source is provided
+  else if (source) {
+    formattedMessages.unshift({
+      role: 'system',
+      content: `You are analyzing data from a DuckDB source named "${source}". Please provide insights based on this context.`,
+    });
+  }
 
   if (!apiKey) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
