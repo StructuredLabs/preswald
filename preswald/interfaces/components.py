@@ -62,7 +62,30 @@ def chat(source: str, table: Optional[str] = None) -> Dict:
         current_state = {"messages": [], "source": source}
 
     # Get dataframe from source
-    df = service.data_manager.get_df(source, table)
+    df = (
+        service.data_manager.get_df(source)
+        if table is None
+        else service.data_manager.get_df(source, table)
+    )
+
+    # Convert DataFrame to serializable format
+    serializable_data = None
+    if df is not None:
+        records = df.to_dict("records")
+        # Handle timestamp fields before general serialization
+        processed_records = []
+        for record in records:
+            processed_record = {}
+            for key, value in record.items():
+                if isinstance(value, (pd.Timestamp, pd.NaT.__class__)):
+                    processed_record[key] = (
+                        value.isoformat() if not pd.isna(value) else None
+                    )
+                else:
+                    processed_record[key] = value
+            processed_records.append(processed_record)
+        serializable_data = convert_to_serializable(processed_records)
+
     logger.debug(f"Creating chat component with id {component_id}, source: {source}")
     component = {
         "type": "chat",
@@ -72,7 +95,7 @@ def chat(source: str, table: Optional[str] = None) -> Dict:
         },
         "config": {
             "source": source,
-            "data": df.to_dict("records") if df is not None else None,
+            "data": serializable_data,
         },
     }
 
