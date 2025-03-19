@@ -92,6 +92,4 @@ text(
 
 
 # Configure and display the chat widget
-chat(
-    source="iris_csv",
-)
+chat(source="iris_csv")

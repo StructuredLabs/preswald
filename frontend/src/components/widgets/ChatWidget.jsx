@@ -1,9 +1,8 @@
-/* eslint-disable react/prop-types */
 'use client';
 
 import { Bot, Loader2, Send, User } from 'lucide-react';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -12,23 +11,19 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { createChatCompletion } from '@/services/openai';
 
-/* eslint-disable react/prop-types */
-
 const ChatWidget = ({
-  source = null,
+  sourceId = null,
   sourceData = null,
   value = { messages: [] },
   onChange,
   className,
 }) => {
-  const messages = Array.isArray(value?.messages)
-    ? value.messages
-    : Array.isArray(value)
-      ? value
-      : [];
+  const messages = useMemo(() => value?.messages || [], [value?.messages]);
   const label = 'Chat Assistant';
   const placeholder = 'Type your message here...';
   const messagesEndRef = useRef(null);
+  const chatContainerRef = useRef(null);
+
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -39,13 +34,29 @@ const ChatWidget = ({
 
   // Process the source context only once when the component mounts or source changes
   useEffect(() => {
+    // Original getSourceContext function (as fallback)
+    const getSourceContext = async () => {
+      if (!sourceId) return null;
+      try {
+        // Make API call to fetch source context data
+        const response = await fetch(`/api/sources/${sourceId}/context`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch source context');
+        }
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Error getting dataframe context:', error);
+        return null;
+      }
+    };
     const loadSourceContext = async () => {
-      if (!source || contextLoaded) return;
+      if (!sourceId || contextLoaded) return;
 
       try {
         // Use the sourceData if provided directly from DuckDB
         if (sourceData) {
-          const context = formatSourceContext(source, sourceData);
+          const context = formatSourceContext(sourceId, sourceData);
           setSourceContext(context);
         } else {
           const context = await getSourceContext();
@@ -59,7 +70,7 @@ const ChatWidget = ({
     };
 
     loadSourceContext();
-  }, [source, sourceData, contextLoaded, getSourceContext]);
+  }, [sourceId, sourceData, contextLoaded]);
 
   // Format the source data into a context string
   const formatSourceContext = (sourceName, data) => {
@@ -85,23 +96,11 @@ const ChatWidget = ({
     }
   };
 
-  // Original getSourceContext function (as fallback)
-  const getSourceContext = async () => {
-    if (!source) return null;
-    try {
-      // This would be replaced with actual API call to get data if not provided directly
-      console.log(
-        'Fallback method for getting source context - should not be called if sourceData is provided'
-      );
-      return null;
-    } catch (error) {
-      console.error('Error getting dataframe context:', error);
-      return null;
-    }
-  };
-
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (chatContainerRef.current) {
+      const scrollContainer = chatContainerRef.current;
+      scrollContainer.scrollTop = scrollContainer.scrollHeight;
+    }
   };
 
   useEffect(() => {
@@ -126,7 +125,7 @@ const ChatWidget = ({
 
     setIsLoading(true);
     try {
-      const response = await createChatCompletion(newMessages, source, sourceContext);
+      const response = await createChatCompletion(newMessages, sourceId, sourceContext);
       const assistantMessage = {
         ...response,
         timestamp: new Date().toISOString(),
@@ -145,16 +144,19 @@ const ChatWidget = ({
   };
 
   return (
-    <Card className={cn(`flex flex-col shadow-md h-[600px] w-full`, className)}>
+    <Card className={cn(`flex flex-col rounded-md shadow-md h-[600px] w-full`, className)}>
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center space-x-2">
           <div>
             <h3 className="font-semibold">{label}</h3>
-            <p className="text-sm animate-pulse [color:from-green-500_to-green-100]">Online</p>
+            <p className="text-sm text-green-500 flex items-center gap-1">
+              <span className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></span>
+              Online
+            </p>
           </div>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-4" ref={chatContainerRef}>
         <div className="space-y-4">
           <div className="text-xs text-gray-500">Messages count: {messages.length}</div>
 
@@ -201,7 +203,6 @@ const ChatWidget = ({
               <span>AI is typing...</span>
             </div>
           )}
-          <div ref={messagesEndRef} />
         </div>
       </div>
       {error && (
@@ -217,7 +218,6 @@ const ChatWidget = ({
             placeholder={placeholder}
             className="flex-1 rounded-lg border-2 border-gray-200 px-4 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
             autoComplete="off"
-            autoFocus
             spellCheck="true"
             maxLength={1000}
           />
