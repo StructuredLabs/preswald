@@ -61,15 +61,27 @@ class CSVSource(DataSource):
         super().__init__(name, duckdb_conn)
         self.path = config.path
 
-        # Create a table in DuckDB for this CSV
+        # Create a table in DuckDB for this CSV with explicit column types
         self._table_name = f"csv_{name}_{uuid.uuid4().hex[:8]}"
+
+        # Infer column names and set them to VARCHAR explicitly
+        sample_df = pd.read_csv(self.path, nrows=5)  # Read only a few rows
+        column_types = dict.fromkeys(
+            sample_df.columns, "VARCHAR"
+        )  # Treat all as strings
+
+        # Create a table with specified column types
         self._duckdb.execute(f"""
             CREATE TABLE {self._table_name} AS
-            SELECT * FROM read_csv_auto('{self.path}')
+            SELECT * FROM read_csv('{self.path}', columns={column_types})
         """)
 
+        # Debugging: Check the column types
+        logger.info(f"Table {self._table_name} schema:")
+        logger.info(self._duckdb.execute(f"DESCRIBE {self._table_name}").fetchall())
+
     def query(self, sql: str) -> pd.DataFrame:
-        # Replace source name with actual table name in query
+        """Execute query after replacing source name with actual table name"""
         sql = sql.replace(self.name, self._table_name)
         return self._duckdb.execute(sql).df()
 
