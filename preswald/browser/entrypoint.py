@@ -4,7 +4,6 @@ This module initializes the Pyodide environment and exposes
 Python functionality to JavaScript.
 """
 
-import json
 import logging
 import sys
 from typing import Any, Optional
@@ -44,6 +43,17 @@ async def initialize_preswald(script_path: Optional[str] = None):
         # Register a client
         _script_runner = await _service.register_client(_client_id)
 
+        if _service and hasattr(_service, "branding_manager"):
+            branding = _service.branding_manager.get_branding_config(script_path or "")
+
+            import json
+
+            branding_json = json.dumps(branding)
+
+            # Set as string property on window
+            window.PRESWALD_BRANDING = branding_json
+            console.log(f"Set PRESWALD_BRANDING as JSON string: {branding_json}")
+
         logger.info(f"Preswald initialized in browser with script: {script_path}")
         console.log("Preswald initialized in browser")
 
@@ -67,10 +77,6 @@ async def run_script(script_path: str):
     try:
         # Update script path
         _service.script_path = script_path
-
-        branding = _service.branding_manager.get_branding_config(script_path)
-
-        window.PRESWALD_BRANDING = json.dumps(branding)
 
         # Run the script
         if _script_runner:
