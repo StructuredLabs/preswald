@@ -4,40 +4,14 @@ import { Menu, PanelLeft, PanelLeftClose } from 'lucide-react';
 
 import React from 'react';
 
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
 import { cn } from '@/lib/utils';
 
-export default function Topbar({ setSidebarOpen, branding, onToggleSidebar, isCollapsed }) {
+export default function Topbar({ branding }) {
   return (
     <div className="topbar">
-      {/* Mobile menu button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="mobile-menu-button"
-        onClick={() => setSidebarOpen(true)}
-        aria-label="Open sidebar"
-      >
-        <Menu className="icon-button" />
-      </Button>
-
-      {/* Desktop collapse button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="desktop-collapse-button"
-        onClick={onToggleSidebar}
-        aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-      >
-        {isCollapsed ? (
-          <PanelLeft className="icon-button" />
-        ) : (
-          <PanelLeftClose className="icon-button" />
-        )}
-      </Button>
-
+      <div id="mobile-menu-button-portal" />
       {/* Separator */}
       <Separator orientation="vertical" className="separator" />
 

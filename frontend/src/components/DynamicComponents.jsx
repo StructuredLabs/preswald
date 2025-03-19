@@ -15,6 +15,7 @@ import ImageWidget from './widgets/ImageWidget';
 import MarkdownRendererWidget from './widgets/MarkdownRendererWidget';
 import ProgressWidget from './widgets/ProgressWidget';
 import SelectboxWidget from './widgets/SelectboxWidget';
+import SidebarWidget from './widgets/SidebarWidget';
 import SliderWidget from './widgets/SliderWidget';
 import SpinnerWidget from './widgets/SpinnerWidget';
 import TableViewerWidget from './widgets/TableViewerWidget';
@@ -62,6 +63,9 @@ const MemoizedComponent = memo(
     };
 
     switch (component.type) {
+      case 'sidebar':
+        return <SidebarWidget defaultOpen={component.defaultopen} />;
+
       case 'button':
         return (
           <ButtonWidget
