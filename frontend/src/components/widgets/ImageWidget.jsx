@@ -17,22 +17,22 @@ const ImageWidget = ({
 }) => {
   // Define size classes based on the provided size prop
   const sizeClasses = {
-    small: 'w-24',
-    medium: 'w-48',
-    large: 'w-96',
-    full: 'w-full',
+    small: 'image-widget-small',
+    medium: 'image-widget-medium',
+    large: 'image-widget-large',
+    full: 'image-widget-full',
   };
 
   const ImageComponent = (
     <div className={cn(sizeClasses[size], className)}>
-      <AspectRatio ratio={aspectRatio} className="overflow-hidden">
+      <AspectRatio ratio={aspectRatio} className="image-widget-container">
         <img
           src={src}
           alt={alt}
           className={cn(
-            'h-full w-full object-cover transition-transform duration-200 hover:scale-105',
-            rounded && 'rounded-lg',
-            objectFit === 'contain' && 'object-contain'
+            'image-widget-img',
+            rounded && 'image-widget-rounded',
+            objectFit === 'contain' && 'image-widget-object-contain'
           )}
         />
       </AspectRatio>
@@ -41,7 +41,14 @@ const ImageWidget = ({
 
   if (withCard) {
     return (
-      <Card className={cn('p-2', rounded && 'rounded-lg', sizeClasses[size], className)}>
+      <Card
+        className={cn(
+          'image-widget-card',
+          rounded && 'image-widget-rounded',
+          sizeClasses[size],
+          className
+        )}
+      >
         {ImageComponent}
       </Card>
     );
