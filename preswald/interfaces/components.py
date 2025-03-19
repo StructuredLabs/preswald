@@ -14,7 +14,7 @@ from preswald.interfaces.workflow import Workflow
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# NOTE to Developers: Please keep the components organized alphabetically
+# NOTE to Developers: Please keep the components organized alphabetically and potential correlations in the data. When relevant, include statistical observations and suggest possible implications of your findings. Make sure your analysis is clear, well-structured, and actionable.`,
 
 # Components
 
@@ -49,15 +49,8 @@ def button(label: str, size: float = 1.0):
     return component
 
 
-def chat(source: Optional[str] = None) -> Dict:
-    """Create a chat component with a ChatGPT-like interface.
-
-    Args:
-        source: Optional data source to query against. If None, queries all available sources.
-
-    Returns:
-        Dict: The created chat component configuration.
-    """
+def chat(source: str, table: Optional[str] = None) -> Dict:
+    """Create a chat component to chat with data source"""
     service = PreswaldService.get_instance()
 
     # Create a consistent ID based on the source
@@ -68,11 +61,8 @@ def chat(source: Optional[str] = None) -> Dict:
     if current_state is None:
         current_state = {"messages": [], "source": source}
 
-    # Get dataframe from source if specified
-    df = None
-    if source:
-        df = service.data_manager.get_df(source)
-
+    # Get dataframe from source
+    df = service.data_manager.get_df(source, table)
     logger.debug(f"Creating chat component with id {component_id}, source: {source}")
     component = {
         "type": "chat",
