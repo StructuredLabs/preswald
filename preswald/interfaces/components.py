@@ -81,7 +81,9 @@ def chat(source: Optional[str] = None) -> Dict:
     component = {
         "type": "chat",
         "id": component_id,
-        "value": current_state,
+        "state": {
+            "messages": current_state.get("messages", []),
+        },
         "config": {
             "source": source,
             "data": df.to_dict("records") if df is not None else None,
