@@ -12,13 +12,6 @@ const createChatCompletion = async (messages, source, systemContext = null) => {
   if (systemContext) {
     formattedMessages.unshift({ role: 'system', content: systemContext });
   }
-  // Add a specific instruction about using DuckDB data if source is provided
-  else if (source) {
-    formattedMessages.unshift({
-      role: 'system',
-      content: `You are analyzing data from a DuckDB source named "${source}". Please provide insights based on this context.`,
-    });
-  }
 
   if (!apiKey) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
