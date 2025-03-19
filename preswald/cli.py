@@ -261,6 +261,17 @@ def deploy(script, target, port, log_level, github, api_key):  # noqa: C901
                     status = status_update.get("status", "")
                     message = status_update.get("message", "")
 
+                    if "App is available here" in message:
+                        continue
+
+                    custom_subdomain_str = "Custom domain assigned at "
+                    if custom_subdomain_str in message:
+                        custom_subdomain_str = "Custom domain assigned at "
+                        custom_subdomain_url = (
+                            "https://" + message[len(custom_subdomain_str) :]
+                        )
+                        message = custom_subdomain_str + custom_subdomain_url
+
                     if status == "error":
                         click.echo(click.style(f"❌ {message}", fg="red"))
                     elif status == "success":
