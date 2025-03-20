@@ -1,0 +1,48 @@
+---
+title: "chat"
+icon: ""
+description: ""
+---
+
+```python
+chat(label: str, placeholder: str = "", size: float = 1.0) -> str
+```
+
+The `chat` function adds an interactive chat UI in which you can communicate with an AI chatbot about the data of your project.
+
+## Parameters
+
+- **`label`** _(str)_: The label displayed next to the text input, indicating its purpose. Also used to generate a consistent ID for state management.
+- **`placeholder`** _(str)_: _(Optional)_ Placeholder text shown when the input is empty. Helps guide users on what to enter.
+- **`size`** _(float)_: _(Optional)_ The width of the component in a row. Defaults to `1.0` (full row). See the [Layout Guide](/layout/guide) for details.
+
+## Returns
+
+- `str`: The current value of the text input. Empty string if no input has been provided.
+
+## Usage Example
+
+Here's an example of how to use chats in your app:
+
+```toml
+[data.openai]
+api_key=YOUR_OPENAI_API_KEY
+```
+
+```python
+from preswald import chat
+
+#Add chat component
+chat("Explore your data", "Ask me anything")
+```
+
+### Key Features
+
+1. **Explore Data Through Text**: Query and analyze the data from your data sources
+2. **Customizable Label**: Set the label to distinguish between different `text_input`s.
+3. **Adjustable Placeholder**: Control the look of the textboxes for better UI/UX.
+
+
+### Why Use `chat`?
+
+Chat provides an easy way to quickly explore your data, or for non technical users to explore data without knowing how to code.
