@@ -102,6 +102,7 @@ const App = () => {
 
   const handleError = (errorContent) => {
     console.error('[App] Received error:', errorContent);
+    setAreComponentsLoading(false);
     setError(errorContent.message);
 
     if (errorContent.componentId) {
