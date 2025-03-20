@@ -7,7 +7,6 @@ from .components import (
     alert,
     button,
     chat,
-    main,
     checkbox,
     image,
     plotly,
