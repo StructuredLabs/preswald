@@ -256,10 +256,21 @@ def deploy(script, target, port, log_level, github, api_key):  # noqa: C901
             click.echo("Starting production deployment... 🚀")
             try:
                 for status_update in deploy_app(
-                    script, target, port=port, github_username=github, api_key=api_key
+                    script, target, port=port, github_username=github.lower() if github else None, api_key=api_key
                 ):
                     status = status_update.get("status", "")
                     message = status_update.get("message", "")
+
+                    if "App is available here" in message:
+                        continue
+
+                    custom_subdomain_str = "Custom domain assigned at "
+                    if custom_subdomain_str in message:
+                        custom_subdomain_str = "Custom domain assigned at "
+                        custom_subdomain_url = (
+                            "https://" + message[len(custom_subdomain_str) :]
+                        )
+                        message = custom_subdomain_str + custom_subdomain_url
 
                     if status == "error":
                         click.echo(click.style(f"❌ {message}", fg="red"))
