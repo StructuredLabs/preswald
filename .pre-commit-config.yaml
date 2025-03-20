@@ -15,12 +15,12 @@ repos:
         types: [python]
         exclude: ^(setup\.py|community_gallery/.*)$
 
-      # - id: prettier
-      #   name: prettier
-      #   entry: bash -c 'cd frontend && npx prettier --write "src/**/*.{js,jsx,css,scss,json}"'
-      #   language: system
-      #   types_or: [javascript, jsx, css, scss, json]
-      #   files: ^frontend/
+      - id: prettier
+        name: prettier
+        entry: bash -c 'cd frontend && npx prettier --write "src/**/*.{js,jsx,css,scss,json}"'
+        language: system
+        types_or: [javascript, jsx, css, scss, json]
+        files: ^frontend/
 
       # - id: eslint
       #   name: eslint
