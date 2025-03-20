@@ -13,7 +13,7 @@ primaryColor = "#F89613"
 
 [data.sample_csv]
 type = "csv"
-path = "data/data.csv"
+path = "data.csv"
 
 [logging]
 level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
