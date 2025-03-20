@@ -11,6 +11,7 @@ const App = () => {
   const [error, setError] = useState(null);
   const [config, setConfig] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [areComponentsLoading, setAreComponentsLoading] = useState(true);
 
   useEffect(() => {
     comm.connect();
@@ -67,6 +68,7 @@ const App = () => {
 
   const refreshComponentsList = (components) => {
     if (!components || !components.rows) {
+      setAreComponentsLoading(false);
       console.warn('[App] Invalid components data received:', components);
       setComponents({ rows: [] });
       return;
@@ -87,10 +89,12 @@ const App = () => {
       );
 
       console.log('[App] Updating components with:', { rows: updatedRows });
+      setAreComponentsLoading(false);
       setComponents({ rows: updatedRows });
       setError(null);
     } catch (error) {
       console.error('[App] Error processing components:', error);
+      setAreComponentsLoading(false);
       setError('Error processing components data');
       setComponents({ rows: [] });
     }
@@ -156,7 +160,7 @@ const App = () => {
   return (
     <Router>
       <Layout>
-        {!isConnected ? (
+        {!isConnected || areComponentsLoading ? (
           <LoadingState />
         ) : (
           <Dashboard
