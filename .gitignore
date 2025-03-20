@@ -177,5 +177,5 @@ notes.md
 .env.structured
 
 community_gallery/**/data
-
+**/*/.preswald_deploy/
 node_modules/

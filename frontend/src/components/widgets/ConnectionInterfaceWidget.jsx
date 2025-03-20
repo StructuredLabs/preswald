@@ -66,7 +66,11 @@ const ConnectionInterfaceWidget = ({ className, onConnect, disabled = false }) =
           </Select>
         </div>
 
-        <Button className="connectioninterface-button" onClick={handleConnect} disabled={!source.trim() || disabled}>
+        <Button
+          className="connectioninterface-button"
+          onClick={handleConnect}
+          disabled={!source.trim() || disabled}
+        >
           Connect
         </Button>
       </CardContent>
