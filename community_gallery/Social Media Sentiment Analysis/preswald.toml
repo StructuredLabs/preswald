@@ -1,0 +1,18 @@
+[project]
+title = "Social Media Sentiment Analysis"
+version = "0.1.0"
+port = 8501
+slug = "sentiment-analysis"
+entrypoint = "app.py"
+
+[branding]
+name = "Sentiment Analysis Dashboard"
+primaryColor = "#4287f5"
+
+[data.sentiment_data]
+type = "csv"
+path = "data/sentimentdataset.csv"
+
+[logging]
+level = "INFO"
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s" 
