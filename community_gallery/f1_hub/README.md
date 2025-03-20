@@ -8,8 +8,6 @@ This project uses Formula 1 data accessed via Preswald’s `connect()` and `get_
 - `lap_times_csv`: Lap times (driverId, milliseconds).
 - `drivers_csv`: Driver details (driverId, forename, surname).
 
-Datasets are not included here due to size but can be sourced from [Kaggle Formula 1 Datasets](https://www.kaggle.com/datasets/rohanrao/formula-1-world-championship-1950-2020) or the [Ergast API](http://ergast.com/mrd/).
-
 ## What the App Does
 The `f1_hub.py` script creates an interactive Formula 1 dashboard:
 1. A slider selects from the top 15 circuits (by race count) from 2015–2024 (a commented-out selectbox is available as an alternative).
