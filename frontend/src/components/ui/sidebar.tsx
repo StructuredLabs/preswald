@@ -1,25 +1,29 @@
-'use client';
+"use client";
 
-import { X } from 'lucide-react';
+import { X } from "lucide-react";
+import React, { useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Menu, PanelLeft, PanelLeftClose } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-
-import { cn } from '@/lib/utils';
-
-export default function Sidebar({
+const Sidebar = ({
   sidebarOpen,
   setSidebarOpen,
   navigation,
   branding,
   isCollapsed,
-}) {
+  setIsCollapsed,
+}) => {
   const location = useLocation();
-  const primaryColor = branding?.primaryColor || '#000000';
+  const primaryColor = branding?.primaryColor || "#000000";
 
   const NavContent = ({ isMobile = false }) => (
     <div className="sidebar-container">
@@ -32,7 +36,9 @@ export default function Sidebar({
                 src={`${branding?.logo}?timstamp=${new Date().getTime()}`}
                 alt={branding?.name}
               />
-              {!isCollapsed && <span className="sidebar-title">{branding?.name}</span>}
+              {!isCollapsed && (
+                <span className="sidebar-title">{branding?.name}</span>
+              )}
             </div>
           )}
           <nav className="sidebar-nav-list">
@@ -45,29 +51,34 @@ export default function Sidebar({
                         to={item.href}
                         onClick={() => isMobile && setSidebarOpen(false)}
                         className={cn(
-                          'sidebar-nav-link',
+                          "sidebar-nav-link",
                           location.pathname === item.href
-                            ? 'sidebar-nav-link-active'
-                            : 'sidebar-nav-link-hover',
-                          isCollapsed && !isMobile && 'justify-center px-2',
+                            ? "sidebar-nav-link-active"
+                            : "sidebar-nav-link-hover",
+                          isCollapsed && !isMobile && "justify-center px-2",
                           location.pathname === item.href
                             ? { color: primaryColor }
-                            : 'text-muted-foreground hover:text-foreground'
+                            : "text-muted-foreground hover:text-foreground",
                         )}
                         title={isCollapsed && !isMobile ? item.name : undefined}
                       >
                         <item.icon
                           className={cn(
-                            'sidebar-icon',
-                            isCollapsed && !isMobile && 'transform-gpu'
+                            "sidebar-icon",
+                            isCollapsed && !isMobile && "transform-gpu",
                           )}
                           style={{
-                            color: location.pathname === item.href ? primaryColor : undefined,
+                            color:
+                              location.pathname === item.href
+                                ? primaryColor
+                                : undefined,
                           }}
                           aria-hidden="true"
                         />
                         {(!isCollapsed || isMobile) && (
-                          <span className="transition-opacity duration-200">{item.name}</span>
+                          <span className="transition-opacity duration-200">
+                            {item.name}
+                          </span>
                         )}
                       </Link>
                     </li>
@@ -78,14 +89,36 @@ export default function Sidebar({
           </nav>
         </div>
         <div className="sidebar-footer">
-          Built By{' '}
-          <a href="https://github.com/structuredlabs/preswald" className="sidebar-footer-link">
+          Built By{" "}
+          <a
+            href="https://github.com/structuredlabs/preswald"
+            className="sidebar-footer-link"
+          >
             Preswald
           </a>
         </div>
       </div>
     </div>
   );
+
+  const applyMainLayoutPadding = (collapsed) => {
+    const mainLayout = document.querySelector(".main-content-layout");
+    if (!mainLayout) {
+      return;
+    }
+
+    if (collapsed) {
+      mainLayout.classList.add("main-content-collapsed-sidebar");
+      mainLayout.classList.remove("main-content-open-sidebar");
+    } else {
+      mainLayout.classList.remove("main-content-collapsed-sidebar");
+      mainLayout.classList.add("main-content-open-sidebar");
+    }
+  };
+
+  useEffect(() => {
+    applyMainLayoutPadding(isCollapsed);
+  }, [isCollapsed]);
 
   return (
     <>
@@ -113,14 +146,32 @@ export default function Sidebar({
       {/* Desktop Sidebar */}
       <div
         className={cn(
-          'sidebar-desktop',
-          isCollapsed ? 'sidebar-desktop-collapsed' : 'sidebar-desktop-expanded'
+          "sidebar-desktop",
+          isCollapsed
+            ? "sidebar-desktop-collapsed"
+            : "sidebar-desktop-expanded",
         )}
       >
+        <Button
+          variant="ghost"
+          size="icon"
+          className="desktop-collapse-button"
+          onClick={() => setIsCollapsed((prev) => !prev)}
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {isCollapsed ? (
+            <PanelLeft className="icon-button" />
+          ) : (
+            <PanelLeftClose className="icon-button" />
+          )}
+        </Button>
+
         <div className="sidebar-desktop-content">
           <NavContent />
         </div>
       </div>
     </>
   );
-}
+};
+
+export { Sidebar };

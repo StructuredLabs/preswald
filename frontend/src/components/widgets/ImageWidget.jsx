@@ -41,7 +41,14 @@ const ImageWidget = ({
 
   if (withCard) {
     return (
-      <Card className={cn('image-widget-card', rounded && 'image-widget-rounded', sizeClasses[size], className)}>
+      <Card
+        className={cn(
+          'image-widget-card',
+          rounded && 'image-widget-rounded',
+          sizeClasses[size],
+          className
+        )}
+      >
         {ImageComponent}
       </Card>
     );
