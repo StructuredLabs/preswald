@@ -1,4 +1,4 @@
-from preswald import text, plotly, connect, get_df, table, query, slider
+from preswald import text, plotly, connect, get_df, table, query, slider, sidebar
 import pandas as pd
 import plotly.express as px
 
@@ -7,6 +7,8 @@ text("# Average Salary by Job Classification on Montgomery County of Maryland.")
 # Load the CSV
 connect()  # load in all sources, which by default is the sample_csv
 df = get_df("sample_csv")
+
+sidebar(defaultopen=False)
 
 text("# Top 10 Job position with highest average base salary.", size=0.1)
 top_10_df_sql = (
