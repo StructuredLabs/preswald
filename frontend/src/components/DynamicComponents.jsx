@@ -251,7 +251,7 @@ const MemoizedComponent = memo(
             label={component.label}
             className={component.className}
           />
-    );
+        );
 
       default:
         console.warn(`[DynamicComponents] Unknown component type: ${component.type}`);
