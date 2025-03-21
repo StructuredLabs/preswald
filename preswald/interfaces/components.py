@@ -14,7 +14,7 @@ from preswald.interfaces.workflow import Workflow
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# NOTE to Developers: Please keep the components organized alphabetically and potential correlations in the data. When relevant, include statistical observations and suggest possible implications of your findings. Make sure your analysis is clear, well-structured, and actionable.`,
+# NOTE to Developers: Please keep the components organized alphabetically
 
 # Components
 
