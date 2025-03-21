@@ -1,0 +1,30 @@
+[project]
+title = "Stock Market Analysis"
+version = "0.1.0"
+port = 8501
+slug = "my-project-282494"  # Required: Unique identifier for your project
+entrypoint = "hello.py"    # Required: Main script to run when executing preswald run
+
+[branding]
+name = "Preswald Project"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#F89613"
+
+
+
+[data.tesla_stock_v2_csv]
+type = "csv"
+path = "data/tesla_stock_v2.csv"
+
+
+[data.amazon_stock_since_1997_to_2025_csv]
+type = "csv"
+path = "data/AMZN_1997-05-15_2025-02-21.csv"
+
+
+
+
+[logging]
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
