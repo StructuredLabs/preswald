@@ -22,8 +22,7 @@ const UnknownWidget = ({
       <AlertDescription className="unknownwidget-description">
         <div className="unknownwidget-text">
           <p>
-            The widget type <code className="unknownwidget-code">{type}</code>{' '}
-            is not recognized.
+            The widget type <code className="unknownwidget-code">{type}</code> is not recognized.
           </p>
           {id && (
             <p className="unknownwidget-muted-text">
