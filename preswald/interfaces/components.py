@@ -74,6 +74,48 @@ def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
     return current_value
 
 
+def fastplotlib(fig, size: float = 1.0) -> dict:
+    """
+    Render a Fastplotlib figure.
+
+    Args:
+        fig (fplt.Figure): A Fastplotlib figure object.
+    """
+    service = PreswaldService.get_instance()
+
+    fig.show()
+    for subplot in fig:
+        subplot.viewport.render(subplot.scene, subplot.camera)
+
+    fig.renderer.flush()
+    img = np.asarray(fig.renderer.target.draw())
+    black = np.zeros(img.shape).astype(np.uint8)
+    black[:, :, -1] = 255
+
+    img_alpha = img[..., -1] / 255
+
+    rgb = img[..., :-1] * img_alpha[..., None] + black[..., :-1] * np.ones(
+        img_alpha.shape
+    )[..., None] * (1 - img_alpha[..., None])
+
+    rgb = rgb.round().astype(np.uint8)
+    height, width = rgb.shape[:2]  # Get dimensions
+    img_data = rgb.flatten().tolist()
+
+    component_id = generate_id("fastplotlib")
+    component = {
+        "type": "fastplotlib_component",
+        "id": component_id,
+        "data": img_data,
+        "width": width,
+        "height": height,
+        "size": size,
+    }
+
+    service.append_component(component)
+    return component
+
+
 # TODO: requires testing
 def image(src, alt="Image", size=1.0):
     """Create an image component."""
