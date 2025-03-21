@@ -2,6 +2,7 @@ import plotly.express as px
 
 from preswald import connect, fastplotlib, get_df, plotly, sidebar, table, text
 
+
 # Report Title
 text(
     "# Iris Data Viz with Preswald \n This report provides a visual analysis of the famous Iris dataset. Each plot explores different characteristics of the iris flowers across three species: Setosa, Versicolor, and Virginica."
@@ -92,9 +93,7 @@ variety = df["variety"].tolist()
 
 # Call the Fastplotlib component
 fastplotlib(
-    label="Fastplotlib Scatter Plot",
-    data={"x": x, "y": y, "color": variety},
-    size=1.0
+    label="Fastplotlib Scatter Plot", data={"x": x, "y": y, "color": variety}, size=1.0
 )
 
 # Show the first 10 rows of the dataset
