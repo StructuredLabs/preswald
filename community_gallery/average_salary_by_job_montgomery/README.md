@@ -18,7 +18,7 @@ pip install preswald
 ```bash
 git clone https://github.com/StructuredLabs/preswald.git
 ```
-- Move into the air-quality directory:
+- Move into the average_salary_by_job_montgomery directory:
 ```bash
 cd preswald/community_gallery/average_salary_by_job_montgomery/
 ```
