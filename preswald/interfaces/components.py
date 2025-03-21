@@ -77,6 +77,123 @@ def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
     service.append_component(component)
     return current_value
 
+def fastplotlib(
+    label: str,
+    data: dict,
+    size: float = 1.0
+) -> str:
+    """
+    Create a Fastplotlib component for high-performance GPU-accelerated plotting.
+
+    Fastplotlib leverages GPU rendering via WGPU to generate real-time, interactive visualizations.
+    This component allows users to plot structured numerical data such as scatter plots.
+
+    Args:
+        label (str): A descriptive label for the plot.
+        data (dict): The structured data to be plotted. Expected keys:
+            - "x" (list or np.ndarray): x-axis coordinates.
+            - "y" (list or np.ndarray): y-axis coordinates.
+            - "color" (optional): A list of labels (e.g., species names) to assign different colors to points.
+              - If a list of labels is provided, a small default RGBA color palette is cycled.
+              - If omitted or invalid, all points are rendered in blue.
+        size (float, optional): The size scaling factor for the rendered image component. Defaults to 1.0.
+
+    Returns:
+        str: A unique component ID referencing the rendered Fastplotlib figure.
+
+    Note:
+        Colors are currently cycled from a fixed palette. For more fine-grained control,
+        consider extending this component to accept RGBA color arrays or named colors.
+    """
+
+    service = PreswaldService.get_instance()
+
+    # create the figure with offscreen rendering.
+    # without cavas="offscreen" fastplotlib will attempt to open a
+    # window on the server for rendering
+    fig = fplt.Figure(size=(700, 560), canvas="offscreen")
+
+    # extract x and y values from provided data
+    x = np.array(data.get("x", []), dtype=np.float32)
+    y = np.array(data.get("y", []), dtype=np.float32)
+
+    if x.size == 0 or y.size == 0:
+        raise ValueError("Fastplotlib requires non-empty 'x' and 'y' data.")
+
+    # combine x and y into a single NumPy array with shape (N, 2)
+    points = np.column_stack((x, y))
+
+    # define a small palette of distinct RGBA colors normalized to [0, 1]
+    default_color_palette = [
+        [1.0, 0.0, 0.0, 1.0],  # Red
+        [0.0, 1.0, 0.0, 1.0],  # Green
+        [0.0, 0.0, 1.0, 1.0],  # Blue
+        [1.0, 1.0, 0.0, 1.0],  # Yellow
+        [1.0, 0.0, 1.0, 1.0],  # Magenta
+        [0.0, 1.0, 1.0, 1.0],  # Cyan
+    ]
+
+    color_input = data.get("color", None)
+
+    # if color_input is a list of labels such as species names, assign colors by cycling
+    if isinstance(color_input, list):
+        unique_labels = list(dict.fromkeys(color_input))  # Preserve order
+        label_to_color = {
+            label: default_color_palette[i % len(default_color_palette)]
+            for i, label in enumerate(unique_labels)
+        }
+        rgba_color = np.array([label_to_color[label] for label in color_input], dtype=np.float32)
+    else:
+        # fall back to default blue
+        rgba_color = np.array([[0.0, 0.0, 1.0, 1.0]] * points.shape[0], dtype=np.float32)
+
+    logger.info(f"✅ Debug: Color shape = {rgba_color.shape}")
+
+    # create scatter plot graphic using add_scatter method
+    subplot = fig[0, 0]  # Access the first subplot in the figure
+    subplot.add_scatter(data=points, sizes=6, alpha=0.7, colors=rgba_color)
+
+    # show the figure to trigger the rendering
+    fig.show()
+
+    # force rendering step before exporting
+    try:
+        # manually trigger render for the scene and camera
+        fig.renderer.render(fig._subplots[0, 0].scene, fig.cameras[0, 0])
+    except Exception as e:
+        logger.error(f"Manual render failed: {e}")
+        return "Render failed"
+
+    # now, we can export the figure
+    try:
+        img_array = fig.export_numpy(rgb=True)
+    except Exception as e:
+        logger.error(f"fastplotlib export failed: {e}")
+        logger.warning("attempting manual render and capture...")
+        fig.canvas.request_draw()
+        fig.renderer.flush()
+        img_array = fig.canvas.draw()
+
+    # convert the NumPy array to an image buffer (PNG format)
+    img_buf = io.BytesIO()
+    Image.fromarray(img_array).save(img_buf, format="PNG")
+    img_buf.seek(0)
+
+    # convert to base64 for embedding in the component
+    img_base64 = base64.b64encode(img_buf.read()).decode()
+
+    # create the component ID and return
+    component_id = generate_id("fastplotlib")
+    component = {
+        "type": "fastplotlib_component",
+        "id": component_id,
+        "label": label,
+        "src": f"data:image/png;base64,{img_base64}",
+        "size": size,
+    }
+
+    service.append_component(component)
+    return component_id
 
 # TODO: requires testing
 def image(src, alt="Image", size=1.0):
@@ -536,124 +653,6 @@ def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -
         }
         service.append_component(error_component)
         return error_component
-
-def fastplotlib(
-    label: str,
-    data: dict,
-    size: float = 1.0
-) -> str:
-    """
-    Create a Fastplotlib component for high-performance GPU-accelerated plotting.
-
-    Fastplotlib leverages GPU rendering via WGPU to generate real-time, interactive visualizations.
-    This component allows users to plot structured numerical data such as scatter plots.
-
-    Args:
-        label (str): A descriptive label for the plot.
-        data (dict): The structured data to be plotted. Expected keys:
-            - "x" (list or np.ndarray): x-axis coordinates.
-            - "y" (list or np.ndarray): y-axis coordinates.
-            - "color" (optional): A list of labels (e.g., species names) to assign different colors to points.
-              - If a list of labels is provided, a small default RGBA color palette is cycled.
-              - If omitted or invalid, all points are rendered in blue.
-        size (float, optional): The size scaling factor for the rendered image component. Defaults to 1.0.
-
-    Returns:
-        str: A unique component ID referencing the rendered Fastplotlib figure.
-
-    Note:
-        Colors are currently cycled from a fixed palette. For more fine-grained control,
-        consider extending this component to accept RGBA color arrays or named colors.
-    """
-
-    service = PreswaldService.get_instance()
-
-    # create the figure with offscreen rendering.
-    # without cavas="offscreen" fastplotlib will attempt to open a
-    # window on the server for rendering
-    fig = fplt.Figure(size=(700, 560), canvas="offscreen")
-
-    # extract x and y values from provided data
-    x = np.array(data.get("x", []), dtype=np.float32)
-    y = np.array(data.get("y", []), dtype=np.float32)
-
-    if x.size == 0 or y.size == 0:
-        raise ValueError("Fastplotlib requires non-empty 'x' and 'y' data.")
-
-    # combine x and y into a single NumPy array with shape (N, 2)
-    points = np.column_stack((x, y))
-
-    # define a small palette of distinct RGBA colors normalized to [0, 1]
-    default_color_palette = [
-        [1.0, 0.0, 0.0, 1.0],  # Red
-        [0.0, 1.0, 0.0, 1.0],  # Green
-        [0.0, 0.0, 1.0, 1.0],  # Blue
-        [1.0, 1.0, 0.0, 1.0],  # Yellow
-        [1.0, 0.0, 1.0, 1.0],  # Magenta
-        [0.0, 1.0, 1.0, 1.0],  # Cyan
-    ]
-
-    color_input = data.get("color", None)
-
-    # if color_input is a list of labels such as species names, assign colors by cycling
-    if isinstance(color_input, list):
-        unique_labels = list(dict.fromkeys(color_input))  # Preserve order
-        label_to_color = {
-            label: default_color_palette[i % len(default_color_palette)]
-            for i, label in enumerate(unique_labels)
-        }
-        rgba_color = np.array([label_to_color[label] for label in color_input], dtype=np.float32)
-    else:
-        # fall back to default blue
-        rgba_color = np.array([[0.0, 0.0, 1.0, 1.0]] * points.shape[0], dtype=np.float32)
-
-    logger.info(f"✅ Debug: Color shape = {rgba_color.shape}")
-
-    # create scatter plot graphic using add_scatter method
-    subplot = fig[0, 0]  # Access the first subplot in the figure
-    subplot.add_scatter(data=points, sizes=6, alpha=0.7, colors=rgba_color)
-
-    # show the figure to trigger the rendering
-    fig.show()
-
-    # force rendering step before exporting
-    try:
-        # manually trigger render for the scene and camera
-        fig.renderer.render(fig._subplots[0, 0].scene, fig.cameras[0, 0])
-    except Exception as e:
-        logger.error(f"Manual render failed: {e}")
-        return "Render failed"
-
-    # now, we can export the figure
-    try:
-        img_array = fig.export_numpy(rgb=True)
-    except Exception as e:
-        logger.error(f"fastplotlib export failed: {e}")
-        logger.warning("attempting manual render and capture...")
-        fig.canvas.request_draw()
-        fig.renderer.flush()
-        img_array = fig.canvas.draw()
-
-    # convert the NumPy array to an image buffer (PNG format)
-    img_buf = io.BytesIO()
-    Image.fromarray(img_array).save(img_buf, format="PNG")
-    img_buf.seek(0)
-
-    # convert to base64 for embedding in the component
-    img_base64 = base64.b64encode(img_buf.read()).decode()
-
-    # create the component ID and return
-    component_id = generate_id("fastplotlib")
-    component = {
-        "type": "fastplotlib_component",
-        "id": component_id,
-        "label": label,
-        "src": f"data:image/png;base64,{img_base64}",
-        "size": size,
-    }
-
-    service.append_component(component)
-    return component_id
 
 # Helpers
 
