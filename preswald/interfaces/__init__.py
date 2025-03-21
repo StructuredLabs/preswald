@@ -7,6 +7,7 @@ from .components import (
     alert,
     button,
     checkbox,
+    fastplotlib,
     image,
     plotly,
     progress,
