@@ -141,7 +141,7 @@ DEV_DEPENDENCIES = [
 setup(
     # Basic package metadata
     name="preswald",
-    version="0.1.42",
+    version="0.1.44",
     author="Structured Labs",
     author_email="founders@structuredlabs.com",
     description="A lightweight data workflow SDK.",

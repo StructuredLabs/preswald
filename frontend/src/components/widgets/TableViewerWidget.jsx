@@ -48,10 +48,7 @@ const TableViewerWidget = ({
           onClick={() => setIsExpanded(!isExpanded)}
         >
           <ChevronDown
-            className={cn(
-              'tableviewer-chevron',
-              !isExpanded && 'tableviewer-chevron-rotated'
-            )}
+            className={cn('tableviewer-chevron', !isExpanded && 'tableviewer-chevron-rotated')}
           />
         </Button>
       </div>
@@ -83,7 +80,10 @@ const TableViewerWidget = ({
                 )}
               >
                 {Object.values(row).map((value, idx) => (
-                  <TableCell key={idx} className={cn('tableviewer-cell', dense && 'tableviewer-cell-dense')}>
+                  <TableCell
+                    key={idx}
+                    className={cn('tableviewer-cell', dense && 'tableviewer-cell-dense')}
+                  >
                     {value !== null && value !== undefined ? value : 'N/A'}
                   </TableCell>
                 ))}
@@ -108,19 +108,14 @@ const TableViewerWidget = ({
               onClick={() => setIsExpanded(!isExpanded)}
             >
               <ChevronDown
-                className={cn(
-                  'tableviewer-chevron',
-                  !isExpanded && 'tableviewer-chevron-rotated'
-                )}
+                className={cn('tableviewer-chevron', !isExpanded && 'tableviewer-chevron-rotated')}
               />
             </Button>
           </CardHeader>
         )}
         <CardContent
           className={cn(
-            isExpanded
-              ? 'tableviewer-card-content-expanded'
-              : 'tableviewer-card-content-collapsed'
+            isExpanded ? 'tableviewer-card-content-expanded' : 'tableviewer-card-content-collapsed'
           )}
         >
           {TableContent}
