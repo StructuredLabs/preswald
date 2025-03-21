@@ -1,6 +1,6 @@
 import plotly.express as px
 
-from preswald import connect, get_df, plotly, table, text
+from preswald import connect, fastplotlib, get_df, plotly, table, text
 
 
 # Report Title
@@ -78,6 +78,23 @@ fig10 = px.density_contour(
 )
 fig10.update_layout(template="plotly_white")
 plotly(fig10)
+
+# 6. Fastplotlib Scatter Plot - Sepal Length vs Petal Width
+text(
+    "## Fastplotlib: Sepal Length vs Petal Width \n This is a high-performance GPU-accelerated scatter plot rendered using Fastplotlib. It provides an alternative way to analyze relationships in the dataset."
+)
+
+# Generate some structured data
+x = df["sepal.length"].tolist()
+y = df["petal.width"].tolist()
+variety = df["variety"].tolist()
+
+# Call the Fastplotlib component
+fastplotlib(
+    label="Fastplotlib Scatter Plot",
+    data={"x": x, "y": y, "color": variety},
+    size=1.0
+)
 
 # Show the first 10 rows of the dataset
 text(

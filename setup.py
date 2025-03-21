@@ -63,10 +63,10 @@ class BuildFrontendCommand(Command):
             self._copy_assets(frontend_dir)
 
         except subprocess.CalledProcessError as e:
-            print(f"Failed to build frontend: {str(e)}", file=sys.stderr)
+            print(f"Failed to build frontend: {e!s}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Unexpected error building frontend: {str(e)}", file=sys.stderr)
+            print(f"Unexpected error building frontend: {e!s}", file=sys.stderr)
             raise
 
     def _copy_assets(self, frontend_dir):
@@ -118,6 +118,8 @@ CORE_DEPENDENCIES = [
     # Native code dependencies
     "duckdb>=1.1.2; platform_system != 'Emscripten'",
     "scipy>=1.15.2; platform_system != 'Emscripten'",
+    # High-performance plotting library
+    "fastplotlib[imgui]==0.3.0",
     # Other dependencies
     "httpx>=0.23.0,<1.0.0",
     "python-multipart>=0.0.5,<0.1.0",
@@ -141,7 +143,7 @@ DEV_DEPENDENCIES = [
 setup(
     # Basic package metadata
     name="preswald",
-    version="0.1.42",
+    version="0.2.0",
     author="Structured Labs",
     author_email="founders@structuredlabs.com",
     description="A lightweight data workflow SDK.",

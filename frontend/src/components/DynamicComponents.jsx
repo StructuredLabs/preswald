@@ -11,6 +11,7 @@ import CheckboxWidget from './widgets/CheckboxWidget';
 import ConnectionInterfaceWidget from './widgets/ConnectionInterfaceWidget';
 import DAGVisualizationWidget from './widgets/DAGVisualizationWidget';
 import DataVisualizationWidget from './widgets/DataVisualizationWidget';
+import FastplotlibWidget from './widgets/FastplotlibWidget';
 import ImageWidget from './widgets/ImageWidget';
 import MarkdownRendererWidget from './widgets/MarkdownRendererWidget';
 import ProgressWidget from './widgets/ProgressWidget';
@@ -236,6 +237,17 @@ const MemoizedComponent = memo(
 
       case 'dag':
         return <DAGVisualizationWidget {...commonProps} data={component.data || {}} />;
+
+      // Add Fastplotlib component
+      case 'fastplotlib_component':
+        return (
+          <FastplotlibWidget
+            {...commonProps}
+            src={component.src}
+            label={component.label}
+            className={component.className}
+          />
+    );
 
       default:
         console.warn(`[DynamicComponents] Unknown component type: ${component.type}`);

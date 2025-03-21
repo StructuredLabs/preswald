@@ -13,6 +13,7 @@ An open-source lightweight SDK for building data workflows. Designed for small t
 - **Data Ingestion**: Prebuilt connectors for CSV, APIs, Google Sheets, PostgreSQL, and more.
 - **Data Transformation**: SQL and Python-based transformations, reusable models, and prebuilt templates.
 - **Data Visualization**: Basic dashboards with KPIs, charts, and tables.
+- **High-Performance GPU Charts**: Use the new `fastplotlib()` component to render large scatter plots with GPU acceleration.
 - **Pipeline Orchestration**: Simple scheduling and execution of lightweight data pipelines.
 - **Deployment**: One-click deployment to Vercel and other cloud platforms.
 
@@ -97,6 +98,26 @@ Run the pipeline locally:
 ```bash
 python examples/example_pipeline.py
 ```
+
+#### **Using the Fastplotlib Component**
+The fastplotlib() component enables GPU-accelerated scatter plot rendering. It’s useful for rendering large datasets quickly, offscreen, directly from your backend.
+
+```python
+from preswald import connect, get_df, fastplotlib
+
+# Load sample data
+connect()
+df = get_df("sample_csv")
+
+# Render a GPU-accelerated scatter plot
+fastplotlib(
+    label="Iris Dataset (Fastplotlib)",
+    data={"x": df["sepal.length"], "y": df["petal.width"], "color": df["variety"]},
+    size=1.0
+)
+
+```
+This will embed a high-performance image of the scatter plot into your app with minimal frontend overhead.
 
 ---
 
