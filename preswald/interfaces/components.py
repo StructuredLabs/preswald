@@ -114,8 +114,8 @@ def fastplotlib(
     fig = fplt.Figure(size=(700, 560), canvas="offscreen")
 
     # extract x and y values from provided data
-    x = np.array(data.get("x", []), dtype=np.float32)
-    y = np.array(data.get("y", []), dtype=np.float32)
+    x = np.asarray(data.get("x", [])).astype(np.float32)
+    y = np.asarray(data.get("y", [])).astype(np.float32)
 
     if x.size == 0 or y.size == 0:
         raise ValueError("Fastplotlib requires non-empty 'x' and 'y' data.")
@@ -134,9 +134,8 @@ def fastplotlib(
     ]
 
     color_input = data.get("color", None)
-
-    # if color_input is a list of labels such as species names, assign colors by cycling
-    if isinstance(color_input, list):
+    if isinstance(color_input, (np.ndarray, list)):
+        color_input = np.asarray(color_input).tolist()
         unique_labels = list(dict.fromkeys(color_input))  # Preserve order
         label_to_color = {
             label: default_color_palette[i % len(default_color_palette)]
