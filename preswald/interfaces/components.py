@@ -14,7 +14,7 @@ from preswald.interfaces.workflow import Workflow
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# NOTE to Developers: Please keep the components organized alphabetically
+# NOTE to Developers: Please keep the components organized alphabetically and potential correlations in the data. When relevant, include statistical observations and suggest possible implications of your findings. Make sure your analysis is clear, well-structured, and actionable.`,
 
 # Components
 
@@ -44,6 +44,61 @@ def button(label: str, size: float = 1.0):
     id = generate_id("button")
     logger.debug(f"Creating button component with id {id}, label: {label}")
     component = {"type": "button", "id": id, "label": label, "size": size}
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+    return component
+
+
+def chat(source: str, table: Optional[str] = None) -> Dict:
+    """Create a chat component to chat with data source"""
+    service = PreswaldService.get_instance()
+
+    # Create a consistent ID based on the source
+    component_id = f"chat-{hashlib.md5(str(source).encode()).hexdigest()[:8]}"
+
+    # Get current state or initialize empty
+    current_state = service.get_component_state(component_id)
+    if current_state is None:
+        current_state = {"messages": [], "source": source}
+
+    # Get dataframe from source
+    df = (
+        service.data_manager.get_df(source)
+        if table is None
+        else service.data_manager.get_df(source, table)
+    )
+
+    # Convert DataFrame to serializable format
+    serializable_data = None
+    if df is not None:
+        records = df.to_dict("records")
+        # Handle timestamp fields before general serialization
+        processed_records = []
+        for record in records:
+            processed_record = {}
+            for key, value in record.items():
+                if isinstance(value, (pd.Timestamp, pd.NaT.__class__)):
+                    processed_record[key] = (
+                        value.isoformat() if not pd.isna(value) else None
+                    )
+                else:
+                    processed_record[key] = value
+            processed_records.append(processed_record)
+        serializable_data = convert_to_serializable(processed_records)
+
+    logger.debug(f"Creating chat component with id {component_id}, source: {source}")
+    component = {
+        "type": "chat",
+        "id": component_id,
+        "state": {
+            "messages": current_state.get("messages", []),
+        },
+        "config": {
+            "source": source,
+            "data": serializable_data,
+        },
+    }
+
     logger.debug(f"Created component: {component}")
     service.append_component(component)
     return component
