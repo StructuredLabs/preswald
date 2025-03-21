@@ -19,13 +19,13 @@ const ButtonWidget = ({
       variant={variant}
       size={size}
       onClick={onClick || (() => alert('Button clicked!'))}
-      className={cn('w-full sm:w-auto px-2 py-1', loading && 'cursor-not-allowed', className)}
+      className={cn('button-container', loading && 'button-disabled', className)}
       disabled={disabled || loading}
       {...props}
     >
       {loading ? (
-        <div className="flex items-center justify-center gap-2">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+        <div className="button-loading">
+          <div className="button-spinner" />
           <span>{label}</span>
         </div>
       ) : (

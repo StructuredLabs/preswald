@@ -1,0 +1,21 @@
+[project]
+title = "Wine Quality Data"
+version = "0.1.0"
+port = 8501
+slug = "new-example-viz-789525"  # Required: Unique identifier for your project
+entrypoint = "hello.py"    # Required: Main script to run when executing preswald run
+
+[branding]
+name = "Wine Quality Data"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#F89613"
+
+# data.name must not have any dashes ("-") in the name. Underscores are OK
+[data.winequality_csv]
+type = "csv"
+path = "data/winequality.csv"
+
+[logging]
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

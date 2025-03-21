@@ -1,3 +1,3 @@
-FROM preswald-base:latest
+FROM structuredlabs/preswald-base:latest
 
 COPY ../../examples/voice /app/project/

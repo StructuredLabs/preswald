@@ -36,7 +36,7 @@ RUN chown -R preswald:preswald /app
 
 USER preswald
 
-COPY --chown=preswald:preswald docker/entrypoint.sh /entrypoint.sh
+COPY --chown=preswald:preswald entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 ENV HOST=0.0.0.0

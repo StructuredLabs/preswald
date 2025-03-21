@@ -1,20 +1,17 @@
 import logging
 import os
+import random
+import re
+from importlib.resources import files
 from typing import Optional
 
-import pkg_resources
 import toml
-import logging
-import re
-import random
+
 
 def read_template(template_name):
-    """Read content from a template file."""
-    template_path = pkg_resources.resource_filename(
-        "preswald", f"templates/{template_name}.template"
-    )
-    with open(template_path) as f:
-        return f.read()
+    """Read a template file from the package."""
+    template_path = files("preswald") / "templates" / f"{template_name}.template"
+    return template_path.read_text()
 
 
 def read_port_from_config(config_path: str, port: int):
@@ -72,23 +69,24 @@ def configure_logging(config_path: Optional[str] = None, level: Optional[str] = 
 
     return log_config["level"]
 
+
 def validate_slug(slug: str) -> bool:
-    pattern = r'^[a-z0-9][a-z0-9-]*[a-z0-9]$'
+    pattern = r"^[a-z0-9][a-z0-9-]*[a-z0-9]$"
     return bool(re.match(pattern, slug)) and len(slug) >= 3 and len(slug) <= 63
 
 
 def get_project_slug(config_path: str) -> str:
     if not os.path.exists(config_path):
         raise Exception(f"Config file not found at: {config_path}")
-        
+
     try:
         config = toml.load(config_path)
         if "project" not in config:
             raise Exception("Missing [project] section in preswald.toml")
-            
+
         if "slug" not in config["project"]:
             raise Exception("Missing required field 'slug' in [project] section")
-            
+
         slug = config["project"]["slug"]
         if not validate_slug(slug):
             raise Exception(
@@ -96,18 +94,18 @@ def get_project_slug(config_path: str) -> str:
                 "contain only lowercase letters, numbers, and hyphens, "
                 "and must start and end with a letter or number."
             )
-            
+
         return slug
-        
+
     except Exception as e:
-        raise Exception(f"Error reading project slug: {str(e)}")
+        raise Exception(f"Error reading project slug: {e!s}") from e
 
 
 def generate_slug(base_name: str) -> str:
-    base_slug = re.sub(r'[^a-zA-Z0-9]+', '-', base_name.lower()).strip('-')
+    base_slug = re.sub(r"[^a-zA-Z0-9]+", "-", base_name.lower()).strip("-")
     random_number = random.randint(100000, 999999)
     slug = f"{base_slug}-{random_number}"
     if not validate_slug(slug):
         slug = f"preswald-{random_number}"
-    
+
     return slug

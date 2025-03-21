@@ -1,6 +1,6 @@
 import plotly.express as px
 
-from preswald import connect, get_df, plotly, table, text
+from preswald import connect, get_df, plotly, sidebar, table, text
 
 
 # Report Title
@@ -11,6 +11,8 @@ text(
 # Load the CSV
 connect()  # Load in all sources, which by default is the iris_csv
 df = get_df("iris_csv")
+
+sidebar(defaultopen=True)
 
 # 1. Scatter plot - Sepal Length vs Sepal Width
 text(

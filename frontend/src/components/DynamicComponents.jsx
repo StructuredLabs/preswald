@@ -15,6 +15,7 @@ import ImageWidget from './widgets/ImageWidget';
 import MarkdownRendererWidget from './widgets/MarkdownRendererWidget';
 import ProgressWidget from './widgets/ProgressWidget';
 import SelectboxWidget from './widgets/SelectboxWidget';
+import SidebarWidget from './widgets/SidebarWidget';
 import SliderWidget from './widgets/SliderWidget';
 import SpinnerWidget from './widgets/SpinnerWidget';
 import TableViewerWidget from './widgets/TableViewerWidget';
@@ -62,6 +63,9 @@ const MemoizedComponent = memo(
     };
 
     switch (component.type) {
+      case 'sidebar':
+        return <SidebarWidget defaultOpen={component.defaultopen} />;
+
       case 'button':
         return (
           <ButtonWidget
@@ -284,11 +288,7 @@ const DynamicComponents = ({ components, onComponentUpdate }) => {
     }
 
     return (
-      <div
-        key={`row-${rowIndex}`}
-        className="flex flex-row w-full"
-        style={{ marginBottom: '1rem' }}
-      >
+      <div key={`row-${rowIndex}`} className="dynamiccomponent-row">
         {row.map((component, index) => {
           if (!component) return null;
 
@@ -297,14 +297,10 @@ const DynamicComponents = ({ components, onComponentUpdate }) => {
               <div
                 key={component.id || `component-${index}`}
                 className={cn(
-                  'bg-background rounded-lg transition-all duration-200 hover:border-muted-foreground/20',
-                  component.type === 'separator' ? 'hidden' : ''
+                  'dynamiccomponent-component',
+                  component.type === 'separator' && 'dynamiccomponent-hidden'
                 )}
-                style={{
-                  flex: component.flex || 1,
-                  padding: '1rem',
-                  minWidth: 0, // Prevent flex items from overflowing
-                }}
+                style={{ flex: component.flex || 1 }}
               >
                 <ErrorBoundary>
                   <MemoizedComponent
@@ -314,7 +310,7 @@ const DynamicComponents = ({ components, onComponentUpdate }) => {
                   />
                 </ErrorBoundary>
               </div>
-              {index < row.length - 1 && <div className="w-px bg-gray-200 my-4 mx-4 h-auto" />}
+              {index < row.length - 1 && <div className="dynamiccomponent-separator" />}
             </>
           );
         })}
@@ -323,7 +319,7 @@ const DynamicComponents = ({ components, onComponentUpdate }) => {
   };
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="dynamiccomponent-container">
       {components.rows.map((row, index) => renderRow(row, index))}
     </div>
   );

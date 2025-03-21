@@ -1,0 +1,46 @@
+---
+title: "sidebar"
+icon: "circle-sidebar"
+description: ""
+---
+
+```python
+sidebar(defaultopen = True) -> Dict
+```
+
+The `sidebar` function adds sidebar to your app.
+
+## Parameters
+
+- **`defaultopen`** _(True)_: Whether to expand sidebar on desktop by default
+
+<Frame>
+<img
+  className="block dark:hidden"
+  src="/images/sidebar.png"
+  alt="Hero Light"
+/>
+</Frame>
+
+## Returns
+
+- `Dict` with sidebar component data
+
+## Usage Example
+
+Here's an example of how to add sidebar to your app:
+
+```python
+from preswald import sidebar
+
+sidebar(defaultopen=True)
+```
+
+### Key Features
+
+1. **Control**: You can use sidebar only if needed which gives you the full control.
+2. **Easy to use**: No configuration needed—just call the function.
+
+### Why Use `sidebar`?
+
+Sidebar provide a way to show sidebar on your preswald app explicitly as needed.

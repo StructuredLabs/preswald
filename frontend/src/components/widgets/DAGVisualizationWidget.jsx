@@ -147,12 +147,12 @@ const DAGVisualizationWidget = ({ id, data: rawData, content, error }) => {
 
   if (error) {
     return (
-      <Card className="border-red-200 bg-red-50">
+      <Card className="dag-visualizer-error-card">
         <CardHeader>
-          <CardTitle className="text-red-700">Error Loading DAG</CardTitle>
+          <CardTitle className="dag-visualizer-error-title">Error Loading DAG</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-red-600">{error}</p>
+          <p className="dag-visualizer-error-text">{error}</p>
         </CardContent>
       </Card>
     );
@@ -160,53 +160,65 @@ const DAGVisualizationWidget = ({ id, data: rawData, content, error }) => {
 
   return (
     <Card
-      className={cn(
-        'relative transition-all duration-300',
-        isFullscreen ? 'fixed inset-0 z-50 m-4' : ''
-      )}
+      className={cn('dag-visualizer-container', isFullscreen && 'dag-visualizer-fullscreen')}
       ref={setRefs}
     >
       {/* Header Controls */}
-      <div className="absolute top-2 right-2 z-10 flex items-center gap-2">
+      <div className="dag-visualizer-controls">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" onClick={() => setShowMiniMap((prev) => !prev)}>
-                <FiInfo className="h-4 w-4" />
+                <FiInfo className="dag-visualizer-tooltip-trigger" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Toggle MiniMap</TooltipContent>
+            <TooltipContent className="dag-visualizer-tooltip-content">
+              Toggle MiniMap
+            </TooltipContent>
           </Tooltip>
 
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" onClick={toggleLock}>
-                {isLocked ? <FiLock className="h-4 w-4" /> : <FiUnlock className="h-4 w-4" />}
+                {isLocked ? (
+                  <FiLock className="dag-visualizer-tooltip-trigger" />
+                ) : (
+                  <FiUnlock className="dag-visualizer-tooltip-trigger" />
+                )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{isLocked ? 'Unlock Nodes' : 'Lock Nodes'}</TooltipContent>
+            <TooltipContent className="dag-visualizer-tooltip-content">
+              {isLocked ? 'Unlock Nodes' : 'Lock Nodes'}
+            </TooltipContent>
           </Tooltip>
 
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" onClick={toggleFullscreen}>
                 {isFullscreen ? (
-                  <FiMinimize2 className="h-4 w-4" />
+                  <FiMinimize2 className="dag-visualizer-tooltip-trigger" />
                 ) : (
-                  <FiMaximize2 className="h-4 w-4" />
+                  <FiMaximize2 className="dag-visualizer-tooltip-trigger" />
                 )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</TooltipContent>
+            <TooltipContent className="dag-visualizer-tooltip-content">
+              {isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+            </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
 
       {/* Main Content */}
-      <CardContent className={cn('p-0', isFullscreen ? 'h-full' : 'h-[600px]')}>
+      <CardContent
+        className={cn(
+          'dag-visualizer-content',
+          isFullscreen ? 'dag-visualizer-content-fullscreen' : 'dag-visualizer-content-default'
+        )}
+      >
         {isLoading ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          <div className="dag-visualizer-loading">
+            <div className="dag-visualizer-spinner"></div>
           </div>
         ) : (
           <ReactFlow
@@ -235,45 +247,43 @@ const DAGVisualizationWidget = ({ id, data: rawData, content, error }) => {
       {selectedNode && (
         <Card
           className={cn(
-            'absolute bottom-4 left-4 right-4 max-w-md mx-auto transition-all duration-300',
-            selectedNode ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+            'dag-visualizer-node-panel',
+            selectedNode ? 'dag-visualizer-node-panel-visible' : 'dag-visualizer-node-panel-hidden'
           )}
         >
-          <CardHeader className="pb-2">
+          <CardHeader className="dag-visualizer-node-header">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-lg">{selectedNode.label}</CardTitle>
+              <CardTitle className="dag-visualizer-node-title">{selectedNode.label}</CardTitle>
               <Button variant="ghost" size="icon" onClick={() => setSelectedNode(null)}>
-                <span className="sr-only">Close</span>×
+                <span className="dag-visualizer-node-close">Close</span>×
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground">Status:</span>
+          <CardContent className="dag-visualizer-node-details">
+            <div className="dag-visualizer-node-status">
+              <span className="dag-visualizer-node-status-label">Status:</span>
               <Badge variant="secondary" className={getStatusColor(selectedNode.status)}>
                 {selectedNode.status}
               </Badge>
             </div>
             <div>
-              <span className="text-sm font-medium text-muted-foreground">Execution Time:</span>
+              <span className="dag-visualizer-node-status-label">Execution Time:</span>
               <span className="ml-2 text-sm">{selectedNode.executionTime}</span>
             </div>
             <div>
-              <span className="text-sm font-medium text-muted-foreground">Attempts:</span>
+              <span className="dag-visualizer-node-status-label">Attempts:</span>
               <span className="ml-2 text-sm">{selectedNode.attempts}</span>
             </div>
             {selectedNode.error && (
               <div>
-                <span className="text-sm font-medium text-red-500">Error:</span>
-                <p className="mt-1 text-sm text-red-600 bg-red-50 p-2 rounded">
-                  {selectedNode.error}
-                </p>
+                <span className="dag-visualizer-node-error-label">Error:</span>
+                <p className="dag-visualizer-node-error-text">{selectedNode.error}</p>
               </div>
             )}
             {selectedNode.dependencies?.length > 0 && (
               <div>
-                <span className="text-sm font-medium text-muted-foreground">Dependencies:</span>
-                <div className="mt-1 flex flex-wrap gap-1">
+                <span className="dag-visualizer-node-status-label">Dependencies:</span>
+                <div className="dag-visualizer-node-dependencies">
                   {selectedNode.dependencies.map((dep) => (
                     <Badge key={dep} variant="outline" className="text-xs">
                       {dep}

@@ -50,42 +50,42 @@ const SelectboxWidget = ({
 
   // Size variants
   const sizeVariants = {
-    sm: 'h-8 text-xs',
-    default: 'h-10 text-sm',
-    lg: 'h-12 text-base',
+    sm: 'selectbox-size-sm',
+    default: 'selectbox-size-default',
+    lg: 'selectbox-size-lg',
   };
 
   return (
-    <div className={cn('space-y-2', className)}>
+    <div className={cn('selectbox-container', className)}>
       {label && (
         <Label
           htmlFor={id}
           className={cn(
-            'text-sm font-medium',
-            error && 'text-destructive',
-            disabled && 'opacity-50'
+            'selectbox-label',
+            error && 'selectbox-label-error',
+            disabled && 'selectbox-label-disabled'
           )}
         >
           {label}
-          {required && <span className="text-destructive ml-1">*</span>}
+          {required && <span className="selectbox-required">*</span>}
         </Label>
       )}
       <Select value={value} onValueChange={handleValueChange} disabled={disabled}>
         <SelectTrigger
           id={id}
-          className={cn(sizeVariants[size], error && 'border-destructive focus:ring-destructive')}
+          className={cn('selectbox-trigger', sizeVariants[size], error && 'selectbox-error')}
         >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent className="min-w-[var(--radix-select-trigger-width)]">
+        <SelectContent className="selectbox-content">
           {options.map((option, index) => (
             <SelectItem
               key={index}
               value={option}
               className={cn(
-                'cursor-pointer w-full data-[highlighted]:bg-muted data-[highlighted]:text-foreground px-4',
-                size === 'sm' && 'text-xs py-1.5',
-                size === 'lg' && 'text-base py-2.5'
+                'selectbox-option',
+                size === 'sm' && 'selectbox-option-sm',
+                size === 'lg' && 'selectbox-option-lg'
               )}
             >
               {option}
@@ -93,7 +93,7 @@ const SelectboxWidget = ({
           ))}
         </SelectContent>
       </Select>
-      {error && <p className="text-xs text-destructive mt-1">{error}</p>}
+      {error && <p className="selectbox-error-message">{error}</p>}
     </div>
   );
 };

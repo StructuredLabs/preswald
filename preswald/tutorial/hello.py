@@ -11,6 +11,7 @@ from preswald import (
     progress,
     selectbox,
     separator,
+    sidebar,
     slider,
     table,
     text,
@@ -393,6 +394,12 @@ def progress_demo():
         "The `progress()` function displays a progress bar to indicate the completion status of a task."
     )
     progress(0.8)
+
+
+@workflow.atom()
+def sidebar_demo():
+    text("## 13. Showing sidebar to your app with sidebar()")
+    sidebar(defaultopen=True)
 
 
 # --- FINAL MESSAGE ---

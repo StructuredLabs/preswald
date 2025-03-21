@@ -37,6 +37,7 @@ exclude = [
     "frontend",
     "*.egg-info",
     ".eggs",
+    "community_gallery",
 ]
 
 # Allow automatic fixes

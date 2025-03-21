@@ -15,22 +15,21 @@ const UnknownWidget = ({
   return (
     <Alert
       variant={variant === 'default' ? 'default' : 'destructive'}
-      className={cn('border-2', className)}
+      className={cn('unknownwidget-container', className)}
     >
-      <ExclamationTriangleIcon className="h-4 w-4" />
+      <ExclamationTriangleIcon className="unknownwidget-icon" />
       <AlertTitle>Unknown Widget Type</AlertTitle>
-      <AlertDescription className="mt-2">
-        <div className="space-y-2 text-sm">
+      <AlertDescription className="unknownwidget-description">
+        <div className="unknownwidget-text">
           <p>
-            The widget type <code className="font-mono bg-muted px-1 py-0.5 rounded">{type}</code>{' '}
-            is not recognized.
+            The widget type <code className="unknownwidget-code">{type}</code> is not recognized.
           </p>
           {id && (
-            <p className="text-muted-foreground">
+            <p className="unknownwidget-muted-text">
               Widget ID: <code className="font-mono">{id}</code>
             </p>
           )}
-          <p className="text-muted-foreground">
+          <p className="unknownwidget-muted-text">
             Please check the widget type and ensure it is correctly specified.
           </p>
         </div>
