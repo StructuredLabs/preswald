@@ -158,7 +158,7 @@ def fastplotlib(
     # force rendering step before exporting
     try:
         # manually trigger render for the scene and camera
-        fig.renderer.render(fig._subplots[0, 0].scene, fig.cameras[0, 0])
+        fig.renderer.render(subplot.scene, fig.cameras[0, 0])
     except Exception as e:
         logger.error(f"Manual render failed: {e}")
         return "Render failed"
