@@ -49,6 +49,49 @@ def button(label: str, size: float = 1.0):
     return component
 
 
+def chat(source: str, table: Optional[str] = None) -> Dict:
+    """Create a chat component to chat with data source"""
+    service = PreswaldService.get_instance()
+
+    # Create a consistent ID based on the source
+    component_id = f"chat-{hashlib.md5(str(source).encode()).hexdigest()[:8]}"
+
+    # Get current state or initialize empty
+    current_state = service.get_component_state(component_id)
+    if current_state is None:
+        current_state = {"messages": [], "source": source}
+
+    # Get dataframe from source
+    df = (
+        service.data_manager.get_df(source)
+        if table is None
+        else service.data_manager.get_df(source, table)
+    )
+
+    # Convert DataFrame to serializable format
+    serializable_data = None
+    if df is not None:
+        records = df.to_dict("records")
+        serializable_data = convert_to_serializable(records)
+
+    logger.debug(f"Creating chat component with id {component_id}, source: {source}")
+    component = {
+        "type": "chat",
+        "id": component_id,
+        "state": {
+            "messages": current_state.get("messages", []),
+        },
+        "config": {
+            "source": source,
+            "data": serializable_data,
+        },
+    }
+
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+    return component
+
+
 def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
     """Create a checkbox component with consistent ID based on label."""
     service = PreswaldService.get_instance()
@@ -338,7 +381,7 @@ def sidebar(defaultopen: bool):
     return component
 
 
-def table(  # noqa: C901
+def table(
     data: pd.DataFrame, title: Optional[str] = None, limit: Optional[int] = None
 ) -> Dict:
     """Create a table component that renders data using TableViewerWidget.
@@ -375,24 +418,7 @@ def table(  # noqa: C901
                 for key, value in row.items():
                     # Convert key to string to ensure it's serializable
                     key_str = str(key)
-
-                    # Handle special cases and convert value
-                    if pd.isna(value):
-                        processed_row[key_str] = None
-                    elif isinstance(value, (pd.Timestamp, pd.DatetimeTZDtype)):
-                        processed_row[key_str] = str(value)
-                    elif isinstance(value, (np.integer, np.floating)):
-                        processed_row[key_str] = value.item()
-                    elif isinstance(value, (list, np.ndarray)):
-                        processed_row[key_str] = convert_to_serializable(value)
-                    else:
-                        try:
-                            # Try to serialize to test if it's JSON-compatible
-                            json.dumps(value)
-                            processed_row[key_str] = value
-                        except:  # noqa: E722
-                            # If serialization fails, convert to string
-                            processed_row[key_str] = str(value)
+                    processed_row[key_str] = convert_to_serializable(value)
                 processed_data.append(processed_row)
             else:
                 # If row is not a dict, convert it to a simple dict
@@ -539,25 +565,36 @@ def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -
 
 def convert_to_serializable(obj):
     """Convert numpy arrays and other non-serializable objects to Python native types."""
+    # Handle numpy arrays and numeric types
     if isinstance(obj, np.ndarray):
         return obj.tolist()
-    elif isinstance(obj, (np.int8, np.int16, np.int32, np.int64, np.integer)):
-        return int(obj)
-    elif isinstance(obj, (np.float16, np.float32, np.float64, np.floating)):
+    if isinstance(obj, (np.integer, np.floating)):
         if np.isnan(obj):
             return None
-        return float(obj)
-    elif isinstance(obj, np.bool_):
+        return int(obj) if isinstance(obj, np.integer) else float(obj)
+    if isinstance(obj, np.bool_):
         return bool(obj)
-    elif isinstance(obj, dict):
+
+    # Handle compound types
+    if isinstance(obj, dict):
         return {k: convert_to_serializable(v) for k, v in obj.items()}
-    elif isinstance(obj, (list, tuple)):
+    if isinstance(obj, (list, tuple)):
         return [convert_to_serializable(item) for item in obj]
-    elif isinstance(obj, np.generic):
-        if np.isnan(obj):
-            return None
-        return obj.item()
-    return obj
+
+    # Handle pandas and numpy special types
+    if isinstance(obj, np.generic):
+        return None if np.isnan(obj) else obj.item()
+    if pd.isna(obj) or isinstance(obj, pd.NaT.__class__):
+        return None
+    if isinstance(obj, (pd.Timestamp, pd.DatetimeTZDtype)):
+        return None if pd.isna(obj) else str(obj)
+
+    # Try JSON serialization or fallback to string
+    try:
+        json.dumps(obj)
+        return obj
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return str(obj)
 
 
 def generate_id(prefix: str = "component") -> str:
