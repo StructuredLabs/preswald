@@ -8,6 +8,7 @@ from .components import (
     button,
     checkbox,
     image,
+    matplotlib,
     plotly,
     progress,
     selectbox,
