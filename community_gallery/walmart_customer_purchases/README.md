@@ -16,20 +16,19 @@ This app analyzes customer purchase behavior at Walmart. It provides insights in
 ### How to Run the App
 1. Clone the repository:
 ```sh
-git clone https://github.com/prakharnag/preswald-assessment.git
-cd preswald-assessment/walmart_analytics
+git clone https://github.com/prakharnag/preswald.git
+cd community_gallery/walmart_customer_purchases
 ```
 
 2. Create a virtual environment
 - Follow this [Guide](https://docs.preswald.com/usage/troubleshooting#set-up-a-virtual-environment)
     
-
-Install the preswald:
+3. Install the preswald:
 ```sh
 pip install preswald
 ```
 
-3. Run the app:
+4. Run the app:
 ```sh
 preswald run 
 ```
