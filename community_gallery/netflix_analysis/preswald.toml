@@ -1,0 +1,18 @@
+[project]
+title = "Netflix Stock Analysis"
+version = "0.1.0"
+port = 8501
+entrypoint = "hello.py"
+slug = "netflix-stock-analysis"
+
+[branding]
+name = "Netflix Stock Analysis"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#F89613"
+
+[data_sources.netflix_stock]
+type = "csv"
+path = "data/Netflix Inc. (NFLX) Stock Price 2002-2025.csv"
+delimiter = ","
+header = true
