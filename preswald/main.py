@@ -3,9 +3,9 @@ import logging
 import os
 import re
 import signal
+from importlib.resources import files
 from typing import Optional
 
-import pkg_resources
 import uvicorn
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -130,13 +130,14 @@ def start_server(script: Optional[str] = None, port: int = 8501):
     def sync_handle_shutdown(signum, frame):
         """Synchronous wrapper for the async shutdown handler"""
         loop = asyncio.get_event_loop()
-        loop.create_task(handle_shutdown(signum, frame))
+        loop.create_task(handle_shutdown(signum, frame))  # noqa: RUF006
 
     signal.signal(signal.SIGINT, sync_handle_shutdown)
     signal.signal(signal.SIGTERM, sync_handle_shutdown)
 
     try:
         import asyncio
+
         asyncio.run(server.serve())
     except KeyboardInterrupt:
         asyncio.run(handle_shutdown())
@@ -148,9 +149,9 @@ def start_server(script: Optional[str] = None, port: int = 8501):
 def _setup_static_files(app: FastAPI) -> BrandingManager:
     """Set up static file serving and initialize branding manager"""
     # Get package directories
-    base_dir = pkg_resources.resource_filename("preswald", "")
-    static_dir = os.path.join(base_dir, "static")
-    assets_dir = os.path.join(static_dir, "assets")
+    base_dir = files("preswald")
+    static_dir = base_dir / "static"
+    assets_dir = static_dir / "assets"
 
     # Ensure directories exist
     os.makedirs(static_dir, exist_ok=True)
@@ -168,8 +169,8 @@ def _setup_static_files(app: FastAPI) -> BrandingManager:
 def _handle_index_request(service: PreswaldService) -> HTMLResponse:
     """Handle index.html requests with proper branding"""
     try:
-        static_dir = pkg_resources.resource_filename("preswald", "static")
-        index_path = os.path.join(static_dir, "index.html")
+        static_dir = files("preswald") / "static"
+        index_path = static_dir / "index.html"
 
         if not os.path.exists(index_path):
             logger.error(f"Index file not found at {index_path}")

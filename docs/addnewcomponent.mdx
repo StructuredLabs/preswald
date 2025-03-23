@@ -1,0 +1,132 @@
+---
+title: "New components"
+icon: "plus"
+description: "Instructions on creating a new component"
+---
+
+This guide walks you through the process of adding a new component in Preswald. For this example, we will create a component named `helloworldcomponent`. When adding your own component, replace `helloworldcomponent` with your desired component name.
+
+---
+
+## 1) Modify `preswald/preswald/interfaces/components.py`
+
+Add your new component under the existing ones:
+
+```python
+import hashlib
+from typing import Optional
+from preswald.service import PreswaldService
+
+def helloworldcomponent(
+    label: str,
+    default: Optional[float] = None,
+    size: float = 1.0,
+) -> float:
+    """Create a new component with a consistent ID based on label"""
+    service = PreswaldService.get_instance()
+
+    # Create a consistent ID based on the label
+    component_id = f"slider-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+
+    component = {
+        "type": "helloworldcomponent",
+        "id": component_id,
+        "label": label,
+        "size": size,
+    }
+
+    service.append_component(component)
+    return "hello world"
+```
+
+---
+
+## 2) Modify `preswald/preswald/interfaces/__init__.py`
+
+Add `helloworldcomponent` to the list of available components.
+
+```python
+from .components import helloworldcomponent
+```
+
+---
+
+## 3) Create a Frontend Component
+
+Create a new file in the frontend component directory:
+
+**Path:** `/preswald/frontend/src/components/widgets/HelloWorldWidget.jsx`
+
+```jsx
+import React from 'react';
+import { Card } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+
+const HelloWorldWidget = ({
+    _label,
+    className,
+    _size = 'default', // "sm", "default", "lg"
+}) => {
+    return (
+        <Card className={cn('w-full', className)}>
+            hello world
+        </Card>
+    );
+};
+
+export default HelloWorldWidget;
+```
+
+---
+
+## 4) Register Component in `DynamicComponents.jsx`
+
+Modify `frontend/src/components/DynamicComponents.jsx` to add a case for your new component:
+
+```jsx
+import HelloWorldWidget from '@/components/widgets/HelloWorldWidget';
+
+case 'helloworldcomponent':
+    return (
+        <HelloWorldWidget
+            {...commonProps}
+            className={component.className}
+            _size={component.size || 'default'}
+        />
+    );
+```
+
+---
+
+## 5) Build Frontend
+
+Rebuild the frontend for your changes to take effect:
+
+```sh
+python setup.py build_frontend
+```
+
+---
+
+## 6) Test Usage
+
+Modify the example script at `examples/iris/hello.py`:
+
+```python
+from preswald import  helloworldcomponent
+helloworldcomponent(label="hi")
+```
+
+Run the test:
+
+```sh
+cd examples/iris && preswald run
+```
+
+Verify that 'Hello World' appears in the output.
+
+---
+
+## 6) Customize Your Component
+
+Now that the basic structure is in place, you can customize the component's appearance and functionality further as needed.

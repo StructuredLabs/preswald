@@ -1,17 +1,18 @@
 import io
 import json
-import re
 import logging
 import os
+import re
 import shutil
 import subprocess
 import zipfile
 from datetime import datetime
+from importlib.metadata import version
 from pathlib import Path
 from typing import Generator, Optional
 
-import pkg_resources
 import requests
+import toml
 
 from preswald.utils import get_project_slug, read_template
 
@@ -20,8 +21,7 @@ logger = logging.getLogger(__name__)
 
 # Default Structured Cloud service URL
 # STRUCTURED_CLOUD_SERVICE_URL = os.getenv('STRUCTURED_CLOUD_SERVICE_URL', 'http://127.0.0.1:8080')
-# @TODO: to inject this from a preswald cli cmdn
-STRUCTURED_CLOUD_SERVICE_URL = "https://corewald-v2-ndjz2ws6la-ue.a.run.app"
+STRUCTURED_CLOUD_SERVICE_URL = "https://deployer.preswald.com"
 
 
 def get_deploy_dir(script_path: str) -> Path:
@@ -35,12 +35,16 @@ def get_deploy_dir(script_path: str) -> Path:
     return deploy_dir
 
 
-def get_container_name(script_path: str) -> str: 
-    """Generate a consistent container name for a given script""" 
-    container_name = f"preswald-app-{Path(script_path).stem}" 
+def get_container_name(script_path: str) -> str:
+    """Generate a consistent container name for a given script"""
+    script_dir = Path(script_path).parent
+    with open(script_dir / "preswald.toml") as f:
+        preswald_toml = f.read()
+    config = toml.loads(preswald_toml)
+    container_name = f"preswald-app-{config['project']['slug']}"
     container_name = container_name.lower()
     container_name = re.sub(r"[^a-z0-9-]", "", container_name)
-    container_name = container_name.strip('-')
+    container_name = container_name.strip("-")
     return container_name
 
 
@@ -355,93 +359,264 @@ def deploy_to_prod(  # noqa: C901
         raise Exception(f"Production deployment failed: {e!s}") from e
 
 
-def deploy_to_gcp(script_path: str, port: int = 8501) -> str:
+def check_gcloud_auth_for_gcr() -> bool:
+    try:
+        result = subprocess.run(
+            ["gcloud", "auth", "configure-docker", "--quiet"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return result.returncode == 0
+    except subprocess.CalledProcessError:
+        return False
+
+
+def authenticate_gcr() -> None:
+    try:
+        subprocess.run(
+            ["gcloud", "auth", "configure-docker", "--quiet"],
+            check=True,
+            capture_output=True,
+        )
+    except subprocess.CalledProcessError as e:
+        raise Exception(f"Failed to authenticate with GCR: {e!s}") from e
+
+
+def deploy_to_gcp(script_path: str, port: int = 8501) -> str:  # noqa: C901
     """
-    Deploy a Preswald app to Google Cloud Run.
-    This function creates a Docker container locally and deploys it to Cloud Run.
+    Deploy a Preswald app to Google Cloud Run using a simplified Docker approach.
 
     Args:
         script_path: Path to the Preswald application script
         port: Port number for the deployment
 
     Returns:
-        str: The URL where the application is deployed on Cloud Run
+        str: The URL where the app is deployed
     """
     script_path = os.path.abspath(script_path)
     script_dir = Path(script_path).parent
     container_name = get_container_name(script_path)
     deploy_dir = get_deploy_dir(script_path)
 
-    # Get preswald version for exact version matching
-    preswald_version = pkg_resources.get_distribution("preswald").version
-
-    # Clear out old deployment directory contents while preserving the directory itself
-    for item in deploy_dir.iterdir():
-        if item.is_file():
-            item.unlink()
-        elif item.is_dir():
-            shutil.rmtree(item)
-
-    # Copy everything from script's directory to deployment directory
-    for item in script_dir.iterdir():
-        if item.name == ".preswald_deploy":
-            continue
-        if item.is_file():
-            shutil.copy2(item, deploy_dir / item.name)
-        elif item.is_dir():
-            shutil.copytree(item, deploy_dir / item.name)
-
-    # Rename main script to app.py if needed
-    if Path(script_path).name != "app.py":
-        shutil.move(deploy_dir / Path(script_path).name, deploy_dir / "app.py")
-
-    # Create startup script
-    startup_template = read_template("run.py")
-    startup_script = startup_template.format(port=port)
-    with open(deploy_dir / "run.py", "w") as f:
-        f.write(startup_script)
-
-    # Create Dockerfile
-    dockerfile_template = read_template("Dockerfile")
-    dockerfile_content = dockerfile_template.format(
-        port=port, preswald_version=preswald_version
-    )
-    with open(deploy_dir / "Dockerfile", "w") as f:
-        f.write(dockerfile_content)
-
-    # Store deployment info
-    deployment_info = {
-        "script": script_path,
-        "container_name": container_name,
-        "preswald_version": preswald_version,
-    }
-    with open(deploy_dir / "deployment.json", "w") as f:
-        json.dump(deployment_info, f, indent=2)
-
     try:
+        if not check_gcloud_installation():
+            raise Exception(
+                "Google Cloud SDK not found. Please install from: "
+                "https://cloud.google.com/sdk/docs/install"
+            )
+
+        if not check_gcloud_auth():
+            print("\nYou need to authenticate with Google Cloud.")
+            print("Opening browser for authentication...")
+            subprocess.run(["gcloud", "auth", "login"], check=True)
+
+        project_id = ensure_project_selected()
+        print(f"\nUsing Google Cloud project: {project_id}")
+
+        if not check_gcloud_auth_for_gcr():
+            authenticate_gcr()
+
+        with open(script_dir / "preswald.toml") as f:
+            preswald_toml = f.read()
+        config = toml.loads(preswald_toml)
+        original_port = config["project"]["port"]
+        config["project"]["port"] = 8080
+
+        with open(script_dir / "preswald.toml", "w") as f:
+            toml.dump(config, f)
+
+        # Clear out old deployment directory contents while preserving the directory itself
+        for item in deploy_dir.iterdir():
+            if item.is_file():
+                item.unlink()
+            elif item.is_dir():
+                shutil.rmtree(item)
+
+        dockerfile_content = """FROM structuredlabs/preswald-base:latest
+COPY . /app/project
+"""
+        with open(deploy_dir / "Dockerfile", "w") as f:
+            f.write(dockerfile_content)
+
+        for item in script_dir.iterdir():
+            if item.name == ".preswald_deploy":
+                continue
+            if item.is_file():
+                shutil.copy2(item, deploy_dir / item.name)
+            elif item.is_dir():
+                shutil.copytree(item, deploy_dir / item.name, dirs_exist_ok=True)
+
+        region = "us-west1"
+        gcr_image = f"gcr.io/{project_id}/{container_name}"
+
+        print(f"\nBuilding Docker image {container_name} for GCP deployment...")
+        build_cmd = [
+            "docker",
+            "buildx",
+            "build",
+            "--platform",
+            "linux/amd64",
+            "-t",
+            container_name,
+            "--load",
+            ".",
+        ]
+        print(f"Running build command in {deploy_dir}: {' '.join(build_cmd)}")
+        subprocess.run(
+            build_cmd,
+            check=True,
+            cwd=str(deploy_dir),
+        )
+
+        print("\nPushing image to Google Container Registry...")
+        subprocess.run(
+            ["docker", "tag", container_name, gcr_image],
+            check=True,
+            cwd=str(deploy_dir),
+        )
+
+        try:
+            subprocess.run(
+                ["docker", "push", gcr_image], check=True, cwd=str(deploy_dir)
+            )
+        except subprocess.CalledProcessError as e:
+            if "unauthorized" in str(e) or "authentication required" in str(e):
+                print("\nAuthentication failed. Trying to reauthenticate...")
+                authenticate_gcr()
+                # Try pushing again after reauthentication
+                subprocess.run(
+                    ["docker", "push", gcr_image], check=True, cwd=str(deploy_dir)
+                )
+            else:
+                raise
+
+        print("\nDeploying to Cloud Run...")
+        subprocess.run(
+            [
+                "gcloud",
+                "run",
+                "deploy",
+                container_name,
+                "--image",
+                gcr_image,
+                "--platform",
+                "managed",
+                "--region",
+                region,
+                "--allow-unauthenticated",
+            ],
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+
+        url_result = subprocess.run(
+            [
+                "gcloud",
+                "run",
+                "services",
+                "describe",
+                container_name,
+                "--platform",
+                "managed",
+                "--region",
+                region,
+                "--format=value(status.url)",
+            ],
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+
+        config["project"]["port"] = original_port
+        with open(script_dir / "preswald.toml", "w") as f:
+            toml.dump(config, f)
+
+        deployed_url = url_result.stdout.strip()
+        print(f"\n✨ Successfully deployed to: {deployed_url}")
+        return deployed_url
+
+    except subprocess.CalledProcessError as e:
+        if "not installed" in str(e):
+            raise Exception(
+                "Google Cloud SDK not found. Please install from: "
+                "https://cloud.google.com/sdk/docs/install"
+            ) from e
+        elif "unauthorized" in str(e) or "authentication required" in str(e):
+            raise Exception(
+                "Authentication failed. Please run:\n"
+                "1. gcloud auth login\n"
+                "2. gcloud auth configure-docker\n"
+                "Then try deploying again."
+            ) from e
+        raise Exception(f"Cloud Run deployment failed: {e!s}") from e
+    except FileNotFoundError as e:
+        raise Exception(
+            "Docker not found. Please install Docker Desktop from "
+            "https://www.docker.com/products/docker-desktop"
+        ) from e
+    except Exception as e:
+        raise Exception(f"Deployment failed: {e!s}") from e
+    finally:
+        try:
+            with open(script_dir / "preswald.toml") as f:
+                config = toml.loads(f.read())
+            config["project"]["port"] = original_port
+            with open(script_dir / "preswald.toml", "w") as f:
+                toml.dump(config, f)
+        except Exception:
+            pass
+
+
+def find_available_port(start_port: int = 8501) -> int:
+    import socket
+    
+    port = start_port
+    while True:
+        try:
+            # Try to bind to the port
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind(('', port))
+                return port
+        except OSError:
+            port += 1
+
+
+def deploy_to_local(script_path: str) -> str:
+    script_path = os.path.abspath(script_path)
+    script_dir = Path(script_path).parent
+    container_name = get_container_name(script_path)
+    
+    try:
+        # Find an available port
+        port = find_available_port()
+        print(f"\nUsing port: {port}")
+        
         # Stop any existing container
         print("Stopping existing deployment (if any)...")
         stop_existing_container(container_name)
-
-        # Build the Docker image for GCP (using linux/amd64 platform)
-        print(f"Building Docker image {container_name} for GCP deployment...")
+        
+        # Start the container with the prebuilt base image
+        print(f"Starting container with prebuilt base image...")
         subprocess.run(
             [
                 "docker",
-                "build",
-                "--platform",
-                "linux/amd64",
-                "-t",
+                "run",
+                "-d",
+                "--name",
                 container_name,
-                ".",
+                "-p",
+                f"{port}:8501",
+                "-v",
+                f"{script_dir}:/app/project",
+                "structuredlabs/preswald-base:latest"
             ],
             check=True,
-            cwd=deploy_dir,
         )
-
-        # Deploy to Cloud Run
-        return deploy_to_cloud_run(deploy_dir, container_name, port=port)
-
+        
+        return f"http://localhost:{port}"
+        
     except subprocess.CalledProcessError as e:
         raise Exception(f"Docker operation failed: {e!s}") from e
     except FileNotFoundError as e:
@@ -449,6 +624,8 @@ def deploy_to_gcp(script_path: str, port: int = 8501) -> str:
             "Docker not found. Please install Docker Desktop from "
             "https://www.docker.com/products/docker-desktop"
         ) from e
+    except Exception as e:
+        raise Exception(f"Local deployment failed: {e!s}") from e
 
 
 def deploy(  # noqa: C901
@@ -458,136 +635,27 @@ def deploy(  # noqa: C901
     github_username: Optional[str] = None,
     api_key: Optional[str] = None,
 ) -> str | Generator[dict, None, None]:
-    """
-    Deploy a Preswald app.
-
-    Args:
-        script_path: Path to the Preswald application script
-        target: Deployment target ("local", "gcp", "aws", or "prod")
-        port: Port number for the deployment
-        github_username: Optional GitHub username for structured deployment
-        api_key: Optional Structured Cloud API key for structured deployment
-
-    Returns:
-        str | Generator: URL where the application can be accessed for local/cloud deployments,
-                        or a Generator yielding deployment status for production deployments
-    """
     if target == "structured":
         return deploy_to_prod(script_path, port, github_username, api_key)
     elif target == "gcp":
         return deploy_to_gcp(script_path, port)
     elif target == "local":
-        script_path = os.path.abspath(script_path)
-        script_dir = Path(script_path).parent
-        container_name = get_container_name(script_path)
-        deploy_dir = get_deploy_dir(script_path)
-        # Get preswald version for exact version matching
-        preswald_version = pkg_resources.get_distribution("preswald").version
-        # First, clear out the old deployment directory contents while preserving the directory itself
-        for item in deploy_dir.iterdir():
-            if item.is_file():
-                item.unlink()
-            elif item.is_dir():
-                shutil.rmtree(item)
-        # Copy everything from the script's directory to the deployment directory
-        for item in script_dir.iterdir():
-            # Skip the deployment directory itself to avoid recursive copying
-            if item.name == ".preswald_deploy":
-                continue
-            # Copy files and directories
-            if item.is_file():
-                shutil.copy2(item, deploy_dir / item.name)
-            elif item.is_dir():
-                shutil.copytree(item, deploy_dir / item.name)
-        # Rename the main script to app.py if it's not already named that
-        if Path(script_path).name != "app.py":
-            shutil.move(deploy_dir / Path(script_path).name, deploy_dir / "app.py")
-        # Create startup script
-        startup_template = read_template("run.py")
-        startup_script = startup_template.format(port=port)
-        with open(deploy_dir / "run.py", "w") as f:
-            f.write(startup_script)
-        # Create Dockerfile
-        dockerfile_template = read_template("Dockerfile")
-        dockerfile_content = dockerfile_template.format(
-            port=port, preswald_version=preswald_version
-        )
-        with open(deploy_dir / "Dockerfile", "w") as f:
-            f.write(dockerfile_content)
-        # Store deployment info
-        deployment_info = {
-            "script": script_path,
-            "container_name": container_name,
-            "preswald_version": preswald_version,
-        }
-        with open(deploy_dir / "deployment.json", "w") as f:
-            json.dump(deployment_info, f, indent=2)
-        try:
-            # Stop any existing container
-            print("Stopping existing deployment (if any)...")
-            stop_existing_container(container_name)
-            # Build the Docker image
-            print(f"Building Docker image {container_name}...")
-            subprocess.run(
-                ["docker", "build", "-t", container_name, "."],
-                check=True,
-                cwd=deploy_dir,
-            )
-            # Start the container
-            print("Starting container...")
-            subprocess.run(
-                [
-                    "docker",
-                    "run",
-                    "-d",
-                    "--name",
-                    container_name,
-                    "-p",
-                    f"{port}:{port}",
-                    container_name,
-                ],
-                check=True,
-                cwd=deploy_dir,
-            )
-            return f"http://localhost:{port}"
-        except subprocess.CalledProcessError as e:
-            raise Exception(f"Docker operation failed: {e!s}") from e
-        except FileNotFoundError as e:
-            raise Exception(
-                "Docker not found. Please install Docker Desktop from "
-                "https://www.docker.com/products/docker-desktop"
-            ) from e
+        return deploy_to_local(script_path)
     else:
         raise ValueError(f"Unsupported deployment target: {target}")
 
 
-def stop(current_dir: Optional[str] = None) -> None:
-    """
-    Stop a running Preswald deployment.
-
-    If script_path is provided, stops that specific deployment.
-    Otherwise, looks for a deployment in the current directory.
-    """
-    if current_dir:
-        deploy_dir = Path(current_dir) / ".preswald_deploy"
-    else:
-        # Look for deployment in current directory
-        deploy_dir = Path.cwd() / ".preswald_deploy"
-
-    if not deploy_dir.exists():
-        raise Exception("No deployment found")
-
+def stop_local_deployment(script_dir: str) -> None:
     try:
-        with open(deploy_dir / "deployment.json") as f:
-            info = json.load(f)
-            container_name = info["container_name"]
-
-        print(f"Stopping deployment {container_name}...")
+        container_name = get_container_name(Path(script_dir) / "preswald.toml")
+        print(f"Stopping local deployment {container_name}...")
         stop_existing_container(container_name)
+        print("✅ Local deployment stopped successfully")
 
+    except FileNotFoundError as e:
+        raise Exception(f"No deployment configuration found: {e}") from e
     except Exception as e:
-        raise Exception(f"Failed to stop deployment: {e}") from e
-
+        raise Exception(f"Failed to stop local deployment: {e}") from e
 
 def stop_structured_deployment(script_dir: str) -> dict:
     """
@@ -686,11 +754,7 @@ def get_structured_deployments(script_path: str) -> dict:
         raise Exception(f"Failed to fetch deployments: {e!s}") from e
 
 
-def cleanup_gcp_deployment(script_path: str):  # noqa: C901
-    import json
-    import subprocess
-    from datetime import datetime
-
+def cleanup_gcp_deployment(script_dir: str):  # noqa: C901
     def log_status(status, message):
         return {
             "status": status,
@@ -700,16 +764,37 @@ def cleanup_gcp_deployment(script_path: str):  # noqa: C901
 
     try:
         yield log_status("info", "Gathering deployment information...")
-        script_path = os.path.abspath(script_path)
-        # script_dir = Path(script_path).parent
-        container_name = get_container_name(script_path)
+        script_dir = Path(script_dir)
+
+        preswald_toml = script_dir / "preswald.toml"
+        if not preswald_toml.exists():
+            raise FileNotFoundError(f"preswald.toml not found in {script_dir}")
+
+        with open(preswald_toml) as f:
+            config = toml.loads(f.read())
+            slug = config["project"]["slug"]
+            container_name = f"preswald-app-{slug}"
+            container_name = container_name.lower()
+            container_name = re.sub(r"[^a-z0-9-]", "", container_name)
+            container_name = container_name.strip("-")
 
         yield log_status("info", "Verifying Google Cloud SDK setup...")
-        try:
-            setup_gcloud()
-        except Exception as e:
-            yield log_status("error", f"Failed to setup Google Cloud SDK: {e!s}")
+        if not check_gcloud_installation():
+            yield log_status(
+                "error",
+                "Google Cloud SDK not found. Please install from: https://cloud.google.com/sdk/docs/install",
+            )
             return
+
+        if not check_gcloud_auth():
+            yield log_status(
+                "info", "Authentication required. Opening browser for login..."
+            )
+            try:
+                subprocess.run(["gcloud", "auth", "login"], check=True)
+            except subprocess.CalledProcessError as e:
+                yield log_status("error", f"Failed to authenticate: {e}")
+                return
 
         try:
             project_id = ensure_project_selected()
@@ -721,28 +806,33 @@ def cleanup_gcp_deployment(script_path: str):  # noqa: C901
         region = "us-west1"
         gcr_image = f"gcr.io/{project_id}/{container_name}"
 
-        yield log_status(
-            "info", f"Attempting to delete Cloud Run service: {container_name}"
-        )
+        # Delete Cloud Run service
+        yield log_status("info", f"Checking Cloud Run service: {container_name}")
         try:
-            service_check = subprocess.run(
-                [
-                    "gcloud",
-                    "run",
-                    "services",
-                    "describe",
-                    container_name,
-                    "--platform",
-                    "managed",
-                    "--region",
-                    region,
-                    "--format=json",
-                ],
-                capture_output=True,
-                text=True,
+            service_exists = (
+                subprocess.run(
+                    [
+                        "gcloud",
+                        "run",
+                        "services",
+                        "describe",
+                        container_name,
+                        "--platform",
+                        "managed",
+                        "--region",
+                        region,
+                        "--format=json",
+                    ],
+                    capture_output=True,
+                    text=True,
+                ).returncode
+                == 0
             )
 
-            if service_check.returncode == 0:
+            if service_exists:
+                yield log_status(
+                    "info", f"Deleting Cloud Run service: {container_name}"
+                )
                 delete_result = subprocess.run(
                     [
                         "gcloud",
@@ -762,130 +852,84 @@ def cleanup_gcp_deployment(script_path: str):  # noqa: C901
 
                 if delete_result.returncode == 0:
                     yield log_status(
-                        "success",
-                        f"Successfully deleted Cloud Run service: {container_name}",
+                        "success", f"Deleted Cloud Run service: {container_name}"
                     )
                 else:
                     yield log_status(
-                        "error",
-                        f"Failed to delete Cloud Run service: {delete_result.stderr}",
+                        "error", f"Failed to delete service: {delete_result.stderr}"
                     )
             else:
                 yield log_status(
-                    "info", f"No Cloud Run service found with name: {container_name}"
+                    "info", f"No Cloud Run service found: {container_name}"
                 )
-        except Exception as e:
-            yield log_status("error", f"Error while deleting Cloud Run service: {e!s}")
 
-        yield log_status("info", f"Cleaning up container images from GCR: {gcr_image}")
-        try:
-            list_result = subprocess.run(
-                [
-                    "gcloud",
-                    "container",
-                    "images",
-                    "list-tags",
-                    gcr_image,
-                    "--format=json",
-                ],
-                capture_output=True,
-                text=True,
-            )
-
-            if list_result.returncode == 0:
-                images = json.loads(list_result.stdout)
-                if images:
-                    yield log_status("info", "Removing image tags...")
-                    for image in images:
-                        tags = image.get("tags", [])
-                        for tag in tags:
-                            untag_result = subprocess.run(
-                                [
-                                    "gcloud",
-                                    "container",
-                                    "images",
-                                    "untag",
-                                    f"{gcr_image}:{tag}",
-                                    "--quiet",
-                                ],
-                                capture_output=True,
-                                text=True,
-                            )
-                            if untag_result.returncode == 0:
-                                yield log_status("success", f"Removed tag: {tag}")
-                            else:
-                                yield log_status(
-                                    "warning",
-                                    f"Failed to remove tag {tag}: {untag_result.stderr}",
-                                )
-
-                    for image in images:
-                        digest = image.get("digest")
-                        if digest:
-                            delete_image_result = subprocess.run(
-                                [
-                                    "gcloud",
-                                    "container",
-                                    "images",
-                                    "delete",
-                                    f"{gcr_image}@{digest}",
-                                    "--force-delete-tags",
-                                    "--quiet",
-                                ],
-                                capture_output=True,
-                                text=True,
-                            )
-
-                            if delete_image_result.returncode == 0:
-                                yield log_status(
-                                    "success", f"Deleted container image: {digest[:12]}"
-                                )
-                            else:
-                                yield log_status(
-                                    "error",
-                                    f"Failed to delete image {digest[:12]}: {delete_image_result.stderr}",
-                                )
-
-                    repo_delete_result = subprocess.run(
-                        [
-                            "gcloud",
-                            "container",
-                            "images",
-                            "delete",
-                            gcr_image,
-                            "--force-delete-tags",
-                            "--quiet",
-                        ],
-                        capture_output=True,
-                        text=True,
-                    )
-
-                    if repo_delete_result.returncode == 0:
-                        yield log_status(
-                            "success", "Successfully deleted container image repository"
-                        )
-                    else:
-                        yield log_status(
-                            "error",
-                            f"Failed to delete image repository: {repo_delete_result.stderr}",
-                        )
-                else:
-                    yield log_status("info", "No container images found to clean up")
-            else:
-                yield log_status(
-                    "error", f"Failed to list container images: {list_result.stderr}"
-                )
         except Exception as e:
             yield log_status(
-                "error", f"Error while cleaning up container images: {e!s}"
+                "error", f"Error checking/deleting Cloud Run service: {e!s}"
             )
 
+        # Clean up container images
+        yield log_status("info", "Checking for container images...")
+        try:
+            images_exist = (
+                subprocess.run(
+                    [
+                        "gcloud",
+                        "container",
+                        "images",
+                        "describe",
+                        gcr_image,
+                        "--format=json",
+                    ],
+                    capture_output=True,
+                    text=True,
+                ).returncode
+                == 0
+            )
+
+            if images_exist:
+                yield log_status("info", f"Deleting container image: {gcr_image}")
+                delete_result = subprocess.run(
+                    [
+                        "gcloud",
+                        "container",
+                        "images",
+                        "delete",
+                        gcr_image,
+                        "--force-delete-tags",
+                        "--quiet",
+                    ],
+                    capture_output=True,
+                    text=True,
+                )
+
+                if delete_result.returncode == 0:
+                    yield log_status("success", f"Deleted container image: {gcr_image}")
+                else:
+                    yield log_status(
+                        "error", f"Failed to delete image: {delete_result.stderr}"
+                    )
+            else:
+                yield log_status("info", "No container images found")
+
+        except Exception as e:
+            yield log_status("error", f"Error cleaning up container images: {e!s}")
+
+        # Clean up local Docker images
         yield log_status("info", "Cleaning up local Docker images...")
         try:
             subprocess.run(
-                ["docker", "rmi", container_name], capture_output=True, text=True
+                ["docker", "rmi", container_name],
+                capture_output=True,
+                text=True,
+                check=False,
             )
-            subprocess.run(["docker", "rmi", gcr_image], capture_output=True, text=True)
+            subprocess.run(
+                ["docker", "rmi", gcr_image],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
             yield log_status("success", "Cleaned up local Docker images")
         except Exception as e:
             yield log_status(
@@ -894,6 +938,7 @@ def cleanup_gcp_deployment(script_path: str):  # noqa: C901
 
         yield log_status("success", "GCP cleanup completed successfully!")
 
+    except FileNotFoundError as e:
+        yield log_status("error", f"Configuration error: {e!s}")
     except Exception as e:
         yield log_status("error", f"Unexpected error during cleanup: {e!s}")
-        raise

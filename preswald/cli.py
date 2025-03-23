@@ -1,22 +1,10 @@
 import os
 import sys
 import tempfile
-import webbrowser
 
 import click
-import pkg_resources
 
-from preswald.deploy import cleanup_gcp_deployment, stop_structured_deployment
-from preswald.deploy import deploy as deploy_app
-from preswald.deploy import stop as stop_app
 from preswald.engine.telemetry import TelemetryService
-from preswald.main import start_server
-from preswald.utils import (
-    configure_logging,
-    generate_slug,
-    read_port_from_config,
-    read_template,
-)
 
 
 # Create a temporary directory for IPC
@@ -44,6 +32,8 @@ def init(name):
 
     This creates a directory with boilerplate files like `hello.py` and `preswald.toml`.
     """
+    from preswald.utils import generate_slug, read_template
+
     try:
         os.makedirs(name, exist_ok=True)
         os.makedirs(os.path.join(name, "images"), exist_ok=True)
@@ -54,13 +44,14 @@ def init(name):
 
         # Copy default branding files from package resources
         import shutil
+        from importlib.resources import as_file, files
 
-        default_static_dir = pkg_resources.resource_filename("preswald", "static")
-        default_favicon = os.path.join(default_static_dir, "favicon.ico")
-        default_logo = os.path.join(default_static_dir, "logo.png")
+        # Using a context manager to get the actual file path
+        with as_file(files("preswald").joinpath("static/favicon.ico")) as path:
+            shutil.copy2(path, os.path.join(name, "images", "favicon.ico"))
 
-        shutil.copy2(default_favicon, os.path.join(name, "images", "favicon.ico"))
-        shutil.copy2(default_logo, os.path.join(name, "images", "logo.png"))
+        with as_file(files("preswald").joinpath("static/logo.png")) as path:
+            shutil.copy2(path, os.path.join(name, "images", "logo.png"))
 
         file_templates = {
             "hello.py": "hello.py",
@@ -125,6 +116,9 @@ def run(port, log_level, disable_new_tab):
 
     import tomli
 
+    from preswald.main import start_server
+    from preswald.utils import configure_logging, read_port_from_config
+
     try:
         with open(config_path, "rb") as f:
             config = tomli.load(f)
@@ -162,6 +156,8 @@ def run(port, log_level, disable_new_tab):
 
     try:
         if not disable_new_tab:
+            import webbrowser
+
             webbrowser.open(url)
 
         start_server(script=script, port=port)
@@ -236,6 +232,9 @@ def deploy(script, target, port, log_level, github, api_key):  # noqa: C901
             click.echo(f"Error: Script '{script}' not found. ❌")
             return
 
+        from preswald.deploy import deploy as deploy_app
+        from preswald.utils import configure_logging, read_port_from_config
+
         config_path = os.path.join(os.path.dirname(script), "preswald.toml")
         log_level = configure_logging(config_path=config_path, level=log_level)
         port = read_port_from_config(config_path=config_path, port=port)
@@ -257,10 +256,21 @@ def deploy(script, target, port, log_level, github, api_key):  # noqa: C901
             click.echo("Starting production deployment... 🚀")
             try:
                 for status_update in deploy_app(
-                    script, target, port=port, github_username=github, api_key=api_key
+                    script, target, port=port, github_username=github.lower() if github else None, api_key=api_key
                 ):
                     status = status_update.get("status", "")
                     message = status_update.get("message", "")
+
+                    if "App is available here" in message:
+                        continue
+
+                    custom_subdomain_str = "Custom domain assigned at "
+                    if custom_subdomain_str in message:
+                        custom_subdomain_str = "Custom domain assigned at "
+                        custom_subdomain_url = (
+                            "https://" + message[len(custom_subdomain_str) :]
+                        )
+                        message = custom_subdomain_str + custom_subdomain_url
 
                     if status == "error":
                         click.echo(click.style(f"❌ {message}", fg="red"))
@@ -314,6 +324,8 @@ def stop(target):
     This command must be run from the same directory as your Preswald app.
     """
     try:
+        from preswald.deploy import cleanup_gcp_deployment, stop_structured_deployment
+
         # Track stop command
         telemetry.track_command("stop", {"target": target})
         config_path = "preswald.toml"
@@ -326,7 +338,8 @@ def stop(target):
         print(f"Current directory: {current_dir}")
         if target == "structured":
             try:
-                stop_structured_deployment(current_dir)
+                response_json = stop_structured_deployment(current_dir)
+                click.echo(response_json["message"])
                 click.echo(
                     click.style(
                         "✅ Production deployment stopped successfully.", fg="green"
@@ -356,9 +369,11 @@ def stop(target):
                 click.echo(click.style(f"❌ GCP cleanup failed: {e!s}", fg="red"))
                 sys.exit(1)
         else:
-            stop_app(current_dir)
+            from preswald.deploy import stop_local_deployment
+
+            stop_local_deployment(current_dir)
             click.echo("Deployment stopped successfully. 🛑 ")
-    except Exception as e:
+    except Exception:
         sys.exit(1)
 
 
