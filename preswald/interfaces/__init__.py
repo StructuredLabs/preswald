@@ -9,6 +9,7 @@ from .components import (
     checkbox,
     fastplotlib,
     image,
+    matplotlib,
     plotly,
     progress,
     selectbox,
