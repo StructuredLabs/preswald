@@ -6,8 +6,8 @@ from typing import Any, Dict, Optional
 
 import duckdb
 import pandas as pd
-import toml
 import requests
+import toml
 from requests.auth import HTTPBasicAuth
 
 
@@ -40,19 +40,23 @@ class PostgresConfig:
 class CSVConfig:
     path: str
 
+
 @dataclass
 class APIConfig:
     """Configuration for API connection"""
+
     url: str  #  URL of the API
     method: str = "GET"  # HTTP method (GET, POST, etc.)
-    headers: Optional[Dict[str, str]] = None  
+    headers: Optional[Dict[str, str]] = None
     params: Optional[Dict[str, Any]] = None  # Query parameters
     auth: Optional[Dict[str, str]] = None  # Authentication (API key, Bearer token)
-    pagination: Optional[Dict[str, Any]] = None  
+    pagination: Optional[Dict[str, Any]] = None
+
 
 @dataclass
 class S3CSVConfig:
     s3_endpoint: str
+    s3_region: str
     s3_access_key_id: str
     s3_secret_access_key: str
     path: str
@@ -90,6 +94,7 @@ class S3CSVSource(DataSource):
 
         self._conn_string = (
             f"?s3_endpoint={config.s3_endpoint}"
+            f"&s3_region={config.s3_region}"
             f"&s3_use_ssl={use_ssl}"
             f"&s3_access_key_id={config.s3_access_key_id}"
             f"&s3_secret_access_key={config.s3_secret_access_key}"
@@ -253,7 +258,7 @@ class APISource(DataSource):
             data = response.json()
 
             # Convert JSON to DF
-            df = pd.json_normalize(data)
+            df = pd.json_normalize(data)  # noqa: F841
 
             # Create a table in DB
             self._duckdb.execute(f"""
@@ -270,8 +275,12 @@ class APISource(DataSource):
             auth = None
             if self.config.auth:
                 if "type" in self.config.auth and self.config.auth["type"] == "basic":
-                    auth = HTTPBasicAuth(self.config.auth["username"], self.config.auth["password"])
-                elif "type" in self.config.auth and self.config.auth["type"] == "bearer":
+                    auth = HTTPBasicAuth(
+                        self.config.auth["username"], self.config.auth["password"]
+                    )
+                elif (
+                    "type" in self.config.auth and self.config.auth["type"] == "bearer"
+                ):
                     headers = self.config.headers or {}
                     headers["Authorization"] = f"Bearer {self.config.auth['token']}"
 
@@ -296,6 +305,7 @@ class APISource(DataSource):
     def to_df(self) -> pd.DataFrame:
         """Get the entire API data as a DataFrame"""
         return self._duckdb.execute(f"SELECT * FROM {self._table_name}").df()
+
 
 class DataManager:
     def __init__(self, preswald_path: str, secrets_path: Optional[str] = None):
@@ -354,6 +364,7 @@ class DataManager:
                 elif source_type == "s3csv":
                     cfg = S3CSVConfig(
                         s3_endpoint=source_config["s3_endpoint"],
+                        s3_region=source_config["s3_region"],
                         s3_access_key_id=source_config["s3_access_key_id"],
                         s3_secret_access_key=source_config["s3_secret_access_key"],
                         path=source_config["path"],
