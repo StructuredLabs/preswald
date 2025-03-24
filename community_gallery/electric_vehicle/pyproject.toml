@@ -1,0 +1,23 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "electric-vehicle-dashboard-app"
+version = "0.1.0"
+description = "A dashboard which provides insights into electric vehicles by model year"
+requires-python = ">=3.8"
+dependencies = [
+    "preswald"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
