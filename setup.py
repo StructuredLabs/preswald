@@ -113,13 +113,13 @@ CORE_DEPENDENCIES = [
     "Markdown>=3.4.0",
     # Server-only dependencies
     "fastapi>=0.68.0,<1.0.0; platform_system != 'Emscripten'",
+    "fastplotlib[imgui]~=0.3.0; platform_system != 'Emscripten'",
+    "msgpack~=1.1.0; platform_system != 'Emscripten'",
     "uvicorn>=0.15.0,<1.0.0; platform_system != 'Emscripten'",
     "websockets>=10.0,<11.0; platform_system != 'Emscripten'",
     # Native code dependencies
     "duckdb>=1.1.2; platform_system != 'Emscripten'",
     "scipy>=1.15.2; platform_system != 'Emscripten'",
-    # High-performance plotting library
-    "fastplotlib[imgui]==0.3.0",
     # Other dependencies
     "httpx>=0.23.0,<1.0.0",
     "python-multipart>=0.0.5,<0.1.0",
