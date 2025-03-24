@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 // Import all widgets
 import AlertWidget from './widgets/AlertWidget';
 import ButtonWidget from './widgets/ButtonWidget';
+import ChatWidget from './widgets/ChatWidget';
 import CheckboxWidget from './widgets/CheckboxWidget';
 import ConnectionInterfaceWidget from './widgets/ConnectionInterfaceWidget';
 import DAGVisualizationWidget from './widgets/DAGVisualizationWidget';
@@ -125,6 +126,24 @@ const MemoizedComponent = memo(
             description={component.description}
             disabled={component.disabled}
             onChange={(value) => handleUpdate(componentId, value)}
+          />
+        );
+
+      case 'chat':
+        return (
+          <ChatWidget
+            {...commonProps}
+            label={component.label}
+            placeholder={component.placeholder}
+            value={component.value || ''}
+            onChange={(value) => handleUpdate(componentId, value)}
+            error={component.error}
+            disabled={component.disabled}
+            required={component.required}
+            type={component.type || 'text'}
+            size={component.size || 'default'}
+            variant={component.variant || 'default'}
+            className={component.className}
           />
         );
 
