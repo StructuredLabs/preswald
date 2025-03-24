@@ -108,9 +108,7 @@ class WebSocketClient {
             }
 
             this._notifySubscribers(data);
-          }
-
-          else if (event.data instanceof Blob) {
+          } else if (event.data instanceof Blob) {
             const buffer = await event.data.arrayBuffer();
             const decoded = decode(new Uint8Array(buffer));
 
