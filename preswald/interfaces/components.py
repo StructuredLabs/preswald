@@ -1,12 +1,10 @@
 # Standard Library
 import asyncio
-import base64
 import hashlib
 import io
 import json
 import logging
 import uuid
-import zlib
 from typing import Dict, List, Optional
 
 # Third-Party
@@ -19,6 +17,7 @@ from PIL import Image
 # Internal
 from preswald.engine.service import PreswaldService
 from preswald.interfaces.workflow import Workflow
+
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -105,7 +104,7 @@ Args:
           - Colors are assigned from a fixed RGBA palette based on label uniqueness and order.
           - This does not support direct RGBA arrays or named color strings at this time.
         - "client_id" (str): WebSocket session ID used to route the rendered image to the client.
-    size (float, optional): Layout width of the component in a row (0.0–1.0). Defaults to 1.0.
+    size (float, optional): Layout width of the component in a row (0.0-1.0). Defaults to 1.0.
 
 Returns:
     str: A stable component ID referencing the rendered Fastplotlib figure.
@@ -231,7 +230,8 @@ Notes:
                 "size": size,
                 "data": png_bytes
             })
-            asyncio.create_task(send_and_update(packed_msg))
+            asyncio.create_task(send_and_update(packed_msg))  # noqa: RUF006
+
         else:
             logger.warning(f"No active WebSocket found for client_id={client_id}")
 

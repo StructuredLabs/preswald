@@ -3,6 +3,7 @@ import plotly.express as px
 from preswald import connect, fastplotlib, get_df, plotly, sidebar, table, text
 from preswald.engine.service import PreswaldService
 
+
 service = service = PreswaldService.get_instance()
 
 # Report Title
