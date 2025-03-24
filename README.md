@@ -220,3 +220,10 @@ Check out [CONTRIBUTING.md](CONTRIBUTING.md).
 ## **📄 License**
 
 Preswald is licensed under the [Apache 2.0 License](LICENSE).
+
+## ✨ Contributors
+
+Thanks to everyone who has contributed to Preswald 💜
+
+[![](https://contrib.rocks/image?repo=StructuredLabs/preswald)](https://github.com/StructuredLabs/preswald/graphs/contributors)
+

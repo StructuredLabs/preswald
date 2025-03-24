@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import MatplotlibWidget from '@/components/widgets/MatplotlibWidget';
 
 import { cn } from '@/lib/utils';
 import { comm } from '@/utils/websocket';
@@ -81,6 +82,9 @@ const MemoizedComponent = memo(
             className={component.className}
           />
         );
+
+      case 'matplotlib':
+        return <MatplotlibWidget {...commonProps} image={component.image} />;
 
       case 'slider':
         return (

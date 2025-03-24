@@ -1,5 +1,6 @@
 # Standard Library
 import asyncio
+import base64
 import hashlib
 import io
 import json
@@ -10,6 +11,7 @@ from typing import Dict, List, Optional
 # Third-Party
 import fastplotlib as fplt
 import msgpack
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from PIL import Image
@@ -248,6 +250,35 @@ def image(src, alt="Image", size=1.0):
     logger.debug(f"Created component: {component}")
     service.append_component(component)
     return component
+
+
+def matplotlib(fig: Optional[plt.Figure] = None, label: str = "plot") -> str:
+    """Render a Matplotlib figure as a component."""
+    service = PreswaldService.get_instance()
+
+    if fig is None:
+        fig, ax = plt.subplots()
+        ax.plot([0, 1, 2], [0, 1, 4])
+
+    # Save the figure as a base64-encoded PNG
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png")
+    buf.seek(0)
+    img_b64 = base64.b64encode(buf.read()).decode()
+
+    # Generate a unique component ID based on the label
+    component_id = f"matplotlib-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+
+    component = {
+        "type": "matplotlib",
+        "id": component_id,
+        "label": label,
+        "image": img_b64,  # Store the image data
+    }
+
+    service.append_component(component)
+
+    return component_id  # Returning ID for potential tracking
 
 
 def plotly(fig, size: float = 1.0) -> Dict:  # noqa: C901
