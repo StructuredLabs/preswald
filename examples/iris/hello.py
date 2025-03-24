@@ -1,7 +1,9 @@
 import plotly.express as px
 
 from preswald import connect, fastplotlib, get_df, plotly, sidebar, table, text
+from preswald.engine.service import PreswaldService
 
+service = service = PreswaldService.get_instance()
 
 # Report Title
 text(
@@ -91,9 +93,14 @@ x = df["sepal.length"].tolist()
 y = df["petal.width"].tolist()
 variety = df["variety"].tolist()
 
-# Call the Fastplotlib component
+# Retrieve client_id from component state
+client_id = service.get_component_state("client_id")
+
+# call the Fastplotlib component
 fastplotlib(
-    label="Fastplotlib Scatter Plot", data={"x": x, "y": y, "color": variety}, size=1.0
+    label="Fastplotlib Scatter Plot",
+    data={"x": x, "y": y, "color": variety, "client_id": client_id},
+    size=1.0
 )
 
 # Show the first 10 rows of the dataset

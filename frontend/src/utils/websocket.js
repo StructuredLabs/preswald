@@ -1,3 +1,5 @@
+import { decode } from "@msgpack/msgpack";
+
 class WebSocketClient {
   constructor() {
     this.socket = null;
@@ -57,53 +59,87 @@ class WebSocketClient {
         });
       };
 
-      this.socket.onmessage = (event) => {
+      this.socket.onmessage = async (event) => {
         try {
-          const data = JSON.parse(event.data);
-          console.log('[WebSocket] Message received:', {
-            ...data,
-            timestamp: new Date().toISOString(),
-          });
+          if (typeof event.data === 'string') {
+            // Normal text message — parse as JSON
+            const data = JSON.parse(event.data);
+            console.log('[WebSocket] JSON Message received:', {
+              ...data,
+              timestamp: new Date().toISOString(),
+            });
 
-          switch (data.type) {
-            case 'initial_state':
-              this.componentStates = { ...data.states };
-              console.log('[WebSocket] Initial states loaded:', this.componentStates);
-              break;
+            switch (data.type) {
+              case 'initial_state':
+                this.componentStates = { ...data.states };
+                console.log('[WebSocket] Initial states loaded:', this.componentStates);
+                break;
 
-            case 'state_update':
-              if (data.component_id) {
-                this.componentStates[data.component_id] = data.value;
-              }
-              console.log('[WebSocket] Component state updated:', {
-                componentId: data.component_id,
-                value: data.value,
-              });
-              break;
-
-            case 'components':
-              if (data.components && data.components.rows) {
-                data.components.rows.forEach((row) => {
-                  row.forEach((component) => {
-                    if (component.id && 'value' in component) {
-                      this.componentStates[component.id] = component.value;
-                      console.log('[WebSocket] Component state updated:', {
-                        componentId: component.id,
-                        value: component.value,
-                      });
-                    }
-                  });
+              case 'state_update':
+                if (data.component_id) {
+                  this.componentStates[data.component_id] = data.value;
+                }
+                console.log('[WebSocket] Component state updated:', {
+                  componentId: data.component_id,
+                  value: data.value,
                 });
-              }
-              break;
+                break;
 
-            case 'connections_update':
-              this.connections = data.connections || [];
-              console.log('[WebSocket] Connections updated:', this.connections);
-              break;
+              case 'components':
+                if (data.components?.rows) {
+                  data.components.rows.forEach((row) => {
+                    row.forEach((component) => {
+                      if (component.id && 'value' in component) {
+                        this.componentStates[component.id] = component.value;
+                        console.log('[WebSocket] Component state updated:', {
+                          componentId: component.id,
+                          value: component.value,
+                        });
+                      }
+                    });
+                  });
+                }
+                break;
+
+              case 'connections_update':
+                this.connections = data.connections || [];
+                console.log('[WebSocket] Connections updated:', this.connections);
+                break;
+            }
+
+            this._notifySubscribers(data);
           }
 
-          this._notifySubscribers(data);
+          else if (event.data instanceof Blob) {
+            const buffer = await event.data.arrayBuffer();
+            const decoded = decode(new Uint8Array(buffer));
+
+            if (decoded?.type === 'image_update' && decoded.format === 'png') {
+
+              const { component_id, data: binaryData, label } = decoded;
+
+              // Convert image data (Uint8Array) to base64
+              const base64 = `data:image/png;base64,${btoa(
+                new Uint8Array(binaryData).reduce((data, byte) => data + String.fromCharCode(byte), '')
+              )}`;
+
+              // Update state and notify
+              this.componentStates[component_id] = base64;
+              this._notifySubscribers({
+                type: 'image_update',
+                component_id,
+                value: base64,
+                label
+              });
+            } else {
+              console.warn('[WebSocket] Unknown binary message format:', decoded);
+            }
+          }
+
+          else {
+            console.warn('[WebSocket] Unrecognized message format:', event.data);
+          }
+
         } catch (error) {
           console.error('[WebSocket] Error processing message:', error);
           this._notifySubscribers({
@@ -112,6 +148,7 @@ class WebSocketClient {
           });
         }
       };
+
     } catch (error) {
       console.error('[WebSocket] Error creating connection:', error);
       this.isConnecting = false;

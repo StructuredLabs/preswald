@@ -3,6 +3,7 @@ import React, { memo } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import { cn } from '@/lib/utils';
+import { comm } from '@/utils/websocket';
 
 // Import all widgets
 import AlertWidget from './widgets/AlertWidget';
@@ -244,12 +245,14 @@ const MemoizedComponent = memo(
 
       // Add Fastplotlib component
       case 'fastplotlib_component':
+        const { id, src, label, className } = component;
         return (
           <FastplotlibWidget
             {...commonProps}
-            src={component.src}
-            label={component.label}
-            className={component.className}
+            src={src}
+            label={label}
+            className={className}
+            clientId={comm.clientId}
           />
         );
 

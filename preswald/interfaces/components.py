@@ -1,19 +1,24 @@
+# Standard Library
+import asyncio
 import base64
 import hashlib
 import io
 import json
 import logging
 import uuid
+import zlib
 from typing import Dict, List, Optional
 
+# Third-Party
 import fastplotlib as fplt
+import msgpack
 import numpy as np
 import pandas as pd
 from PIL import Image
 
+# Internal
 from preswald.engine.service import PreswaldService
 from preswald.interfaces.workflow import Workflow
-
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -58,7 +63,7 @@ def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
     service = PreswaldService.get_instance()
 
     # Create a consistent ID based on the label
-    component_id = f"checkbox-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+    component_id = generate_id_by_label("checkbox", label)
 
     # Get current state or use default
     current_value = service.get_component_state(component_id)
@@ -83,47 +88,36 @@ def fastplotlib(
     size: float = 1.0
 ) -> str:
     """
-    Create a Fastplotlib component for high-performance GPU-accelerated plotting.
+Create a Fastplotlib component for high-performance GPU-accelerated plotting.
 
-    Fastplotlib leverages GPU rendering via WGPU to generate real-time, interactive visualizations.
-    This component allows users to plot structured numerical data such as scatter plots.
+This component uses Fastplotlib and WGPU for offscreen GPU rendering of scatter plots,
+and streams the resulting PNG image to the frontend over a WebSocket connection.
 
-    Args:
-        label (str): A descriptive label for the plot.
-        data (dict): The structured data to be plotted. Expected keys:
-            - "x" (list or np.ndarray): x-axis coordinates.
-            - "y" (list or np.ndarray): y-axis coordinates.
-            - "color" (optional): A list of labels (e.g., species names) to assign different colors to points.
-              - If a list of labels is provided, a small default RGBA color palette is cycled.
-              - If omitted or invalid, all points are rendered in blue.
-        size (float, optional): The size scaling factor for the rendered image component. Defaults to 1.0.
+It is optimized for large datasets and avoids unnecessary re-rendering by hashing the
+input data and skipping image generation if the data hasn't changed.
 
-    Returns:
-        str: A unique component ID referencing the rendered Fastplotlib figure.
+Args:
+    label (str): A descriptive label for the plot. Used to generate a stable component ID.
+    data (dict): The structured data to be plotted. Expected keys:
+        - "x" (list or np.ndarray): x-axis coordinates.
+        - "y" (list or np.ndarray): y-axis coordinates.
+        - "color" (optional): A list of string labels used to assign colors to points.
+          - Colors are assigned from a fixed RGBA palette based on label uniqueness and order.
+          - This does not support direct RGBA arrays or named color strings at this time.
+        - "client_id" (str): WebSocket session ID used to route the rendered image to the client.
+    size (float, optional): Layout width of the component in a row (0.0–1.0). Defaults to 1.0.
 
-    Note:
-        Colors are currently cycled from a fixed palette. For more fine-grained control,
-        consider extending this component to accept RGBA color arrays or named colors.
+Returns:
+    str: A stable component ID referencing the rendered Fastplotlib figure.
+
+Notes:
+    - Colors are currently assigned from a fixed palette using label-based mapping.
+    - PNGs are encoded and sent via WebSocket using MessagePack.
+    - Rendering is skipped if input data has not changed (SHA-256 hash check).
+    - The component currently renders static images and does not support zoom or tooltips.
     """
-
     service = PreswaldService.get_instance()
 
-    # create the figure with offscreen rendering.
-    # without cavas="offscreen" fastplotlib will attempt to open a
-    # window on the server for rendering
-    fig = fplt.Figure(size=(700, 560), canvas="offscreen")
-
-    # extract x and y values from provided data
-    x = np.asarray(data.get("x", [])).astype(np.float32)
-    y = np.asarray(data.get("y", [])).astype(np.float32)
-
-    if x.size == 0 or y.size == 0:
-        raise ValueError("Fastplotlib requires non-empty 'x' and 'y' data.")
-
-    # combine x and y into a single NumPy array with shape (N, 2)
-    points = np.column_stack((x, y))
-
-    # define a small palette of distinct RGBA colors normalized to [0, 1]
     default_color_palette = [
         [1.0, 0.0, 0.0, 1.0],  # Red
         [0.0, 1.0, 0.0, 1.0],  # Green
@@ -133,63 +127,113 @@ def fastplotlib(
         [0.0, 1.0, 1.0, 1.0],  # Cyan
     ]
 
+    # hash input data early and use hash to avoid unecessary image
+    # rendering
+    hashable_data = {
+        "x": data.get("x", []),
+        "y": data.get("y", []),
+        "color": data.get("color", None),
+        "label": label,
+        "size": size
+    }
+    data_hash = hashlib.sha256(msgpack.packb(hashable_data)).hexdigest()
+
+    component_id = generate_id_by_label("fastplotlib", label)
+    component = {
+        "id": component_id,
+        "type": "fastplotlib_component",
+        "label": label,
+        "size": size,
+        "format": "websocket-png",
+        "value": None,
+        "hash": data_hash[:8]
+    }
+
+    # skip if data hash has not changed
+    if data_hash == service.get_component_state(f"{component_id}_img_hash"):
+        service.append_component(component)
+        return component_id
+
+    x = np.asarray(data.get("x", []), dtype=np.float32)
+    y = np.asarray(data.get("y", []), dtype=np.float32)
+    if x.size == 0 or y.size == 0:
+        raise ValueError("Fastplotlib requires non-empty 'x' and 'y' data.")
+
+    points = np.column_stack((x, y))
+
+    # map input labels to RGBA values using a fixed color palette
+    # if labels are provided, assign distinct colors; otherwise default to blue
     color_input = data.get("color", None)
     if isinstance(color_input, (np.ndarray, list)):
         color_input = np.asarray(color_input).tolist()
-        unique_labels = list(dict.fromkeys(color_input))  # Preserve order
+        unique_labels = list(dict.fromkeys(color_input))
         label_to_color = {
             label: default_color_palette[i % len(default_color_palette)]
             for i, label in enumerate(unique_labels)
         }
         rgba_color = np.array([label_to_color[label] for label in color_input], dtype=np.float32)
     else:
-        # fall back to default blue
         rgba_color = np.array([[0.0, 0.0, 1.0, 1.0]] * points.shape[0], dtype=np.float32)
 
-    logger.info(f"✅ Debug: Color shape = {rgba_color.shape}")
-
-    # create scatter plot graphic using add_scatter method
-    subplot = fig[0, 0]  # Access the first subplot in the figure
+    # set up Fastplotlib figure with offscreen canvas to avoid opening a GUI window
+    # add a scatter plot to the first subplot using the computed coordinates and colors
+    fig = fplt.Figure(size=(700, 560), canvas="offscreen")
+    subplot = fig[0, 0]
     subplot.add_scatter(data=points, sizes=6, alpha=0.7, colors=rgba_color)
-
-    # show the figure to trigger the rendering
     fig.show()
 
-    # force rendering step before exporting
+    # manually trigger the renderer to ensure the scene is fully drawn before exporting
     try:
-        # manually trigger render for the scene and camera
         fig.renderer.render(subplot.scene, fig.cameras[0, 0])
     except Exception as e:
         logger.error(f"Manual render failed: {e}")
         return "Render failed"
 
-    # now, we can export the figure
+    # attempt to export the rendered scene to a NumPy array representing the image
     try:
         img_array = fig.export_numpy(rgb=True)
     except Exception as e:
         logger.error(f"fastplotlib export failed: {e}")
-        logger.warning("attempting manual render and capture...")
+        # if export fails, try forcing a draw and flush to get the rendered image
         fig.canvas.request_draw()
         fig.renderer.flush()
         img_array = fig.canvas.draw()
 
-    # convert the NumPy array to an image buffer (PNG format)
+    # convert the NumPy image array into a PNG byte buffer in memory
     img_buf = io.BytesIO()
     Image.fromarray(img_array).save(img_buf, format="PNG")
     img_buf.seek(0)
+    png_bytes = img_buf.read()
 
-    # convert to base64 for embedding in the component
-    img_base64 = base64.b64encode(img_buf.read()).decode()
+    # send the PNG image over the WebSocket to the corresponding client
+    client_id = data.get("client_id", None)
+    if client_id:
+        websocket = service.websocket_connections.get(client_id)
+        if websocket:
+            async def send_and_update(packed_msg):
+                try:
+                    await websocket.send_bytes(packed_msg)
+                    await service.handle_client_message(client_id, {
+                        "type": "component_update",
+                        "states": {
+                            f"{component_id}_img_hash": data_hash
+                        }
+                    })
+                    logger.debug(f"✅ Sent Fastplotlib image via WebSocket (MessagePack) to client {client_id}")
+                except Exception as e:
+                    logger.error(f"WebSocket send failed: {e}")
 
-    # create the component ID and return
-    component_id = generate_id("fastplotlib")
-    component = {
-        "type": "fastplotlib_component",
-        "id": component_id,
-        "label": label,
-        "src": f"data:image/png;base64,{img_base64}",
-        "size": size,
-    }
+            packed_msg = msgpack.packb({
+                "type": "image_update",
+                "component_id": component_id,
+                "format": "png",
+                "label": label,
+                "size": size,
+                "data": png_bytes
+            })
+            asyncio.create_task(send_and_update(packed_msg))
+        else:
+            logger.warning(f"No active WebSocket found for client_id={client_id}")
 
     service.append_component(component)
     return component_id
@@ -374,7 +418,7 @@ def selectbox(
     """Create a select component with consistent ID based on label."""
     service = PreswaldService.get_instance()
 
-    component_id = f"selectbox-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+    component_id = generate_id_by_label("selectbox", label)
     current_value = service.get_component_state(component_id)
     if current_value is None:
         current_value = (
@@ -413,7 +457,7 @@ def slider(
     service = PreswaldService.get_instance()
 
     # Create a consistent ID based on the label
-    component_id = f"slider-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+    component_id = generate_id_by_label("slider", label)
 
     # Get current state or use default
     current_value = service.get_component_state(component_id)
@@ -567,7 +611,7 @@ def text_input(label: str, placeholder: str = "", size: float = 1.0) -> str:
     service = PreswaldService.get_instance()
 
     # Create a consistent ID based on the label
-    component_id = f"text_input-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+    component_id = generate_id_by_label("text_input", label)
 
     # Get current state or use default
     current_value = service.get_component_state(component_id)
@@ -682,3 +726,22 @@ def convert_to_serializable(obj):
 def generate_id(prefix: str = "component") -> str:
     """Generate a unique ID for a component."""
     return f"{prefix}-{uuid.uuid4().hex[:8]}"
+
+def generate_id_by_label(prefix: str, label: str) -> str:
+    """
+    Generate a deterministic component ID based on a label string.
+
+    Useful for components like Fastplotlib or Slider where the same label should result
+    in the same component ID across rerenders.
+
+    Args:
+        prefix (str): The component type prefix, e.g. 'slider' or 'fastplotlib'.
+        label (str): The label to hash and include in the ID.
+
+    Returns:
+        str: A stable ID like 'slider-ab12cd34'.
+    """
+    if not label:
+        return generate_id(prefix)
+    hashed = hashlib.md5(label.lower().encode()).hexdigest()[:8]
+    return f"{prefix}-{hashed}"
