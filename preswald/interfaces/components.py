@@ -10,8 +10,8 @@ from typing import Dict, List, Optional
 
 # Third-Party
 import fastplotlib as fplt
-import msgpack
 import matplotlib.pyplot as plt
+import msgpack
 import numpy as np
 import pandas as pd
 from PIL import Image
@@ -89,33 +89,33 @@ def fastplotlib(
     size: float = 1.0
 ) -> str:
     """
-Create a Fastplotlib component for high-performance GPU-accelerated plotting.
+    Create a Fastplotlib component for high-performance GPU-accelerated plotting.
 
-This component uses Fastplotlib and WGPU for offscreen GPU rendering of scatter plots,
-and streams the resulting PNG image to the frontend over a WebSocket connection.
+    This component uses Fastplotlib and WGPU for offscreen GPU rendering of scatter plots,
+    and streams the resulting PNG image to the frontend over a WebSocket connection.
 
-It is optimized for large datasets and avoids unnecessary re-rendering by hashing the
-input data and skipping image generation if the data hasn't changed.
+    It is optimized for large datasets and avoids unnecessary re-rendering by hashing the
+    input data and skipping image generation if the data hasn't changed.
 
-Args:
-    label (str): A descriptive label for the plot. Used to generate a stable component ID.
-    data (dict): The structured data to be plotted. Expected keys:
-        - "x" (list or np.ndarray): x-axis coordinates.
-        - "y" (list or np.ndarray): y-axis coordinates.
-        - "color" (optional): A list of string labels used to assign colors to points.
-          - Colors are assigned from a fixed RGBA palette based on label uniqueness and order.
-          - This does not support direct RGBA arrays or named color strings at this time.
-        - "client_id" (str): WebSocket session ID used to route the rendered image to the client.
-    size (float, optional): Layout width of the component in a row (0.0-1.0). Defaults to 1.0.
+    Args:
+        label (str): A descriptive label for the plot. Used to generate a stable component ID.
+        data (dict): The structured data to be plotted. Expected keys:
+            - "x" (list or np.ndarray): x-axis coordinates.
+            - "y" (list or np.ndarray): y-axis coordinates.
+            - "color" (optional): A list of string labels used to assign colors to points.
+              - Colors are assigned from a fixed RGBA palette based on label uniqueness and order.
+              - This does not support direct RGBA arrays or named color strings at this time.
+            - "client_id" (str): WebSocket session ID used to route the rendered image to the client.
+        size (float, optional): Layout width of the component in a row (0.0-1.0). Defaults to 1.0.
 
-Returns:
-    str: A stable component ID referencing the rendered Fastplotlib figure.
+    Returns:
+        str: A stable component ID referencing the rendered Fastplotlib figure.
 
-Notes:
-    - Colors are currently assigned from a fixed palette using label-based mapping.
-    - PNGs are encoded and sent via WebSocket using MessagePack.
-    - Rendering is skipped if input data has not changed (SHA-256 hash check).
-    - The component currently renders static images and does not support zoom or tooltips.
+    Notes:
+        - Colors are currently assigned from a fixed palette using label-based mapping.
+        - PNGs are encoded and sent via WebSocket using MessagePack.
+        - Rendering is skipped if input data has not changed (SHA-256 hash check).
+        - The component currently renders static images and does not support zoom or tooltips.
     """
     service = PreswaldService.get_instance()
 
@@ -128,8 +128,7 @@ Notes:
         [0.0, 1.0, 1.0, 1.0],  # Cyan
     ]
 
-    # hash input data early and use hash to avoid unecessary image
-    # rendering
+    # hash input data early and use hash to avoid unnecessary rendering
     hashable_data = {
         "x": data.get("x", []),
         "y": data.get("y", []),
@@ -150,7 +149,6 @@ Notes:
         "hash": data_hash[:8]
     }
 
-    # skip if data hash has not changed
     if data_hash == service.get_component_state(f"{component_id}_img_hash"):
         service.append_component(component)
         return component_id
@@ -162,51 +160,63 @@ Notes:
 
     points = np.column_stack((x, y))
 
-    # map input labels to RGBA values using a fixed color palette
-    # if labels are provided, assign distinct colors; otherwise default to blue
     color_input = data.get("color", None)
-    if isinstance(color_input, (np.ndarray, list)):
-        color_input = np.asarray(color_input).tolist()
+    if color_input is not None:
+        # skip the list->array->list round trip
+        if isinstance(color_input, np.ndarray):
+            color_input = color_input.tolist()
+
+        # now color_input is a plain list
         unique_labels = list(dict.fromkeys(color_input))
         label_to_color = {
             label: default_color_palette[i % len(default_color_palette)]
             for i, label in enumerate(unique_labels)
         }
-        rgba_color = np.array([label_to_color[label] for label in color_input], dtype=np.float32)
+        # avoid repeated lookups
+        mapped_colors = [label_to_color[label] for label in color_input]
+        rgba_color = np.array(mapped_colors, dtype=np.float32)
     else:
-        rgba_color = np.array([[0.0, 0.0, 1.0, 1.0]] * points.shape[0], dtype=np.float32)
+        rgba_color = np.full((points.shape[0], 4), [0.0, 0.0, 1.0, 1.0], dtype=np.float32)
 
-    # set up Fastplotlib figure with offscreen canvas to avoid opening a GUI window
-    # add a scatter plot to the first subplot using the computed coordinates and colors
     fig = fplt.Figure(size=(700, 560), canvas="offscreen")
     subplot = fig[0, 0]
     subplot.add_scatter(data=points, sizes=6, alpha=0.7, colors=rgba_color)
-    fig.show()
 
-    # manually trigger the renderer to ensure the scene is fully drawn before exporting
+    # make sure axes are visible and scale is set
+    subplot.axes.x.visible = True
+    subplot.axes.y.visible = True
+    subplot.auto_scale()
+
+    fig.show()  # must call even in offscreen mode to initialize GPU resources
+
+    # manually render the scene for all subplots
+    for subplot in fig:
+        subplot.viewport.render(subplot.scene, subplot.camera)
+
+    # read from the framebuffer
     try:
-        fig.renderer.render(subplot.scene, fig.cameras[0, 0])
+        fig.canvas.request_draw() # not required, but sometimes helpful in case the pipeline needs a nudge
+        raw_img = np.asarray(fig.renderer.target.draw())
+        logger.debug(f"raw_img.shape = {raw_img.shape}")
+
+        if raw_img.ndim != 3 or raw_img.shape[2] != 4:
+            raise ValueError(f"Unexpected image shape: {raw_img.shape}")
+
+        # blend against black background
+        black_bg = np.zeros_like(raw_img, dtype=np.uint8)
+        black_bg[..., 3] = 255
+        alpha = raw_img[..., 3:4] / 255.0
+        rgb = (raw_img[..., :3] * alpha + black_bg[..., :3] * (1 - alpha)).astype(np.uint8)
+
     except Exception as e:
-        logger.error(f"Manual render failed: {e}")
+        logger.error(f"Framebuffer blend failed: {e}")
         return "Render failed"
 
-    # attempt to export the rendered scene to a NumPy array representing the image
-    try:
-        img_array = fig.export_numpy(rgb=True)
-    except Exception as e:
-        logger.error(f"fastplotlib export failed: {e}")
-        # if export fails, try forcing a draw and flush to get the rendered image
-        fig.canvas.request_draw()
-        fig.renderer.flush()
-        img_array = fig.canvas.draw()
-
-    # convert the NumPy image array into a PNG byte buffer in memory
     img_buf = io.BytesIO()
-    Image.fromarray(img_array).save(img_buf, format="PNG")
+    Image.fromarray(rgb).save(img_buf, format="PNG")
     img_buf.seek(0)
     png_bytes = img_buf.read()
 
-    # send the PNG image over the WebSocket to the corresponding client
     client_id = data.get("client_id", None)
     if client_id:
         websocket = service.websocket_connections.get(client_id)
@@ -233,7 +243,6 @@ Notes:
                 "data": png_bytes
             })
             asyncio.create_task(send_and_update(packed_msg))  # noqa: RUF006
-
         else:
             logger.warning(f"No active WebSocket found for client_id={client_id}")
 
