@@ -1,17 +1,12 @@
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
+import { AgGridReact } from 'ag-grid-react';
 import { ChevronDown } from 'lucide-react';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 
 import { cn } from '@/lib/utils';
 
@@ -21,12 +16,13 @@ const TableViewerWidget = ({
   className,
   variant = 'default', // default, card
   showTitle = true,
-  striped = true,
+  striped = true, // AG Grid doesn't handle stripes natively, will add class if needed
   dense = false,
   hoverable = true,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
+  // Handle empty data
   if (!data || data.length === 0) {
     return (
       <Card className={cn('tableviewer-card', className)}>
@@ -36,6 +32,28 @@ const TableViewerWidget = ({
       </Card>
     );
   }
+
+  // Define column definitions dynamically from data keys
+  const columnDefs = useMemo(() => {
+    if (data.length === 0) return [];
+    return Object.keys(data[0]).map((key) => ({
+      headerName: key,
+      field: key,
+      sortable: true,
+      filter: true,
+      resizable: true,
+    }));
+  }, [data]);
+
+  // Grid Options
+  const gridOptions = {
+    rowHeight: dense ? 30 : 50,
+    rowClass: hoverable ? 'ag-row-hover' : '',
+    animateRows: true,
+  };
+
+  // Ag Grid Theme
+  const gridTheme = 'ag-theme-alpine';
 
   const TableContent = (
     <div className={cn('tableviewer-container', className)}>
@@ -52,49 +70,32 @@ const TableViewerWidget = ({
           />
         </Button>
       </div>
+
       <div
         className={cn(
           'tableviewer-table-container',
           isExpanded ? 'tableviewer-expanded' : 'tableviewer-collapsed'
         )}
+        style={{
+          height: isExpanded ? '400px' : '0px',
+          overflow: 'hidden',
+          transition: 'height 0.3s',
+        }}
       >
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {Object.keys(data[0]).map((key) => (
-                <TableHead key={key} className="tableviewer-header-cell">
-                  {key}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((row, index) => (
-              <TableRow
-                key={index}
-                className={cn(
-                  'tableviewer-row',
-                  hoverable && 'tableviewer-hoverable',
-                  striped && index % 2 === 0 && 'tableviewer-striped',
-                  dense ? 'tableviewer-dense' : 'tableviewer-normal'
-                )}
-              >
-                {Object.values(row).map((value, idx) => (
-                  <TableCell
-                    key={idx}
-                    className={cn('tableviewer-cell', dense && 'tableviewer-cell-dense')}
-                  >
-                    {value !== null && value !== undefined ? value : 'N/A'}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        {/* AG Grid Component */}
+        <div className={gridTheme} style={{ width: '100%', height: '100%' }}>
+          <AgGridReact
+            rowData={data}
+            columnDefs={columnDefs}
+            gridOptions={gridOptions}
+            domLayout="autoHeight"
+          />
+        </div>
       </div>
     </div>
   );
 
+  // Card variant handling
   if (variant === 'card') {
     return (
       <Card className={cn('tableviewer-card', className)}>
