@@ -249,6 +249,42 @@ def fastplotlib(
     service.append_component(component)
     return component_id
 
+def fastplotlib(fig, size: float = 1.0) -> dict:
+    """
+    Render a Fastplotlib figure.
+
+    Args:
+        fig (fplt.Figure): A Fastplotlib figure object.
+    """
+    service = PreswaldService.get_instance()
+
+    fig.show()
+    for subplot in fig:
+        subplot.viewport.render(subplot.scene, subplot.camera)
+
+    fig.renderer.flush()
+    img = np.asarray(fig.renderer.target.draw())
+    rgb = img[..., :-1].round().astype(np.uint8)
+    height, width = rgb.shape[:2]  # Get dimensions
+
+    with io.BytesIO() as buffer:
+        Image.fromarray(rgb).save(buffer, format="PNG")
+        img_bytes = buffer.getvalue()
+
+    component_id = generate_id("fastplotlib")
+    component = {
+        "type": "fastplotlib_component",
+        "id": component_id,
+        "data": img_bytes.hex(),
+        "width": width,
+        "height": height,
+        "size": size,
+    }
+
+    service.append_component(component)
+    return component
+
+
 # TODO: requires testing
 def image(src, alt="Image", size=1.0):
     """Create an image component."""

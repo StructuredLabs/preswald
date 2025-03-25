@@ -249,10 +249,12 @@ const MemoizedComponent = memo(
 
       // Add Fastplotlib component
       case 'fastplotlib_component':
-        const { id, src, label, className } = component;
+        const { className, data, config, label, src } = component;
         return (
           <FastplotlibWidget
             {...commonProps}
+            data={component.data}
+            config={component.config}
             src={src}
             label={label}
             className={className}
