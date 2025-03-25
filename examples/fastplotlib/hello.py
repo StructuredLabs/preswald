@@ -1,4 +1,5 @@
 import fastplotlib as fpl
+import imageio.v3 as iio
 import numpy as np
 
 from preswald import connect, fastplotlib, get_df, sidebar, text
@@ -10,6 +11,12 @@ df = get_df("iris_csv")
 
 sidebar(defaultopen=True)
 text("# Fastplotlib Examples")
+
+text("## Simple Image Plot")
+fig = fpl.Figure(size=(700, 560), canvas="offscreen")
+data = iio.imread("images/logo.png")
+fig[0, 0].add_image(data)
+fastplotlib(fig)
 
 # Line Plot
 text("## Line Plot")
