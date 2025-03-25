@@ -9,6 +9,7 @@ from typing import Dict, List, Optional
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from PIL import Image
 
 from preswald.engine.service import PreswaldService
 from preswald.interfaces.workflow import Workflow
@@ -75,6 +76,42 @@ def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
     logger.debug(f"Created component: {component}")
     service.append_component(component)
     return current_value
+
+
+def fastplotlib(fig, size: float = 1.0) -> dict:
+    """
+    Render a Fastplotlib figure.
+
+    Args:
+        fig (fplt.Figure): A Fastplotlib figure object.
+    """
+    service = PreswaldService.get_instance()
+
+    fig.show()
+    for subplot in fig:
+        subplot.viewport.render(subplot.scene, subplot.camera)
+
+    fig.renderer.flush()
+    img = np.asarray(fig.renderer.target.draw())
+    rgb = img[..., :-1].round().astype(np.uint8)
+    height, width = rgb.shape[:2]  # Get dimensions
+
+    with io.BytesIO() as buffer:
+        Image.fromarray(rgb).save(buffer, format="PNG")
+        img_bytes = buffer.getvalue()
+
+    component_id = generate_id("fastplotlib")
+    component = {
+        "type": "fastplotlib_component",
+        "id": component_id,
+        "data": img_bytes.hex(),
+        "width": width,
+        "height": height,
+        "size": size,
+    }
+
+    service.append_component(component)
+    return component
 
 
 # TODO: requires testing
