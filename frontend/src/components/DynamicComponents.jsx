@@ -14,6 +14,7 @@ import DAGVisualizationWidget from './widgets/DAGVisualizationWidget';
 import DataVisualizationWidget from './widgets/DataVisualizationWidget';
 import ImageWidget from './widgets/ImageWidget';
 import MarkdownRendererWidget from './widgets/MarkdownRendererWidget';
+import PlaygroundWidget from './widgets/PlaygroundWidget';
 import ProgressWidget from './widgets/ProgressWidget';
 import SelectboxWidget from './widgets/SelectboxWidget';
 import SidebarWidget from './widgets/SidebarWidget';
@@ -244,6 +245,19 @@ const MemoizedComponent = memo(
 
       case 'dag':
         return <DAGVisualizationWidget {...commonProps} data={component.data || {}} />;
+
+      case 'playground':
+        return (
+          <PlaygroundWidget
+            {...commonProps}
+            label={component.label || 'Query Playground'}
+            data={component.data || []}
+            source={component.source}
+            value={component.value}
+            onChange={(value) => handleUpdate(componentId, value)}
+            error={component.error}
+          />
+        );
 
       default:
         console.warn(`[DynamicComponents] Unknown component type: ${component.type}`);
