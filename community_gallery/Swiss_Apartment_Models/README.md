@@ -28,7 +28,7 @@ The application uses a comprehensive dataset of Swiss apartment geometries conta
 
 Each element includes spatial data in WKT format and hierarchical information about its location within the building.
 
-[Download the dataset here](https://zenodo.org/records/7070952#.Y0mACy0RqO0)
+[Download the dataset here](https://zenodo.org/records/7070952#.Y0mACy0RqO0)  and place it in the "data/ " folder of the current directory
 
 ## Getting Started
 
