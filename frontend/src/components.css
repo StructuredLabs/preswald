@@ -389,7 +389,7 @@
 }
 
 .tableviewer-header-cell {
-  @apply font-medium;
+  @apply font-medium text-left text-gray-500 py-2;
 }
 
 .tableviewer-row {
