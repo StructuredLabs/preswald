@@ -25,6 +25,11 @@ const ChatWidget = ({
   const chatContainerRef = useRef(null);
 
   const [inputValue, setInputValue] = useState('');
+  const [showApiInput, setShowApiInput] = useState(() => {
+    // Check if API key exists in sessionStorage on component mount
+    return !sessionStorage.getItem('openai_api_key');
+  });
+  const [apiKey, setApiKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -160,94 +165,125 @@ const ChatWidget = ({
     return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  // Add this function to handle API key submission
+  const handleApiKeySubmit = (e) => {
+    e.preventDefault();
+    if (apiKey.trim()) {
+      setShowApiInput(false);
+      sessionStorage.setItem('openai_api_key', apiKey.trim());
+    }
+  };
+
   return (
     <Card className={cn(`flex flex-col rounded-md shadow-md h-[600px] w-full`, className)}>
-      <div className="flex items-center justify-between p-4 border-b">
-        <div className="flex items-center space-x-2">
-          <div>
-            <h3 className="font-semibold">{label}</h3>
-            <p className="text-sm text-green-500 flex items-center gap-1">
-              <span className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></span>
-              Online
-            </p>
-          </div>
+      {showApiInput ? (
+        <div className="p-4 border-b">
+          <form onSubmit={handleApiKeySubmit} className="space-y-4">
+            <div className="space-y-2">
+              <h3 className="font-semibold">Enter your OpenAI API Key</h3>
+              <Input
+                type="password"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder="sk-..."
+                className="flex-1"
+              />
+            </div>
+            <Button type="submit" disabled={!apiKey.trim()}>
+              Save API Key
+            </Button>
+          </form>
         </div>
-      </div>
-      <div className="flex-1 overflow-y-auto p-4" ref={chatContainerRef}>
-        <div className="space-y-4">
-          <div className="text-xs text-gray-500">Messages count: {messages.length}</div>
-
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={cn(
-                'flex w-full',
-                message.role === 'user' ? 'justify-end' : 'justify-start'
-              )}
-            >
-              <div
-                className={cn(
-                  'flex items-end space-x-2 max-w-[80%]',
-                  message.role === 'user' && 'flex-row-reverse space-x-reverse ml-auto'
-                )}
-              >
-                {message.role === 'user' ? (
-                  <User className="h-6 w-6 flex-shrink-0" />
-                ) : (
-                  <Bot className="h-6 w-6 flex-shrink-0" />
-                )}
-                <div
-                  className={cn(
-                    'rounded-lg p-4 shadow-sm break-words min-w-[60px] max-w-full',
-                    message.role === 'user'
-                      ? 'bg-primary text-primary-foreground rounded-tr-none'
-                      : 'bg-secondary text-secondary-foreground rounded-tl-none'
-                  )}
-                >
-                  <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
-                    {message.content}
-                  </p>
-                  <span className="text-xs opacity-70 mt-2 block">
-                    {formatTimestamp(message.timestamp)}
-                  </span>
-                </div>
+      ) : (
+        <>
+          <div className="flex items-center justify-between p-4 border-b">
+            <div className="flex items-center space-x-2">
+              <div>
+                <h3 className="font-semibold">{label}</h3>
+                <p className="text-sm text-green-500 flex items-center gap-1">
+                  <span className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></span>
+                  Online
+                </p>
               </div>
             </div>
-          ))}
-          {isLoading && (
-            <div className="flex items-center space-x-2 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>AI is typing...</span>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4" ref={chatContainerRef}>
+            <div className="space-y-4">
+              <div className="text-xs text-gray-500">Messages count: {messages.length}</div>
+
+              {messages.map((message, index) => (
+                <div
+                  key={index}
+                  className={cn(
+                    'flex w-full',
+                    message.role === 'user' ? 'justify-end' : 'justify-start'
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'flex items-end space-x-2 max-w-[80%]',
+                      message.role === 'user' && 'flex-row-reverse space-x-reverse ml-auto'
+                    )}
+                  >
+                    {message.role === 'user' ? (
+                      <User className="h-6 w-6 flex-shrink-0" />
+                    ) : (
+                      <Bot className="h-6 w-6 flex-shrink-0" />
+                    )}
+                    <div
+                      className={cn(
+                        'rounded-lg p-4 shadow-sm break-words min-w-[60px] max-w-full',
+                        message.role === 'user'
+                          ? 'bg-primary text-primary-foreground rounded-tr-none'
+                          : 'bg-secondary text-secondary-foreground rounded-tl-none'
+                      )}
+                    >
+                      <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+                        {message.content}
+                      </p>
+                      <span className="text-xs opacity-70 mt-2 block">
+                        {formatTimestamp(message.timestamp)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex items-center space-x-2 text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>AI is typing...</span>
+                </div>
+              )}
+            </div>
+          </div>
+          {error && (
+            <div className="bg-destructive/15 text-destructive text-sm p-3 mx-4 mb-2 rounded">
+              Error: {error}
             </div>
           )}
-        </div>
-      </div>
-      {error && (
-        <div className="bg-destructive/15 text-destructive text-sm p-3 mx-4 mb-2 rounded">
-          Error: {error}
-        </div>
+          <form onSubmit={handleSubmit} className="p-4 border-t">
+            <div className="flex items-center gap-2">
+              <Input
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder={placeholder}
+                className="flex-1 rounded-lg border-2 border-gray-200 px-4 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+                autoComplete="off"
+                spellCheck="true"
+                maxLength={1000}
+              />
+              <Button
+                type="submit"
+                size="icon"
+                className="bg-primary p-3 hover:bg-primary/90 transition-transform duration-200 rounded-md shadow-sm hover:scale-110"
+                disabled={!inputValue.trim() || isLoading}
+              >
+                <Send className="h-5 w-5 text-primary-foreground" />
+              </Button>
+            </div>
+          </form>
+        </>
       )}
-      <form onSubmit={handleSubmit} className="p-4 border-t">
-        <div className="flex items-center gap-2">
-          <Input
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder={placeholder}
-            className="flex-1 rounded-lg border-2 border-gray-200 px-4 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
-            autoComplete="off"
-            spellCheck="true"
-            maxLength={1000}
-          />
-          <Button
-            type="submit"
-            size="icon"
-            className="bg-primary p-3 hover:bg-primary/90 transition-transform duration-200 rounded-md shadow-sm hover:scale-110"
-            disabled={!inputValue.trim() || isLoading}
-          >
-            <Send className="h-5 w-5 text-primary-foreground" />
-          </Button>
-        </div>
-      </form>
     </Card>
   );
 };
