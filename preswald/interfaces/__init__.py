@@ -11,6 +11,7 @@ from .components import (
     fastplotlib,
     image,
     matplotlib,
+    playground,
     plotly,
     progress,
     selectbox,

@@ -5,6 +5,7 @@ import hashlib
 import io
 import json
 import logging
+import re
 import uuid
 from typing import Dict, List, Optional
 
@@ -260,6 +261,84 @@ def matplotlib(fig: Optional[plt.Figure] = None, label: str = "plot") -> str:
     service.append_component(component)
 
     return component_id  # Returning ID for potential tracking
+
+
+def playground(
+    label: str, query: str, source: str | None = None, size: float = 1.0
+) -> pd.DataFrame:
+    """
+    Create a playground component for interactive data querying and visualization.
+
+    Args:
+        label (str): The label for the playground component (used for identification).
+        query (str): The SQL query string to be executed.
+        source (str, optional): The name of the data source to query from. All data sources are considered by default.
+        size (float, optional): The visual size/scale of the component. Defaults to 1.0.
+
+    Returns:
+        pd.DataFrame: The queried data as a pandas DataFrame.
+    """
+
+    # Get the singleton instance of the PreswaldService
+    service = PreswaldService.get_instance()
+
+    # Generate a unique component ID using the label's hash
+    component_id = f"playground-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+
+    logger.debug(
+        f"Creating playground component with id {component_id}, label: {label}"
+    )
+
+    # Retrieve the current query state (if previously modified by the user)
+    # If no previous state, use the provided query
+    current_query_value = service.get_component_state(component_id)
+    if current_query_value is None:
+        current_query_value = query
+
+    # Initialize data_source with the provided source or auto-detect it
+    data_source = source
+    if source is None:
+        # Auto-extract the first table name from the SQL query using regex
+        # Handles 'FROM' and 'JOIN' clauses with optional backticks or quotes
+        fetched_sources = re.findall(
+            r'(?:FROM|JOIN)\s+[`"]?([a-zA-Z0-9_\.]+)[`"]?',
+            current_query_value,
+            re.IGNORECASE | re.DOTALL,
+        )
+        # Use the first detected source as the data source
+        data_source = fetched_sources[0] if fetched_sources else None
+
+    # Initialize placeholders for data and error
+    data = None
+    error = None
+
+    # Attempt to execute the query against the determined data source
+    try:
+        data = service.data_manager.query(current_query_value, data_source)
+        logger.debug(f"Successfully queried data source: {data_source}")
+    except Exception as e:
+        error = str(e)
+        logger.error(f"Error querying data source: {e}")
+
+    # Process the DataFrame into an array-like format for UI rendering
+    processed_data, error = data_frame_to_array(data, limit=None)
+
+    component = {
+        "type": "playground",
+        "id": component_id,
+        "label": label,
+        "source": source,
+        "value": current_query_value,
+        "size": size,
+        "data": processed_data,
+        "error": error,
+    }
+
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+
+    # Return the raw DataFrame
+    return data
 
 
 def plotly(fig, size: float = 1.0) -> Dict:  # noqa: C901
@@ -726,6 +805,64 @@ def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -
 
 
 # Helpers
+
+
+def row_serializer(row):
+    if isinstance(row, dict):
+        processed_row = {}
+        for key, value in row.items():
+            # Convert key to string to ensure it's serializable
+            key_str = str(key)
+
+            # Handle special cases and convert value
+            if pd.isna(value):
+                processed_row[key_str] = None
+            elif isinstance(value, (pd.Timestamp, pd.DatetimeTZDtype)):
+                processed_row[key_str] = str(value)
+            elif isinstance(value, (np.integer, np.floating)):
+                processed_row[key_str] = value.item()
+            elif isinstance(value, (list, np.ndarray)):
+                processed_row[key_str] = convert_to_serializable(value)
+            else:
+                try:
+                    # Try to serialize to test if it's JSON-compatible
+                    json.dumps(value)
+                    processed_row[key_str] = value
+                except:  # noqa: E722
+                    # If serialization fails, convert to string
+                    processed_row[key_str] = str(value)
+        return processed_row
+    else:
+        # If row is not a dict, convert it to a simple dict
+        return {"value": str(row)}
+
+
+# Convert the data from a DataFrame to Array like format
+def data_frame_to_array(data: pd.DataFrame, limit: int | None):
+    processed_data = []
+    try:
+        # Convert pandas DataFrame to list of dictionaries if needed
+        if hasattr(data, "to_dict"):
+            if isinstance(data, pd.DataFrame):
+                data = data.reset_index(drop=True)
+                if limit is not None:
+                    data = data.head(limit)
+            data = data.to_dict("records")
+
+        # Ensure data is a list
+        if not isinstance(data, list):
+            data = [data] if data else []
+
+        # Convert each row to ensure JSON serialization
+        for row in data:
+            processed_data.append(row_serializer(row))
+
+        # Verify JSON serialization before returning
+        json.dumps(processed_data)
+        return processed_data, None
+    except Exception as e:
+        logger.error(f"Error processing data for playground component: {e!s}")
+        return [], f"Error processing data: {e!s}"
 
 
 def convert_to_serializable(obj):
