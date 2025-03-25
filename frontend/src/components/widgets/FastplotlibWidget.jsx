@@ -9,20 +9,19 @@ const FastplotlibWidget = ({ data, width, height, size, className }) => {
 
   useEffect(() => {
     const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
     canvas.width = width;
     canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    const imgData = ctx.createImageData(width, height);
 
-    // Convert RGB to RGBA (add alpha channel = 255)
-    for (let i = 0, j = 0; i < data.length; i += 3, j += 4) {
-      imgData.data[j] = data[i]; // R
-      imgData.data[j + 1] = data[i + 1]; // G
-      imgData.data[j + 2] = data[i + 2]; // B
-      imgData.data[j + 3] = 255; // A
-    }
+    const byteArray = new Uint8Array(data.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
+    const blob = new Blob([byteArray], { type: 'image/png' });
+    const img = new Image();
 
-    ctx.putImageData(imgData, 0, 0);
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(img.src);
+    };
+    img.src = URL.createObjectURL(blob);
   }, [data, width, height]);
 
   return (

@@ -9,6 +9,7 @@ from typing import Dict, List, Optional
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from PIL import Image
 
 from preswald.engine.service import PreswaldService
 from preswald.interfaces.workflow import Workflow
@@ -92,24 +93,18 @@ def fastplotlib(fig, size: float = 1.0) -> dict:
 
     fig.renderer.flush()
     img = np.asarray(fig.renderer.target.draw())
-    black = np.zeros(img.shape).astype(np.uint8)
-    black[:, :, -1] = 255
-
-    img_alpha = img[..., -1] / 255
-
-    rgb = img[..., :-1] * img_alpha[..., None] + black[..., :-1] * np.ones(
-        img_alpha.shape
-    )[..., None] * (1 - img_alpha[..., None])
-
-    rgb = rgb.round().astype(np.uint8)
+    rgb = img[..., :-1].round().astype(np.uint8)
     height, width = rgb.shape[:2]  # Get dimensions
-    img_data = rgb.flatten().tolist()
+
+    with io.BytesIO() as buffer:
+        Image.fromarray(rgb).save(buffer, format="PNG")
+        img_bytes = buffer.getvalue()
 
     component_id = generate_id("fastplotlib")
     component = {
         "type": "fastplotlib_component",
         "id": component_id,
-        "data": img_data,
+        "data": img_bytes.hex(),
         "width": width,
         "height": height,
         "size": size,
