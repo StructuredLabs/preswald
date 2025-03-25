@@ -20,6 +20,7 @@ import FastplotlibWidget from './widgets/FastplotlibWidget';
 import ImageWidget from './widgets/ImageWidget';
 import MarkdownRendererWidget from './widgets/MarkdownRendererWidget';
 import MatplotlibWidget from './widgets/MatplotlibWidget';
+import PlaygroundWidget from './widgets/PlaygroundWidget';
 import ProgressWidget from './widgets/ProgressWidget';
 import SelectboxWidget from './widgets/SelectboxWidget';
 import SidebarWidget from './widgets/SidebarWidget';
@@ -293,6 +294,19 @@ const MemoizedComponent = memo(
             label={label}
             className={className}
             clientId={comm.clientId}
+          />
+        );
+
+      case 'playground':
+        return (
+          <PlaygroundWidget
+            {...commonProps}
+            label={component.label || 'Query Playground'}
+            data={component.data || []}
+            source={component.source}
+            value={component.value}
+            onChange={(value) => handleUpdate(componentId, value)}
+            error={component.error}
           />
         );
 
