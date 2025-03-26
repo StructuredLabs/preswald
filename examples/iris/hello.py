@@ -4,9 +4,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 import plotly.express as px
 
-
-from preswald import connect, fastplotlib, get_df, matplotlib, plotly, sidebar, table, text
+from preswald import (
+    connect,
+    fastplotlib,
+    get_df,
+    matplotlib,
+    plotly,
+    sidebar,
+    table,
+    text,
+)
 from preswald.engine.service import PreswaldService
+
 
 service = service = PreswaldService.get_instance()
 

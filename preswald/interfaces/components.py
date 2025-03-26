@@ -94,7 +94,7 @@ def fastplotlib(fig: fplt.Figure, size: float = 1.0) -> str:
 
     Args:
         fig (fplt.Figure): A configured Fastplotlib figure ready to be rendered.
-        size (float, optional): Width of the rendered component relative to its container (0.0–1.0).
+        size (float, optional): Width of the rendered component relative to its container (0.0-1.0).
                                 Defaults to 1.0.
 
     Returns:
@@ -134,7 +134,7 @@ def fastplotlib(fig: fplt.Figure, size: float = 1.0) -> str:
     if data_hash != service.get_component_state(f"{component_id}_img_hash"):
         if client_id:
             # Render and send concurrently (async task)
-            asyncio.create_task(render_and_send_fastplotlib(
+            asyncio.create_task(render_and_send_fastplotlib( # noqa: RUF006
                 fig, component_id, label, size, client_id, data_hash
             ))
         else:
@@ -700,7 +700,7 @@ async def render_and_send_fastplotlib(
         fig (fplt.Figure): The fully configured Fastplotlib figure instance to render.
         component_id (str): Unique identifier for the component instance receiving this image.
         label (str): Human-readable label describing the component (for logging/debugging).
-        size (float): Relative size of the component in the UI layout (0.0–1.0).
+        size (float): Relative size of the component in the UI layout (0.0-1.0).
         client_id (str): WebSocket client identifier to route the rendered image correctly.
         data_hash (str): SHA-256 hash representing the figure state, used for cache invalidation.
 
