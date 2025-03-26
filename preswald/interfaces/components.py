@@ -83,35 +83,41 @@ def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
     service.append_component(component)
     return current_value
 
-
 def fastplotlib(fig: fplt.Figure, size: float = 1.0) -> str:
     """
-    Render a Fastplotlib figure and stream the image data to the frontend via WebSocket.
+    Render a Fastplotlib figure and asynchronously stream the resulting image to the frontend.
 
-    This function efficiently detects changes to the figure and only sends updates if necessary,
-    using a hash of the figure's state. Images are sent asynchronously as PNG-encoded binary data
-    through MessagePack over WebSockets.
+    This component leverages Fastplotlib's GPU-accelerated offscreen rendering capabilities.
+    Rendering and transmission are triggered only when the figure state or the client changes,
+    ensuring efficient updates. The rendered image is encoded as a PNG and sent to the frontend
+    via WebSocket using MessagePack.
 
     Args:
-        fig (fplt.Figure): A fully configured Fastplotlib figure object.
-        size (float, optional): Width of the component in row layout, ranging from 0.0 to 1.0.
+        fig (fplt.Figure): A configured Fastplotlib figure ready to be rendered.
+        size (float, optional): Width of the rendered component relative to its container (0.0–1.0).
                                 Defaults to 1.0.
 
     Returns:
-        str: A stable, deterministic component ID referencing the rendered Fastplotlib figure.
+        str: A deterministic component ID used to reference the figure on the frontend.
+
+    Notes:
+        - The figure must have '_label' and '_client_id' attributes set externally.
+        - Rendering occurs asynchronously if the figure state or client_id changes.
+        - If client_id is not provided, a warning is logged and no rendering task is triggered.
     """
     service = PreswaldService.get_instance()
 
     label = getattr(fig, "_label", "fastplotlib")
     component_id = generate_id_by_label("fastplotlib", label)
 
-    # generate hash from figure state + label + size to detect updates
     try:
         state = fig.get_state()
     except Exception:
         state = label
 
-    hashable_data = {"state": state, "label": label, "size": size}
+    # hash input data early and use hash to avoid unnecessary rendering
+    client_id = getattr(fig, "_client_id", None)
+    hashable_data = {"client_id": client_id, "state": state, "label": label, "size": size}
     data_hash = hashlib.sha256(msgpack.packb(hashable_data)).hexdigest()
 
     component = {
@@ -124,75 +130,17 @@ def fastplotlib(fig: fplt.Figure, size: float = 1.0) -> str:
         "hash": data_hash[:8]
     }
 
-    # skip render if unchanged
-    if data_hash == service.get_component_state(f"{component_id}_img_hash"):
-        service.append_component(component)
-        return component_id
-
-    # trigger render
-    fig.show()
-    for subplot in fig:
-        subplot.viewport.render(subplot.scene, subplot.camera)
-
-    try:
-        fig.canvas.request_draw()
-        raw_img = np.asarray(fig.renderer.target.draw())
-
-        logger.debug(f"raw image shape: {raw_img.shape}")
-
-        if raw_img.ndim != 3 or raw_img.shape[2] != 4:
-            raise ValueError(f"Unexpected image shape: {raw_img.shape}")
-
-        # handle alpha blending
-        alpha = raw_img[..., 3:4] / 255.0
-        rgb = (raw_img[..., :3] * alpha + (1 - alpha) * 255).astype(np.uint8)
-
-    except Exception as e:
-        logger.error(f"Framebuffer blending failed: {e}")
-        return "Render failed"
-
-    # encode image to PNG
-    img_buf = io.BytesIO()
-    Image.fromarray(rgb).save(img_buf, format="PNG")
-    png_bytes = img_buf.getvalue()
-
-    logger.debug(f"png buffer size: {len(png_bytes)} bytes")
-
-    client_id = getattr(fig, "_client_id", None)
-    logger.debug(f"client_id: {client_id}")
-
-    if client_id:
-        websocket = service.websocket_connections.get(client_id)
-        if websocket:
-            async def send_and_update(packed_msg):
-                try:
-                    await websocket.send_bytes(packed_msg)
-                    await service.handle_client_message(client_id, {
-                        "type": "component_update",
-                        "states": {
-                            f"{component_id}_img_hash": data_hash
-                        }
-                    })
-                    logger.debug(f"✅ sent Fastplotlib image via WebSocket to client {client_id}")
-                except Exception as e:
-                    logger.error(f"WebSocket send failed: {e}")
-
-            packed_msg = msgpack.packb({
-                "type": "image_update",
-                "component_id": component_id,
-                "format": "png",
-                "label": label,
-                "size": size,
-                "data": png_bytes
-            }, use_bin_type=True)
-
-            task = asyncio.create_task(send_and_update(packed_msg))
-            task.add_done_callback(lambda t: t.exception() and logger.error(f"Async task exception: {t.exception()}"))
+    # skip rendering if unchanged
+    if data_hash != service.get_component_state(f"{component_id}_img_hash"):
+        if client_id:
+            # Render and send concurrently (async task)
+            asyncio.create_task(render_and_send_fastplotlib(
+                fig, component_id, label, size, client_id, data_hash
+            ))
         else:
-            logger.warning(f"No active WebSocket found for client ID: {client_id}")
+            logger.warning(f"No client_id provided for {component_id}")
 
     service.append_component(component)
-    logger.debug(f"returning component id: {component_id}")
     return component_id
 
 
@@ -732,3 +680,87 @@ def generate_id_by_label(prefix: str, label: str) -> str:
         return generate_id(prefix)
     hashed = hashlib.md5(label.lower().encode()).hexdigest()[:8]
     return f"{prefix}-{hashed}"
+
+async def render_and_send_fastplotlib(
+    fig: fplt.Figure,
+    component_id: str,
+    label: str,
+    size: float,
+    client_id: str,
+    data_hash: str
+) -> Optional[str]:
+    """
+    Asynchronously renders a Fastplotlib figure to an offscreen canvas, encodes it as a PNG,
+    and streams the resulting image data via WebSocket to the connected frontend client.
+
+    This helper function handles rendering logic, alpha-blending, and ensures robust error
+    handling. It updates the component state after successfully sending the image data.
+
+    Args:
+        fig (fplt.Figure): The fully configured Fastplotlib figure instance to render.
+        component_id (str): Unique identifier for the component instance receiving this image.
+        label (str): Human-readable label describing the component (for logging/debugging).
+        size (float): Relative size of the component in the UI layout (0.0–1.0).
+        client_id (str): WebSocket client identifier to route the rendered image correctly.
+        data_hash (str): SHA-256 hash representing the figure state, used for cache invalidation.
+
+    Returns:
+        str: Returns "Render failed" if framebuffer blending fails, otherwise None.
+
+    Raises:
+        Logs and handles any exceptions internally without raising further.
+    """
+    service = PreswaldService.get_instance()
+
+    fig.show() # must call even in offscreen mode to initialize GPU resources
+
+    # manually render the scene for all subplots
+    for subplot in fig:
+        subplot.viewport.render(subplot.scene, subplot.camera)
+
+    # read from the framebuffer
+    try:
+        fig.canvas.request_draw()
+        raw_img = np.asarray(fig.renderer.target.draw())
+
+        if raw_img.ndim != 3 or raw_img.shape[2] != 4:
+            raise ValueError(f"Unexpected image shape: {raw_img.shape}")
+
+        # handle alpha blending
+        alpha = raw_img[..., 3:4] / 255.0
+        rgb = (raw_img[..., :3] * alpha + (1 - alpha) * 255).astype(np.uint8)
+
+    except Exception as e:
+        logger.error(f"Framebuffer blending failed for {component_id}: {e}")
+        return "Render failed"
+
+    # encode image to PNG
+    img_buf = io.BytesIO()
+    Image.fromarray(rgb).save(img_buf, format="PNG")
+    png_bytes = img_buf.getvalue()
+
+    # handle websocket communication
+    client_websocket = service.websocket_connections.get(client_id)
+    if client_websocket:
+        packed_msg = msgpack.packb({
+            "type": "image_update",
+            "component_id": component_id,
+            "format": "png",
+            "label": label,
+            "size": size,
+            "data": png_bytes
+        }, use_bin_type=True)
+
+        try:
+            await client_websocket.send_bytes(packed_msg)
+            await service.handle_client_message(client_id, {
+                "type": "component_update",
+                "states": {
+                    f"{component_id}_img_hash": data_hash
+                }
+            })
+            logger.debug(f"✅ Sent {component_id} image to client {client_id}")
+        except Exception as e:
+            logger.error(f"WebSocket send failed for {component_id}: {e}")
+    else:
+        logger.warning(f"No active WebSocket found for client ID: {client_id}")
