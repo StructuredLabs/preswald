@@ -40,8 +40,6 @@ class BuildFrontendCommand(Command):
             result = subprocess.run(
                 [npm_path, "install"],
                 cwd=frontend_dir,
-                capture_output=True,
-                text=True,
                 check=False,
             )
             if result.returncode != 0:
@@ -50,10 +48,8 @@ class BuildFrontendCommand(Command):
 
             # Run npm build with error handling
             result = subprocess.run(
-                [npm_path, "run", "build"],
+                [npm_path, "run", "watch"],
                 cwd=frontend_dir,
-                capture_output=True,
-                text=True,
                 check=False,
             )
             if result.returncode != 0:
