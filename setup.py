@@ -67,15 +67,6 @@ class BuildFrontendCommand(Command):
             print(f"Unexpected error building frontend: {str(e)}", file=sys.stderr)
             raise
 
-    def _copy_assets(self, frontend_dir):
-        dist_dir = frontend_dir / "dist"
-        if not dist_dir.exists():
-            raise Exception(f"Build directory not found at {dist_dir}")
-
-        package_static_dir = Path(__file__).parent / "preswald" / "static"
-        package_static_dir.mkdir(parents=True, exist_ok=True)
-
-
 # Define core dependencies needed for the package to run
 CORE_DEPENDENCIES = [
     # Dependencies that work in browser and server environments
