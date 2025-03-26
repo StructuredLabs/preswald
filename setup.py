@@ -8,10 +8,12 @@ from setuptools import Command, find_packages, setup
 
 class BuildFrontendCommand(Command):
     description = "build frontend assets"
-    user_options = []  # noqa: RUF012
+    user_options = [
+        ('watch', 'w', 'Run in watch mode instead of one-time build'),
+    ]
 
     def initialize_options(self):
-        pass
+        self.watch = False
 
     def finalize_options(self):
         pass
@@ -47,8 +49,10 @@ class BuildFrontendCommand(Command):
                 raise Exception("npm install failed")
 
             # Run npm build with error handling
+            build_command = "watch" if self.watch else "build"
+            print(f"Running npm run {build_command}...")
             result = subprocess.run(
-                [npm_path, "run", "watch"],
+                [npm_path, "run", build_command],
                 cwd=frontend_dir,
                 check=False,
             )
