@@ -20,6 +20,7 @@ from .components import (
     table,
     text,
     text_input,
+    topbar,
     workflow_dag,
 )
 from .data import connect, get_df, query

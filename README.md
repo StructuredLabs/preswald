@@ -31,7 +31,7 @@
 <a href="https://app.preswald.com" target="_blank">
 <img src="https://img.shields.io/badge/Cloud-Get Started-orange?style=for-the-badge" alt="Studio">
 </a>
-<a href="https://cal.com/structured" target="_blank">
+<a href="https://cal.com/amruthagujjar" target="_blank">
 <img src="https://img.shields.io/badge/Book%20a%20Demo-Schedule-red?style=for-the-badge" alt="Book a Demo">
 </a>
 </p>
