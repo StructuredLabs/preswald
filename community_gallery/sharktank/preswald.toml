@@ -1,0 +1,21 @@
+[project]
+title = "My First Preswald App"
+version = "0.1.0"
+port = 8501
+slug = "preswald-app"
+entrypoint = "hello.py"
+
+[branding]
+name = "Preswald Demo"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#F89613"
+
+[data.SharkTank]
+type = "csv"
+path = "data/SharkTank.csv"
+
+
+[logging]
+level = "INFO"
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
