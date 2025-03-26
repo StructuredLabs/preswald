@@ -1,20 +1,10 @@
 'use client';
 
-import { Menu, PanelLeft, PanelLeftClose } from 'lucide-react';
-
 import React from 'react';
 
-import { Separator } from '@/components/ui/separator';
-
-import { cn } from '@/lib/utils';
-
-export default function Topbar({ branding }) {
+const TopbarWidget = ({ branding = window.PRESWALD_BRANDING, isCollapsed = false }) => {
   return (
     <div className="topbar">
-      <div id="mobile-menu-button-portal" />
-      {/* Separator */}
-      <Separator orientation="vertical" className="separator" />
-
       <div className="topbar-content">
         <div className="flex items-center gap-x-4 lg:gap-x-6">
           {/* Mobile branding */}
@@ -30,4 +20,6 @@ export default function Topbar({ branding }) {
       </div>
     </div>
   );
-}
+};
+
+export default TopbarWidget;
