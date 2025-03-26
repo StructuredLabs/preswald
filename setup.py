@@ -35,17 +35,22 @@ class BuildFrontendCommand(Command):
             npm_path = shutil.which("npm")
             if not npm_path:
                 raise Exception("npm is not installed or not found in PATH")
-            # Run npm install with error handling
-            result = subprocess.run(
-                [npm_path, "install"],
-                cwd=frontend_dir,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            if result.returncode != 0:
-                print(f"npm install failed: {result.stderr}", file=sys.stderr)
-                raise Exception("npm install failed")
+
+            node_modules = frontend_dir / "node_modules"
+            if not node_modules.exists():
+                # Run npm install with error handling
+                result = subprocess.run(
+                    [npm_path, "install"],
+                    cwd=frontend_dir,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                if result.returncode != 0:
+                    print(f"npm install failed: {result.stderr}", file=sys.stderr)
+                    raise Exception("npm install failed")
+            else:
+                print("Skipping npm install - node_modules already exists")
 
             # Run npm build with error handling
             result = subprocess.run(
@@ -58,9 +63,6 @@ class BuildFrontendCommand(Command):
             if result.returncode != 0:
                 print(f"npm build failed: {result.stderr}", file=sys.stderr)
                 raise Exception("npm build failed")
-
-            # Copy the built assets
-            self._copy_assets(frontend_dir)
 
         except subprocess.CalledProcessError as e:
             print(f"Failed to build frontend: {str(e)}", file=sys.stderr)
@@ -76,32 +78,6 @@ class BuildFrontendCommand(Command):
 
         package_static_dir = Path(__file__).parent / "preswald" / "static"
         package_static_dir.mkdir(parents=True, exist_ok=True)
-
-        # Copy dist contents
-        print(f"Copying built assets to {package_static_dir}")
-        for item in dist_dir.iterdir():
-            dest = package_static_dir / item.name
-            if dest.exists():
-                if dest.is_dir():
-                    shutil.rmtree(dest)
-                else:
-                    dest.unlink()
-            if item.is_dir():
-                shutil.copytree(item, dest)
-            else:
-                shutil.copy2(item, dest)
-
-        # Copy public assets
-        public_dir = frontend_dir / "public"
-        if public_dir.exists():
-            print("Copying public assets...")
-            for item in public_dir.iterdir():
-                dest = package_static_dir / item.name
-                if not dest.exists():
-                    if item.is_dir():
-                        shutil.copytree(item, dest)
-                    else:
-                        shutil.copy2(item, dest)
 
 
 # Define core dependencies needed for the package to run
