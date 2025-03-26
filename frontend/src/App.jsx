@@ -1,7 +1,9 @@
+/* eslint-disable import/order */
+/* eslint-disable no-unused-vars */
 import { useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { BrowserRouter as Router } from 'react-router-dom';
-
+import { ThemeProvider } from "./components/widgets/theme-provider"
 import Layout from './components/Layout';
 import Dashboard from './components/pages/Dashboard';
 import { comm } from './utils/websocket';
@@ -154,6 +156,7 @@ const App = () => {
   console.log(window.location.pathname);
 
   return (
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
     <Router>
       <Layout>
         {!isConnected ? (
@@ -167,6 +170,7 @@ const App = () => {
         )}
       </Layout>
     </Router>
+    </ThemeProvider>
   );
 };
 
