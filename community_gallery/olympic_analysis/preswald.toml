@@ -1,0 +1,18 @@
+[project]
+title = "Olympic Games Analysis"
+version = "0.1.0"
+port = 8501
+slug = "olympic-analysis"
+entrypoint = "hello.py"
+
+[branding]
+name = "Olympic Analysis Dashboard"
+primaryColor = "#00A0E3"  # Olympic blue color
+
+[data.olympics]
+type = "csv"
+path = "data/Olympics (1896-2024).csv"
+
+[logging]
+level = "INFO"
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s" 
