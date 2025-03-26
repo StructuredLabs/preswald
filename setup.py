@@ -36,21 +36,17 @@ class BuildFrontendCommand(Command):
             if not npm_path:
                 raise Exception("npm is not installed or not found in PATH")
 
-            node_modules = frontend_dir / "node_modules"
-            if not node_modules.exists():
-                # Run npm install with error handling
-                result = subprocess.run(
-                    [npm_path, "install"],
-                    cwd=frontend_dir,
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                )
-                if result.returncode != 0:
-                    print(f"npm install failed: {result.stderr}", file=sys.stderr)
-                    raise Exception("npm install failed")
-            else:
-                print("Skipping npm install - node_modules already exists")
+            # Run npm install with error handling
+            result = subprocess.run(
+                [npm_path, "install"],
+                cwd=frontend_dir,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if result.returncode != 0:
+                print(f"npm install failed: {result.stderr}", file=sys.stderr)
+                raise Exception("npm install failed")
 
             # Run npm build with error handling
             result = subprocess.run(
