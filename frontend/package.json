@@ -12,6 +12,8 @@
     "format": "prettier --write '**/*.{js,jsx,css,scss,json}'"
   },
   "dependencies": {
+    "@ag-grid-community/client-side-row-model": "^32.3.4",
+    "@ag-grid-community/core": "^32.3.4",
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.4",
@@ -32,6 +34,7 @@
     "@shadcn/ui": "^0.0.4",
     "@tailwindcss/typography": "^0.5.10",
     "@types/dagre": "^0.7.52",
+    "ag-grid-react": "^33.2.1",
     "class-variance-authority": "^0.7.1",
     "classnames": "^2.5.1",
     "clsx": "^2.1.1",
