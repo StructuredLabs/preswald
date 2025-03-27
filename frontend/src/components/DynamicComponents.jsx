@@ -9,6 +9,7 @@ import { comm } from '@/utils/websocket';
 // Import all widgets
 import AlertWidget from './widgets/AlertWidget';
 import ButtonWidget from './widgets/ButtonWidget';
+import ChatWidget from './widgets/ChatWidget';
 import CheckboxWidget from './widgets/CheckboxWidget';
 import ConnectionInterfaceWidget from './widgets/ConnectionInterfaceWidget';
 import DAGVisualizationWidget from './widgets/DAGVisualizationWidget';
@@ -23,6 +24,7 @@ import SliderWidget from './widgets/SliderWidget';
 import SpinnerWidget from './widgets/SpinnerWidget';
 import TableViewerWidget from './widgets/TableViewerWidget';
 import TextInputWidget from './widgets/TextInputWidget';
+import TopbarWidget from './widgets/TopbarWidget';
 import UnknownWidget from './widgets/UnknownWidget';
 
 // Error boundary component
@@ -57,7 +59,15 @@ class ErrorBoundary extends React.Component {
 
 // Memoized component wrapper
 const MemoizedComponent = memo(
-  ({ component, index, handleUpdate }) => {
+  ({
+    component,
+    index,
+    handleUpdate,
+    sidebarOpen,
+    setSidebarOpen,
+    isCollapsed,
+    setIsCollapsed,
+  }) => {
     const componentId = component.id || `component-${index}`;
     const commonProps = {
       key: componentId,
@@ -121,6 +131,9 @@ const MemoizedComponent = memo(
             className={component.className}
           />
         );
+
+      case 'topbar':
+        return <TopbarWidget {...commonProps} />;
 
       case 'checkbox':
         return (
@@ -206,6 +219,20 @@ const MemoizedComponent = memo(
             markdown={component.markdown || component.content || component.value || ''}
             error={component.error}
             variant={component.variant || 'default'}
+            className={component.className}
+          />
+        );
+
+      case 'chat':
+        return (
+          <ChatWidget
+            {...commonProps}
+            sourceId={component.config?.source || null}
+            sourceData={component.config?.data || null}
+            value={component.value || component.state || { messages: [] }}
+            onChange={(value) => {
+              handleUpdate(componentId, value);
+            }}
             className={component.className}
           />
         );
