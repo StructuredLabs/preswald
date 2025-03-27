@@ -1,0 +1,501 @@
+Startup Name,Industry,Funding Rounds,Funding Amount (M USD),Valuation (M USD),Revenue (M USD),Employees,Market Share (%),Profitable,Year Founded,Region,Exit Status
+Startup_1,IoT,1,101.09,844.75,67.87,1468,5.2,0,2006,Europe,Private
+Startup_2,EdTech,1,247.62,3310.83,75.65,3280,8.1,1,2003,South America,Private
+Startup_3,EdTech,1,109.24,1059.37,84.21,4933,2.61,1,1995,South America,Private
+Startup_4,Gaming,5,10.75,101.9,47.08,1059,2.53,0,2003,South America,Private
+Startup_5,IoT,4,249.28,850.11,50.25,1905,4.09,0,1997,Europe,Acquired
+Startup_6,AI,5,103.89,1541.76,12.56,1462,8.96,1,2004,Europe,IPO
+Startup_7,Gaming,4,232.26,1039.51,38.6,1404,0.1,0,2016,Australia,Private
+Startup_8,HealthTech,5,109.15,630.19,64.37,3420,9.02,1,2002,Australia,IPO
+Startup_9,Gaming,5,258.39,935.47,78.06,447,1.62,0,2020,North America,Acquired
+Startup_10,FinTech,3,66.24,707.45,21.8,3655,9.9,0,1995,Europe,Private
+Startup_11,AI,5,292.38,1665.52,13.87,4657,9.55,0,1994,Europe,Private
+Startup_12,FinTech,2,234.04,1207.68,66.34,1183,5.0,0,2011,Europe,Private
+Startup_13,IoT,3,34.71,141.02,0.29,4463,5.18,1,2012,Australia,Acquired
+Startup_14,Cybersecurity,5,169.95,720.54,17.92,1262,4.87,0,2014,South America,Acquired
+Startup_15,FinTech,1,295.62,2960.94,3.0,3639,6.39,1,2015,Asia,Acquired
+Startup_16,HealthTech,2,141.58,1593.98,16.77,1846,1.0,1,1994,Australia,Private
+Startup_17,Gaming,2,55.04,427.58,18.21,2314,0.42,0,2015,Europe,Private
+Startup_18,Cybersecurity,2,145.69,1276.06,38.83,915,0.67,1,2009,Australia,Private
+Startup_19,Gaming,3,153.98,1729.44,40.29,4345,4.5,0,1995,North America,Acquired
+Startup_20,FinTech,5,222.64,714.35,87.44,4642,2.83,0,1995,Europe,Private
+Startup_21,Gaming,5,209.8,1442.91,51.06,4014,6.26,1,2007,North America,Private
+Startup_22,IoT,1,121.06,1776.82,72.37,2174,9.93,0,1993,Europe,Private
+Startup_23,Cybersecurity,1,65.8,655.46,10.5,2177,3.92,0,2006,Australia,Private
+Startup_24,IoT,2,193.69,1171.96,22.62,128,5.78,0,2003,South America,Private
+Startup_25,FinTech,1,126.8,1174.26,70.32,3163,4.21,0,2003,Asia,Acquired
+Startup_26,IoT,3,40.12,285.33,5.38,790,8.49,1,2002,North America,Acquired
+Startup_27,HealthTech,5,270.22,2536.54,48.71,2421,9.03,1,1996,Australia,Private
+Startup_28,FinTech,2,207.52,935.69,59.98,801,8.79,1,2004,South America,IPO
+Startup_29,FinTech,1,205.11,941.98,60.25,4177,9.75,1,2008,Australia,Acquired
+Startup_30,FinTech,3,246.86,1165.8,2.39,4159,0.37,0,2006,North America,Acquired
+Startup_31,AI,3,159.13,2272.03,32.28,1941,8.41,0,2008,Asia,Acquired
+Startup_32,Gaming,1,244.61,2885.12,63.69,2161,7.54,0,2009,Australia,Private
+Startup_33,AI,5,149.68,740.7,14.99,3812,2.36,0,2021,Europe,Private
+Startup_34,AI,1,20.62,108.47,69.57,1306,9.57,0,2013,South America,Private
+Startup_35,HealthTech,2,121.87,1434.4,74.62,4168,1.57,1,2006,Australia,Private
+Startup_36,Cybersecurity,1,149.49,728.61,98.2,3145,6.83,0,1996,South America,Private
+Startup_37,Gaming,3,216.2,1257.15,21.06,3241,2.33,0,1990,Europe,Private
+Startup_38,IoT,1,32.42,472.04,82.53,2357,4.37,0,2021,Asia,Private
+Startup_39,EdTech,5,42.44,257.34,52.08,1937,7.22,1,2002,Asia,Private
+Startup_40,FinTech,4,79.47,869.37,37.41,2726,5.68,1,1995,Europe,Acquired
+Startup_41,IoT,1,80.32,1184.2,12.33,369,4.33,0,2003,South America,Private
+Startup_42,FinTech,5,219.79,1646.57,73.58,4921,3.33,0,2004,Australia,Private
+Startup_43,HealthTech,5,75.59,242.66,23.66,2395,8.41,1,1993,Europe,Private
+Startup_44,FinTech,3,190.11,1127.31,37.21,951,1.52,0,2005,North America,Private
+Startup_45,AI,5,148.54,1926.64,6.35,1382,4.36,0,2017,South America,Private
+Startup_46,Gaming,5,172.2,2303.23,80.16,1444,9.05,1,2005,Asia,Private
+Startup_47,EdTech,5,251.51,3074.01,76.68,3185,8.47,1,1993,Europe,IPO
+Startup_48,E-Commerce,5,121.61,529.89,73.39,4862,4.07,0,2015,Asia,Private
+Startup_49,FinTech,2,231.39,2903.05,30.01,345,7.65,1,2017,South America,Private
+Startup_50,IoT,2,126.9,1779.66,17.43,2994,8.25,1,2021,Asia,Private
+Startup_51,AI,3,106.48,1086.87,63.79,387,8.9,0,1991,Europe,Acquired
+Startup_52,E-Commerce,1,287.61,4110.09,49.67,1561,5.49,1,2020,South America,Private
+Startup_53,EdTech,5,55.72,720.02,17.91,304,2.12,1,1992,North America,Private
+Startup_54,E-Commerce,1,27.56,303.26,68.62,143,2.63,1,1997,Europe,Acquired
+Startup_55,AI,1,231.41,2297.03,99.11,363,3.03,1,2013,Australia,Private
+Startup_56,Gaming,3,20.94,150.41,74.75,4936,5.98,0,2004,Europe,IPO
+Startup_57,Gaming,5,251.21,1233.81,74.02,1527,0.42,0,2020,South America,Private
+Startup_58,Cybersecurity,5,131.44,1348.5,95.04,3461,6.4,0,1998,Europe,Private
+Startup_59,Gaming,4,274.7,1872.72,20.37,1632,3.71,0,1991,North America,Private
+Startup_60,Cybersecurity,1,216.6,2901.85,56.6,1308,3.02,0,1997,North America,Acquired
+Startup_61,E-Commerce,1,183.32,2735.14,97.97,1139,8.81,1,1996,Australia,Private
+Startup_62,HealthTech,2,284.82,3426.14,16.61,2191,4.65,1,2005,Asia,IPO
+Startup_63,IoT,4,119.3,487.43,70.06,3175,1.04,1,2019,South America,IPO
+Startup_64,IoT,2,286.25,1850.39,58.62,3840,8.28,1,1999,South America,Acquired
+Startup_65,E-Commerce,2,40.93,176.38,58.69,2156,0.57,1,2007,Asia,Acquired
+Startup_66,FinTech,2,145.38,1571.0,69.8,1242,7.29,0,1994,North America,Private
+Startup_67,FinTech,3,81.34,990.91,92.97,3740,7.76,0,2018,North America,IPO
+Startup_68,Gaming,3,162.18,2288.05,78.28,2839,3.59,0,2012,Europe,Private
+Startup_69,IoT,2,49.02,404.81,5.71,4265,8.27,1,1994,Australia,Private
+Startup_70,IoT,4,252.54,3489.22,85.29,1003,5.21,0,2019,Australia,Private
+Startup_71,Cybersecurity,1,254.0,3437.81,22.63,2572,4.69,1,1995,Australia,Private
+Startup_72,HealthTech,4,286.59,1950.63,37.75,1312,0.55,0,1993,Europe,Private
+Startup_73,AI,5,46.82,628.64,46.23,661,2.97,1,2018,Australia,Private
+Startup_74,FinTech,3,187.19,1405.44,48.14,2665,9.32,1,2012,Asia,Acquired
+Startup_75,IoT,1,142.53,935.34,43.57,2216,3.98,1,1995,Europe,Private
+Startup_76,Cybersecurity,1,103.64,1118.16,93.74,1914,5.51,1,2021,Asia,Acquired
+Startup_77,EdTech,5,105.79,734.24,70.63,3735,5.37,1,2007,Europe,IPO
+Startup_78,Cybersecurity,5,124.13,1311.12,63.15,2051,5.95,1,2004,Australia,IPO
+Startup_79,FinTech,2,211.63,2183.59,5.08,3167,0.71,1,2021,Asia,Private
+Startup_80,FinTech,3,179.69,1754.0,90.4,1145,3.69,1,1998,Asia,Acquired
+Startup_81,Cybersecurity,3,138.17,1045.26,90.95,271,7.26,1,1999,Asia,Private
+Startup_82,AI,4,23.24,222.69,78.04,1850,2.09,0,2009,Europe,Acquired
+Startup_83,E-Commerce,2,23.79,241.65,0.8,1713,2.12,0,1995,South America,Private
+Startup_84,FinTech,2,1.2,11.46,5.82,3635,0.2,0,1992,Australia,Acquired
+Startup_85,Cybersecurity,2,290.33,2419.33,22.6,3216,4.43,0,2000,Asia,Acquired
+Startup_86,IoT,2,2.07,6.57,13.22,2298,8.84,0,2006,South America,Private
+Startup_87,Cybersecurity,3,31.38,315.2,39.94,3737,0.61,1,2021,Australia,Acquired
+Startup_88,HealthTech,3,94.72,475.62,92.27,3834,1.99,1,1993,Australia,Private
+Startup_89,E-Commerce,2,242.33,2595.58,47.26,1515,3.17,1,1993,Asia,Private
+Startup_90,EdTech,4,288.65,3496.17,1.44,480,7.34,0,2006,Asia,Acquired
+Startup_91,AI,1,237.11,2135.26,28.35,981,6.44,0,2008,Europe,Private
+Startup_92,Gaming,1,207.32,1971.27,4.56,1212,4.22,0,1994,South America,IPO
+Startup_93,EdTech,4,156.63,2258.25,3.73,1965,7.61,0,2021,South America,Private
+Startup_94,E-Commerce,2,26.47,348.5,27.64,562,6.14,0,2011,Asia,Acquired
+Startup_95,E-Commerce,3,287.47,4016.2,27.63,887,8.97,0,1995,Australia,Private
+Startup_96,E-Commerce,1,227.64,2905.87,78.73,2199,8.2,1,2011,Asia,Acquired
+Startup_97,EdTech,5,191.87,826.39,97.49,4766,2.6,1,1990,Australia,Private
+Startup_98,IoT,5,227.83,1090.83,37.18,2672,2.79,0,2009,Australia,Private
+Startup_99,E-Commerce,4,217.37,2025.78,42.95,4964,1.34,0,2011,Asia,Private
+Startup_100,Cybersecurity,2,191.35,1139.08,84.49,4682,3.44,0,2000,North America,Private
+Startup_101,EdTech,1,294.18,2565.35,26.89,4795,10.0,0,2002,South America,Private
+Startup_102,Gaming,2,271.06,2095.94,15.72,1615,4.12,1,1992,Australia,Private
+Startup_103,E-Commerce,1,194.18,1862.76,85.32,3493,2.28,0,1998,Australia,Acquired
+Startup_104,Cybersecurity,4,208.11,2489.52,4.75,2459,7.65,0,2001,North America,IPO
+Startup_105,IoT,4,15.95,184.79,62.01,4499,5.47,0,2012,Europe,IPO
+Startup_106,HealthTech,5,201.14,1861.51,56.24,1951,1.58,0,2003,North America,Private
+Startup_107,IoT,2,13.73,176.69,34.66,4815,3.87,1,2022,North America,Private
+Startup_108,Gaming,5,176.68,1443.54,31.59,4804,4.2,1,2007,Australia,Private
+Startup_109,E-Commerce,2,299.81,4125.56,77.21,2813,7.56,1,1998,South America,Acquired
+Startup_110,Gaming,5,166.96,643.69,8.73,3830,0.3,0,2012,North America,Private
+Startup_111,EdTech,3,142.23,2056.07,23.75,3541,2.76,0,1999,Europe,Acquired
+Startup_112,FinTech,3,94.2,1022.67,73.27,3807,5.22,0,2008,Asia,Private
+Startup_113,E-Commerce,3,36.6,276.73,54.88,4182,2.76,1,1994,North America,Private
+Startup_114,FinTech,3,219.44,1177.48,12.89,4704,6.32,0,2012,North America,Private
+Startup_115,Cybersecurity,1,58.18,509.09,88.23,1975,4.87,0,2019,Europe,Private
+Startup_116,HealthTech,3,35.03,186.87,39.41,3827,3.68,1,2014,South America,Private
+Startup_117,AI,4,126.82,633.59,82.8,2824,9.5,1,2017,North America,Acquired
+Startup_118,Gaming,4,238.7,2484.44,78.79,907,6.36,0,2014,North America,Private
+Startup_119,IoT,1,223.65,2074.8,62.48,369,1.39,0,1999,South America,Acquired
+Startup_120,HealthTech,3,16.94,187.04,49.5,4263,5.64,0,2003,Europe,Private
+Startup_121,E-Commerce,3,136.82,1936.72,97.96,3124,7.83,1,2019,North America,Private
+Startup_122,FinTech,3,156.97,1473.5,14.58,2563,7.11,0,2014,South America,Acquired
+Startup_123,IoT,5,193.54,1929.82,72.54,1868,1.8,1,2003,North America,IPO
+Startup_124,FinTech,2,195.23,795.66,19.2,120,9.73,0,1999,Asia,Private
+Startup_125,EdTech,5,109.73,1274.14,33.89,2389,4.54,1,2000,Australia,Private
+Startup_126,FinTech,2,168.42,1313.48,30.94,4981,1.67,1,2000,Asia,Private
+Startup_127,EdTech,3,144.58,2128.32,94.71,3940,1.88,0,2010,North America,Acquired
+Startup_128,Cybersecurity,3,265.56,3419.91,96.74,4940,1.07,1,2010,Europe,Acquired
+Startup_129,IoT,5,159.31,1476.77,18.38,2495,8.05,0,2011,Australia,Private
+Startup_130,IoT,5,132.59,593.83,2.3,947,1.31,1,1996,Asia,Private
+Startup_131,AI,2,121.64,1619.39,72.03,1729,1.34,1,2006,South America,Acquired
+Startup_132,E-Commerce,4,171.94,2165.99,41.86,2339,8.52,0,1991,Europe,Private
+Startup_133,EdTech,2,241.29,1258.33,8.98,2772,3.51,1,2001,Asia,Acquired
+Startup_134,AI,5,161.75,1058.39,68.41,1142,0.41,1,2007,South America,Private
+Startup_135,FinTech,5,198.67,2487.52,54.56,2532,0.61,0,2000,North America,Private
+Startup_136,FinTech,1,221.49,1156.78,98.05,4122,1.51,0,2005,South America,Private
+Startup_137,AI,5,156.29,2190.1,22.82,3425,2.21,1,2007,Asia,Private
+Startup_138,IoT,1,128.33,1038.75,40.46,4783,6.68,1,2015,Asia,Private
+Startup_139,FinTech,4,263.06,1063.94,54.3,3911,1.66,0,2005,North America,Acquired
+Startup_140,Gaming,2,125.54,1605.53,79.19,3642,1.28,0,1995,South America,Acquired
+Startup_141,Cybersecurity,2,138.85,1038.89,54.93,2958,7.67,0,2001,South America,Private
+Startup_142,Cybersecurity,1,297.11,2768.47,61.33,2372,6.74,0,2002,North America,Private
+Startup_143,Gaming,2,0.57,2.48,22.69,4226,4.41,0,1993,South America,Private
+Startup_144,AI,5,56.05,169.89,84.71,281,5.54,1,1991,North America,Private
+Startup_145,Gaming,3,115.5,1230.75,42.92,2004,3.19,0,2015,Europe,Private
+Startup_146,EdTech,1,279.81,2569.24,14.18,1232,4.88,1,2016,Asia,Acquired
+Startup_147,EdTech,2,21.47,217.33,66.45,3757,5.12,0,2016,Europe,Private
+Startup_148,AI,1,3.34,41.83,21.69,3740,3.93,0,2004,Australia,Private
+Startup_149,Gaming,1,16.28,175.16,9.85,700,9.08,0,1997,Australia,Private
+Startup_150,EdTech,3,27.02,137.73,86.21,1314,0.26,0,1996,Australia,Private
+Startup_151,IoT,5,11.76,86.19,46.07,4157,7.84,1,2001,North America,Acquired
+Startup_152,Gaming,1,144.19,2000.02,74.95,3239,1.33,1,2002,South America,Private
+Startup_153,IoT,2,174.44,2135.03,29.13,4119,8.0,1,2006,Europe,Private
+Startup_154,EdTech,4,81.87,792.47,78.72,2316,6.2,1,2006,Europe,Private
+Startup_155,Cybersecurity,1,119.79,726.85,11.28,2846,8.45,1,2010,Europe,Acquired
+Startup_156,EdTech,1,27.96,185.23,35.66,4213,1.07,0,1997,Europe,Acquired
+Startup_157,IoT,3,101.24,1192.96,97.81,3564,5.63,1,1994,Australia,IPO
+Startup_158,HealthTech,5,156.99,2074.48,79.42,3403,5.06,1,2015,Europe,IPO
+Startup_159,E-Commerce,4,219.82,2430.57,49.78,546,7.09,0,2005,South America,Private
+Startup_160,FinTech,2,1.5,19.07,34.04,2699,5.39,1,2017,Australia,Private
+Startup_161,Gaming,4,140.46,1713.59,87.23,4679,5.45,0,2018,Europe,Private
+Startup_162,HealthTech,2,89.45,429.04,54.53,1093,4.35,0,2001,North America,Private
+Startup_163,EdTech,5,255.92,2069.71,75.87,3368,3.16,1,2019,Asia,Private
+Startup_164,Cybersecurity,2,214.81,1038.78,75.44,29,4.87,0,2012,Asia,IPO
+Startup_165,AI,3,176.94,1030.29,1.89,1577,1.27,0,2005,Asia,Private
+Startup_166,EdTech,3,83.54,1122.04,12.71,2963,9.62,1,2003,Australia,Private
+Startup_167,Cybersecurity,3,273.15,2369.5,66.0,4241,7.17,1,1999,Europe,Acquired
+Startup_168,E-Commerce,3,14.01,132.03,16.25,1772,9.53,0,1996,Australia,Acquired
+Startup_169,EdTech,4,33.29,171.16,25.62,4748,2.34,1,2018,South America,Private
+Startup_170,IoT,5,117.79,794.76,94.67,2240,8.81,0,1992,North America,Private
+Startup_171,AI,2,37.77,217.67,56.06,205,8.11,0,2004,North America,Private
+Startup_172,Cybersecurity,2,286.95,1570.83,75.1,3203,6.8,1,2008,Asia,Acquired
+Startup_173,Cybersecurity,3,239.5,2552.0,55.84,261,6.29,1,2002,Asia,Private
+Startup_174,Cybersecurity,3,78.07,474.87,55.3,3752,3.23,0,2010,Asia,Private
+Startup_175,E-Commerce,1,176.77,1870.97,9.51,4647,8.18,1,2016,Europe,Acquired
+Startup_176,EdTech,5,294.71,1090.86,34.43,2246,5.07,1,2018,South America,Private
+Startup_177,E-Commerce,4,265.32,1247.35,28.31,3180,0.8,0,2009,South America,IPO
+Startup_178,Gaming,2,180.44,1135.78,39.13,3611,3.2,0,2014,South America,Private
+Startup_179,FinTech,1,271.17,2756.32,79.85,3341,9.36,0,1995,South America,Acquired
+Startup_180,FinTech,1,296.76,3297.03,37.26,4902,8.52,1,1991,Asia,Acquired
+Startup_181,Gaming,2,223.13,1854.79,45.22,418,9.82,1,2011,North America,IPO
+Startup_182,EdTech,4,19.96,166.66,39.8,2019,6.32,1,2021,Asia,Acquired
+Startup_183,IoT,1,120.77,1412.31,9.43,1386,2.55,1,2005,South America,Private
+Startup_184,E-Commerce,1,251.43,802.02,44.16,1103,1.71,1,2007,Asia,Acquired
+Startup_185,AI,5,69.56,493.39,19.64,3431,1.95,0,1994,South America,Private
+Startup_186,Cybersecurity,4,249.28,3196.89,18.75,3660,0.3,0,2019,Australia,Acquired
+Startup_187,Cybersecurity,1,36.54,374.12,9.49,914,3.97,0,2008,North America,Private
+Startup_188,EdTech,4,14.56,102.6,35.73,192,2.0,0,2012,Australia,Private
+Startup_189,IoT,2,115.54,1602.11,75.77,4049,4.18,1,2002,Europe,Acquired
+Startup_190,FinTech,3,11.5,141.12,27.72,3761,9.36,1,2018,Asia,Private
+Startup_191,FinTech,1,287.2,1774.54,31.3,2020,4.36,0,2011,Europe,IPO
+Startup_192,Cybersecurity,5,247.95,2663.85,64.3,2097,8.79,0,1998,Asia,Private
+Startup_193,EdTech,2,240.33,2439.11,19.66,3649,6.09,1,2008,Australia,Private
+Startup_194,E-Commerce,4,189.12,1477.83,89.71,2135,2.55,0,1995,South America,Private
+Startup_195,FinTech,2,65.29,483.37,52.07,362,3.62,0,2004,South America,Private
+Startup_196,E-Commerce,1,155.72,1109.15,44.82,2427,0.93,0,2009,Asia,Private
+Startup_197,IoT,4,179.38,1866.6,55.83,4262,3.4,0,1998,South America,Acquired
+Startup_198,FinTech,3,157.75,1310.73,16.69,4550,6.81,1,2021,Australia,Acquired
+Startup_199,FinTech,2,78.44,1018.34,61.39,1502,0.81,0,1993,South America,Private
+Startup_200,HealthTech,1,154.82,1708.47,36.37,2163,2.13,0,2007,Australia,Private
+Startup_201,FinTech,5,147.61,566.7,89.73,2560,3.88,0,1994,Europe,Private
+Startup_202,Gaming,4,298.9,3192.86,16.97,2347,9.82,1,2009,Australia,Private
+Startup_203,AI,2,269.28,1684.01,50.75,2956,7.87,0,2012,North America,Private
+Startup_204,Gaming,2,139.28,1408.64,59.85,1243,7.36,0,2000,North America,Private
+Startup_205,EdTech,3,187.07,2088.0,3.44,978,1.25,0,2011,North America,Private
+Startup_206,EdTech,3,224.49,1295.3,36.43,4732,7.83,0,1993,Asia,Private
+Startup_207,E-Commerce,5,10.94,92.8,73.29,3970,7.87,0,2018,Asia,Private
+Startup_208,Gaming,5,268.53,1418.89,82.06,1055,6.05,1,2002,Asia,Acquired
+Startup_209,Gaming,1,258.11,936.44,31.38,3706,9.9,0,1998,Australia,IPO
+Startup_210,Gaming,1,137.5,1036.99,79.88,2785,3.32,0,2020,Asia,Private
+Startup_211,IoT,5,117.66,865.43,96.78,1593,9.42,1,1996,Europe,IPO
+Startup_212,FinTech,5,82.25,1229.29,85.7,3883,9.16,0,1993,North America,Private
+Startup_213,AI,4,143.26,1197.11,11.85,2373,0.21,0,2008,Australia,Private
+Startup_214,E-Commerce,3,13.79,96.57,74.0,441,4.56,0,2019,North America,Private
+Startup_215,Gaming,1,255.73,2548.53,32.03,2833,9.77,1,2020,Asia,Private
+Startup_216,Gaming,3,11.11,45.16,98.84,1561,1.12,0,2010,Australia,Private
+Startup_217,HealthTech,3,99.05,1440.19,48.59,3863,5.52,1,2020,South America,Private
+Startup_218,E-Commerce,5,279.51,2968.26,12.33,1309,9.79,1,2008,Europe,Private
+Startup_219,Gaming,4,220.7,2661.21,72.55,2389,5.6,0,2020,Asia,Private
+Startup_220,E-Commerce,2,84.78,427.78,32.37,187,1.98,1,2021,Asia,Private
+Startup_221,FinTech,4,76.17,602.79,99.71,1594,5.86,0,1991,Europe,Private
+Startup_222,HealthTech,4,2.02,16.31,97.98,1592,2.12,0,1999,Europe,Private
+Startup_223,E-Commerce,3,208.87,2686.42,65.65,664,5.25,1,1991,South America,Private
+Startup_224,AI,4,15.11,45.55,13.07,164,0.83,1,1991,Asia,Private
+Startup_225,AI,1,160.01,1057.7,68.72,3958,6.09,1,2013,Asia,Private
+Startup_226,EdTech,3,288.66,4264.9,9.39,1016,5.22,0,2006,North America,Private
+Startup_227,HealthTech,1,33.29,289.58,3.03,57,7.43,0,2021,Australia,Private
+Startup_228,HealthTech,2,268.4,2037.24,82.31,2312,6.34,1,2005,Australia,Private
+Startup_229,EdTech,3,297.45,1320.07,21.05,1233,5.54,0,2005,North America,Private
+Startup_230,E-Commerce,2,18.92,277.93,37.96,1040,6.93,0,2020,Australia,Private
+Startup_231,HealthTech,3,264.93,858.46,97.35,3707,1.53,0,2013,Europe,Private
+Startup_232,AI,5,155.07,1836.98,33.75,4050,5.99,0,1990,Australia,Private
+Startup_233,AI,4,272.0,3324.71,29.72,4950,1.8,1,2000,Australia,Private
+Startup_234,Gaming,5,171.61,1016.6,91.83,4454,9.26,0,2010,North America,Private
+Startup_235,FinTech,2,198.8,2198.47,11.16,1269,0.78,1,1993,South America,Acquired
+Startup_236,HealthTech,4,163.36,672.25,75.98,1889,4.36,0,1996,Australia,Private
+Startup_237,E-Commerce,3,259.42,1578.46,98.81,1814,6.99,1,2015,Australia,Private
+Startup_238,EdTech,4,220.31,2743.92,90.14,3172,4.63,0,2001,South America,Private
+Startup_239,EdTech,1,156.62,2094.99,65.2,3802,1.01,0,2020,North America,Private
+Startup_240,E-Commerce,4,260.51,2683.73,31.47,2346,5.58,0,2006,South America,Private
+Startup_241,IoT,1,73.96,671.71,25.51,3419,6.45,0,2022,North America,Private
+Startup_242,Cybersecurity,4,47.62,233.89,81.94,822,7.07,0,2000,Europe,Acquired
+Startup_243,FinTech,1,48.54,182.38,87.99,2442,3.8,1,2017,North America,Private
+Startup_244,EdTech,2,100.54,443.56,52.59,893,5.68,1,2021,Europe,Private
+Startup_245,HealthTech,5,71.99,412.38,24.51,672,4.56,0,1990,Europe,IPO
+Startup_246,FinTech,3,279.06,1981.35,11.38,4733,6.75,0,2017,North America,IPO
+Startup_247,HealthTech,4,32.2,243.78,8.81,2629,5.88,0,1996,Asia,Private
+Startup_248,IoT,5,209.85,1501.66,71.94,4237,5.3,0,1991,North America,Private
+Startup_249,AI,3,57.17,335.51,42.07,4528,2.57,1,2013,Australia,IPO
+Startup_250,FinTech,3,264.55,2411.82,90.55,823,0.12,1,1993,Australia,Private
+Startup_251,Gaming,1,288.41,3721.48,73.99,2193,1.82,0,2008,Asia,Private
+Startup_252,EdTech,2,139.91,889.33,19.21,1111,1.26,0,2015,Europe,Private
+Startup_253,FinTech,2,263.78,3774.33,61.42,2229,4.55,0,2000,Asia,Private
+Startup_254,FinTech,5,2.04,27.5,43.61,202,6.16,1,2000,Australia,Private
+Startup_255,FinTech,2,246.07,1215.87,57.77,2676,2.21,0,1992,Asia,Private
+Startup_256,Cybersecurity,4,68.97,857.66,73.83,3497,9.4,1,2001,North America,Private
+Startup_257,FinTech,2,272.66,2697.98,80.64,2453,0.17,1,1992,Asia,Private
+Startup_258,HealthTech,5,0.84,8.23,84.39,475,7.75,0,2016,Europe,IPO
+Startup_259,AI,2,167.08,1285.27,25.47,1953,6.29,1,1991,North America,Private
+Startup_260,IoT,4,227.11,2047.13,3.21,3904,3.8,0,2005,South America,Acquired
+Startup_261,E-Commerce,1,77.98,605.6,73.96,2015,0.6,1,1991,Australia,IPO
+Startup_262,FinTech,5,58.34,552.88,10.72,3805,6.31,0,2019,Australia,Acquired
+Startup_263,EdTech,1,25.69,270.65,31.56,4123,3.92,0,2009,Asia,Acquired
+Startup_264,FinTech,1,98.27,1089.98,0.48,3801,9.37,1,2017,North America,Private
+Startup_265,EdTech,1,168.17,1579.08,68.2,3993,5.47,1,2014,South America,IPO
+Startup_266,HealthTech,3,35.2,410.33,16.8,239,9.4,1,2021,North America,Private
+Startup_267,EdTech,3,113.32,532.08,65.56,933,2.28,0,1999,Australia,Private
+Startup_268,Gaming,1,3.22,17.85,99.18,3612,7.28,1,2022,North America,Private
+Startup_269,E-Commerce,5,245.69,3150.93,7.36,527,6.21,0,2002,South America,Acquired
+Startup_270,AI,4,38.97,267.74,7.8,3528,7.42,1,2005,Asia,Private
+Startup_271,EdTech,4,85.36,279.53,34.1,4531,2.23,0,2011,Europe,Private
+Startup_272,EdTech,2,6.02,29.17,86.65,4893,6.68,1,2009,North America,Private
+Startup_273,AI,5,129.96,738.61,21.63,1634,5.03,1,2016,Europe,Private
+Startup_274,E-Commerce,3,252.12,3652.68,36.1,4633,7.45,1,2005,Australia,Private
+Startup_275,FinTech,1,117.95,1164.93,6.94,1321,3.34,0,2021,Asia,Private
+Startup_276,EdTech,2,54.26,770.1,76.34,2862,8.91,0,2015,Asia,Private
+Startup_277,AI,4,226.23,2240.12,40.89,1129,0.93,1,2014,North America,Private
+Startup_278,Gaming,3,236.75,2072.1,75.95,2592,8.09,0,1991,Asia,Acquired
+Startup_279,Gaming,3,52.54,355.42,90.37,1028,8.63,1,2001,North America,Private
+Startup_280,HealthTech,1,231.37,2377.66,23.35,1383,8.19,0,1998,North America,Acquired
+Startup_281,AI,4,284.22,1327.41,80.76,3379,5.18,0,2001,Europe,Private
+Startup_282,HealthTech,5,50.33,693.5,6.0,1524,4.44,1,2015,Asia,Private
+Startup_283,Gaming,3,231.41,2997.22,89.89,231,9.96,1,1998,North America,Private
+Startup_284,E-Commerce,1,212.72,1448.7,65.11,4973,2.37,0,1999,Europe,Private
+Startup_285,FinTech,5,142.34,2054.47,87.44,896,5.51,0,2021,South America,Private
+Startup_286,AI,4,17.85,230.31,0.12,4077,6.74,0,2009,Europe,Private
+Startup_287,IoT,3,22.87,251.47,16.99,2262,7.04,1,1991,Europe,Private
+Startup_288,Gaming,5,255.8,1141.16,39.04,2793,2.12,0,1990,North America,Private
+Startup_289,Gaming,5,297.05,2595.86,38.01,401,6.57,1,2013,Australia,Acquired
+Startup_290,IoT,5,202.98,1841.7,22.75,2083,8.2,1,2016,Australia,Private
+Startup_291,Cybersecurity,3,134.06,776.29,38.22,4749,0.6,0,1991,Australia,Private
+Startup_292,Gaming,3,194.45,769.94,12.97,4429,9.12,1,2020,Europe,Acquired
+Startup_293,EdTech,2,178.52,2199.49,41.33,3242,0.39,0,2003,North America,Private
+Startup_294,E-Commerce,4,115.39,515.15,80.26,3898,3.62,0,1991,Asia,Acquired
+Startup_295,AI,1,20.16,204.25,47.96,2010,0.26,1,2018,Europe,Private
+Startup_296,IoT,5,246.54,3510.09,1.9,2021,0.86,0,2004,Europe,Private
+Startup_297,EdTech,2,111.86,1511.59,42.2,3176,9.12,0,2001,North America,Private
+Startup_298,IoT,1,245.73,1556.22,2.81,2673,3.61,0,2017,South America,Acquired
+Startup_299,AI,2,76.13,1006.24,96.63,1883,4.31,0,2009,Europe,IPO
+Startup_300,HealthTech,3,0.81,2.43,12.83,1201,2.23,0,2013,South America,Acquired
+Startup_301,AI,5,48.1,154.51,70.8,1777,6.01,1,2010,South America,Private
+Startup_302,Cybersecurity,1,140.83,1440.78,97.28,166,5.99,1,1999,Australia,Private
+Startup_303,AI,1,283.32,2090.22,82.62,3981,3.78,1,2003,North America,Private
+Startup_304,AI,1,31.11,237.6,69.96,1756,3.4,0,2007,South America,Private
+Startup_305,Cybersecurity,1,256.34,2505.29,83.96,780,8.86,0,2013,North America,Private
+Startup_306,E-Commerce,1,158.34,839.42,98.18,944,3.89,0,2003,Australia,Private
+Startup_307,Gaming,2,247.86,1373.41,62.17,3225,4.99,0,2001,North America,Private
+Startup_308,AI,5,89.86,792.14,55.96,544,2.9,0,2011,Europe,Private
+Startup_309,Cybersecurity,3,252.06,3037.59,62.86,4922,7.89,0,1995,South America,Private
+Startup_310,EdTech,3,231.96,2420.26,53.31,1466,4.03,0,2011,North America,IPO
+Startup_311,HealthTech,3,69.4,455.84,63.55,360,5.18,0,2003,Asia,Acquired
+Startup_312,HealthTech,3,39.83,325.17,45.04,3609,2.61,1,2005,North America,Private
+Startup_313,AI,2,260.48,1314.9,21.92,3328,9.88,1,2014,South America,Acquired
+Startup_314,E-Commerce,4,288.99,1125.78,12.11,239,2.99,1,2021,Australia,Private
+Startup_315,E-Commerce,5,9.88,122.44,6.93,1553,7.73,1,2022,Australia,Private
+Startup_316,EdTech,1,219.52,1357.65,26.41,2101,4.33,1,2009,South America,Private
+Startup_317,AI,4,272.9,1400.85,4.71,4218,2.14,0,2007,Europe,Private
+Startup_318,HealthTech,3,257.28,2907.11,56.76,2106,8.02,0,1992,Europe,Acquired
+Startup_319,E-Commerce,4,289.37,3014.26,28.45,1678,3.4,1,2012,Australia,Private
+Startup_320,AI,5,228.15,2418.0,82.47,2105,8.67,1,2021,Australia,Private
+Startup_321,IoT,1,132.97,764.14,7.52,3662,9.16,1,2005,South America,Private
+Startup_322,E-Commerce,1,93.93,544.02,22.71,4658,8.61,1,1994,Europe,Private
+Startup_323,Cybersecurity,5,96.56,545.53,73.05,3601,0.45,0,1993,Australia,Private
+Startup_324,IoT,5,217.46,1105.79,59.92,3753,7.89,1,2010,Europe,Private
+Startup_325,Gaming,3,223.88,2433.28,6.54,3178,4.17,1,2003,Australia,Private
+Startup_326,E-Commerce,1,60.51,797.29,87.74,1820,8.75,0,2020,North America,Acquired
+Startup_327,HealthTech,4,260.5,3045.72,87.74,3846,6.42,1,2003,Asia,Private
+Startup_328,FinTech,2,214.62,2683.85,33.11,2010,8.35,0,1995,North America,Private
+Startup_329,IoT,2,169.04,1328.25,34.11,4498,5.04,1,2001,Australia,Private
+Startup_330,Gaming,5,141.72,1537.51,98.9,679,5.4,1,2005,Asia,Private
+Startup_331,EdTech,3,163.2,1183.34,62.65,391,1.53,0,2006,Asia,Private
+Startup_332,EdTech,2,48.19,448.46,53.18,2163,7.86,1,2012,Australia,Private
+Startup_333,HealthTech,1,61.51,540.03,83.83,2666,4.25,0,2003,Australia,Private
+Startup_334,E-Commerce,5,27.8,142.41,28.6,2069,5.05,1,1996,Europe,Acquired
+Startup_335,AI,4,46.52,355.64,42.98,3856,7.87,0,2021,Australia,Private
+Startup_336,E-Commerce,5,136.38,1986.49,26.85,3258,6.03,1,2004,South America,Acquired
+Startup_337,HealthTech,4,159.34,953.33,78.94,4984,2.09,0,2006,Australia,Acquired
+Startup_338,EdTech,5,5.85,26.94,57.38,4641,5.94,1,1994,South America,Private
+Startup_339,E-Commerce,5,239.14,1918.61,65.92,4271,4.14,0,2016,Australia,Private
+Startup_340,EdTech,5,88.6,1106.09,25.31,744,4.75,1,2012,Europe,Private
+Startup_341,IoT,4,273.59,2732.01,22.1,1406,0.38,1,2003,South America,IPO
+Startup_342,Gaming,4,290.27,3242.81,48.89,3264,2.18,1,2004,North America,Private
+Startup_343,AI,5,56.04,295.69,73.78,2282,2.88,1,2022,South America,Private
+Startup_344,IoT,2,138.9,1448.36,52.57,3909,7.16,1,2020,Europe,Private
+Startup_345,EdTech,3,0.87,5.99,3.36,3928,0.21,0,2006,South America,Private
+Startup_346,EdTech,3,179.7,2338.19,86.87,4219,4.15,0,2017,Australia,Private
+Startup_347,FinTech,3,182.39,1924.5,6.56,3232,9.25,0,2008,Australia,Private
+Startup_348,FinTech,4,74.64,402.03,95.59,2836,1.21,1,2012,Europe,Private
+Startup_349,IoT,4,167.74,633.29,2.61,3763,5.21,1,2021,Asia,Acquired
+Startup_350,Cybersecurity,2,68.05,238.96,69.48,2517,7.89,0,2002,Australia,Private
+Startup_351,IoT,3,48.67,362.93,8.31,2156,9.43,1,2009,North America,Private
+Startup_352,FinTech,3,195.63,1210.99,91.08,3680,7.49,1,1994,Europe,Private
+Startup_353,EdTech,5,98.11,1054.98,46.5,2750,7.23,1,1998,South America,Acquired
+Startup_354,HealthTech,4,177.28,1594.1,13.84,3871,8.28,0,2018,South America,Private
+Startup_355,IoT,3,130.26,806.6,34.15,3769,4.52,0,1995,North America,Private
+Startup_356,EdTech,2,295.31,1414.79,16.57,2227,8.08,0,2014,Australia,Private
+Startup_357,HealthTech,2,45.3,205.05,17.14,2797,0.18,1,2020,Europe,Acquired
+Startup_358,HealthTech,3,139.65,1867.95,94.82,1702,9.25,0,2011,North America,Private
+Startup_359,FinTech,4,204.3,1209.81,44.58,3467,4.49,0,1991,Australia,Private
+Startup_360,IoT,2,118.97,1287.32,78.9,4068,5.58,1,1994,Europe,Private
+Startup_361,E-Commerce,5,292.42,3721.99,64.0,1529,2.62,1,2016,South America,IPO
+Startup_362,AI,2,216.71,2247.06,67.67,4765,7.45,1,2014,Europe,Private
+Startup_363,FinTech,1,197.27,2626.61,13.26,37,0.86,0,1997,Asia,Private
+Startup_364,FinTech,1,227.24,1751.73,23.5,4030,8.74,0,1990,Europe,Acquired
+Startup_365,E-Commerce,4,285.82,4137.15,78.7,2571,8.3,1,2009,Asia,Acquired
+Startup_366,AI,3,272.39,1252.38,97.08,2808,2.24,0,2012,Europe,Private
+Startup_367,EdTech,4,217.42,918.77,26.34,3901,8.11,0,2021,Asia,IPO
+Startup_368,Cybersecurity,4,224.87,2452.05,27.23,3714,7.88,0,2000,South America,Acquired
+Startup_369,IoT,4,44.2,632.68,47.34,724,6.36,0,2013,Australia,Private
+Startup_370,Cybersecurity,4,31.29,397.59,98.39,4584,3.8,0,2000,Asia,Private
+Startup_371,EdTech,5,171.49,671.73,26.97,977,2.79,0,2018,Asia,Acquired
+Startup_372,Gaming,5,6.0,38.11,40.76,3723,2.39,0,2015,South America,Private
+Startup_373,FinTech,2,144.97,2053.33,89.16,4407,3.25,0,2005,Asia,Acquired
+Startup_374,AI,1,63.5,383.33,0.39,4557,9.05,1,2009,North America,Acquired
+Startup_375,FinTech,4,104.13,1288.51,4.07,2212,0.87,0,1992,South America,Acquired
+Startup_376,HealthTech,2,232.85,3004.13,60.45,4431,8.31,1,1990,North America,Private
+Startup_377,FinTech,1,282.4,2526.19,90.75,4325,3.55,0,1990,South America,Acquired
+Startup_378,FinTech,3,22.19,169.45,23.96,3035,5.26,0,2006,Asia,Acquired
+Startup_379,EdTech,5,160.51,1348.52,47.02,3580,7.97,1,1991,North America,Private
+Startup_380,EdTech,1,264.82,1515.72,45.1,3121,8.86,0,2018,Asia,Private
+Startup_381,EdTech,3,25.21,344.69,47.35,3290,3.51,0,2009,South America,IPO
+Startup_382,Cybersecurity,1,247.44,2080.34,62.29,648,4.67,0,1995,Asia,Private
+Startup_383,HealthTech,5,107.66,1463.05,47.03,4716,4.2,1,1997,North America,Acquired
+Startup_384,Gaming,5,96.97,413.9,44.8,199,0.23,0,2018,North America,Private
+Startup_385,Gaming,2,293.25,4357.49,47.48,4001,3.03,0,2022,Asia,Private
+Startup_386,EdTech,4,60.66,504.65,59.13,493,4.65,1,1992,Europe,Private
+Startup_387,AI,1,208.11,743.78,53.75,2209,4.17,0,1994,South America,Private
+Startup_388,Cybersecurity,1,246.52,852.04,85.43,2662,7.25,0,2016,South America,Private
+Startup_389,E-Commerce,3,12.83,153.38,5.04,3281,3.91,0,2001,Asia,Acquired
+Startup_390,AI,5,201.28,2195.65,83.35,1107,4.94,1,2009,Europe,Private
+Startup_391,IoT,1,285.49,3604.47,84.41,1246,4.35,0,2009,North America,Acquired
+Startup_392,IoT,5,37.7,160.77,28.56,520,7.43,0,1998,Australia,Private
+Startup_393,AI,1,268.92,921.55,46.34,397,8.64,0,1993,Australia,Private
+Startup_394,EdTech,2,178.64,1626.15,43.91,635,5.37,1,2008,Asia,Private
+Startup_395,E-Commerce,4,185.17,1416.76,21.93,3721,7.92,0,2016,Europe,Private
+Startup_396,E-Commerce,1,184.08,1572.66,39.74,1852,3.04,1,2002,Europe,Private
+Startup_397,Cybersecurity,5,90.0,1340.92,4.53,2660,5.46,0,2002,South America,Private
+Startup_398,E-Commerce,2,280.59,4110.36,27.85,984,3.52,1,2011,North America,IPO
+Startup_399,IoT,1,284.23,4066.7,81.69,4534,4.2,1,2017,Europe,Private
+Startup_400,HealthTech,3,187.78,2329.62,28.53,3407,7.35,0,2011,Australia,Private
+Startup_401,EdTech,4,235.14,1706.67,81.84,3876,8.83,0,2008,North America,Private
+Startup_402,E-Commerce,1,183.87,1460.95,53.21,282,1.3,0,1997,North America,Private
+Startup_403,Cybersecurity,2,145.58,1396.9,88.0,237,6.38,0,1997,Asia,IPO
+Startup_404,IoT,3,198.42,2572.8,57.52,1557,5.86,1,2015,Europe,Private
+Startup_405,HealthTech,2,166.12,635.33,3.06,3275,1.27,0,2015,Asia,Private
+Startup_406,FinTech,2,179.44,1451.95,67.57,2414,2.2,0,2012,Europe,Acquired
+Startup_407,FinTech,3,235.26,939.02,4.58,3517,3.18,0,2002,South America,Private
+Startup_408,HealthTech,2,144.53,1326.19,45.11,30,1.75,1,2017,Asia,Private
+Startup_409,IoT,3,12.71,175.23,92.95,465,2.51,0,1998,Asia,Private
+Startup_410,Cybersecurity,1,49.62,614.78,16.6,3769,2.75,0,2009,Australia,Private
+Startup_411,HealthTech,3,131.86,756.1,39.05,3436,3.42,0,2008,Asia,IPO
+Startup_412,EdTech,3,217.59,3201.16,73.01,3488,7.52,1,2001,Europe,Private
+Startup_413,EdTech,4,178.19,1961.55,88.24,1999,5.76,1,2004,Australia,Private
+Startup_414,FinTech,3,195.26,610.21,67.13,495,9.86,0,2020,Asia,Private
+Startup_415,E-Commerce,3,144.04,873.6,25.89,1077,4.21,0,2003,Asia,Private
+Startup_416,Cybersecurity,1,184.91,1133.23,67.49,3178,7.56,0,2000,South America,Acquired
+Startup_417,FinTech,4,99.04,379.43,29.74,220,8.73,0,2015,Asia,Acquired
+Startup_418,E-Commerce,5,141.32,2051.67,71.87,1728,6.82,1,2016,North America,Private
+Startup_419,E-Commerce,1,223.41,1952.39,95.41,1597,4.18,1,2000,Australia,Private
+Startup_420,Gaming,1,261.61,3597.08,72.17,2611,7.56,0,2008,North America,Private
+Startup_421,EdTech,5,130.38,895.27,86.3,163,2.12,1,1995,Australia,Acquired
+Startup_422,IoT,3,13.58,61.15,0.31,4786,3.34,0,2017,South America,Private
+Startup_423,AI,2,48.92,425.21,71.79,3318,5.51,1,1990,Asia,Private
+Startup_424,IoT,4,6.75,29.48,82.98,2846,5.8,1,1997,Asia,Private
+Startup_425,AI,2,196.15,1732.43,4.15,1781,0.32,0,1996,Asia,Acquired
+Startup_426,HealthTech,5,100.03,1404.78,87.17,2057,9.46,1,2000,Australia,Private
+Startup_427,EdTech,1,162.97,1507.35,25.74,2300,7.0,0,1993,Asia,Private
+Startup_428,E-Commerce,1,148.24,1541.4,66.56,1701,5.01,0,2014,North America,Private
+Startup_429,Cybersecurity,4,24.92,121.6,80.06,2998,9.34,0,2001,Asia,Private
+Startup_430,AI,1,121.28,427.49,66.3,2474,4.45,0,2015,South America,Private
+Startup_431,IoT,1,66.56,288.18,9.32,1951,9.81,1,2001,North America,Private
+Startup_432,E-Commerce,4,125.81,1281.05,59.67,3814,5.17,1,2013,Asia,Private
+Startup_433,AI,4,61.47,254.49,55.0,2788,1.23,1,2005,Asia,Acquired
+Startup_434,AI,5,252.22,1894.66,90.04,3649,7.67,1,2002,Europe,Private
+Startup_435,Gaming,1,52.67,505.69,40.48,2505,6.82,1,2014,Australia,IPO
+Startup_436,AI,1,288.25,2209.1,32.18,3650,7.75,0,1993,North America,Private
+Startup_437,Cybersecurity,5,125.06,620.82,75.01,2650,9.52,0,2000,Europe,Private
+Startup_438,EdTech,3,253.95,1596.2,41.33,2354,7.79,0,2021,South America,Private
+Startup_439,Cybersecurity,3,188.82,2669.88,64.65,1937,6.15,1,1996,Australia,Private
+Startup_440,FinTech,3,220.74,2452.82,64.68,3299,8.59,1,2000,North America,Acquired
+Startup_441,E-Commerce,5,230.43,2062.94,88.82,1762,6.77,0,2017,Asia,Private
+Startup_442,EdTech,1,151.7,478.25,59.91,1121,4.14,1,2012,North America,Private
+Startup_443,Gaming,5,163.22,2433.44,50.27,2572,8.87,1,2012,Asia,IPO
+Startup_444,EdTech,5,154.44,1707.71,13.97,3504,2.3,0,2017,Australia,Private
+Startup_445,EdTech,3,176.62,1201.56,11.66,497,7.17,0,2015,Asia,Acquired
+Startup_446,IoT,2,9.3,126.03,15.52,3311,8.83,0,2014,South America,Private
+Startup_447,EdTech,1,118.96,725.8,17.27,624,7.34,0,2018,Asia,Private
+Startup_448,Gaming,3,182.05,1734.61,63.82,3237,7.0,0,2008,South America,Acquired
+Startup_449,Cybersecurity,2,179.52,1908.81,74.12,3828,7.55,0,2022,Australia,Private
+Startup_450,EdTech,2,237.99,1345.3,53.05,2385,4.7,0,2003,Australia,IPO
+Startup_451,HealthTech,4,196.68,2899.21,82.92,1551,8.75,0,2003,North America,Acquired
+Startup_452,E-Commerce,1,297.64,3565.22,99.13,4963,2.11,1,2019,South America,IPO
+Startup_453,EdTech,2,85.51,828.91,82.02,3568,1.36,0,2017,South America,Private
+Startup_454,E-Commerce,3,108.07,558.41,69.52,1610,2.93,1,2006,Europe,Private
+Startup_455,HealthTech,4,115.46,421.0,53.3,3757,5.36,0,1992,Europe,Private
+Startup_456,HealthTech,1,140.01,957.77,44.94,4680,5.15,0,2005,Europe,Acquired
+Startup_457,E-Commerce,5,250.88,3020.16,8.53,1895,8.22,1,2019,Asia,Acquired
+Startup_458,AI,3,71.12,443.22,40.0,1280,4.11,0,2018,Europe,Private
+Startup_459,FinTech,2,232.91,2206.75,91.02,2748,4.9,0,2004,South America,Private
+Startup_460,IoT,2,121.89,1430.42,80.82,2498,0.23,1,2014,Asia,Private
+Startup_461,AI,3,180.76,776.42,21.68,361,4.16,0,2012,Australia,Acquired
+Startup_462,AI,2,189.95,2131.92,46.71,874,6.51,0,2014,North America,Private
+Startup_463,Cybersecurity,4,112.17,460.17,81.69,890,0.25,0,1996,Europe,Private
+Startup_464,IoT,1,154.03,2246.0,6.83,2006,2.88,0,2011,Australia,Private
+Startup_465,IoT,4,124.2,1100.5,38.8,1288,2.16,0,2006,South America,Private
+Startup_466,AI,2,21.21,101.98,85.2,624,0.52,0,2007,North America,Acquired
+Startup_467,EdTech,5,131.43,934.28,40.45,887,4.84,1,1999,Australia,Private
+Startup_468,Cybersecurity,1,29.67,236.2,7.85,801,1.9,1,1999,North America,Private
+Startup_469,Cybersecurity,1,121.8,1473.56,54.3,3647,7.46,1,1996,Europe,Private
+Startup_470,HealthTech,3,178.08,2122.91,86.19,3430,8.49,1,2016,South America,Private
+Startup_471,Gaming,3,174.03,1800.04,59.07,1301,5.5,1,2022,North America,Private
+Startup_472,IoT,5,198.96,849.79,22.71,4719,9.82,0,1990,Australia,Private
+Startup_473,AI,1,29.03,139.89,38.49,249,4.56,1,1993,Europe,IPO
+Startup_474,HealthTech,5,195.81,807.73,45.07,2900,5.18,1,2006,Europe,Private
+Startup_475,E-Commerce,3,93.99,932.95,57.97,934,9.89,1,1993,Australia,Private
+Startup_476,FinTech,3,120.01,1623.21,75.96,524,2.39,0,2015,Australia,Private
+Startup_477,Gaming,1,257.47,2112.7,9.98,3217,9.43,0,1993,North America,Private
+Startup_478,Gaming,4,3.2,15.78,88.98,2414,0.52,0,1990,Asia,IPO
+Startup_479,Gaming,2,176.73,1713.66,1.33,12,4.52,1,1996,Europe,Private
+Startup_480,Cybersecurity,3,179.81,2290.96,37.07,2530,0.79,0,2019,North America,Private
+Startup_481,E-Commerce,3,119.3,1419.73,2.84,3428,7.32,1,1998,Australia,Acquired
+Startup_482,Gaming,4,71.49,970.65,39.36,2024,6.12,0,1997,North America,Private
+Startup_483,E-Commerce,4,70.78,448.38,52.63,4595,7.1,0,2013,Australia,IPO
+Startup_484,EdTech,5,265.17,1412.68,51.22,4287,3.81,0,2008,South America,Private
+Startup_485,Gaming,5,132.89,1801.7,16.65,3672,3.76,0,2016,Australia,Private
+Startup_486,FinTech,2,99.6,1084.72,64.61,3676,0.55,0,2021,Australia,Private
+Startup_487,E-Commerce,2,134.91,908.1,4.57,2806,3.56,0,2003,Australia,Private
+Startup_488,E-Commerce,1,200.98,2393.31,76.21,90,9.3,1,2007,Asia,Private
+Startup_489,FinTech,5,44.15,564.3,94.67,3120,3.85,0,2017,Australia,Private
+Startup_490,Gaming,3,135.11,1402.41,34.04,4237,8.33,0,2018,Europe,Private
+Startup_491,FinTech,5,176.57,1987.23,51.77,2473,8.44,1,2005,Europe,Private
+Startup_492,E-Commerce,3,284.6,2135.39,37.95,3624,3.8,1,2020,North America,Private
+Startup_493,FinTech,4,76.13,720.52,0.77,1641,6.36,1,1993,Asia,Acquired
+Startup_494,E-Commerce,5,108.1,1004.24,38.65,3588,1.04,0,2006,North America,Private
+Startup_495,E-Commerce,4,114.12,1503.71,79.19,4014,1.13,1,2015,Europe,IPO
+Startup_496,EdTech,2,181.86,2378.65,59.64,3331,0.58,1,1993,Europe,Private
+Startup_497,AI,2,107.34,1394.58,10.22,2223,5.85,0,2019,South America,Private
+Startup_498,E-Commerce,1,160.29,502.09,84.73,2222,4.32,0,2019,Australia,Private
+Startup_499,Gaming,5,234.65,2814.52,53.16,4972,5.53,0,2011,Europe,Private
+Startup_500,HealthTech,4,211.76,2563.17,84.19,2374,5.26,0,2000,North America,Private
