@@ -7,18 +7,18 @@ from preswald.engine.service import PreswaldService
 pw.text("# Weather Data Visualization")
 pw.text("## Explore temperature extremes in daily weather data")
 
-# Load dataset
+
 pw.connect()
 df = pw.get_df('weather_csv')
 
 df["date"] = pd.to_datetime(df["date"], format="%d-%m-%Y")
-df["year"] = df["date"].dt.year.astype(str)  # Ensure year is categorical
-df["day_month"] = df["date"].dt.strftime("%d-%m-00")  # Pre-computed column
+df["year"] = df["date"].dt.year.astype(str)
+df["day_month"] = df["date"].dt.strftime("%d-%m-00") 
 
-# Initialize Preswald Service
+
 service = PreswaldService.get_instance()
 
-# UI Components
+
 selected_country = pw.selectbox("Select Country", options=df["country"].unique().tolist())
 filtered_df = df[df["country"] == selected_country]
 selected_city = pw.selectbox("Select City", options=filtered_df["city"].unique().tolist())
@@ -28,7 +28,7 @@ for year in sorted(df["year"].unique().tolist()):
     if cb:
         selected_years.append(year)
 
-# Function to reshape data
+
 def reshape_data():
     city = selected_city
     years = selected_years
@@ -47,29 +47,28 @@ def reshape_data():
         fd_min[y] = fd_min["day_month"].map(yearly_data["tmin"].to_dict())
         fd_max[y] = fd_max["day_month"].map(yearly_data["tmax"].to_dict())
 
-    # fd_min.columns = fd_min.columns.astype(str)
-    # fd_max.columns = fd_max.columns.astype(str)
+
 
     return fd_min, fd_max
 
-# Function to update plots
+
 def update_plots():
     min_temp_df, max_temp_df = reshape_data()
 
     if min_temp_df is None or max_temp_df is None:
         return
 
-    # Melt dataframes for plotly
+
     fig = px.line(
         min_temp_df,
         x="day_month",
-        y=selected_years,  # Plot all year columns directly
+        y=selected_years,
         title="...",
         labels={"value": "Min Temperature (°C)", "day_month": "Date (dd-mm)"}
     )
     fig.update_xaxes(type="category")
     service.append_component(pw.plotly(fig)) 
 
-# Assemble UI
+
 service.append_component(pw.button("Update Plots", size=1.0))
 update_plots()
