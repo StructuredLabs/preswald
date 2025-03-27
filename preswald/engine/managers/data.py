@@ -349,6 +349,14 @@ class DataManager:
                     cfg = CSVConfig(path=source_config["path"])
                     self.sources[name] = CSVSource(name, cfg, self.duckdb_conn)
 
+                elif source_type == "json":
+                    cfg = JSONConfig(
+                        path=source_config["path"],
+                        record_path=source_config.get("record_path"),
+                        flatten=source_config.get("flatten", True),
+                    )
+                    self.sources[name] = JSONSource(name, cfg, self.duckdb_conn)
+
                 elif source_type == "postgres":
                     cfg = PostgresConfig(
                         host=source_config["host"],
