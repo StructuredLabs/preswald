@@ -34,7 +34,7 @@
     "@shadcn/ui": "^0.0.4",
     "@tailwindcss/typography": "^0.5.10",
     "@types/dagre": "^0.7.52",
-    "ag-grid-react": "^33.2.1",
+    "ag-grid-react": "^32.3.4",
     "class-variance-authority": "^0.7.1",
     "classnames": "^2.5.1",
     "clsx": "^2.1.1",

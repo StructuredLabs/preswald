@@ -212,13 +212,13 @@ const MemoizedComponent = memo(
         return (
           <TableViewerWidget
             {...commonProps}
-            data={component.data || []}
+            rowData={component.data || []}
             title={component.title || 'Table Viewer'}
             variant={component.variant || 'default'}
-            showTitle={component.showTitle !== undefined ? component.showTitle : true}
-            striped={component.striped !== undefined ? component.striped : true}
-            dense={component.dense !== undefined ? component.dense : false}
-            hoverable={component.hoverable !== undefined ? component.hoverable : true}
+            showTitle={component.showTitle ?? true}
+            striped={component.striped ?? true}
+            dense={component.dense ?? false}
+            hoverable={component.hoverable ?? true}
             className={component.className}
           />
         );
