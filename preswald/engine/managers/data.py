@@ -42,6 +42,13 @@ class CSVConfig:
 
 
 @dataclass
+class JSONConfig:
+    path: str
+    record_path: Optional[str] = None
+    flatten: bool = True
+
+
+@dataclass
 class APIConfig:
     """Configuration for API connection"""
 
