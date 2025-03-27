@@ -147,6 +147,20 @@ class CSVSource(DataSource):
         """Get entire CSV as a DataFrame"""
         return self._duckdb.execute(f"SELECT * FROM {self._table_name}").df()
 
+class JSONSource(DataSource):
+    def __init__(self, name: str, config: JSONConfig, duckdb_conn: duckdb.DuckDBPyConnection):
+        super().__init__(name, duckdb_conn)
+        from preswald.engine.managers.data import load_json_source
+
+        df = load_json_source(config.__dict__)
+        self._table_name = f"json_{name}_{uuid.uuid4().hex[:8]}"
+        self._duckdb.execute(f"CREATE TABLE {self._table_name} AS SELECT * FROM df")
+
+    def query(self, sql: str) -> pd.DataFrame:
+        return self._duckdb.execute(sql.replace(self.name, self._table_name)).df()
+
+    def to_df(self) -> pd.DataFrame:
+        return self._duckdb.execute(f"SELECT * FROM {self._table_name}").df()
 
 class PostgresSource(DataSource):
     def __init__(
