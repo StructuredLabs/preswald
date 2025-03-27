@@ -1,3 +1,5 @@
+'use server'
+
 const createChatCompletion = async (messages, source, systemContext = null) => {
   // For demo/development, you might want to use a hardcoded API key
   const apiKey = process.env.REACT_APP_OPENAI_API_KEY;
