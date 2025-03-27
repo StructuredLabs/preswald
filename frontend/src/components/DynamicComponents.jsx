@@ -1,24 +1,29 @@
 import React, { memo } from 'react';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import MatplotlibWidget from '@/components/widgets/MatplotlibWidget';
 
 import { cn } from '@/lib/utils';
 
 // Import all widgets
 import AlertWidget from './widgets/AlertWidget';
 import ButtonWidget from './widgets/ButtonWidget';
+import ChatWidget from './widgets/ChatWidget';
 import CheckboxWidget from './widgets/CheckboxWidget';
 import ConnectionInterfaceWidget from './widgets/ConnectionInterfaceWidget';
 import DAGVisualizationWidget from './widgets/DAGVisualizationWidget';
 import DataVisualizationWidget from './widgets/DataVisualizationWidget';
+import FastplotlibWidget from './widgets/FastplotlibWidget';
 import ImageWidget from './widgets/ImageWidget';
 import MarkdownRendererWidget from './widgets/MarkdownRendererWidget';
 import ProgressWidget from './widgets/ProgressWidget';
 import SelectboxWidget from './widgets/SelectboxWidget';
+import SidebarWidget from './widgets/SidebarWidget';
 import SliderWidget from './widgets/SliderWidget';
 import SpinnerWidget from './widgets/SpinnerWidget';
 import TableViewerWidget from './widgets/TableViewerWidget';
 import TextInputWidget from './widgets/TextInputWidget';
+import TopbarWidget from './widgets/TopbarWidget';
 import UnknownWidget from './widgets/UnknownWidget';
 
 // Error boundary component
@@ -53,7 +58,15 @@ class ErrorBoundary extends React.Component {
 
 // Memoized component wrapper
 const MemoizedComponent = memo(
-  ({ component, index, handleUpdate }) => {
+  ({
+    component,
+    index,
+    handleUpdate,
+    sidebarOpen,
+    setSidebarOpen,
+    isCollapsed,
+    setIsCollapsed,
+  }) => {
     const componentId = component.id || `component-${index}`;
     const commonProps = {
       key: componentId,
@@ -62,6 +75,9 @@ const MemoizedComponent = memo(
     };
 
     switch (component.type) {
+      case 'sidebar':
+        return <SidebarWidget defaultOpen={component.defaultopen} />;
+
       case 'button':
         return (
           <ButtonWidget
@@ -75,6 +91,9 @@ const MemoizedComponent = memo(
             className={component.className}
           />
         );
+
+      case 'matplotlib':
+        return <MatplotlibWidget {...commonProps} image={component.image} />;
 
       case 'slider':
         return (
@@ -111,6 +130,9 @@ const MemoizedComponent = memo(
             className={component.className}
           />
         );
+
+      case 'topbar':
+        return <TopbarWidget {...commonProps} />;
 
       case 'checkbox':
         return (
@@ -200,6 +222,20 @@ const MemoizedComponent = memo(
           />
         );
 
+      case 'chat':
+        return (
+          <ChatWidget
+            {...commonProps}
+            sourceId={component.config?.source || null}
+            sourceData={component.config?.data || null}
+            value={component.value || component.state || { messages: [] }}
+            onChange={(value) => {
+              handleUpdate(componentId, value);
+            }}
+            className={component.className}
+          />
+        );
+
       case 'table':
         return (
           <TableViewerWidget
@@ -236,6 +272,16 @@ const MemoizedComponent = memo(
 
       case 'dag':
         return <DAGVisualizationWidget {...commonProps} data={component.data || {}} />;
+
+      case 'fastplotlib_component':
+        return (
+          <FastplotlibWidget
+            {...commonProps}
+            data={component.data}
+            config={component.config}
+            className={component.className}
+          />
+        );
 
       default:
         console.warn(`[DynamicComponents] Unknown component type: ${component.type}`);

@@ -1,6 +1,14 @@
 /* app.css */
+.main-content-collapsed-sidebar {
+  @apply lg:pl-20 transition-all duration-300;
+}
+
+.main-content-open-sidebar {
+  @apply lg:pl-80 transition-all duration-300;
+}
+
 .topbar {
-  @apply sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-background px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8;
+  @apply fixed top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-background -mx-8 sm:-mx-10 lg:-mx-12 shadow-sm w-full;
 }
 
 .mobile-menu-button {
@@ -118,11 +126,19 @@
 }
 
 .sidebar-desktop-collapsed {
-  @apply lg:w-20;
+  @apply lg:w-20 pt-6 items-center gap-y-4;
+}
+
+.sidebar-desktop-collapsed .sidebar-header {
+  @apply justify-center items-center;
 }
 
 .sidebar-desktop-expanded {
   @apply lg:w-80;
+}
+
+.sidebar-desktop-expanded .desktop-collapse-button {
+  @apply fixed top-6 right-2;
 }
 
 .sidebar-desktop-content {

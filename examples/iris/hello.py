@@ -1,6 +1,9 @@
+
+import matplotlib.pyplot as plt
+import numpy as np
 import plotly.express as px
 
-from preswald import connect, get_df, plotly, table, text
+from preswald import chat, connect, get_df, matplotlib, plotly, sidebar, table, text
 
 
 # Report Title
@@ -11,6 +14,8 @@ text(
 # Load the CSV
 connect()  # Load in all sources, which by default is the iris_csv
 df = get_df("iris_csv")
+
+sidebar(defaultopen=True)
 
 # 1. Scatter plot - Sepal Length vs Sepal Width
 text(
@@ -79,8 +84,27 @@ fig10 = px.density_contour(
 fig10.update_layout(template="plotly_white")
 plotly(fig10)
 
+
 # Show the first 10 rows of the dataset
 text(
     "## Sample of the Iris Dataset \n Below is a preview of the first 10 rows of the dataset, showing key measurements for each iris species."
 )
 table(df, limit=10)
+
+# Create a simple sine wave plot
+x = np.linspace(0, 10, 100)
+y = np.sin(x)
+
+fig, ax = plt.subplots()
+ax.plot(x, y)
+ax.set_title("Sine Wave Test")
+
+# Render Matplotlib figure in the Preswald app
+matplotlib(fig)
+
+# Add an interactive chat interface
+text(
+    "## Interactive Chat Interface\nUse this chat interface to ask questions about the iris dataset analysis. You can inquire about specific patterns, request explanations of the visualizations, or ask for additional insights."
+)
+
+chat("iris_csv")

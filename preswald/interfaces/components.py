@@ -1,11 +1,15 @@
+import base64
 import hashlib
+import io
 import json
 import logging
 import uuid
 from typing import Dict, List, Optional
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from PIL import Image
 
 from preswald.engine.service import PreswaldService
 from preswald.interfaces.workflow import Workflow
@@ -49,6 +53,61 @@ def button(label: str, size: float = 1.0):
     return component
 
 
+def chat(source: str, table: Optional[str] = None) -> Dict:
+    """Create a chat component to chat with data source"""
+    service = PreswaldService.get_instance()
+
+    # Create a consistent ID based on the source
+    component_id = f"chat-{hashlib.md5(str(source).encode()).hexdigest()[:8]}"
+
+    # Get current state or initialize empty
+    current_state = service.get_component_state(component_id)
+    if current_state is None:
+        current_state = {"messages": [], "source": source}
+
+    # Get dataframe from source
+    df = (
+        service.data_manager.get_df(source)
+        if table is None
+        else service.data_manager.get_df(source, table)
+    )
+
+    # Convert DataFrame to serializable format
+    serializable_data = None
+    if df is not None:
+        records = df.to_dict("records")
+        # Handle timestamp fields before general serialization
+        processed_records = []
+        for record in records:
+            processed_record = {}
+            for key, value in record.items():
+                if isinstance(value, (pd.Timestamp, pd.NaT.__class__)):
+                    processed_record[key] = (
+                        value.isoformat() if not pd.isna(value) else None
+                    )
+                else:
+                    processed_record[key] = value
+            processed_records.append(processed_record)
+        serializable_data = convert_to_serializable(processed_records)
+
+    logger.debug(f"Creating chat component with id {component_id}, source: {source}")
+    component = {
+        "type": "chat",
+        "id": component_id,
+        "state": {
+            "messages": current_state.get("messages", []),
+        },
+        "config": {
+            "source": source,
+            "data": serializable_data,
+        },
+    }
+
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+    return component
+
+
 def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
     """Create a checkbox component with consistent ID based on label."""
     service = PreswaldService.get_instance()
@@ -74,6 +133,42 @@ def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
     return current_value
 
 
+def fastplotlib(fig, size: float = 1.0) -> dict:
+    """
+    Render a Fastplotlib figure.
+
+    Args:
+        fig (fplt.Figure): A Fastplotlib figure object.
+    """
+    service = PreswaldService.get_instance()
+
+    fig.show()
+    for subplot in fig:
+        subplot.viewport.render(subplot.scene, subplot.camera)
+
+    fig.renderer.flush()
+    img = np.asarray(fig.renderer.target.draw())
+    rgb = img[..., :-1].round().astype(np.uint8)
+    height, width = rgb.shape[:2]  # Get dimensions
+
+    with io.BytesIO() as buffer:
+        Image.fromarray(rgb).save(buffer, format="PNG")
+        img_bytes = buffer.getvalue()
+
+    component_id = generate_id("fastplotlib")
+    component = {
+        "type": "fastplotlib_component",
+        "id": component_id,
+        "data": img_bytes.hex(),
+        "width": width,
+        "height": height,
+        "size": size,
+    }
+
+    service.append_component(component)
+    return component
+
+
 # TODO: requires testing
 def image(src, alt="Image", size=1.0):
     """Create an image component."""
@@ -84,6 +179,35 @@ def image(src, alt="Image", size=1.0):
     logger.debug(f"Created component: {component}")
     service.append_component(component)
     return component
+
+
+def matplotlib(fig: Optional[plt.Figure] = None, label: str = "plot") -> str:
+    """Render a Matplotlib figure as a component."""
+    service = PreswaldService.get_instance()
+
+    if fig is None:
+        fig, ax = plt.subplots()
+        ax.plot([0, 1, 2], [0, 1, 4])
+
+    # Save the figure as a base64-encoded PNG
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png")
+    buf.seek(0)
+    img_b64 = base64.b64encode(buf.read()).decode()
+
+    # Generate a unique component ID based on the label
+    component_id = f"matplotlib-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+
+    component = {
+        "type": "matplotlib",
+        "id": component_id,
+        "label": label,
+        "image": img_b64,  # Store the image data
+    }
+
+    service.append_component(component)
+
+    return component_id  # Returning ID for potential tracking
 
 
 def plotly(fig, size: float = 1.0) -> Dict:  # noqa: C901
@@ -327,6 +451,17 @@ def spinner(label: str, size: float = 1.0):
     return component
 
 
+def sidebar(defaultopen: bool):
+    """Create a sidebar component."""
+    service = PreswaldService.get_instance()
+    id = generate_id("sidebar")
+    logger.debug(f"Creating sidebar component with id {id}")
+    component = {"type": "sidebar", "id": id, "defaultopen": defaultopen}
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+    return component
+
+
 def table(  # noqa: C901
     data: pd.DataFrame, title: Optional[str] = None, limit: Optional[int] = None
 ) -> Dict:
@@ -457,6 +592,17 @@ def text_input(label: str, placeholder: str = "", size: float = 1.0) -> str:
     logger.debug(f"Created component: {component}")
     service.append_component(component)
     return current_value
+
+
+def topbar() -> Dict:
+    """Creates a topbar component."""
+    service = PreswaldService.get_instance()
+    id = generate_id("topbar")
+    logger.debug(f"Creating topbar component with id {id}")
+    component = {"type": "topbar", "id": id}
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+    return component
 
 
 def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -> Dict:

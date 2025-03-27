@@ -65,6 +65,7 @@
               "sdk/table",
               "sdk/text",
               "sdk/text_input",
+              "sdk/topbar",
               "sdk/workflow_dag"
             ]
           },

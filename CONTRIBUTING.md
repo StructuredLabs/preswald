@@ -57,8 +57,14 @@ We recommend using Conda to manage dependencies:
 
 ### 3. Build the Frontend
 
+Build the frontend once
 ```bash
 python setup.py build_frontend
+```
+
+Or use watch mode to monitor changes and auto-rebuild
+```bash
+python setup.py build_frontend --watch
 ```
 
 ### 4. Run the Example App
