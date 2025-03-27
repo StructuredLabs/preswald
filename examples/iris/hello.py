@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import plotly.express as px
 
-from preswald import connect, get_df, matplotlib, plotly, sidebar, table, text
+from preswald import chat, connect, get_df, matplotlib, plotly, sidebar, table, text
 
 
 # Report Title
@@ -101,3 +101,10 @@ ax.set_title("Sine Wave Test")
 
 # Render Matplotlib figure in the Preswald app
 matplotlib(fig)
+
+# Add an interactive chat interface
+text(
+    "## Interactive Chat Interface\nUse this chat interface to ask questions about the iris dataset analysis. You can inquire about specific patterns, request explanations of the visualizations, or ask for additional insights."
+)
+
+chat("iris_csv")
