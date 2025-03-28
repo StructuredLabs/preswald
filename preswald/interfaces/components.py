@@ -1,3 +1,5 @@
+# Standard Library
+import asyncio
 import base64
 import hashlib
 import io
@@ -6,11 +8,15 @@ import logging
 import uuid
 from typing import Dict, List, Optional
 
+# Third-Party
+import fastplotlib as fplt
 import matplotlib.pyplot as plt
+import msgpack
 import numpy as np
 import pandas as pd
 from PIL import Image
 
+# Internal
 from preswald.engine.service import PreswaldService
 from preswald.interfaces.workflow import Workflow
 
@@ -113,7 +119,7 @@ def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
     service = PreswaldService.get_instance()
 
     # Create a consistent ID based on the label
-    component_id = f"checkbox-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+    component_id = generate_id_by_label("checkbox", label)
 
     # Get current state or use default
     current_value = service.get_component_state(component_id)
@@ -132,41 +138,65 @@ def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
     service.append_component(component)
     return current_value
 
-
-def fastplotlib(fig, size: float = 1.0) -> dict:
+def fastplotlib(fig: fplt.Figure, size: float = 1.0) -> str:
     """
-    Render a Fastplotlib figure.
+    Render a Fastplotlib figure and asynchronously stream the resulting image to the frontend.
+
+    This component leverages Fastplotlib's GPU-accelerated offscreen rendering capabilities.
+    Rendering and transmission are triggered only when the figure state or the client changes,
+    ensuring efficient updates. The rendered image is encoded as a PNG and sent to the frontend
+    via WebSocket using MessagePack.
 
     Args:
-        fig (fplt.Figure): A Fastplotlib figure object.
+        fig (fplt.Figure): A configured Fastplotlib figure ready to be rendered.
+        size (float, optional): Width of the rendered component relative to its container (0.0-1.0).
+                                Defaults to 1.0.
+
+    Returns:
+        str: A deterministic component ID used to reference the figure on the frontend.
+
+    Notes:
+        - The figure must have '_label' and '_client_id' attributes set externally.
+        - Rendering occurs asynchronously if the figure state or client_id changes.
+        - If client_id is not provided, a warning is logged and no rendering task is triggered.
     """
     service = PreswaldService.get_instance()
 
-    fig.show()
-    for subplot in fig:
-        subplot.viewport.render(subplot.scene, subplot.camera)
+    label = getattr(fig, "_label", "fastplotlib")
+    component_id = generate_id_by_label("fastplotlib", label)
 
-    fig.renderer.flush()
-    img = np.asarray(fig.renderer.target.draw())
-    rgb = img[..., :-1].round().astype(np.uint8)
-    height, width = rgb.shape[:2]  # Get dimensions
+    try:
+        state = fig.get_state()
+    except Exception:
+        state = label
 
-    with io.BytesIO() as buffer:
-        Image.fromarray(rgb).save(buffer, format="PNG")
-        img_bytes = buffer.getvalue()
+    # hash input data early and use hash to avoid unnecessary rendering
+    client_id = getattr(fig, "_client_id", None)
+    hashable_data = {"client_id": client_id, "state": state, "label": label, "size": size}
+    data_hash = hashlib.sha256(msgpack.packb(hashable_data)).hexdigest()
 
-    component_id = generate_id("fastplotlib")
     component = {
-        "type": "fastplotlib_component",
         "id": component_id,
-        "data": img_bytes.hex(),
-        "width": width,
-        "height": height,
+        "type": "fastplotlib_component",
+        "label": label,
         "size": size,
+        "format": "websocket-png",
+        "value": None,
+        "hash": data_hash[:8]
     }
 
+    # skip rendering if unchanged
+    if data_hash != service.get_component_state(f"{component_id}_img_hash"):
+        if client_id:
+            # Render and send concurrently (async task)
+            asyncio.create_task(render_and_send_fastplotlib( # noqa: RUF006
+                fig, component_id, label, size, client_id, data_hash
+            ))
+        else:
+            logger.warning(f"No client_id provided for {component_id}")
+
     service.append_component(component)
-    return component
+    return component_id
 
 
 # TODO: requires testing
@@ -378,7 +408,7 @@ def selectbox(
     """Create a select component with consistent ID based on label."""
     service = PreswaldService.get_instance()
 
-    component_id = f"selectbox-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+    component_id = generate_id_by_label("selectbox", label)
     current_value = service.get_component_state(component_id)
     if current_value is None:
         current_value = (
@@ -417,7 +447,7 @@ def slider(
     service = PreswaldService.get_instance()
 
     # Create a consistent ID based on the label
-    component_id = f"slider-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+    component_id = generate_id_by_label("slider", label)
 
     # Get current state or use default
     current_value = service.get_component_state(component_id)
@@ -571,7 +601,7 @@ def text_input(label: str, placeholder: str = "", size: float = 1.0) -> str:
     service = PreswaldService.get_instance()
 
     # Create a consistent ID based on the label
-    component_id = f"text_input-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+    component_id = generate_id_by_label("text_input", label)
 
     # Get current state or use default
     current_value = service.get_component_state(component_id)
@@ -668,7 +698,6 @@ def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -
         service.append_component(error_component)
         return error_component
 
-
 # Helpers
 
 
@@ -698,3 +727,106 @@ def convert_to_serializable(obj):
 def generate_id(prefix: str = "component") -> str:
     """Generate a unique ID for a component."""
     return f"{prefix}-{uuid.uuid4().hex[:8]}"
+
+def generate_id_by_label(prefix: str, label: str) -> str:
+    """
+    Generate a deterministic component ID based on a label string.
+
+    Useful for components like Fastplotlib or Slider where the same label should result
+    in the same component ID across rerenders.
+
+    Args:
+        prefix (str): The component type prefix, e.g. 'slider' or 'fastplotlib'.
+        label (str): The label to hash and include in the ID.
+
+    Returns:
+        str: A stable ID like 'slider-ab12cd34'.
+    """
+    if not label:
+        return generate_id(prefix)
+    hashed = hashlib.md5(label.lower().encode()).hexdigest()[:8]
+    return f"{prefix}-{hashed}"
+
+async def render_and_send_fastplotlib(
+    fig: fplt.Figure,
+    component_id: str,
+    label: str,
+    size: float,
+    client_id: str,
+    data_hash: str
+) -> Optional[str]:
+    """
+    Asynchronously renders a Fastplotlib figure to an offscreen canvas, encodes it as a PNG,
+    and streams the resulting image data via WebSocket to the connected frontend client.
+
+    This helper function handles rendering logic, alpha-blending, and ensures robust error
+    handling. It updates the component state after successfully sending the image data.
+
+    Args:
+        fig (fplt.Figure): The fully configured Fastplotlib figure instance to render.
+        component_id (str): Unique identifier for the component instance receiving this image.
+        label (str): Human-readable label describing the component (for logging/debugging).
+        size (float): Relative size of the component in the UI layout (0.0-1.0).
+        client_id (str): WebSocket client identifier to route the rendered image correctly.
+        data_hash (str): SHA-256 hash representing the figure state, used for cache invalidation.
+
+    Returns:
+        str: Returns "Render failed" if framebuffer blending fails, otherwise None.
+
+    Raises:
+        Logs and handles any exceptions internally without raising further.
+    """
+    service = PreswaldService.get_instance()
+
+    fig.show() # must call even in offscreen mode to initialize GPU resources
+
+    # manually render the scene for all subplots
+    for subplot in fig:
+        subplot.viewport.render(subplot.scene, subplot.camera)
+
+    # read from the framebuffer
+    try:
+        fig.canvas.request_draw()
+        raw_img = np.asarray(fig.renderer.target.draw())
+
+        if raw_img.ndim != 3 or raw_img.shape[2] != 4:
+            raise ValueError(f"Unexpected image shape: {raw_img.shape}")
+
+        # handle alpha blending
+        alpha = raw_img[..., 3:4] / 255.0
+        rgb = (raw_img[..., :3] * alpha + (1 - alpha) * 255).astype(np.uint8)
+
+    except Exception as e:
+        logger.error(f"Framebuffer blending failed for {component_id}: {e}")
+        return "Render failed"
+
+    # encode image to PNG
+    img_buf = io.BytesIO()
+    Image.fromarray(rgb).save(img_buf, format="PNG")
+    png_bytes = img_buf.getvalue()
+
+    # handle websocket communication
+    client_websocket = service.websocket_connections.get(client_id)
+    if client_websocket:
+        packed_msg = msgpack.packb({
+            "type": "image_update",
+            "component_id": component_id,
+            "format": "png",
+            "label": label,
+            "size": size,
+            "data": png_bytes
+        }, use_bin_type=True)
+
+        try:
+            await client_websocket.send_bytes(packed_msg)
+            await service.handle_client_message(client_id, {
+                "type": "component_update",
+                "states": {
+                    f"{component_id}_img_hash": data_hash
+                }
+            })
+            logger.debug(f"✅ Sent {component_id} image to client {client_id}")
+        except Exception as e:
+            logger.error(f"WebSocket send failed for {component_id}: {e}")
+    else:
+        logger.warning(f"No active WebSocket found for client ID: {client_id}")

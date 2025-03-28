@@ -61,10 +61,10 @@ class BuildFrontendCommand(Command):
                 raise Exception("npm build failed")
 
         except subprocess.CalledProcessError as e:
-            print(f"Failed to build frontend: {str(e)}", file=sys.stderr)
+            print(f"Failed to build frontend: {e!s}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Unexpected error building frontend: {str(e)}", file=sys.stderr)
+            print(f"Unexpected error building frontend: {e!s}", file=sys.stderr)
             raise
 
 # Define core dependencies needed for the package to run
@@ -79,6 +79,7 @@ CORE_DEPENDENCIES = [
     "fastapi>=0.68.0,<1.0.0; platform_system != 'Emscripten'",
     "fastplotlib[imgui]~=0.3.0; platform_system != 'Emscripten'",
     "imageio~=2.37.0; platform_system != 'Emscripten'",
+    "msgpack~=1.1.0; platform_system != 'Emscripten'",
     "uvicorn>=0.15.0,<1.0.0; platform_system != 'Emscripten'",
     "websockets>=10.0,<11.0; platform_system != 'Emscripten'",
     # Native code dependencies

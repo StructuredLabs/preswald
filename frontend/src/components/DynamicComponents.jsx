@@ -24,6 +24,7 @@ import UnknownWidget from './widgets/UnknownWidget';
 
 // Utilities
 import { createExtractKeyProps } from '../utils/extractKeyProps';
+import { comm } from '@/utils/websocket';
 
 // UI components
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -280,12 +281,17 @@ const MemoizedComponent = memo(
         return <DAGVisualizationWidget key={componentKey} {...props} data={component.data || {}} />;
 
       case 'fastplotlib_component':
+        const { className, data, config, label, src } = component;
         return (
           <FastplotlibWidget
             key={componentKey}
             {...props}
             data={component.data}
             config={component.config}
+            src={src}
+            label={label}
+            className={className}
+            clientId={comm.clientId}
           />
         );
 
