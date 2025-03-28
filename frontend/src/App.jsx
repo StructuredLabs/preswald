@@ -150,7 +150,7 @@ const App = () => {
     <div className="loading-container">
       <div className="loading-content">
         <div className="loading-spinner"></div>
-        <p className="loading-text">Connecting...</p>
+        <p className="loading-text">{isConnected ? 'Loading Components...' : 'Connecting...'}</p>
       </div>
     </div>
   );
