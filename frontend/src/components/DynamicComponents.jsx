@@ -1,9 +1,5 @@
 import React, { memo, useEffect } from 'react';
 
-// UI components
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { cn } from '@/lib/utils';
-
 // Widgets
 import AlertWidget from './widgets/AlertWidget';
 import ButtonWidget from './widgets/ButtonWidget';
@@ -28,6 +24,10 @@ import UnknownWidget from './widgets/UnknownWidget';
 
 // Utilities
 import { createExtractKeyProps } from '../utils/extractKeyProps';
+
+// UI components
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { cn } from '@/lib/utils';
 
 const extractKeyProps = createExtractKeyProps();
 

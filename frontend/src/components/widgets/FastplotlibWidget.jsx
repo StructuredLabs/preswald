@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
 import { Card } from '@/components/ui/card';
-
 import { cn } from '@/lib/utils';
 
 const FastplotlibWidget = ({ data, width, height, size, className }) => {
