@@ -37,6 +37,7 @@
     "classnames": "^2.5.1",
     "clsx": "^2.1.1",
     "dagre": "^0.8.5",
+    "frontend": "file:",
     "lucide-react": "^0.473.0",
     "pako": "^2.1.0",
     "plotly.js": "^2.35.3",
