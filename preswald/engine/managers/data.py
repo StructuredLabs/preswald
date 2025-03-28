@@ -3,6 +3,8 @@ import os
 import uuid
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
+import pandas as pd
+import json
 
 import duckdb
 import pandas as pd
@@ -13,6 +15,17 @@ from requests.auth import HTTPBasicAuth
 
 logger = logging.getLogger(__name__)
 
+def load_json_source(config: Dict[str, Any]) -> pd.DataFrame:
+    with open(config["path"], "r") as f:
+        data = json.load(f)
+
+    if config.get("record_path"):
+        data = data[config["record_path"]]
+
+    if config.get("flatten", True):
+        return pd.json_normalize(data, sep=".")
+    else:
+        return pd.DataFrame(data)
 
 @dataclass
 class ClickhouseConfig:
@@ -150,8 +163,6 @@ class CSVSource(DataSource):
 class JSONSource(DataSource):
     def __init__(self, name: str, config: JSONConfig, duckdb_conn: duckdb.DuckDBPyConnection):
         super().__init__(name, duckdb_conn)
-        from preswald.engine.managers.data import load_json_source
-
         df = load_json_source(config.__dict__)
         self._table_name = f"json_{name}_{uuid.uuid4().hex[:8]}"
         self._duckdb.execute(f"CREATE TABLE {self._table_name} AS SELECT * FROM df")
