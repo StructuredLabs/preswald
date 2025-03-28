@@ -29,9 +29,10 @@ const SidebarWidget = ({ defaultOpen = false, ...props }) => {
 
   return (
     <>
-      {createPortal(<MobileMenuButton />, document.getElementById('mobile-menu-button-portal'))}
+      {document.getElementById("mobile-menu-button-portal") &&
+      createPortal(<MobileMenuButton />, document.getElementById('mobile-menu-button-portal'))}
 
-      {createPortal(
+      {document.getElementById("sidebar-portal") && createPortal(
         <Sidebar
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
