@@ -1,13 +1,15 @@
+import io
+
 import fastplotlib as fpl
 import imageio.v3 as iio
 import matplotlib.pyplot as plt
 import numpy as np
 import plotly.express as px
 
-
 from preswald import (
     chat,
     connect,
+    download_button,
     fastplotlib,
     get_df,
     matplotlib,
@@ -17,6 +19,7 @@ from preswald import (
     text,
 )
 from preswald.engine.service import PreswaldService
+
 
 service = service = PreswaldService.get_instance()
 
@@ -67,6 +70,7 @@ fig5 = px.box(
 )
 fig5.update_layout(template="plotly_white")
 plotly(fig5)
+
 
 # 4. Violin plot of Sepal Length by Species
 text(
@@ -158,6 +162,51 @@ fig._client_id = client_id
 fig._label = "Scatter Plot"
 fig[0, 0].add_scatter(data=data, sizes=4, colors=colors)
 fastplotlib(fig)
+
+# 7. Download Examples
+
+# 7.1 Download CSV
+download_button(
+    label="Download CSV",
+    data=df[["sepal.length", "sepal.width"]],
+    file_name="sepal_data.csv",
+    mime_type="text/csv",
+    size=0.5,  # Size is optional by default the size of the button is 1.0
+)
+
+
+# 7.2 Download JSON
+download_button(
+    label="Download JSON",
+    data={"message": "Hello from Preswald", "count": 3},
+    file_name="message.json",
+    mime_type="application/json",
+)
+
+# 7.3 Download Text
+download_button(
+    label="Download Text",
+    data="This is a simple plain text file.",
+    file_name="note.txt",
+    mime_type="text/plain",
+    size=0.5,
+)
+
+
+# 7.4 Download PNG Image
+buffer = io.BytesIO()
+fig1.write_image(buffer, format="png")  # Export as PNG
+buffer.seek(0)
+image_bytes = buffer.read()
+
+download_button(
+    label="Download Scatter Plot (PNG)",
+    data=image_bytes,
+    file_name="scatter_plot.png",
+    mime_type="image/png",
+    size=1,
+)
+
 
 # Show the first 10 rows of the dataset
 text(
