@@ -115,12 +115,11 @@ setup(
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/StructuredLabs/preswald",
-    license="Apache License 2.0",
+    license="Apache-2.0",
     # Package configuration
     packages=find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ],
     # Package data and dependencies
