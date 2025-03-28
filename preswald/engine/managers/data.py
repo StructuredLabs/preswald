@@ -16,16 +16,34 @@ from requests.auth import HTTPBasicAuth
 logger = logging.getLogger(__name__)
 
 def load_json_source(config: Dict[str, Any]) -> pd.DataFrame:
-    with open(config["path"], "r") as f:
-        data = json.load(f)
+    path = config["path"]
+    record_path = config.get("record_path")
+    flatten = config.get("flatten", True)
 
-    if config.get("record_path"):
-        data = data[config["record_path"]]
+    # Open and load the JSON file
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Malformed JSON in file '{path}': {e}")
+    except Exception as e:
+        raise ValueError(f"Error reading JSON file '{path}': {e}")
 
-    if config.get("flatten", True):
-        return pd.json_normalize(data, sep=".")
-    else:
-        return pd.DataFrame(data)
+    # Apply record_path if provided
+    if record_path:
+        try:
+            data = data[record_path]
+        except (KeyError, TypeError) as e:
+            raise ValueError(f"Invalid record_path '{record_path}' for JSON file '{path}': {e}")
+
+    # Normalize or convert data if "flatten"
+    try:
+        if flatten:
+            return pd.json_normalize(data, sep=".")
+        else:
+            return pd.DataFrame(data)
+    except Exception as e:
+        raise ValueError(f"Error converting JSON data from file '{path}' to DataFrame: {e}")
 
 @dataclass
 class ClickhouseConfig:
