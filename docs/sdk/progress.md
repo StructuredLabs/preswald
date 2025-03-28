@@ -1,0 +1,39 @@
+---
+title: "progress"
+icon: material/progress-helper
+description: ""
+---
+
+```python
+progress(label: str, value: float = 0.0, size: float = 1.0) -> float
+```
+
+The `progress` function adds a progress/work done indicator to your app.
+
+## Parameters
+
+- **`label`** _(str)_: The label displayed in the progress component, indicating its purpose.
+- **`value`** _(float)_: _(Optional)_ The current progress value (0.0 to 100.0). Values are automatically clamped to this range and rounded to the nearest integer for display.
+- **`size`** _(float)_: _(Optional)_ The width of the component in a row. Defaults to `1.0` (full row). See the [Layout Guide](/layout/guide) for details.
+
+## Returns
+
+- `float`: the current `value`
+
+## Usage Example
+
+Here's an example of how to add a progress indicator to your app:
+
+```python
+from preswald import progress
+import time
+
+# Simple progress example
+progress(label="Current Progress", value=50.3)  # will display as 50%
+
+# Progress in a loop
+for i in range(10):
+    # Update progress as work is done
+    progress(label="Processing Files", value=i * 10)
+    time.sleep(0.5)  # Simulate work being done
+```
