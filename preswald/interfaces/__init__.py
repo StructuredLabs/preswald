@@ -6,6 +6,7 @@ Grouping all the user-facing components of the SDK
 from .components import (
     alert,
     button,
+    chat,
     checkbox,
     fastplotlib,
     image,

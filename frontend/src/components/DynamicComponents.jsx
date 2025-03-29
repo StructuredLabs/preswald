@@ -4,10 +4,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import MatplotlibWidget from '@/components/widgets/MatplotlibWidget';
 
 import { cn } from '@/lib/utils';
+import { comm } from '@/utils/websocket';
 
 // Import all widgets
 import AlertWidget from './widgets/AlertWidget';
 import ButtonWidget from './widgets/ButtonWidget';
+import ChatWidget from './widgets/ChatWidget';
 import CheckboxWidget from './widgets/CheckboxWidget';
 import ConnectionInterfaceWidget from './widgets/ConnectionInterfaceWidget';
 import DAGVisualizationWidget from './widgets/DAGVisualizationWidget';
@@ -221,6 +223,20 @@ const MemoizedComponent = memo(
           />
         );
 
+      case 'chat':
+        return (
+          <ChatWidget
+            {...commonProps}
+            sourceId={component.config?.source || null}
+            sourceData={component.config?.data || null}
+            value={component.value || component.state || { messages: [] }}
+            onChange={(value) => {
+              handleUpdate(componentId, value);
+            }}
+            className={component.className}
+          />
+        );
+
       case 'table':
         return (
           <TableViewerWidget
@@ -258,13 +274,18 @@ const MemoizedComponent = memo(
       case 'dag':
         return <DAGVisualizationWidget {...commonProps} data={component.data || {}} />;
 
+      // Add Fastplotlib component
       case 'fastplotlib_component':
+        const { className, data, config, label, src } = component;
         return (
           <FastplotlibWidget
             {...commonProps}
             data={component.data}
             config={component.config}
-            className={component.className}
+            src={src}
+            label={label}
+            className={className}
+            clientId={comm.clientId}
           />
         );
 
