@@ -3,6 +3,8 @@ import os
 import uuid
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
+import pandas as pd
+import json
 
 import duckdb
 import pandas as pd
@@ -13,6 +15,35 @@ from requests.auth import HTTPBasicAuth
 
 logger = logging.getLogger(__name__)
 
+def load_json_source(config: Dict[str, Any]) -> pd.DataFrame:
+    path = config["path"]
+    record_path = config.get("record_path")
+    flatten = config.get("flatten", True)
+
+    # Open and load the JSON file
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Malformed JSON in file '{path}': {e}")
+    except Exception as e:
+        raise ValueError(f"Error reading JSON file '{path}': {e}")
+
+    # Apply record_path if provided
+    if record_path:
+        try:
+            data = data[record_path]
+        except (KeyError, TypeError) as e:
+            raise ValueError(f"Invalid record_path '{record_path}' for JSON file '{path}': {e}")
+
+    # Normalize or convert data if "flatten"
+    try:
+        if flatten:
+            return pd.json_normalize(data, sep=".")
+        else:
+            return pd.DataFrame(data)
+    except Exception as e:
+        raise ValueError(f"Error converting JSON data from file '{path}' to DataFrame: {e}")
 
 @dataclass
 class ClickhouseConfig:
@@ -39,6 +70,13 @@ class PostgresConfig:
 @dataclass
 class CSVConfig:
     path: str
+
+
+@dataclass
+class JSONConfig:
+    path: str
+    record_path: Optional[str] = None
+    flatten: bool = True
 
 
 @dataclass
@@ -140,6 +178,18 @@ class CSVSource(DataSource):
         """Get entire CSV as a DataFrame"""
         return self._duckdb.execute(f"SELECT * FROM {self._table_name}").df()
 
+class JSONSource(DataSource):
+    def __init__(self, name: str, config: JSONConfig, duckdb_conn: duckdb.DuckDBPyConnection):
+        super().__init__(name, duckdb_conn)
+        df = load_json_source(config.__dict__)
+        self._table_name = f"json_{name}_{uuid.uuid4().hex[:8]}"
+        self._duckdb.execute(f"CREATE TABLE {self._table_name} AS SELECT * FROM df")
+
+    def query(self, sql: str) -> pd.DataFrame:
+        return self._duckdb.execute(sql.replace(self.name, self._table_name)).df()
+
+    def to_df(self) -> pd.DataFrame:
+        return self._duckdb.execute(f"SELECT * FROM {self._table_name}").df()
 
 class PostgresSource(DataSource):
     def __init__(
@@ -327,6 +377,14 @@ class DataManager:
                 if source_type == "csv":
                     cfg = CSVConfig(path=source_config["path"])
                     self.sources[name] = CSVSource(name, cfg, self.duckdb_conn)
+
+                elif source_type == "json":
+                    cfg = JSONConfig(
+                        path=source_config["path"],
+                        record_path=source_config.get("record_path"),
+                        flatten=source_config.get("flatten", True),
+                    )
+                    self.sources[name] = JSONSource(name, cfg, self.duckdb_conn)
 
                 elif source_type == "postgres":
                     cfg = PostgresConfig(
