@@ -6,8 +6,11 @@ Grouping all the user-facing components of the SDK
 from .components import (
     alert,
     button,
+    chat,
     checkbox,
+    fastplotlib,
     image,
+    matplotlib,
     plotly,
     progress,
     selectbox,
@@ -18,6 +21,7 @@ from .components import (
     table,
     text,
     text_input,
+    topbar,
     workflow_dag,
 )
 from .data import connect, get_df, query

@@ -15,12 +15,18 @@ from preswald import (
     slider,
     table,
     text,
+    topbar,
     workflow_dag,
 )
 
 
 # Create a workflow instance
 workflow = Workflow()
+
+
+@workflow.atom()
+def render_topbar():
+    topbar()
 
 
 # --- WELCOME MESSAGE ---
