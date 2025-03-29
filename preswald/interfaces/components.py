@@ -6,7 +6,7 @@ import io
 import json
 import logging
 import uuid
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 # Third-Party
 import fastplotlib as fplt
@@ -138,6 +138,7 @@ def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
     service.append_component(component)
     return current_value
 
+
 def fastplotlib(fig: fplt.Figure, size: float = 1.0) -> str:
     """
     Render a Fastplotlib figure and asynchronously stream the resulting image to the frontend.
@@ -172,7 +173,12 @@ def fastplotlib(fig: fplt.Figure, size: float = 1.0) -> str:
 
     # hash input data early and use hash to avoid unnecessary rendering
     client_id = getattr(fig, "_client_id", None)
-    hashable_data = {"client_id": client_id, "state": state, "label": label, "size": size}
+    hashable_data = {
+        "client_id": client_id,
+        "state": state,
+        "label": label,
+        "size": size,
+    }
     data_hash = hashlib.sha256(msgpack.packb(hashable_data)).hexdigest()
 
     component = {
@@ -182,16 +188,18 @@ def fastplotlib(fig: fplt.Figure, size: float = 1.0) -> str:
         "size": size,
         "format": "websocket-png",
         "value": None,
-        "hash": data_hash[:8]
+        "hash": data_hash[:8],
     }
 
     # skip rendering if unchanged
     if data_hash != service.get_component_state(f"{component_id}_img_hash"):
         if client_id:
             # Render and send concurrently (async task)
-            asyncio.create_task(render_and_send_fastplotlib( # noqa: RUF006
-                fig, component_id, label, size, client_id, data_hash
-            ))
+            asyncio.create_task(
+                render_and_send_fastplotlib(
+                    fig, component_id, label, size, client_id, data_hash
+                )
+            )
         else:
             logger.warning(f"No client_id provided for {component_id}")
 
@@ -579,21 +587,50 @@ def table(  # noqa: C901
         return error_component
 
 
-def text(markdown_str: str, size: float = 1.0) -> str:
-    """Create a text/markdown component."""
+def text(
+    data: Union[str, int, float, bool, List[Union[str, int, float, bool]]],
+    size: float = 1.0,
+) -> str:
+    """
+    Create text/markdown component that supports strings,
+    numbers, bools, and lists of strings or numbers.
+
+    Args:
+        data: String/Number/Bool or List of either
+        size: Text size
+
+    Returns:
+        Formatted string of inputted data
+
+    Notes:
+        - Can raise TypeError on unsupported types, but types
+          like dataframes and dicts still 'work'.
+    """
     service = PreswaldService.get_instance()
     id = generate_id("text")
+
+    if isinstance(data, list):
+        processed_list = []
+        for item in data:
+            processed_list.append(str(item))
+        combined_data = " ".join(processed_list)
+    elif isinstance(data, (str, int, float, bool)):
+        combined_data = str(data)
+    else:
+        logger.warning(f"Passing unsupported type: {type(data)} to text().")
+        combined_data = str(data)
+
     logger.debug(f"Creating text component with id {id}")
     component = {
         "type": "text",
         "id": id,
-        "markdown": markdown_str,
-        "value": markdown_str,
+        "markdown": combined_data,
+        "value": combined_data,
         "size": size,
     }
     logger.debug(f"Created component: {component}")
     service.append_component(component)
-    return markdown_str
+    return data
 
 
 def text_input(label: str, placeholder: str = "", size: float = 1.0) -> str:
@@ -698,6 +735,7 @@ def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -
         service.append_component(error_component)
         return error_component
 
+
 # Helpers
 
 
@@ -728,6 +766,7 @@ def generate_id(prefix: str = "component") -> str:
     """Generate a unique ID for a component."""
     return f"{prefix}-{uuid.uuid4().hex[:8]}"
 
+
 def generate_id_by_label(prefix: str, label: str) -> str:
     """
     Generate a deterministic component ID based on a label string.
@@ -747,13 +786,14 @@ def generate_id_by_label(prefix: str, label: str) -> str:
     hashed = hashlib.md5(label.lower().encode()).hexdigest()[:8]
     return f"{prefix}-{hashed}"
 
+
 async def render_and_send_fastplotlib(
     fig: fplt.Figure,
     component_id: str,
     label: str,
     size: float,
     client_id: str,
-    data_hash: str
+    data_hash: str,
 ) -> Optional[str]:
     """
     Asynchronously renders a Fastplotlib figure to an offscreen canvas, encodes it as a PNG,
@@ -778,7 +818,7 @@ async def render_and_send_fastplotlib(
     """
     service = PreswaldService.get_instance()
 
-    fig.show() # must call even in offscreen mode to initialize GPU resources
+    fig.show()  # must call even in offscreen mode to initialize GPU resources
 
     # manually render the scene for all subplots
     for subplot in fig:
@@ -808,23 +848,27 @@ async def render_and_send_fastplotlib(
     # handle websocket communication
     client_websocket = service.websocket_connections.get(client_id)
     if client_websocket:
-        packed_msg = msgpack.packb({
-            "type": "image_update",
-            "component_id": component_id,
-            "format": "png",
-            "label": label,
-            "size": size,
-            "data": png_bytes
-        }, use_bin_type=True)
+        packed_msg = msgpack.packb(
+            {
+                "type": "image_update",
+                "component_id": component_id,
+                "format": "png",
+                "label": label,
+                "size": size,
+                "data": png_bytes,
+            },
+            use_bin_type=True,
+        )
 
         try:
             await client_websocket.send_bytes(packed_msg)
-            await service.handle_client_message(client_id, {
-                "type": "component_update",
-                "states": {
-                    f"{component_id}_img_hash": data_hash
-                }
-            })
+            await service.handle_client_message(
+                client_id,
+                {
+                    "type": "component_update",
+                    "states": {f"{component_id}_img_hash": data_hash},
+                },
+            )
             logger.debug(f"✅ Sent {component_id} image to client {client_id}")
         except Exception as e:
             logger.error(f"WebSocket send failed for {component_id}: {e}")
