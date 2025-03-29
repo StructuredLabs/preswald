@@ -8,12 +8,12 @@ repos:
         types: [python]
         exclude: ^setup\.py$
 
-      # - id: ruff-lint
-      #   name: ruff (lint)
-      #   entry: ruff check
-      #   language: system
-      #   types: [python]
-      #   exclude: ^(setup\.py|community_gallery/.*)$
+      - id: ruff-lint
+        name: ruff (lint)
+        entry: ruff check
+        language: system
+        types: [python]
+        exclude: ^(setup\.py|community_gallery/.*)$
 
       - id: prettier
         name: prettier
