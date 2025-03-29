@@ -8,6 +8,7 @@ from .components import (
     button,
     chat,
     checkbox,
+    iframe,
     fastplotlib,
     image,
     matplotlib,

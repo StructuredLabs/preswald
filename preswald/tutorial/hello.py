@@ -7,6 +7,7 @@ from preswald import (
     checkbox,
     connect,
     get_df,
+    iframe,
     plotly,
     progress,
     selectbox,
@@ -406,6 +407,12 @@ def progress_demo():
 def sidebar_demo():
     text("## 13. Showing sidebar to your app with sidebar()")
     sidebar(defaultopen=True)
+
+
+@workflow.atom()
+def iframe_demo():
+    text("## 14. Showing iframe in your app with iframe()")
+    iframe("https://www.youtube.com/embed/yFRgPFMIMvA")
 
 
 # --- FINAL MESSAGE ---
