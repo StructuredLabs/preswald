@@ -602,6 +602,9 @@ def text(
     Returns:
         Formatted string of inputted data
 
+    Raises:
+        Logs and handles any string casting errors internally
+
     Notes:
         - Can raise TypeError on unsupported types, but types
           like dataframes and dicts still 'work'.
@@ -618,7 +621,11 @@ def text(
         combined_data = str(data)
     else:
         logger.warning(f"Passing unsupported type: {type(data)} to text().")
-        combined_data = str(data)
+        try:
+            combined_data = str(data)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            combined_data = ""
 
     logger.debug(f"Creating text component with id {id}")
     component = {
