@@ -606,7 +606,7 @@ def text(
         Logs and handles any string casting errors internally
 
     Notes:
-        - Can raise TypeError on unsupported types, but types
+        - Option to raise TypeError on unsupported types, but types
           like dataframes and dicts still 'work'.
     """
     service = PreswaldService.get_instance()
@@ -615,7 +615,15 @@ def text(
     if isinstance(data, list):
         processed_list = []
         for item in data:
-            processed_list.append(str(item))
+            if isinstance(item, (str, int, float, bool)):
+                processed_list.append(str(item))
+            else:
+                logger.warning(f"Passing unsupported type: {type(item)} to text().")
+                try:
+                    processed_list.append(str(item))
+                except Exception as e:
+                    logger.error(f"Error: {e}")
+                    break
         combined_data = " ".join(processed_list)
     elif isinstance(data, (str, int, float, bool)):
         combined_data = str(data)
