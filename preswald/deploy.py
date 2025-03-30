@@ -333,7 +333,7 @@ def deploy_to_prod(  # noqa: C901
             f"{STRUCTURED_CLOUD_SERVICE_URL}/deploy",
             files=files,
             data={
-                "github_username": github_username,
+                "github_username": github_username.lower(),
                 "structured_cloud_api_key": structured_cloud_api_key,
                 "project_slug": project_slug,
                 "git_repo_name": git_repo_name,
@@ -693,7 +693,7 @@ def stop_structured_deployment(script_dir: str) -> dict:
         response = requests.post(
             f"{STRUCTURED_CLOUD_SERVICE_URL}/stop",
             json={
-                "github_username": github_username,
+                "github_username": github_username.lower(),
                 "structured_cloud_api_key": structured_cloud_api_key,
                 "project_slug": project_slug,
             },
@@ -742,7 +742,7 @@ def get_structured_deployments(script_path: str) -> dict:
         response = requests.post(
             f"{STRUCTURED_CLOUD_SERVICE_URL}/deployments",
             json={
-                "github_username": github_username,
+                "github_username": github_username.lower(),
                 "structured_cloud_api_key": structured_cloud_api_key,
                 "project_slug": project_slug,
             },
