@@ -1,7 +1,6 @@
 import { FolderIcon, HomeIcon } from '@heroicons/react/24/solid';
 import { Menu } from 'lucide-react';
 
-import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { Button } from '@/components/ui/button';

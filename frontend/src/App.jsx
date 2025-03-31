@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Route, Routes } from 'react-router-dom';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
 import Layout from './components/Layout';
 import Dashboard from './components/pages/Dashboard';
@@ -22,7 +21,7 @@ const App = () => {
       unsubscribe();
       comm.disconnect();
     };
-  }, []);
+  });
 
   useEffect(() => {
     const updateTitle = () => {
