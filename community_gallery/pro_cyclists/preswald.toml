@@ -1,0 +1,20 @@
+[project]
+title = "Preswald Project"
+version = "0.1.0"
+port = 8501
+slug = "pro-cyclist-911932"  # Required: Unique identifier for your project
+entrypoint = "main.py"    # Required: Main script to run when executing preswald run
+
+[branding]
+name = "Preswald Project"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#F89613"
+
+[data.riders_csv]
+type = "csv"
+path = "data/riders.csv"
+
+[logging]
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
