@@ -4,7 +4,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import { AgGridReact } from 'ag-grid-react';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 ModuleRegistry.registerModules([ClientSideRowModelModule]);
 
@@ -18,67 +18,57 @@ const TableViewerWidget = ({
   hoverable = true,
   className = '',
   pagination = true,
-  paginationPageSize = 10,
+  paginationPageSize = 20,
   props: { rowData: propsRowData = [], columnDefs: propsColumnDefs = [], title: propsTitle } = {},
   ...commonProps
 }) => {
-  console.log('Received props:', {
-    rowData,
-    propsRowData,
-    propsColumnDefs,
-    title,
-    propsTitle,
-  });
+  console.log('Received props:', { rowData, propsRowData, propsColumnDefs, title, propsTitle });
 
   const [isExpanded, setIsExpanded] = useState(true);
-  const [gridData, setGridData] = useState(propsRowData.length ? propsRowData : rowData);
-  const [columnDefs, setColumnDefs] = useState(propsColumnDefs);
+  const gridRef = useRef(null); // Reference for grid API
+
+  // Convert columnDefs to use '/' instead of '.' and add valueFormatter
+  const transformedColumnDefs = propsColumnDefs.map((col) => ({
+    ...col,
+    field: col.field.replace(/\./g, '/'),
+    valueFormatter: (params) =>
+      params.value === '' || params.value === null ? 'null' : params.value,
+    sortable: true, // Enable sorting
+    filter: true, // Enable filtering
+    resizable: true, // Enable column resizing
+  }));
+
+  // Convert grid data keys to use '/' instead of '.' and replace empty strings with null
+  const transformGridData = (data) => {
+    return data.map((row) => {
+      const newRow = {};
+      for (const key in row) {
+        if (row.hasOwnProperty(key)) {
+          const newKey = key.replace(/\./g, '/');
+          const value = row[key] === '' ? null : String(row[key]);
+          newRow[newKey] = value;
+        }
+      }
+      return newRow;
+    });
+  };
+
+  const [gridData, setGridData] = useState(
+    transformGridData(propsRowData.length ? propsRowData : rowData)
+  );
+  const [columnDefs, setColumnDefs] = useState(transformedColumnDefs);
 
   useEffect(() => {
-    // Function to convert data to strings
-    const convertDataToStrings = (data) => {
-      return data.map((row) => {
-        const newRow = {};
-        for (const key in row) {
-          if (row.hasOwnProperty(key)) {
-            newRow[key] = String(row[key]); // Convert each value to a string
-          }
-        }
-        return newRow;
-      });
-    };
-
-    // Apply the conversion
-    const stringData = convertDataToStrings(gridData);
-    setGridData(stringData); // Set the converted data back to gridData
-
-    // Debug: Check the structure and content of stringData
-    console.log('stringData:', stringData);
-
-    // Generate column definitions if not provided
-    if (!propsColumnDefs.length && stringData.length) {
-      const generatedColumnDefs = Object.keys(stringData[0]).map((key) => ({
-        headerName: key,
-        field: key,
-        sortable: true,
-        filter: true,
-        resizable: true,
-        flex: 1,
-        cellStyle: {
-          paddingTop: dense ? '4px' : '8px',
-          paddingBottom: dense ? '4px' : '8px',
-        },
-        valueFormatter: (params) => params.value, // Simple valueFormatter
-      }));
-
-      setColumnDefs(generatedColumnDefs);
-
-      // Debug: Check the generated column definitions
-      console.log('generatedColumnDefs:', generatedColumnDefs);
-    }
-  }, [gridData, dense, propsColumnDefs]);
+    setGridData(transformGridData(propsRowData.length ? propsRowData : rowData));
+    setColumnDefs(transformedColumnDefs);
+  }, [propsRowData, rowData, propsColumnDefs]);
 
   const displayTitle = propsTitle !== undefined ? propsTitle : title;
+
+  // Export data to CSV (AG Grid Community supports this)
+  const exportToCSV = () => {
+    gridRef.current.api.exportDataAsCsv();
+  };
 
   return (
     <div
@@ -104,6 +94,11 @@ const TableViewerWidget = ({
           }}
         >
           <h3 style={{ margin: 0, fontSize: '1.25rem' }}>{displayTitle}</h3>
+          <div>
+            <button onClick={exportToCSV} style={{ marginRight: '10px' }}>
+              Export CSV
+            </button>
+          </div>
           <button
             onClick={() => setIsExpanded(!isExpanded)}
             style={{
@@ -127,6 +122,7 @@ const TableViewerWidget = ({
       >
         {gridData.length > 0 && columnDefs.length > 0 ? (
           <AgGridReact
+            ref={gridRef}
             columnDefs={columnDefs}
             rowData={gridData}
             defaultColDef={{
@@ -135,6 +131,7 @@ const TableViewerWidget = ({
               resizable: true,
               flex: 1,
             }}
+            rowSelection="multiple" // Enable row selection
             pagination={pagination}
             paginationPageSize={paginationPageSize}
             suppressRowHoverHighlight={!hoverable}
@@ -142,6 +139,12 @@ const TableViewerWidget = ({
               backgroundColor: striped && params.node.rowIndex % 2 === 0 ? '#f8f9fa' : 'white',
             })}
             rowHeight={dense ? 40 : 50}
+            animateRows={true} // Enable smooth animations
+            enableRangeSelection={true} // Allow cell range selection
+            enableSorting={true} // Enable sorting
+            enableFilter={true} // Enable filtering
+            suppressMovableColumns={false} // Allow column reordering
+            enableCellTextSelection={true} // Allow text selection in cells
             onGridReady={(params) => params.api.sizeColumnsToFit()}
             onFirstDataRendered={(params) => params.api.sizeColumnsToFit()}
             {...commonProps}

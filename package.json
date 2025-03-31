@@ -5,6 +5,7 @@
   "dependencies": {
     "@ag-grid-community/client-side-row-model": "^32.3.4",
     "@ag-grid-community/core": "^32.3.4",
+    "@ag-grid-enterprise/all-modules": "^27.3.0",
     "ag-grid-react": "^32.3.4"
   }
 }
