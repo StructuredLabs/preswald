@@ -16,6 +16,7 @@ from .components import (
     selectbox,
     separator,
     sidebar,
+    sklearn_predictor,
     slider,
     spinner,
     table,
