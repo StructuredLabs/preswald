@@ -6,7 +6,7 @@ import io
 import json
 import logging
 import uuid
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 # Third-Party
 import fastplotlib as fplt
@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import msgpack
 import numpy as np
 import pandas as pd
+from joblib import load
 from PIL import Image
 
 # Internal
@@ -138,6 +139,7 @@ def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
     service.append_component(component)
     return current_value
 
+
 def fastplotlib(fig: fplt.Figure, size: float = 1.0) -> str:
     """
     Render a Fastplotlib figure and asynchronously stream the resulting image to the frontend.
@@ -172,7 +174,12 @@ def fastplotlib(fig: fplt.Figure, size: float = 1.0) -> str:
 
     # hash input data early and use hash to avoid unnecessary rendering
     client_id = getattr(fig, "_client_id", None)
-    hashable_data = {"client_id": client_id, "state": state, "label": label, "size": size}
+    hashable_data = {
+        "client_id": client_id,
+        "state": state,
+        "label": label,
+        "size": size,
+    }
     data_hash = hashlib.sha256(msgpack.packb(hashable_data)).hexdigest()
 
     component = {
@@ -182,16 +189,18 @@ def fastplotlib(fig: fplt.Figure, size: float = 1.0) -> str:
         "size": size,
         "format": "websocket-png",
         "value": None,
-        "hash": data_hash[:8]
+        "hash": data_hash[:8],
     }
 
     # skip rendering if unchanged
     if data_hash != service.get_component_state(f"{component_id}_img_hash"):
         if client_id:
             # Render and send concurrently (async task)
-            asyncio.create_task(render_and_send_fastplotlib( # noqa: RUF006
-                fig, component_id, label, size, client_id, data_hash
-            ))
+            asyncio.create_task(
+                render_and_send_fastplotlib(
+                    fig, component_id, label, size, client_id, data_hash
+                )
+            )
         else:
             logger.warning(f"No client_id provided for {component_id}")
 
@@ -469,6 +478,80 @@ def slider(
     return current_value
 
 
+def sklearn_predictor(
+    model_path: str,
+    input_features: Dict[str, Union[float, int, bool, str]],
+    class_mapping: List[str],
+    output_label: str = "Prediction",
+    size: float = 1.0,
+    show_proba: bool = True,
+) -> Dict:
+    """
+    Scikit-learn model predictor component
+
+    Args:
+        model_path: Path to trained model (.pkl or .joblib)
+        input_features: Dictionary of feature values {feature_name: value}
+        class_mapping: List mapping class indices to class names
+        output_label: Label for output display
+        size: UI size parameter (0-1)
+        show_prob: Show prediction probabilities (for classifiers)
+
+    """
+    # Load model
+    model = load(model_path)
+
+    service = PreswaldService.get_instance()
+    id = generate_id("sklearn_predictor")
+    logger.debug(
+        f"Creating sklearn_predictor component with id {id}, model_path: {model_path}"
+    )
+    component = {
+        "type": "sklearn_predictor",
+        "id": id,
+        "model_path": model_path,
+        "size": size,
+    }
+
+    # Extract feature values in dictionary order and reshape to 2D
+    feature_values = np.array(
+        [input_features[key] for key in input_features.keys()]
+    ).reshape(1, -1)
+
+    # Get prediction and probabilities
+    prediction_idx = model.predict(feature_values)[0]
+    prediction = class_mapping[
+        prediction_idx
+    ]  # str(model.classes_[prediction_idx])  # Convert to class name
+    # Ensure all values are converted to standard Python types
+    output = {
+        "prediction": prediction,
+        "output_label": output_label,
+        "feature_values": input_features,
+    }
+    print(model.classes_)  # Check what values are stored
+
+    if show_proba and hasattr(model, "predict_proba"):
+        proba = model.predict_proba(feature_values)[0]
+        output["probabilities"] = {
+            class_mapping[idx]: float(prob)
+            for idx, prob in enumerate(
+                proba
+            )  # for cls, prob in zip(model.classes_, proba)
+        }
+    # construct component
+    component = {
+        "type": "sklearn_predictor",
+        "id": id,
+        "label": output_label,
+        "data": output,
+        "size": size,
+    }
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+    return component
+
+
 # TODO: requires testing
 def spinner(label: str, size: float = 1.0):
     """Create a spinner component."""
@@ -698,6 +781,7 @@ def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -
         service.append_component(error_component)
         return error_component
 
+
 # Helpers
 
 
@@ -728,6 +812,7 @@ def generate_id(prefix: str = "component") -> str:
     """Generate a unique ID for a component."""
     return f"{prefix}-{uuid.uuid4().hex[:8]}"
 
+
 def generate_id_by_label(prefix: str, label: str) -> str:
     """
     Generate a deterministic component ID based on a label string.
@@ -747,13 +832,14 @@ def generate_id_by_label(prefix: str, label: str) -> str:
     hashed = hashlib.md5(label.lower().encode()).hexdigest()[:8]
     return f"{prefix}-{hashed}"
 
+
 async def render_and_send_fastplotlib(
     fig: fplt.Figure,
     component_id: str,
     label: str,
     size: float,
     client_id: str,
-    data_hash: str
+    data_hash: str,
 ) -> Optional[str]:
     """
     Asynchronously renders a Fastplotlib figure to an offscreen canvas, encodes it as a PNG,
@@ -778,7 +864,7 @@ async def render_and_send_fastplotlib(
     """
     service = PreswaldService.get_instance()
 
-    fig.show() # must call even in offscreen mode to initialize GPU resources
+    fig.show()  # must call even in offscreen mode to initialize GPU resources
 
     # manually render the scene for all subplots
     for subplot in fig:
@@ -808,23 +894,27 @@ async def render_and_send_fastplotlib(
     # handle websocket communication
     client_websocket = service.websocket_connections.get(client_id)
     if client_websocket:
-        packed_msg = msgpack.packb({
-            "type": "image_update",
-            "component_id": component_id,
-            "format": "png",
-            "label": label,
-            "size": size,
-            "data": png_bytes
-        }, use_bin_type=True)
+        packed_msg = msgpack.packb(
+            {
+                "type": "image_update",
+                "component_id": component_id,
+                "format": "png",
+                "label": label,
+                "size": size,
+                "data": png_bytes,
+            },
+            use_bin_type=True,
+        )
 
         try:
             await client_websocket.send_bytes(packed_msg)
-            await service.handle_client_message(client_id, {
-                "type": "component_update",
-                "states": {
-                    f"{component_id}_img_hash": data_hash
-                }
-            })
+            await service.handle_client_message(
+                client_id,
+                {
+                    "type": "component_update",
+                    "states": {f"{component_id}_img_hash": data_hash},
+                },
+            )
             logger.debug(f"✅ Sent {component_id} image to client {client_id}")
         except Exception as e:
             logger.error(f"WebSocket send failed for {component_id}: {e}")

@@ -26,7 +26,7 @@ import TableViewerWidget from './widgets/TableViewerWidget';
 import TextInputWidget from './widgets/TextInputWidget';
 import TopbarWidget from './widgets/TopbarWidget';
 import UnknownWidget from './widgets/UnknownWidget';
-
+import SklearnPredictorWidget from './widgets/SklearnPredictorWidget';
 // Error boundary component
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -114,6 +114,18 @@ const MemoizedComponent = memo(
           />
         );
 
+      case 'sklearn_predictor':
+        return (
+          <SklearnPredictorWidget
+            {...commonProps}
+            label={component.label || 'Prediction'}
+            result={component.result}
+            probability={component.probability}
+            inputFeatures={component.input_features}
+            error={component.error}
+          />
+        );  
+        
       case 'text_input':
         return (
           <TextInputWidget
