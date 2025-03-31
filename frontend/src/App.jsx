@@ -4,6 +4,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 
 import Layout from './components/Layout';
 import Dashboard from './components/pages/Dashboard';
+import DataFiles from './components/pages/DataFiles';
 import { comm } from './utils/websocket';
 
 const App = () => {
@@ -156,15 +157,19 @@ const App = () => {
   return (
     <Router>
       <Layout>
-        {!isConnected ? (
-          <LoadingState />
-        ) : (
-          <Dashboard
-            components={components}
-            error={error}
-            handleComponentUpdate={handleComponentUpdate}
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <Dashboard
+                components={components}
+                error={error}
+                handleComponentUpdate={handleComponentUpdate}
+              />
+            }
           />
-        )}
+          <Route path="/data" element={<DataFiles />} />
+        </Routes>
       </Layout>
     </Router>
   );

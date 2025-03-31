@@ -1,4 +1,4 @@
-import { HomeIcon } from '@heroicons/react/24/solid';
+import { FolderIcon, HomeIcon } from '@heroicons/react/24/solid';
 import { Menu } from 'lucide-react';
 
 import React, { useState } from 'react';
@@ -7,7 +7,10 @@ import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Sidebar } from '@/components/ui/sidebar';
 
-const navigation = [{ name: 'Dashboard', href: '/', icon: HomeIcon }];
+const navigation = [
+  { name: 'Dashboard', href: '/', icon: HomeIcon },
+  { name: 'Data Files', href: '/data', icon: FolderIcon },
+];
 
 const SidebarWidget = ({ defaultOpen = false, ...props }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);

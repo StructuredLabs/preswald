@@ -1,7 +1,9 @@
 import PropTypes from 'prop-types';
+
 import React, { useEffect, useState } from 'react';
 
 import { Card } from '@/components/ui/card';
+
 import { cn } from '@/lib/utils';
 import { comm } from '@/utils/websocket';
 
@@ -18,10 +20,7 @@ const FastplotlibWidget = ({ id, label, src, className, clientId }) => {
 
   useEffect(() => {
     const unsubscribe = comm.subscribe((message) => {
-      if (
-        message.type === 'image_update' &&
-        message.component_id === id
-      ) {
+      if (message.type === 'image_update' && message.component_id === id) {
         if (message.value) {
           setCurrentSrc(message.value);
           setHasLoadedOnce(true);
@@ -40,11 +39,7 @@ const FastplotlibWidget = ({ id, label, src, className, clientId }) => {
     <Card className={cn('w-full p-4 flex justify-center items-center relative', className)}>
       {hasLoadedOnce ? (
         <>
-          <img
-            src={currentSrc}
-            alt={label || 'Fastplotlib chart'}
-            className="max-w-full h-auto"
-          />
+          <img src={currentSrc} alt={label || 'Fastplotlib chart'} className="max-w-full h-auto" />
           {showWarning && (
             <div className="absolute bottom-0 left-0 right-0 bg-yellow-100 text-yellow-800 text-xs p-1 text-center">
               Warning: Latest update did not include data.
