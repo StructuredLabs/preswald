@@ -57,6 +57,20 @@ export default [
         varsIgnorePattern: '^_',
       }],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
+      // Disable ESLint's import ordering to let Prettier handle it
+      'import/order': 'off',
+      ...react.configs['jsx-runtime'].rules,
+      ...reactHooks.configs.recommended.rules,
+      'react/jsx-no-target-blank': 'off',
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowConstantExport: true },
+      ],
+      'no-unused-vars': ['error', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+      }],
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
       'import/order': ['error', {
         groups: [
           'builtin',
@@ -66,6 +80,11 @@ export default [
           'index',
         ],
         'newlines-between': 'always',
+        pathGroups: [
+          { pattern: '^react', group: 'external', position: 'before' },
+          { pattern: '^@/components/(.*)$', group: 'internal', position: 'before' },
+          { pattern: '^@/(.*)$', group: 'internal' },
+        ],
         alphabetize: {
           order: 'asc',
           caseInsensitive: true,

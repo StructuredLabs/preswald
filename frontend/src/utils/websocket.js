@@ -1,4 +1,4 @@
-import { decode } from "@msgpack/msgpack";
+import { decode } from '@msgpack/msgpack';
 
 class WebSocketClient {
   constructor() {
@@ -113,12 +113,14 @@ class WebSocketClient {
             const decoded = decode(new Uint8Array(buffer));
 
             if (decoded?.type === 'image_update' && decoded.format === 'png') {
-
               const { component_id, data: binaryData, label } = decoded;
 
               // Convert image data (Uint8Array) to base64
               const base64 = `data:image/png;base64,${btoa(
-                new Uint8Array(binaryData).reduce((data, byte) => data + String.fromCharCode(byte), '')
+                new Uint8Array(binaryData).reduce(
+                  (data, byte) => data + String.fromCharCode(byte),
+                  ''
+                )
               )}`;
 
               // Update state and notify
@@ -127,17 +129,14 @@ class WebSocketClient {
                 type: 'image_update',
                 component_id,
                 value: base64,
-                label
+                label,
               });
             } else {
               console.warn('[WebSocket] Unknown binary message format:', decoded);
             }
-          }
-
-          else {
+          } else {
             console.warn('[WebSocket] Unrecognized message format:', event.data);
           }
-
         } catch (error) {
           console.error('[WebSocket] Error processing message:', error);
           this._notifySubscribers({
@@ -146,7 +145,6 @@ class WebSocketClient {
           });
         }
       };
-
     } catch (error) {
       console.error('[WebSocket] Error creating connection:', error);
       this.isConnecting = false;

@@ -1,17 +1,7 @@
 {
-    "semi": true,
-    "singleQuote": true,
-    "tabWidth": 2,
-    "printWidth": 100,
-    "trailingComma": "es5",
-    "importOrder": [
-      "^react",
-      "^@/components/(.*)$",
-      "^@/(.*)$",
-      "^[./]"
-    ],
-    "importOrderSeparation": true,
-    "importOrderSortSpecifiers": true,
-    "plugins": ["@trivago/prettier-plugin-sort-imports"]
-  }
-  
+  "semi": true,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "printWidth": 100,
+  "trailingComma": "es5"
+}
