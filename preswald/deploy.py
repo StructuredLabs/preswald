@@ -607,7 +607,7 @@ def deploy_to_local(script_path: str, start_port: int = 8501) -> str:
                 "--name",
                 container_name,
                 "-p",
-                f"{port}:{port}",
+                f"{port}:{start_port}",
                 "-v",
                 f"{script_dir}:/app/project",
                 "structuredlabs/preswald-base:latest"
