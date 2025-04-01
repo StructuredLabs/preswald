@@ -1,7 +1,8 @@
 import { FolderIcon, HomeIcon } from '@heroicons/react/24/solid';
 import { Menu } from 'lucide-react';
+import PropTypes from 'prop-types';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,7 @@ const navigation = [
   { name: 'Data Files', href: '/data', icon: FolderIcon },
 ];
 
-const SidebarWidget = ({ defaultOpen = false, ...props }) => {
+const SidebarWidget = ({ defaultOpen = false }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(!defaultOpen);
 
@@ -49,6 +50,18 @@ const SidebarWidget = ({ defaultOpen = false, ...props }) => {
         )}
     </>
   );
+};
+
+SidebarWidget.propTypes = {
+  defaultOpen: PropTypes.bool,
+  // Include any additional props that might be passed via the ...props spread
+  className: PropTypes.string,
+  id: PropTypes.string,
+  style: PropTypes.object,
+};
+
+SidebarWidget.defaultProps = {
+  defaultOpen: false,
 };
 
 export default SidebarWidget;

@@ -1,19 +1,17 @@
+import PropTypes from 'prop-types';
+
 import React, { memo, useEffect } from 'react';
 
-// UI components
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import { cn } from '@/lib/utils';
 import { comm } from '@/utils/websocket';
 
-// Utilities
 import { createExtractKeyProps } from '../utils/extractKeyProps';
-// Widgets
 import AlertWidget from './widgets/AlertWidget';
 import ButtonWidget from './widgets/ButtonWidget';
 import ChatWidget from './widgets/ChatWidget';
 import CheckboxWidget from './widgets/CheckboxWidget';
-import ConnectionInterfaceWidget from './widgets/ConnectionInterfaceWidget';
 import DAGVisualizationWidget from './widgets/DAGVisualizationWidget';
 import DataVisualizationWidget from './widgets/DataVisualizationWidget';
 import FastplotlibWidget from './widgets/FastplotlibWidget';
@@ -44,6 +42,7 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
+    // Consider using a logger service instead of console.error
     console.error('[DynamicComponents] Component Error:', error, errorInfo);
   }
 
@@ -62,23 +61,18 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+ErrorBoundary.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
 // Memoized component wrapper
 const MemoizedComponent = memo(
-  ({
-    component,
-    index,
-    handleUpdate,
-    extractKeyProps,
-    sidebarOpen,
-    setSidebarOpen,
-    isCollapsed,
-    setIsCollapsed,
-  }) => {
+  ({ component, index, handleUpdate, extractKeyProps }) => {
     const [componentId, componentKey, props] = extractKeyProps(component, index);
 
     switch (component.type) {
       case 'sidebar':
-        return <SidebarWidget defaultOpen={component.defaultopen} />;
+        return <SidebarWidget key={componentKey} {...props} defaultOpen={component.defaultopen} />;
 
       case 'button':
         return (
@@ -108,7 +102,7 @@ const MemoizedComponent = memo(
             step={component.step || 1}
             value={component.value !== undefined ? component.value : 50}
             onChange={(value) => handleUpdate(componentId, value)}
-            disabled={component.disabled}
+            disabled={!!component.disabled}
             showValue={component.showValue !== undefined ? component.showValue : true}
             showMinMax={component.showMinMax !== undefined ? component.showMinMax : true}
             variant={component.variant || 'default'}
@@ -120,14 +114,14 @@ const MemoizedComponent = memo(
           <TextInputWidget
             key={componentKey}
             {...props}
-            label={component.label}
-            placeholder={component.placeholder}
+            label={component.label || ''}
+            placeholder={component.placeholder || ''}
             value={component.value || ''}
             onChange={(value) => handleUpdate(componentId, value)}
-            error={component.error}
-            disabled={component.disabled}
-            required={component.required}
-            type={component.type || 'text'}
+            error={component.error || ''}
+            disabled={!!component.disabled}
+            required={!!component.required}
+            type={component.inputType || 'text'}
             size={component.size || 'default'}
             variant={component.variant || 'default'}
           />
@@ -143,8 +137,8 @@ const MemoizedComponent = memo(
             {...props}
             label={component.label || 'Checkbox'}
             checked={!!component.value}
-            description={component.description}
-            disabled={component.disabled}
+            description={component.description || ''}
+            disabled={!!component.disabled}
             onChange={(value) => handleUpdate(componentId, value)}
           />
         );
@@ -154,14 +148,14 @@ const MemoizedComponent = memo(
           <SelectboxWidget
             key={componentKey}
             {...props}
-            label={component.label}
+            label={component.label || ''}
             options={component.options || []}
-            value={component.value || (component.options && component.options[0]) || ''}
+            value={component.value || component.options?.[0] || ''}
             onChange={(value) => handleUpdate(componentId, value)}
-            placeholder={component.placeholder}
-            disabled={component.disabled}
-            error={component.error}
-            required={component.required}
+            placeholder={component.placeholder || ''}
+            disabled={!!component.disabled}
+            error={component.error || ''}
+            required={!!component.required}
             size={component.size || 'default'}
           />
         );
@@ -173,7 +167,7 @@ const MemoizedComponent = memo(
             {...props}
             label={component.label || 'Progress'}
             value={component.value !== undefined ? component.value : 0}
-            steps={component.steps}
+            steps={component.steps || []}
             showValue={component.showValue !== undefined ? component.showValue : true}
             size={component.size || 'default'}
           />
@@ -206,11 +200,11 @@ const MemoizedComponent = memo(
           <ImageWidget
             key={componentKey}
             {...props}
-            src={component.src}
-            alt={component.alt || ''}
+            src={component.src || ''}
+            alt={component.alt || 'Image'}
             size={component.size || 'medium'}
             rounded={component.rounded !== undefined ? component.rounded : true}
-            withCard={component.withCard}
+            withCard={!!component.withCard}
             aspectRatio={component.aspectRatio || 1}
             objectFit={component.objectFit || 'cover'}
           />
@@ -222,7 +216,7 @@ const MemoizedComponent = memo(
             key={componentKey}
             {...props}
             markdown={component.markdown || component.content || component.value || ''}
-            error={component.error}
+            error={component.error || ''}
             variant={component.variant || 'default'}
           />
         );
@@ -235,9 +229,7 @@ const MemoizedComponent = memo(
             sourceId={component.config?.source || null}
             sourceData={component.config?.data || null}
             value={component.value || component.state || { messages: [] }}
-            onChange={(value) => {
-              handleUpdate(componentId, value);
-            }}
+            onChange={(value) => handleUpdate(componentId, value)}
           />
         );
 
@@ -249,21 +241,11 @@ const MemoizedComponent = memo(
             rowData={component.data || []}
             title={component.title || 'Table Viewer'}
             variant={component.variant || 'default'}
-            showTitle={component.showTitle ?? true}
-            striped={component.striped ?? true}
-            dense={component.dense ?? false}
-            hoverable={component.hoverable ?? true}
-            className={component.className}
-          />
-        );
-
-      case 'connection':
-        return (
-          <ConnectionInterfaceWidget
-            key={componentKey}
-            {...props}
-            disabled={component.disabled}
-            onConnect={(connectionData) => handleUpdate(componentId, connectionData)}
+            showTitle={component.showTitle !== undefined ? component.showTitle : true}
+            striped={component.striped !== undefined ? component.striped : true}
+            dense={component.dense !== undefined ? component.dense : false}
+            hoverable={component.hoverable !== undefined ? component.hoverable : true}
+            className={component.className || ''}
           />
         );
 
@@ -282,21 +264,21 @@ const MemoizedComponent = memo(
         return <DAGVisualizationWidget key={componentKey} {...props} data={component.data || {}} />;
 
       case 'fastplotlib_component':
-        const { className, data, config, label, src } = component;
         return (
           <FastplotlibWidget
             key={componentKey}
             {...props}
-            data={component.data}
-            config={component.config}
-            src={src}
-            label={label}
-            className={className}
+            data={component.data || {}}
+            config={component.config || {}}
+            src={component.src || ''}
+            label={component.label || ''}
+            className={component.className || ''}
             clientId={comm.clientId}
           />
         );
 
       default:
+        // Use a logger instead of console.warn
         console.warn(`[DynamicComponents] Unknown component type: ${component.type}`);
         return (
           <UnknownWidget
@@ -312,36 +294,93 @@ const MemoizedComponent = memo(
     // Custom comparison function for memoization
     return (
       prevProps.component.id === nextProps.component.id &&
-      prevProps.component.value === nextProps.component.value &&
+      JSON.stringify(prevProps.component.value) === JSON.stringify(nextProps.component.value) &&
       prevProps.component.error === nextProps.component.error &&
       prevProps.index === nextProps.index
     );
   }
 );
 
+MemoizedComponent.displayName = 'MemoizedComponent';
+
+MemoizedComponent.propTypes = {
+  component: PropTypes.shape({
+    id: PropTypes.string,
+    type: PropTypes.string.isRequired,
+    value: PropTypes.any,
+    error: PropTypes.string,
+    label: PropTypes.string,
+    variant: PropTypes.string,
+    size: PropTypes.string,
+    disabled: PropTypes.bool,
+    loading: PropTypes.bool,
+    flex: PropTypes.number,
+    config: PropTypes.object,
+    data: PropTypes.any,
+    layout: PropTypes.object,
+    markdown: PropTypes.string,
+    content: PropTypes.string,
+    image: PropTypes.string,
+    options: PropTypes.array,
+    placeholder: PropTypes.string,
+    required: PropTypes.bool,
+    src: PropTypes.string,
+    alt: PropTypes.string,
+    step: PropTypes.number,
+    steps: PropTypes.array,
+    title: PropTypes.string,
+    withCard: PropTypes.bool,
+    aspectRatio: PropTypes.number,
+    objectFit: PropTypes.string,
+    rounded: PropTypes.bool,
+    showValue: PropTypes.bool,
+    showMinMax: PropTypes.bool,
+    showTitle: PropTypes.bool,
+    striped: PropTypes.bool,
+    dense: PropTypes.bool,
+    hoverable: PropTypes.bool,
+    className: PropTypes.string,
+    defaultopen: PropTypes.bool,
+    state: PropTypes.object,
+    min: PropTypes.number,
+    max: PropTypes.number,
+    message: PropTypes.string,
+    description: PropTypes.string,
+    showLabel: PropTypes.bool,
+    level: PropTypes.string,
+    inputType: PropTypes.string,
+  }).isRequired,
+  index: PropTypes.number.isRequired,
+  handleUpdate: PropTypes.func.isRequired,
+  extractKeyProps: PropTypes.func.isRequired,
+};
+
 const DynamicComponents = ({ components, onComponentUpdate }) => {
   useEffect(() => {
     extractKeyProps.reset();
-  }, []);
-
-  console.log('[DynamicComponents] Rendering with components:', components);
+  }, [extractKeyProps]); // Add extractKeyProps as dependency
 
   if (!components?.rows) {
+    // Use a logger instead of console.warn
     console.warn('[DynamicComponents] No components or invalid structure received');
     return null;
   }
 
   const handleUpdate = (componentId, value) => {
-    console.log(`[DynamicComponents] Component update triggered:`, {
-      componentId,
-      value,
-      timestamp: new Date().toISOString(),
-    });
+    // Remove or replace with a logger in production
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[DynamicComponents] Component update triggered:`, {
+        componentId,
+        value,
+        timestamp: new Date().toISOString(),
+      });
+    }
     onComponentUpdate(componentId, value);
   };
 
   const renderRow = (row, rowIndex) => {
     if (!Array.isArray(row)) {
+      // Use a logger instead of console.warn
       console.warn(`[DynamicComponents] Invalid row at index ${rowIndex}`);
       return null;
     }
@@ -351,7 +390,7 @@ const DynamicComponents = ({ components, onComponentUpdate }) => {
         {row.map((component, index) => {
           if (!component) return null;
 
-          const componentKey = component.id || `component-${index}`;
+          const componentKey = component.id || `component-${rowIndex}-${index}`;
 
           return (
             <React.Fragment key={componentKey}>
@@ -384,6 +423,51 @@ const DynamicComponents = ({ components, onComponentUpdate }) => {
       {components.rows.map((row, index) => renderRow(row, index))}
     </div>
   );
+};
+
+DynamicComponents.propTypes = {
+  components: PropTypes.shape({
+    rows: PropTypes.arrayOf(
+      PropTypes.arrayOf(
+        PropTypes.shape({
+          id: PropTypes.string,
+          type: PropTypes.string.isRequired,
+          value: PropTypes.any,
+          error: PropTypes.string,
+          label: PropTypes.string,
+          variant: PropTypes.string,
+          size: PropTypes.string,
+          disabled: PropTypes.bool,
+          loading: PropTypes.bool,
+          flex: PropTypes.number,
+          config: PropTypes.object,
+          data: PropTypes.any,
+          layout: PropTypes.object,
+          markdown: PropTypes.string,
+          options: PropTypes.array,
+          placeholder: PropTypes.string,
+          required: PropTypes.bool,
+          src: PropTypes.string,
+          step: PropTypes.number,
+          steps: PropTypes.array,
+          title: PropTypes.string,
+          withCard: PropTypes.bool,
+          aspectRatio: PropTypes.number,
+          objectFit: PropTypes.string,
+          rounded: PropTypes.bool,
+          showValue: PropTypes.bool,
+          showMinMax: PropTypes.bool,
+          showTitle: PropTypes.bool,
+          striped: PropTypes.bool,
+          dense: PropTypes.bool,
+          hoverable: PropTypes.bool,
+          className: PropTypes.string,
+          defaultopen: PropTypes.bool,
+        })
+      )
+    ),
+  }).isRequired,
+  onComponentUpdate: PropTypes.func.isRequired,
 };
 
 export default memo(DynamicComponents);
