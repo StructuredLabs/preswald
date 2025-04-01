@@ -1,6 +1,5 @@
 import { HomeIcon } from '@heroicons/react/24/solid';
 import { Menu } from 'lucide-react';
-
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -29,19 +28,21 @@ const SidebarWidget = ({ defaultOpen = false, ...props }) => {
 
   return (
     <>
-      {createPortal(<MobileMenuButton />, document.getElementById('mobile-menu-button-portal'))}
+      {document.getElementById('mobile-menu-button-portal') &&
+        createPortal(<MobileMenuButton />, document.getElementById('mobile-menu-button-portal'))}
 
-      {createPortal(
-        <Sidebar
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-          isCollapsed={isCollapsed}
-          setIsCollapsed={setIsCollapsed}
-          navigation={navigation}
-          branding={window.PRESWALD_BRANDING}
-        />,
-        document.getElementById('sidebar-portal')
-      )}
+      {document.getElementById('sidebar-portal') &&
+        createPortal(
+          <Sidebar
+            sidebarOpen={sidebarOpen}
+            setSidebarOpen={setSidebarOpen}
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+            navigation={navigation}
+            branding={window.PRESWALD_BRANDING}
+          />,
+          document.getElementById('sidebar-portal')
+        )}
     </>
   );
 };
