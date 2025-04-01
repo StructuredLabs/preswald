@@ -16,6 +16,9 @@ export default [
   },
   {
     files: ['**/*.{js,jsx}'],
+    extends: [
+      'prettier'
+    ],
     languageOptions: {
       ecmaVersion: 2020,
       globals: {
