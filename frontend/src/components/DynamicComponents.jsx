@@ -21,6 +21,7 @@ import TableViewerWidget from './widgets/TableViewerWidget';
 import TextInputWidget from './widgets/TextInputWidget';
 import TopbarWidget from './widgets/TopbarWidget';
 import UnknownWidget from './widgets/UnknownWidget';
+import SklearnPredictorWidget from './widgets/SklearnPredictorWidget';
 
 // Utilities
 import { createExtractKeyProps } from '../utils/extractKeyProps';
@@ -295,7 +296,16 @@ const MemoizedComponent = memo(
             clientId={comm.clientId}
           />
         );
-
+        case 'sklearn_predictor':
+          return (
+            <SklearnPredictorWidget
+              key={componentKey}
+              {...props}
+              label={component.label || 'Prediction'}
+              result={component.result || {}}
+            />
+          );
+        
       default:
         console.warn(`[DynamicComponents] Unknown component type: ${component.type}`);
         return (
