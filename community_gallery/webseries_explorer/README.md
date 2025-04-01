@@ -17,6 +17,8 @@ The application utilizes the **IMDb Top Web Series Dataset**, which includes det
 
 This dataset enables analysis of viewing trends, audience preferences, and patterns in ratings over the years.
 
+Access the dataset from https://www.kaggle.com/datasets/pranalpatil017/imdb-webseries-dataset
+
 ## Key Functionalities  
 🔹 **Filtering Web Series**:  
 - Search by genre or the starting letter of a series title  
