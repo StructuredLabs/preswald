@@ -270,17 +270,27 @@ class ServerPreswaldService:
             await self._send_error(client_id, "Component update missing states")
             raise ValueError("Component update missing states")
 
-        # Update component states
-        self._update_component_states(states)
+        # Only rerun if any state actually changed
+        changed_states = {
+            k: v for k, v in states.items()
+            if clean_nan_values(self.get_component_state(k)) != clean_nan_values(v)
+        }
+
+        if not changed_states:
+            logger.debug(f"[STATE] No actual state changes detected. Skipping rerun.")
+            return
+
+        # Update only changed states
+        self._update_component_states(changed_states)
         self._layout_manager.clear_layout()
 
         # Update states and trigger script rerun
         runner = self.script_runners.get(client_id)
         if runner:
-            await runner.rerun(states)
+            await runner.rerun(changed_states)
 
         # Broadcast updates to other clients
-        await self._broadcast_state_updates(states, exclude_client=client_id)
+        await self._broadcast_state_updates(changed_states, exclude_client=client_id)
 
     async def _broadcast_state_updates(
         self, states: Dict[str, Any], exclude_client: Optional[str] = None
