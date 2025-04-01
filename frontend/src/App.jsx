@@ -141,14 +141,14 @@ const App = () => {
     setError(message.connected ? null : 'Lost connection. Attempting to reconnect...');
   };
 
-  const LoadingState = () => (
-    <div className="loading-container">
-      <div className="loading-content">
-        <div className="loading-spinner"></div>
-        <p className="loading-text">Connecting...</p>
-      </div>
-    </div>
-  );
+  // const LoadingState = () => (
+  //   <div className="loading-container">
+  //     <div className="loading-content">
+  //       <div className="loading-spinner"></div>
+  //       <p className="loading-text">Connecting...</p>
+  //     </div>
+  //   </div>
+  // );
 
   console.log('[App] Rendering with:', { components, isConnected, error });
   console.log(window.location.pathname);
