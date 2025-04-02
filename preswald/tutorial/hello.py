@@ -7,6 +7,7 @@ from preswald import (
     checkbox,
     connect,
     get_df,
+    playground,
     plotly,
     progress,
     selectbox,
@@ -406,6 +407,17 @@ def progress_demo():
 def sidebar_demo():
     text("## 13. Showing sidebar to your app with sidebar()")
     sidebar(defaultopen=True)
+
+
+@workflow.atom()
+def playground_demo():
+    text("## 14. Interacting with SQL queries using `playground()` component")
+    text(
+        "The `playground` function provides a dynamic interface for querying connected data sources and visualizing results directly."
+    )
+
+    df = playground(label="Playground Example", query="SELECT * FROM sample_csv")
+    text(f"Total Items: {df.shape[0]}")
 
 
 # --- FINAL MESSAGE ---

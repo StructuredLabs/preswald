@@ -3,17 +3,24 @@ import imageio.v3 as iio
 import numpy as np
 
 from preswald import connect, fastplotlib, get_df, sidebar, text
+from preswald.engine.service import PreswaldService
 
+
+service = service = PreswaldService.get_instance()
 
 # Load the CSV
 connect()  # Load in all sources, which by default is the iris_csv
 df = get_df("iris_csv")
+
+client_id = service.get_component_state("client_id")
 
 sidebar(defaultopen=True)
 text("# Fastplotlib Examples")
 
 text("## Simple Image Plot")
 fig = fpl.Figure(size=(700, 560), canvas="offscreen")
+fig._client_id = client_id
+fig._label = "Simple Image Plot"
 data = iio.imread("images/logo.png")
 fig[0, 0].add_image(data)
 fastplotlib(fig)
@@ -24,12 +31,16 @@ x = np.linspace(-1, 10, 100)
 y = np.sin(x)
 sine = np.column_stack([x, y])
 fig = fpl.Figure(size=(700, 560), canvas="offscreen")
+fig._client_id = client_id
+fig._label = "Line Plot"
 fig[0, 0].add_line(data=sine, colors="w")
 fastplotlib(fig)
 
 # Line Plot ColorMap
 text("## Line Plot ColorMap")
 fig = fpl.Figure(size=(700, 560), canvas="offscreen")
+fig._client_id = client_id
+fig._label = "Line Plot ColorMap"
 xs = np.linspace(-10, 10, 100)
 ys = np.sin(xs)
 sine = np.dstack([xs, ys])[0]
@@ -53,6 +64,8 @@ y = df["petal.width"].tolist()
 variety = df["variety"].tolist()
 data = np.column_stack((x, y))
 fig = fpl.Figure(size=(700, 560), canvas="offscreen")
+fig._client_id = client_id
+fig._label = "Scatter Plot"
 color_map = {"Setosa": "yellow", "Versicolor": "cyan", "Virginica": "magenta"}
 colors = [color_map[v] for v in variety]
 scatter = fig[0, 0].add_scatter(data=data, sizes=4, colors=colors)
