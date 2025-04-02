@@ -1,0 +1,1 @@
+# Test text() function for strings, ints, floats and lists of those values

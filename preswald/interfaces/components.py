@@ -7,7 +7,7 @@ import json
 import logging
 import re
 import uuid
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 # Third-Party
 import matplotlib.pyplot as plt
@@ -146,6 +146,7 @@ def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
     logger.debug(f"Created component: {component}")
     service.append_component(component)
     return current_value
+
 
 
 def fastplotlib(fig: "fplt.Figure", size: float = 1.0) -> str:
@@ -683,21 +684,65 @@ def table(
         return error_component
 
 
-def text(markdown_str: str, size: float = 1.0) -> str:
-    """Create a text/markdown component."""
+def text(
+    data: Union[str, int, float, bool, List[Union[str, int, float, bool]]],
+    size: float = 1.0,
+) -> str:
+    """
+    Create text/markdown component that supports strings,
+    numbers, bools, and lists of strings or numbers.
+
+    Args:
+        data: String/Number/Bool or List of either
+        size: Text size
+
+    Returns:
+        Formatted string of inputted data
+
+    Raises:
+        Logs and handles any string casting errors internally
+
+    Notes:
+        - Option to raise TypeError on unsupported types, but types
+          like dataframes and dicts still 'work'.
+    """
     service = PreswaldService.get_instance()
     id = generate_id("text")
+
+    if isinstance(data, list):
+        processed_list = []
+        for item in data:
+            if isinstance(item, (str, int, float, bool)):
+                processed_list.append(str(item))
+            else:
+                logger.warning(f"Passing unsupported type: {type(item)} to text().")
+                try:
+                    processed_list.append(str(item))
+                except Exception as e:
+                    logger.error(f"Error: {e}")
+                    break
+        combined_data = " ".join(processed_list)
+    elif isinstance(data, (str, int, float, bool)):
+        combined_data = str(data)
+    else:
+        logger.warning(f"Passing unsupported type: {type(data)} to text().")
+        try:
+            combined_data = str(data)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            combined_data = ""
+
     logger.debug(f"Creating text component with id {id}")
     component = {
         "type": "text",
         "id": id,
-        "markdown": markdown_str,
-        "value": markdown_str,
+        "markdown": combined_data,
+        "value": combined_data,
         "size": size,
     }
     logger.debug(f"Created component: {component}")
     service.append_component(component)
-    return markdown_str
+    return data
 
 
 def text_input(label: str, placeholder: str = "", size: float = 1.0) -> str:
