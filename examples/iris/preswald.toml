@@ -3,7 +3,7 @@ title = "Preswald Project"
 version = "0.1.0"
 port = 8501
 slug = "iris-916474"  # Required: Unique identifier for your project
-entrypoint = "hello.py"
+entrypoint = "sklearn_example.py"
 
 [branding]
 name = "Preswald Project"

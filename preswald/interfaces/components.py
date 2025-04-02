@@ -7,6 +7,7 @@ import json
 import logging
 import uuid
 from typing import Dict, List, Optional
+import joblib
 
 # Third-Party
 import matplotlib.pyplot as plt
@@ -27,6 +28,7 @@ except ImportError:
 # Internal
 from preswald.engine.service import PreswaldService
 from preswald.interfaces.workflow import Workflow
+
 
 
 # Configure logging
@@ -863,3 +865,66 @@ async def render_and_send_fastplotlib(
             logger.error(f"WebSocket send failed for {component_id}: {e}")
     else:
         logger.warning(f"No active WebSocket found for client ID: {client_id}")
+
+def generate_id_by_label(prefix: str, label: str) -> str:
+    """Generate a deterministic component ID based on label string"""
+    if not label:
+        return f"{prefix}-{uuid.uuid4().hex[:8]}"
+    hashed = hashlib.md5(label.lower().encode()).hexdigest()[:8]
+    return f"{prefix}-{hashed}"
+
+def sklearn_predictor(model_path: str, input_features: dict, output_label: str = "Prediction", size: float = 1.0) -> str:
+    """Create a sklearn predictor component"""
+    service = PreswaldService.get_instance()
+    component_id = generate_id_by_label("sklearn_predictor", model_path)
+
+    try:
+        # Load model
+        model = joblib.load(model_path)
+
+        # Prepare input
+        X = [list(input_features.values())]  # 2D array expected by scikit-learn
+
+        y_pred = model.predict(X)
+        y_proba = model.predict_proba(X) if hasattr(model, "predict_proba") else None
+
+        # ✅ Directly take the predicted string
+        prediction_label = str(y_pred[0])
+
+        confidence_value = float(round(max(y_proba[0]), 4)) if y_proba is not None else None
+
+        # ✅ Optional probability breakdown
+        probabilities = None
+        if y_proba is not None:
+            probabilities = [
+                {"label": str(class_label), "prob": float(round(prob, 4))}
+                for class_label, prob in zip(model.classes_, y_proba[0])
+            ]
+
+        component = {
+            "type": "sklearn_predictor",
+            "id": component_id,
+            "label": output_label,
+            "result": {
+                "prediction": prediction_label,
+                "confidence": confidence_value,
+                "probabilities": probabilities,
+            },
+            "input_features": input_features,
+            "size": size,
+        }
+
+        service.append_component(component)
+        return prediction_label
+
+    except Exception as e:
+        logger.error(f"[SKLEARN_PREDICTOR] Error: {e}")
+        error_component = {
+            "type": "alert",
+            "id": component_id,
+            "message": f"Prediction failed: {e!s}",
+            "level": "error",
+            "size": size,
+        }
+        service.append_component(error_component)
+        return f"Error: {e}"

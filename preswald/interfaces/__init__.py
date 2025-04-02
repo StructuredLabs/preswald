@@ -23,6 +23,7 @@ from .components import (
     text_input,
     topbar,
     workflow_dag,
+    sklearn_predictor,
 )
 from .data import connect, get_df, query
 from .workflow import RetryPolicy, Workflow, WorkflowAnalyzer
