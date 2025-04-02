@@ -492,24 +492,25 @@ def sidebar(defaultopen: bool):
     return component
 
 
-def table(  # noqa: C901
+def table(
     data: pd.DataFrame, title: Optional[str] = None, limit: Optional[int] = None
 ) -> Dict:
     """Create a table component that renders data using TableViewerWidget.
 
     Args:
-        data: Pandas DataFrame or list of dictionaries to display
-        title: Optional title for the table
+        data: Pandas DataFrame or list of dictionaries to display.
+        title: Optional title for the table.
+        limit: Optional limit for rows displayed.
 
     Returns:
-        Dict: Component metadata and processed data
+        Dict: Component metadata and processed data.
     """
     id = generate_id("table")
     logger.debug(f"Creating table component with id {id}")
     service = PreswaldService.get_instance()
 
     try:
-        # Convert pandas DataFrame to list of dictionaries if needed
+        # Convert pandas DataFrame to a list of dictionaries if needed
         if hasattr(data, "to_dict"):
             if isinstance(data, pd.DataFrame):
                 data = data.reset_index(drop=True)
@@ -521,49 +522,49 @@ def table(  # noqa: C901
         if not isinstance(data, list):
             data = [data] if data else []
 
-        # Convert each row to ensure JSON serialization
+        # Ensure data is not empty before accessing keys
+        if data and isinstance(data[0], dict):
+            column_defs = [
+                {"headerName": str(col), "field": str(col)} for col in data[0].keys()
+            ]
+        else:
+            column_defs = []
+
+        # Process each row to ensure JSON serialization
         processed_data = []
         for row in data:
-            if isinstance(row, dict):
-                processed_row = {}
-                for key, value in row.items():
-                    # Convert key to string to ensure it's serializable
-                    key_str = str(key)
+            processed_row = {
+                str(key): (
+                    value.item()
+                    if isinstance(value, (np.integer, np.floating))
+                    else value
+                )
+                if value is not None
+                else ""  # Ensure no None values
+                for key, value in row.items()
+            }
+            processed_data.append(processed_row)
 
-                    # Handle special cases and convert value
-                    if pd.isna(value):
-                        processed_row[key_str] = None
-                    elif isinstance(value, (pd.Timestamp, pd.DatetimeTZDtype)):
-                        processed_row[key_str] = str(value)
-                    elif isinstance(value, (np.integer, np.floating)):
-                        processed_row[key_str] = value.item()
-                    elif isinstance(value, (list, np.ndarray)):
-                        processed_row[key_str] = convert_to_serializable(value)
-                    else:
-                        try:
-                            # Try to serialize to test if it's JSON-compatible
-                            json.dumps(value)
-                            processed_row[key_str] = value
-                        except:  # noqa: E722
-                            # If serialization fails, convert to string
-                            processed_row[key_str] = str(value)
-                processed_data.append(processed_row)
-            else:
-                # If row is not a dict, convert it to a simple dict
-                processed_data.append({"value": str(row)})
+        # Log debug info
+        logger.debug(f"Column Definitions: {column_defs}")
+        logger.debug(
+            f"Processed Data (first 5 rows): {processed_data[:5]}"
+        )  # Limit logs
 
-        # Create the component structure
+        # Create AG Grid compatible component structure
         component = {
             "type": "table",
             "id": id,
-            "data": processed_data,
-            "title": str(title) if title is not None else None,
+            "props": {
+                "columnDefs": column_defs,
+                "rowData": processed_data,
+                "title": str(title) if title else None,
+            },
         }
 
         # Verify JSON serialization before returning
         json.dumps(component)
-
-        logger.debug(f"Created table component: {component}")
+        logger.debug(f"Created AG Grid table component: {component}")
         service.append_component(component)
         return component
 
@@ -572,8 +573,11 @@ def table(  # noqa: C901
         error_component = {
             "type": "table",
             "id": id,
-            "data": [],
-            "title": f"Error: {e!s}",
+            "props": {
+                "columnDefs": [],
+                "rowData": [],
+                "title": f"Error: {e!s}",
+            },
         }
         service.append_component(error_component)
         return error_component
