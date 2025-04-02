@@ -2,11 +2,9 @@ import React, { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import TableViewerWidget from '@/components/widgets/TableViewerWidget';
 
 export default function PlaygroundWidget({
-  data = [],
-  label = 'Table Viewer',
+  label = 'Playground Widget',
   value,
   onChange,
   source,
@@ -42,7 +40,6 @@ export default function PlaygroundWidget({
         Run Query
       </Button>
       {error && <h3 className="text-red-500">{error}</h3>}
-      <TableViewerWidget data={data} title="" />
     </div>
   );
 }

@@ -300,9 +300,9 @@ const MemoizedComponent = memo(
       case 'playground':
         return (
           <PlaygroundWidget
-            {...commonProps}
+            key={componentKey}
+            {...props}
             label={component.label || 'Query Playground'}
-            data={component.data || []}
             source={component.source}
             value={component.value}
             onChange={(value) => handleUpdate(componentId, value)}

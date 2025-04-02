@@ -320,9 +320,6 @@ def playground(
         error = str(e)
         logger.error(f"Error querying data source: {e}")
 
-    # Process the DataFrame into an array-like format for UI rendering
-    processed_data, error = data_frame_to_array(data, limit=None)
-
     component = {
         "type": "playground",
         "id": component_id,
@@ -330,12 +327,14 @@ def playground(
         "source": source,
         "value": current_query_value,
         "size": size,
-        "data": processed_data,
         "error": error,
     }
 
     logger.debug(f"Created component: {component}")
     service.append_component(component)
+
+    # Add table for displaying the queried data
+    table(data, title="")
 
     # Return the raw DataFrame
     return data
@@ -805,64 +804,6 @@ def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -
 
 
 # Helpers
-
-
-def row_serializer(row):
-    if isinstance(row, dict):
-        processed_row = {}
-        for key, value in row.items():
-            # Convert key to string to ensure it's serializable
-            key_str = str(key)
-
-            # Handle special cases and convert value
-            if pd.isna(value):
-                processed_row[key_str] = None
-            elif isinstance(value, (pd.Timestamp, pd.DatetimeTZDtype)):
-                processed_row[key_str] = str(value)
-            elif isinstance(value, (np.integer, np.floating)):
-                processed_row[key_str] = value.item()
-            elif isinstance(value, (list, np.ndarray)):
-                processed_row[key_str] = convert_to_serializable(value)
-            else:
-                try:
-                    # Try to serialize to test if it's JSON-compatible
-                    json.dumps(value)
-                    processed_row[key_str] = value
-                except:  # noqa: E722
-                    # If serialization fails, convert to string
-                    processed_row[key_str] = str(value)
-        return processed_row
-    else:
-        # If row is not a dict, convert it to a simple dict
-        return {"value": str(row)}
-
-
-# Convert the data from a DataFrame to Array like format
-def data_frame_to_array(data: pd.DataFrame, limit: int | None):
-    processed_data = []
-    try:
-        # Convert pandas DataFrame to list of dictionaries if needed
-        if hasattr(data, "to_dict"):
-            if isinstance(data, pd.DataFrame):
-                data = data.reset_index(drop=True)
-                if limit is not None:
-                    data = data.head(limit)
-            data = data.to_dict("records")
-
-        # Ensure data is a list
-        if not isinstance(data, list):
-            data = [data] if data else []
-
-        # Convert each row to ensure JSON serialization
-        for row in data:
-            processed_data.append(row_serializer(row))
-
-        # Verify JSON serialization before returning
-        json.dumps(processed_data)
-        return processed_data, None
-    except Exception as e:
-        logger.error(f"Error processing data for playground component: {e!s}")
-        return [], f"Error processing data: {e!s}"
 
 
 def convert_to_serializable(obj):
