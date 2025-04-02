@@ -9,12 +9,20 @@ import uuid
 from typing import Dict, List, Optional
 
 # Third-Party
-import fastplotlib as fplt
 import matplotlib.pyplot as plt
-import msgpack
 import numpy as np
 import pandas as pd
 from PIL import Image
+
+
+try:
+    import fastplotlib as fplt
+    import msgpack
+
+    FASTPLOTLIB_AVAILABLE = True
+except ImportError:
+    FASTPLOTLIB_AVAILABLE = False
+    fplt = None
 
 # Internal
 from preswald.engine.service import PreswaldService
@@ -139,6 +147,7 @@ def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
     return current_value
 
 
+
 def download_button(
     label: str, data, file_name: str, mime_type: str, size: float = 1.0
 ):
@@ -190,7 +199,7 @@ def download_button(
     return component
 
 
-def fastplotlib(fig: fplt.Figure, size: float = 1.0) -> str:
+def fastplotlib(fig: "fplt.Figure", size: float = 1.0) -> str:
     """
     Render a Fastplotlib figure and asynchronously stream the resulting image to the frontend.
 
@@ -212,6 +221,12 @@ def fastplotlib(fig: fplt.Figure, size: float = 1.0) -> str:
         - Rendering occurs asynchronously if the figure state or client_id changes.
         - If client_id is not provided, a warning is logged and no rendering task is triggered.
     """
+    if not FASTPLOTLIB_AVAILABLE:
+        logger.warning(
+            "fastplotlib is not available. Please install it with 'pip install fastplotlib'"
+        )
+        return None
+
     service = PreswaldService.get_instance()
 
     label = getattr(fig, "_label", "fastplotlib")
@@ -245,8 +260,9 @@ def fastplotlib(fig: fplt.Figure, size: float = 1.0) -> str:
     # skip rendering if unchanged
     if data_hash != service.get_component_state(f"{component_id}_img_hash"):
         if client_id:
-            # Render and send concurrently (async task)
+
             task = asyncio.create_task(
+
                 render_and_send_fastplotlib(
                     fig, component_id, label, size, client_id, data_hash
                 )
@@ -818,7 +834,7 @@ def generate_id_by_label(prefix: str, label: str) -> str:
 
 
 async def render_and_send_fastplotlib(
-    fig: fplt.Figure,
+    fig: "fplt.Figure",
     component_id: str,
     label: str,
     size: float,
