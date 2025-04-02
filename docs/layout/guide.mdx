@@ -24,7 +24,7 @@ The `size` parameter lets you control how much space a component occupies in a r
 Here’s an example of how to use the `size` parameter to arrange components in a row:
 
 ```python
-from preswald import slider, button
+from preswald import slider, button, download_button
 
 # Two sliders sharing a row
 slider1 = slider("Filter 1", min_val=0.0, max_val=10.0, default=5.0, size=0.5)
@@ -33,6 +33,10 @@ slider2 = slider("Filter 2", min_val=0.0, max_val=10.0, default=5.0, size=0.5)
 # Button and slider sharing a row
 submit_button = button("Submit", size=0.3)
 threshold_slider = slider("Threshold", min_val=0.0, max_val=100.0, default=50.0, size=0.7)
+
+# Download button and slider sharing a row
+download_button("Download", data, file_name="data.csv", mime_type="text/csv", size=0.5)
+slider = slider("Adjust", min_val=0.0, max_val=10.0, default=5.0, size=0.5)
 ```
 
 ---

@@ -148,6 +148,58 @@ def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
     return current_value
 
 
+
+def download_button(
+    label: str, data, file_name: str, mime_type: str, size: float = 1.0
+):
+    """
+    Create a download button component to let users export data or visualizations
+    (e.g., CSV, JSON, PNG) as downloadable files from the frontend.
+
+    Args:
+        label (str): The text shown on the button.
+        data: Data to export (supports DataFrame, dict, str, or bytes).
+        file_name (str): The default name for the downloaded file.
+        mime_type (str): MIME type of the file (e.g., text/csv, application/json).
+        size (float): UI layout size for the button (0.0 to 1.0).
+
+    Returns:
+        Dict: Component metadata.
+    """
+    service = PreswaldService.get_instance()
+
+    # Serialize data to bytes
+    if isinstance(data, pd.DataFrame):
+        file_bytes = data.to_csv(index=False).encode("utf-8")
+    elif isinstance(data, dict):
+        file_bytes = json.dumps(data, indent=2).encode("utf-8")
+    elif isinstance(data, str):
+        file_bytes = data.encode("utf-8")
+    elif isinstance(data, bytes):
+        file_bytes = data
+    else:
+        raise ValueError("Unsupported data type for download_button")
+
+    encoded = base64.b64encode(file_bytes).decode("utf-8")
+
+    component_id = generate_id_by_label("download", label)
+
+    logger.debug(f"Creating download button with id {component_id}, file: {file_name}")
+
+    component = {
+        "type": "download_button",
+        "id": component_id,
+        "label": label,
+        "file_name": file_name,
+        "mime_type": mime_type,
+        "content": encoded,
+        "size": size,
+    }
+
+    service.append_component(component)
+    return component
+
+
 def fastplotlib(fig: "fplt.Figure", size: float = 1.0) -> str:
     """
     Render a Fastplotlib figure and asynchronously stream the resulting image to the frontend.
@@ -209,12 +261,17 @@ def fastplotlib(fig: "fplt.Figure", size: float = 1.0) -> str:
     # skip rendering if unchanged
     if data_hash != service.get_component_state(f"{component_id}_img_hash"):
         if client_id:
-            # Render and send concurrently (async task)
-            asyncio.create_task(  # noqa: RUF006
+
+            task = asyncio.create_task(
+
                 render_and_send_fastplotlib(
                     fig, component_id, label, size, client_id, data_hash
                 )
             )
+            # Store the task in a persistent container
+            if not hasattr(service, "pending_tasks"):
+                service.pending_tasks = []
+            service.pending_tasks.append(task)
         else:
             logger.warning(f"No client_id provided for {component_id}")
 

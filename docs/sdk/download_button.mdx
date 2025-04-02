@@ -1,0 +1,159 @@
+---
+
+### `download_button.mdx`
+
+```mdx
+---
+title: "download_button"
+icon: "download"
+description: "Download data or visualizations as files directly from your Preswald app."
+---
+
+```python
+download_button(
+  label: str,
+  data: Union[pd.DataFrame, dict, str, bytes],
+  file_name: str,
+  mime_type: str,
+  size: float = 1.0
+) -> Dict
+```
+
+The `download_button` function lets users download data or media (CSV, JSON, PNG, etc.) directly from your Preswald app. This is perfect for sharing filtered tables, plots, model outputs, or custom-generated reports.
+
+## Parameters
+
+- **`label`** _(str)_: The text shown on the button.
+- **`data`** _(DataFrame | dict | str | bytes)_: The content to download.
+  - `DataFrame`: Exported as CSV.
+  - `dict`: Exported as pretty-printed JSON.
+  - `str`: Saved as UTF-8 text.
+  - `bytes`: Used directly (e.g., for images).
+- **`file_name`** _(str)_: The name of the downloaded file (e.g., `"report.csv"`).
+- **`mime_type`** _(str)_: MIME type of the file (e.g., `"text/csv"`, `"application/json"`, `"image/png"`).
+- **`size`** _(float)_: _(Optional)_ How wide the button should appear (0.0–1.0). Default is `1.0`.
+
+<Frame>
+  <img
+    className="block dark:hidden"
+    src="/images/download-button-light.png"
+    alt="Download Button Light"
+  />
+  <img
+    className="hidden dark:block"
+    src="/images/download-button-dark.png"
+    alt="Download Button Dark"
+  />
+</Frame>
+
+## Returns
+
+- `dict`: The component dictionary, rendered as a download button.
+
+---
+
+## Usage Examples
+
+### Download a Filtered CSV
+
+```python
+filtered = df[df["sepal.length"] > 5]
+
+download_button(
+    label="Download Filtered CSV",
+    data=filtered,
+    file_name="filtered.csv",
+    mime_type="text/csv"
+)
+```
+
+---
+
+### Download a JSON Object
+
+```python
+download_button(
+    label="Export Model Output",
+    data={"accuracy": 0.91, "labels": ["cat", "dog", "fox"]},
+    file_name="model_output.json",
+    mime_type="application/json"
+)
+```
+
+---
+
+### Download a Text File
+
+```python
+download_button(
+    label="Download Notes",
+    data="This is a note from the user session.",
+    file_name="session_notes.txt",
+    mime_type="text/plain"
+)
+```
+
+---
+
+### Download a PNG Image (e.g., Matplotlib chart)
+
+```python
+import matplotlib.pyplot as plt
+import io
+
+fig, ax = plt.subplots()
+ax.plot([0, 1, 2], [2, 4, 3])
+buf = io.BytesIO()
+fig.savefig(buf, format="png")
+buf.seek(0)
+
+download_button(
+    label="Download Chart Image",
+    data=buf.read(),
+    file_name="chart.png",
+    mime_type="image/png"
+)
+```
+
+### Fastplotlib figures are GPU-rendered and streamed to the UI using WebSocket. To download them:
+
+- Manually render the image
+
+- Read the frame buffer as a NumPy array
+
+- Convert it to a PNG (like above)
+
+- Use download_button() with image/png
+ 
+-  pip install -U kaleido
+
+```python
+# Assuming `rgb_array` is a NumPy image from Fastplotlib framebuffer
+
+from PIL import Image
+import io
+
+buf = io.BytesIO()
+Image.fromarray(rgb_array).save(buf, format="PNG")
+buf.seek(0)
+
+download_button(
+    label="Download Rendered Plot",
+    data=buf.read(),
+    file_name="rendered_plot.png",
+    mime_type="image/png"
+)
+```
+
+Requires manual handling of Fastplotlib rendering (fig.canvas.read()) and WebGL context. Only do this if you are already accessing image bytes from the render pipeline.
+
+---
+
+## Why Use `download_button()`?
+
+- Let users take results offline
+- Export charts, tables, model outputs with one line of code
+- Supports multiple formats
+- Great for sharing reports or debugging data
+
+---
