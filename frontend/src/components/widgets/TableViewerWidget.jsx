@@ -1,133 +1,169 @@
-import { ChevronDown } from 'lucide-react';
+import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
+import { ModuleRegistry } from '@ag-grid-community/core';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
+import { AgGridReact } from 'ag-grid-react';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-
-import { cn } from '@/lib/utils';
+ModuleRegistry.registerModules([ClientSideRowModelModule]);
 
 const TableViewerWidget = ({
-  data = [],
+  rowData = [],
   title = 'Table Viewer',
-  className,
-  variant = 'default', // default, card
+  variant = 'default',
   showTitle = true,
   striped = true,
   dense = false,
   hoverable = true,
+  className = '',
+  pagination = true,
+  paginationPageSize = 20,
+  props: { rowData: propsRowData = [], columnDefs: propsColumnDefs = [], title: propsTitle } = {},
+  ...commonProps
 }) => {
+  console.log('Received props:', { rowData, propsRowData, propsColumnDefs, title, propsTitle });
+
   const [isExpanded, setIsExpanded] = useState(true);
+  const gridRef = useRef(null); // Reference for grid API
 
-  if (!data || data.length === 0) {
-    return (
-      <Card className={cn('w-full', className)}>
-        <CardContent className="flex items-center justify-center py-6">
-          <p className="text-sm text-muted-foreground">No data available</p>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Convert columnDefs to use '/' instead of '.' and add valueFormatter
+  const transformedColumnDefs = propsColumnDefs.map((col) => ({
+    ...col,
+    field: col.field.replace(/\./g, '/'),
+    valueFormatter: (params) =>
+      params.value === '' || params.value === null ? 'null' : params.value,
+    sortable: true, // Enable sorting
+    filter: true, // Enable filtering
+    resizable: true, // Enable column resizing
+  }));
 
-  const TableContent = (
-    <div className={cn('w-full', className)}>
-      <div className="flex items-center justify-between mb-2">
-        {showTitle && <h3 className="text-lg font-medium">{title}</h3>}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="p-0 h-9 w-9 flex items-center justify-center"
-          onClick={() => setIsExpanded(!isExpanded)}
+  // Convert grid data keys to use '/' instead of '.' and replace empty strings with null
+  const transformGridData = (data) => {
+    return data.map((row) => {
+      const newRow = {};
+      for (const key in row) {
+        if (row.hasOwnProperty(key)) {
+          const newKey = key.replace(/\./g, '/');
+          const value = row[key] === '' ? null : String(row[key]);
+          newRow[newKey] = value;
+        }
+      }
+      return newRow;
+    });
+  };
+
+  const [gridData, setGridData] = useState(
+    transformGridData(propsRowData.length ? propsRowData : rowData)
+  );
+  const [columnDefs, setColumnDefs] = useState(transformedColumnDefs);
+
+  useEffect(() => {
+    setGridData(transformGridData(propsRowData.length ? propsRowData : rowData));
+    setColumnDefs(transformedColumnDefs);
+  }, [propsRowData, rowData, propsColumnDefs]);
+
+  const displayTitle = propsTitle !== undefined ? propsTitle : title;
+
+  // Export data to CSV (AG Grid Community supports this)
+  const exportToCSV = () => {
+    gridRef.current.api.exportDataAsCsv();
+  };
+
+  return (
+    <div
+      style={{
+        width: '100%',
+        margin: '1rem 0',
+        borderRadius: '8px',
+        overflow: 'hidden',
+        border: variant === 'card' ? '1px solid #e0e0e0' : 'none',
+        boxShadow: variant === 'card' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
+      }}
+      className={`ag-theme-alpine ${className}`}
+    >
+      {showTitle && (
+        <div
+          style={{
+            padding: '1rem',
+            backgroundColor: '#f8f9fa',
+            borderBottom: '1px solid #e0e0e0',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
         >
-          <ChevronDown
-            className={cn(
-              'h-4 w-4 transition-transform duration-200 m-auto',
-              isExpanded ? '' : '-rotate-90'
-            )}
-          />
-        </Button>
-      </div>
+          <h3 style={{ margin: 0, fontSize: '1.25rem' }}>{displayTitle}</h3>
+          <div>
+            <button onClick={exportToCSV} style={{ marginRight: '10px' }}>
+              Export CSV
+            </button>
+          </div>
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '1.2rem',
+            }}
+          >
+            {isExpanded ? '🔼' : '🔽'}
+          </button>
+        </div>
+      )}
+
       <div
-        className={cn(
-          'overflow-auto transition-all duration-200 ease-in-out',
-          isExpanded ? 'opacity-100 max-h-[2000px]' : 'opacity-0 max-h-0'
-        )}
+        style={{
+          height: isExpanded ? '500px' : '0',
+          transition: 'height 0.3s ease-in-out',
+          overflow: 'hidden',
+        }}
       >
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {Object.keys(data[0]).map((key) => (
-                <TableHead key={key} className="font-medium">
-                  {key}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((row, index) => (
-              <TableRow
-                key={index}
-                className={cn(
-                  hoverable && 'cursor-pointer hover:bg-muted/50',
-                  striped && index % 2 === 0 && 'bg-muted/50',
-                  dense ? 'h-8' : 'h-12'
-                )}
-              >
-                {Object.values(row).map((value, idx) => (
-                  <TableCell key={idx} className={cn('p-2 md:p-4', dense && 'py-1 text-sm')}>
-                    {value !== null && value !== undefined ? value : 'N/A'}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        {gridData.length > 0 && columnDefs.length > 0 ? (
+          <AgGridReact
+            ref={gridRef}
+            columnDefs={columnDefs}
+            rowData={gridData}
+            defaultColDef={{
+              sortable: true,
+              filter: true,
+              resizable: true,
+              flex: 1,
+            }}
+            rowSelection="multiple" // Enable row selection
+            pagination={pagination}
+            paginationPageSize={paginationPageSize}
+            suppressRowHoverHighlight={!hoverable}
+            getRowStyle={(params) => ({
+              backgroundColor: striped && params.node.rowIndex % 2 === 0 ? '#f8f9fa' : 'white',
+            })}
+            rowHeight={dense ? 40 : 50}
+            animateRows={true} // Enable smooth animations
+            enableRangeSelection={true} // Allow cell range selection
+            enableSorting={true} // Enable sorting
+            enableFilter={true} // Enable filtering
+            suppressMovableColumns={false} // Allow column reordering
+            enableCellTextSelection={true} // Allow text selection in cells
+            onGridReady={(params) => params.api.sizeColumnsToFit()}
+            onFirstDataRendered={(params) => params.api.sizeColumnsToFit()}
+            {...commonProps}
+          />
+        ) : (
+          <div
+            style={{
+              padding: '2rem',
+              textAlign: 'center',
+              color: '#6c757d',
+              backgroundColor: '#f8f9fa',
+            }}
+          >
+            No data available to display
+          </div>
+        )}
       </div>
     </div>
   );
-
-  if (variant === 'card') {
-    return (
-      <Card className={cn('w-full', className)}>
-        {showTitle && (
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle>{title}</CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-0 h-9 w-9 flex items-center justify-center"
-              onClick={() => setIsExpanded(!isExpanded)}
-            >
-              <ChevronDown
-                className={cn(
-                  'h-4 w-4 transition-transform duration-200 m-auto',
-                  isExpanded ? '' : '-rotate-90'
-                )}
-              />
-            </Button>
-          </CardHeader>
-        )}
-        <CardContent
-          className={cn(
-            'transition-all duration-200 ease-in-out p-0',
-            isExpanded ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden'
-          )}
-        >
-          {TableContent}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return TableContent;
 };
 
 export default TableViewerWidget;

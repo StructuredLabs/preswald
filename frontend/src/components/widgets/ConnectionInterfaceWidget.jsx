@@ -34,12 +34,12 @@ const ConnectionInterfaceWidget = ({ className, onConnect, disabled = false }) =
   };
 
   return (
-    <Card className={cn('w-full', className)}>
+    <Card className={cn('connectioninterface-card', className)}>
       <CardHeader>
         <CardTitle>Connection Interface</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
+      <CardContent className="connectioninterface-card-content">
+        <div className="connectioninterface-input-group">
           <Label htmlFor="source">Data Source</Label>
           <Input
             id="source"
@@ -50,7 +50,7 @@ const ConnectionInterfaceWidget = ({ className, onConnect, disabled = false }) =
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="connectioninterface-input-group">
           <Label htmlFor="type">Connection Type</Label>
           <Select value={type} onValueChange={setType} disabled={disabled}>
             <SelectTrigger id="type">
@@ -66,7 +66,11 @@ const ConnectionInterfaceWidget = ({ className, onConnect, disabled = false }) =
           </Select>
         </div>
 
-        <Button className="w-full" onClick={handleConnect} disabled={!source.trim() || disabled}>
+        <Button
+          className="connectioninterface-button"
+          onClick={handleConnect}
+          disabled={!source.trim() || disabled}
+        >
           Connect
         </Button>
       </CardContent>
