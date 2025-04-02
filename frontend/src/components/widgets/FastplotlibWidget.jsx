@@ -1,37 +1,64 @@
-import React, { useEffect, useRef } from 'react';
+import PropTypes from 'prop-types';
+
+import React, { useEffect, useState } from 'react';
 
 import { Card } from '@/components/ui/card';
 
 import { cn } from '@/lib/utils';
+import { comm } from '@/utils/websocket';
 
-const FastplotlibWidget = ({ data, width, height, size, className }) => {
-  const canvasRef = useRef(null);
+const FastplotlibWidget = ({ id, label, src, className, clientId }) => {
+  const [currentSrc, setCurrentSrc] = useState(src);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(!!src);
+  const [showWarning, setShowWarning] = useState(false);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    canvas.width = width;
-    canvas.height = height;
+    if (clientId) {
+      comm.updateComponentState('client_id', clientId);
+    }
+  }, [clientId]);
 
-    const byteArray = new Uint8Array(data.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
-    const blob = new Blob([byteArray], { type: 'image/png' });
-    const img = new Image();
+  useEffect(() => {
+    const unsubscribe = comm.subscribe((message) => {
+      if (message.type === 'image_update' && message.component_id === id) {
+        if (message.value) {
+          setCurrentSrc(message.value);
+          setHasLoadedOnce(true);
+          setShowWarning(false); // reset warning on valid data
+        } else {
+          console.warn(`[FastplotlibWidget:${id}] image update received without data.`);
+          setShowWarning(true); // show warning if data missing
+        }
+      }
+    });
 
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, width, height);
-      URL.revokeObjectURL(img.src);
-    };
-    img.src = URL.createObjectURL(blob);
-  }, [data, width, height]);
+    return () => unsubscribe();
+  }, [id]);
 
   return (
-    <Card className={cn('w-full', className)}>
-      <canvas
-        ref={canvasRef}
-        style={{ width: `${width * size}px`, height: `${height * size}px` }}
-      />
+    <Card className={cn('w-full p-4 flex justify-center items-center relative', className)}>
+      {hasLoadedOnce ? (
+        <>
+          <img src={currentSrc} alt={label || 'Fastplotlib chart'} className="max-w-full h-auto" />
+          {showWarning && (
+            <div className="absolute bottom-0 left-0 right-0 bg-yellow-100 text-yellow-800 text-xs p-1 text-center">
+              Warning: Latest update did not include data.
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="text-sm text-muted-foreground">Loading...</div>
+      )}
     </Card>
   );
+};
+
+FastplotlibWidget.propTypes = {
+  id: PropTypes.string.isRequired,
+  label: PropTypes.string,
+  src: PropTypes.string,
+  className: PropTypes.string,
+  clientId: PropTypes.string,
 };
 
 export default React.memo(FastplotlibWidget);
