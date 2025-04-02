@@ -5,16 +5,25 @@ import hashlib
 import io
 import json
 import logging
+import re
 import uuid
 from typing import Dict, List, Optional
 
 # Third-Party
-import fastplotlib as fplt
 import matplotlib.pyplot as plt
-import msgpack
 import numpy as np
 import pandas as pd
 from PIL import Image
+
+
+try:
+    import fastplotlib as fplt
+    import msgpack
+
+    FASTPLOTLIB_AVAILABLE = True
+except ImportError:
+    FASTPLOTLIB_AVAILABLE = False
+    fplt = None
 
 # Internal
 from preswald.engine.service import PreswaldService
@@ -138,7 +147,8 @@ def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
     service.append_component(component)
     return current_value
 
-def fastplotlib(fig: fplt.Figure, size: float = 1.0) -> str:
+
+def fastplotlib(fig: "fplt.Figure", size: float = 1.0) -> str:
     """
     Render a Fastplotlib figure and asynchronously stream the resulting image to the frontend.
 
@@ -160,6 +170,12 @@ def fastplotlib(fig: fplt.Figure, size: float = 1.0) -> str:
         - Rendering occurs asynchronously if the figure state or client_id changes.
         - If client_id is not provided, a warning is logged and no rendering task is triggered.
     """
+    if not FASTPLOTLIB_AVAILABLE:
+        logger.warning(
+            "fastplotlib is not available. Please install it with 'pip install fastplotlib'"
+        )
+        return None
+
     service = PreswaldService.get_instance()
 
     label = getattr(fig, "_label", "fastplotlib")
@@ -172,7 +188,12 @@ def fastplotlib(fig: fplt.Figure, size: float = 1.0) -> str:
 
     # hash input data early and use hash to avoid unnecessary rendering
     client_id = getattr(fig, "_client_id", None)
-    hashable_data = {"client_id": client_id, "state": state, "label": label, "size": size}
+    hashable_data = {
+        "client_id": client_id,
+        "state": state,
+        "label": label,
+        "size": size,
+    }
     data_hash = hashlib.sha256(msgpack.packb(hashable_data)).hexdigest()
 
     component = {
@@ -182,16 +203,18 @@ def fastplotlib(fig: fplt.Figure, size: float = 1.0) -> str:
         "size": size,
         "format": "websocket-png",
         "value": None,
-        "hash": data_hash[:8]
+        "hash": data_hash[:8],
     }
 
     # skip rendering if unchanged
     if data_hash != service.get_component_state(f"{component_id}_img_hash"):
         if client_id:
             # Render and send concurrently (async task)
-            asyncio.create_task(render_and_send_fastplotlib( # noqa: RUF006
-                fig, component_id, label, size, client_id, data_hash
-            ))
+            asyncio.create_task(  # noqa: RUF006
+                render_and_send_fastplotlib(
+                    fig, component_id, label, size, client_id, data_hash
+                )
+            )
         else:
             logger.warning(f"No client_id provided for {component_id}")
 
@@ -238,6 +261,83 @@ def matplotlib(fig: Optional[plt.Figure] = None, label: str = "plot") -> str:
     service.append_component(component)
 
     return component_id  # Returning ID for potential tracking
+
+
+def playground(
+    label: str, query: str, source: str | None = None, size: float = 1.0
+) -> pd.DataFrame:
+    """
+    Create a playground component for interactive data querying and visualization.
+
+    Args:
+        label (str): The label for the playground component (used for identification).
+        query (str): The SQL query string to be executed.
+        source (str, optional): The name of the data source to query from. All data sources are considered by default.
+        size (float, optional): The visual size/scale of the component. Defaults to 1.0.
+
+    Returns:
+        pd.DataFrame: The queried data as a pandas DataFrame.
+    """
+
+    # Get the singleton instance of the PreswaldService
+    service = PreswaldService.get_instance()
+
+    # Generate a unique component ID using the label's hash
+    component_id = f"playground-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+
+    logger.debug(
+        f"Creating playground component with id {component_id}, label: {label}"
+    )
+
+    # Retrieve the current query state (if previously modified by the user)
+    # If no previous state, use the provided query
+    current_query_value = service.get_component_state(component_id)
+    if current_query_value is None:
+        current_query_value = query
+
+    # Initialize data_source with the provided source or auto-detect it
+    data_source = source
+    if source is None:
+        # Auto-extract the first table name from the SQL query using regex
+        # Handles 'FROM' and 'JOIN' clauses with optional backticks or quotes
+        fetched_sources = re.findall(
+            r'(?:FROM|JOIN)\s+[`"]?([a-zA-Z0-9_\.]+)[`"]?',
+            current_query_value,
+            re.IGNORECASE | re.DOTALL,
+        )
+        # Use the first detected source as the data source
+        data_source = fetched_sources[0] if fetched_sources else None
+
+    # Initialize placeholders for data and error
+    data = None
+    error = None
+
+    # Attempt to execute the query against the determined data source
+    try:
+        data = service.data_manager.query(current_query_value, data_source)
+        logger.debug(f"Successfully queried data source: {data_source}")
+    except Exception as e:
+        error = str(e)
+        logger.error(f"Error querying data source: {e}")
+
+    component = {
+        "type": "playground",
+        "id": component_id,
+        "label": label,
+        "source": source,
+        "value": current_query_value,
+        "size": size,
+        "error": error,
+    }
+
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+
+    # Add table for displaying the queried data
+    table(data, title="")
+
+    # Return the raw DataFrame
+    return data
 
 
 def plotly(fig, size: float = 1.0) -> Dict:  # noqa: C901
@@ -492,24 +592,25 @@ def sidebar(defaultopen: bool):
     return component
 
 
-def table(  # noqa: C901
+def table(
     data: pd.DataFrame, title: Optional[str] = None, limit: Optional[int] = None
 ) -> Dict:
     """Create a table component that renders data using TableViewerWidget.
 
     Args:
-        data: Pandas DataFrame or list of dictionaries to display
-        title: Optional title for the table
+        data: Pandas DataFrame or list of dictionaries to display.
+        title: Optional title for the table.
+        limit: Optional limit for rows displayed.
 
     Returns:
-        Dict: Component metadata and processed data
+        Dict: Component metadata and processed data.
     """
     id = generate_id("table")
     logger.debug(f"Creating table component with id {id}")
     service = PreswaldService.get_instance()
 
     try:
-        # Convert pandas DataFrame to list of dictionaries if needed
+        # Convert pandas DataFrame to a list of dictionaries if needed
         if hasattr(data, "to_dict"):
             if isinstance(data, pd.DataFrame):
                 data = data.reset_index(drop=True)
@@ -521,49 +622,49 @@ def table(  # noqa: C901
         if not isinstance(data, list):
             data = [data] if data else []
 
-        # Convert each row to ensure JSON serialization
+        # Ensure data is not empty before accessing keys
+        if data and isinstance(data[0], dict):
+            column_defs = [
+                {"headerName": str(col), "field": str(col)} for col in data[0].keys()
+            ]
+        else:
+            column_defs = []
+
+        # Process each row to ensure JSON serialization
         processed_data = []
         for row in data:
-            if isinstance(row, dict):
-                processed_row = {}
-                for key, value in row.items():
-                    # Convert key to string to ensure it's serializable
-                    key_str = str(key)
+            processed_row = {
+                str(key): (
+                    value.item()
+                    if isinstance(value, (np.integer, np.floating))
+                    else value
+                )
+                if value is not None
+                else ""  # Ensure no None values
+                for key, value in row.items()
+            }
+            processed_data.append(processed_row)
 
-                    # Handle special cases and convert value
-                    if pd.isna(value):
-                        processed_row[key_str] = None
-                    elif isinstance(value, (pd.Timestamp, pd.DatetimeTZDtype)):
-                        processed_row[key_str] = str(value)
-                    elif isinstance(value, (np.integer, np.floating)):
-                        processed_row[key_str] = value.item()
-                    elif isinstance(value, (list, np.ndarray)):
-                        processed_row[key_str] = convert_to_serializable(value)
-                    else:
-                        try:
-                            # Try to serialize to test if it's JSON-compatible
-                            json.dumps(value)
-                            processed_row[key_str] = value
-                        except:  # noqa: E722
-                            # If serialization fails, convert to string
-                            processed_row[key_str] = str(value)
-                processed_data.append(processed_row)
-            else:
-                # If row is not a dict, convert it to a simple dict
-                processed_data.append({"value": str(row)})
+        # Log debug info
+        logger.debug(f"Column Definitions: {column_defs}")
+        logger.debug(
+            f"Processed Data (first 5 rows): {processed_data[:5]}"
+        )  # Limit logs
 
-        # Create the component structure
+        # Create AG Grid compatible component structure
         component = {
             "type": "table",
             "id": id,
-            "data": processed_data,
-            "title": str(title) if title is not None else None,
+            "props": {
+                "columnDefs": column_defs,
+                "rowData": processed_data,
+                "title": str(title) if title else None,
+            },
         }
 
         # Verify JSON serialization before returning
         json.dumps(component)
-
-        logger.debug(f"Created table component: {component}")
+        logger.debug(f"Created AG Grid table component: {component}")
         service.append_component(component)
         return component
 
@@ -572,8 +673,11 @@ def table(  # noqa: C901
         error_component = {
             "type": "table",
             "id": id,
-            "data": [],
-            "title": f"Error: {e!s}",
+            "props": {
+                "columnDefs": [],
+                "rowData": [],
+                "title": f"Error: {e!s}",
+            },
         }
         service.append_component(error_component)
         return error_component
@@ -698,6 +802,7 @@ def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -
         service.append_component(error_component)
         return error_component
 
+
 # Helpers
 
 
@@ -728,6 +833,7 @@ def generate_id(prefix: str = "component") -> str:
     """Generate a unique ID for a component."""
     return f"{prefix}-{uuid.uuid4().hex[:8]}"
 
+
 def generate_id_by_label(prefix: str, label: str) -> str:
     """
     Generate a deterministic component ID based on a label string.
@@ -747,13 +853,14 @@ def generate_id_by_label(prefix: str, label: str) -> str:
     hashed = hashlib.md5(label.lower().encode()).hexdigest()[:8]
     return f"{prefix}-{hashed}"
 
+
 async def render_and_send_fastplotlib(
-    fig: fplt.Figure,
+    fig: "fplt.Figure",
     component_id: str,
     label: str,
     size: float,
     client_id: str,
-    data_hash: str
+    data_hash: str,
 ) -> Optional[str]:
     """
     Asynchronously renders a Fastplotlib figure to an offscreen canvas, encodes it as a PNG,
@@ -778,7 +885,7 @@ async def render_and_send_fastplotlib(
     """
     service = PreswaldService.get_instance()
 
-    fig.show() # must call even in offscreen mode to initialize GPU resources
+    fig.show()  # must call even in offscreen mode to initialize GPU resources
 
     # manually render the scene for all subplots
     for subplot in fig:
@@ -808,23 +915,27 @@ async def render_and_send_fastplotlib(
     # handle websocket communication
     client_websocket = service.websocket_connections.get(client_id)
     if client_websocket:
-        packed_msg = msgpack.packb({
-            "type": "image_update",
-            "component_id": component_id,
-            "format": "png",
-            "label": label,
-            "size": size,
-            "data": png_bytes
-        }, use_bin_type=True)
+        packed_msg = msgpack.packb(
+            {
+                "type": "image_update",
+                "component_id": component_id,
+                "format": "png",
+                "label": label,
+                "size": size,
+                "data": png_bytes,
+            },
+            use_bin_type=True,
+        )
 
         try:
             await client_websocket.send_bytes(packed_msg)
-            await service.handle_client_message(client_id, {
-                "type": "component_update",
-                "states": {
-                    f"{component_id}_img_hash": data_hash
-                }
-            })
+            await service.handle_client_message(
+                client_id,
+                {
+                    "type": "component_update",
+                    "states": {f"{component_id}_img_hash": data_hash},
+                },
+            )
             logger.debug(f"✅ Sent {component_id} image to client {client_id}")
         except Exception as e:
             logger.error(f"WebSocket send failed for {component_id}: {e}")

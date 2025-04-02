@@ -1,22 +1,20 @@
 import fastplotlib as fpl
 import imageio.v3 as iio
-import matplotlib.pyplot as plt
 import numpy as np
 import plotly.express as px
-
 
 from preswald import (
     chat,
     connect,
     fastplotlib,
     get_df,
-    matplotlib,
     plotly,
     sidebar,
     table,
     text,
 )
 from preswald.engine.service import PreswaldService
+
 
 service = service = PreswaldService.get_instance()
 
@@ -164,17 +162,6 @@ text(
     "## Sample of the Iris Dataset \n Below is a preview of the first 10 rows of the dataset, showing key measurements for each iris species."
 )
 table(df, limit=10)
-
-# Create a simple sine wave plot
-x = np.linspace(0, 10, 100)
-y = np.sin(x)
-
-fig, ax = plt.subplots()
-ax.plot(x, y)
-ax.set_title("Sine Wave Test")
-
-# Render Matplotlib figure in the Preswald app
-matplotlib(fig)
 
 # Add an interactive chat interface
 text(

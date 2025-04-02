@@ -1,4 +1,12 @@
 /* app.css */
+.selectbox-trigger {
+  @apply min-w-[8rem];
+}
+
+.selectbox-content {
+  @apply max-h-96 min-w-[8rem];
+}
+
 .main-content-collapsed-sidebar {
   @apply lg:pl-20 transition-all duration-300;
 }
@@ -389,7 +397,7 @@
 }
 
 .tableviewer-header-cell {
-  @apply font-medium;
+  @apply font-medium text-left text-gray-500 py-2;
 }
 
 .tableviewer-row {
