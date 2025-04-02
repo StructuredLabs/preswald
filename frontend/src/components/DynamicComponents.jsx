@@ -1,5 +1,13 @@
 import React, { memo, useEffect } from 'react';
 
+// UI components
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
+import { cn } from '@/lib/utils';
+import { comm } from '@/utils/websocket';
+
+// Utilities
+import { createExtractKeyProps } from '../utils/extractKeyProps';
 // Widgets
 import AlertWidget from './widgets/AlertWidget';
 import ButtonWidget from './widgets/ButtonWidget';
@@ -21,14 +29,6 @@ import TableViewerWidget from './widgets/TableViewerWidget';
 import TextInputWidget from './widgets/TextInputWidget';
 import TopbarWidget from './widgets/TopbarWidget';
 import UnknownWidget from './widgets/UnknownWidget';
-
-// Utilities
-import { createExtractKeyProps } from '../utils/extractKeyProps';
-import { comm } from '@/utils/websocket';
-
-// UI components
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { cn } from '@/lib/utils';
 
 const extractKeyProps = createExtractKeyProps();
 

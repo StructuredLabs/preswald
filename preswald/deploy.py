@@ -583,14 +583,14 @@ def find_available_port(start_port: int = 8501) -> int:
             port += 1
 
 
-def deploy_to_local(script_path: str) -> str:
+def deploy_to_local(script_path: str, start_port: int = 8501) -> str:
     script_path = os.path.abspath(script_path)
     script_dir = Path(script_path).parent
     container_name = get_container_name(script_path)
     
     try:
         # Find an available port
-        port = find_available_port()
+        port = find_available_port(start_port)
         print(f"\nUsing port: {port}")
         
         # Stop any existing container
@@ -607,7 +607,7 @@ def deploy_to_local(script_path: str) -> str:
                 "--name",
                 container_name,
                 "-p",
-                f"{port}:8501",
+                f"{port}:{start_port}",
                 "-v",
                 f"{script_dir}:/app/project",
                 "structuredlabs/preswald-base:latest"
@@ -640,7 +640,7 @@ def deploy(  # noqa: C901
     elif target == "gcp":
         return deploy_to_gcp(script_path, port)
     elif target == "local":
-        return deploy_to_local(script_path)
+        return deploy_to_local(script_path, port)
     else:
         raise ValueError(f"Unsupported deployment target: {target}")
 
