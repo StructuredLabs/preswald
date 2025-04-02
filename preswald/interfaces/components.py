@@ -5,6 +5,7 @@ import hashlib
 import io
 import json
 import logging
+import re
 import uuid
 from typing import Dict, List, Optional
 
@@ -260,6 +261,83 @@ def matplotlib(fig: Optional[plt.Figure] = None, label: str = "plot") -> str:
     service.append_component(component)
 
     return component_id  # Returning ID for potential tracking
+
+
+def playground(
+    label: str, query: str, source: str | None = None, size: float = 1.0
+) -> pd.DataFrame:
+    """
+    Create a playground component for interactive data querying and visualization.
+
+    Args:
+        label (str): The label for the playground component (used for identification).
+        query (str): The SQL query string to be executed.
+        source (str, optional): The name of the data source to query from. All data sources are considered by default.
+        size (float, optional): The visual size/scale of the component. Defaults to 1.0.
+
+    Returns:
+        pd.DataFrame: The queried data as a pandas DataFrame.
+    """
+
+    # Get the singleton instance of the PreswaldService
+    service = PreswaldService.get_instance()
+
+    # Generate a unique component ID using the label's hash
+    component_id = f"playground-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+
+    logger.debug(
+        f"Creating playground component with id {component_id}, label: {label}"
+    )
+
+    # Retrieve the current query state (if previously modified by the user)
+    # If no previous state, use the provided query
+    current_query_value = service.get_component_state(component_id)
+    if current_query_value is None:
+        current_query_value = query
+
+    # Initialize data_source with the provided source or auto-detect it
+    data_source = source
+    if source is None:
+        # Auto-extract the first table name from the SQL query using regex
+        # Handles 'FROM' and 'JOIN' clauses with optional backticks or quotes
+        fetched_sources = re.findall(
+            r'(?:FROM|JOIN)\s+[`"]?([a-zA-Z0-9_\.]+)[`"]?',
+            current_query_value,
+            re.IGNORECASE | re.DOTALL,
+        )
+        # Use the first detected source as the data source
+        data_source = fetched_sources[0] if fetched_sources else None
+
+    # Initialize placeholders for data and error
+    data = None
+    error = None
+
+    # Attempt to execute the query against the determined data source
+    try:
+        data = service.data_manager.query(current_query_value, data_source)
+        logger.debug(f"Successfully queried data source: {data_source}")
+    except Exception as e:
+        error = str(e)
+        logger.error(f"Error querying data source: {e}")
+
+    component = {
+        "type": "playground",
+        "id": component_id,
+        "label": label,
+        "source": source,
+        "value": current_query_value,
+        "size": size,
+        "error": error,
+    }
+
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+
+    # Add table for displaying the queried data
+    table(data, title="")
+
+    # Return the raw DataFrame
+    return data
 
 
 def plotly(fig, size: float = 1.0) -> Dict:  # noqa: C901
