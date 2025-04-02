@@ -8,10 +8,12 @@ from setuptools import Command, find_packages, setup
 
 class BuildFrontendCommand(Command):
     description = "build frontend assets"
-    user_options = []  # noqa: RUF012
+    user_options = [
+        ('watch', 'w', 'Run in watch mode instead of one-time build'),
+    ]
 
     def initialize_options(self):
-        pass
+        self.watch = False
 
     def finalize_options(self):
         pass
@@ -35,12 +37,11 @@ class BuildFrontendCommand(Command):
             npm_path = shutil.which("npm")
             if not npm_path:
                 raise Exception("npm is not installed or not found in PATH")
+
             # Run npm install with error handling
             result = subprocess.run(
                 [npm_path, "install"],
                 cwd=frontend_dir,
-                capture_output=True,
-                text=True,
                 check=False,
             )
             if result.returncode != 0:
@@ -48,61 +49,23 @@ class BuildFrontendCommand(Command):
                 raise Exception("npm install failed")
 
             # Run npm build with error handling
+            build_command = "watch" if self.watch else "build"
+            print(f"Running npm run {build_command}...")
             result = subprocess.run(
-                [npm_path, "run", "build"],
+                [npm_path, "run", build_command],
                 cwd=frontend_dir,
-                capture_output=True,
-                text=True,
                 check=False,
             )
             if result.returncode != 0:
                 print(f"npm build failed: {result.stderr}", file=sys.stderr)
                 raise Exception("npm build failed")
 
-            # Copy the built assets
-            self._copy_assets(frontend_dir)
-
         except subprocess.CalledProcessError as e:
-            print(f"Failed to build frontend: {str(e)}", file=sys.stderr)
+            print(f"Failed to build frontend: {e!s}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Unexpected error building frontend: {str(e)}", file=sys.stderr)
+            print(f"Unexpected error building frontend: {e!s}", file=sys.stderr)
             raise
-
-    def _copy_assets(self, frontend_dir):
-        dist_dir = frontend_dir / "dist"
-        if not dist_dir.exists():
-            raise Exception(f"Build directory not found at {dist_dir}")
-
-        package_static_dir = Path(__file__).parent / "preswald" / "static"
-        package_static_dir.mkdir(parents=True, exist_ok=True)
-
-        # Copy dist contents
-        print(f"Copying built assets to {package_static_dir}")
-        for item in dist_dir.iterdir():
-            dest = package_static_dir / item.name
-            if dest.exists():
-                if dest.is_dir():
-                    shutil.rmtree(dest)
-                else:
-                    dest.unlink()
-            if item.is_dir():
-                shutil.copytree(item, dest)
-            else:
-                shutil.copy2(item, dest)
-
-        # Copy public assets
-        public_dir = frontend_dir / "public"
-        if public_dir.exists():
-            print("Copying public assets...")
-            for item in public_dir.iterdir():
-                dest = package_static_dir / item.name
-                if not dest.exists():
-                    if item.is_dir():
-                        shutil.copytree(item, dest)
-                    else:
-                        shutil.copy2(item, dest)
-
 
 # Define core dependencies needed for the package to run
 CORE_DEPENDENCIES = [
@@ -111,8 +74,12 @@ CORE_DEPENDENCIES = [
     "toml==0.10.2",
     "plotly==5.24.1",
     "Markdown>=3.4.0",
+    "matplotlib>=3.8.4",
     # Server-only dependencies
     "fastapi>=0.68.0,<1.0.0; platform_system != 'Emscripten'",
+    "fastplotlib[imgui]~=0.3.0; platform_system != 'Emscripten'",
+    "imageio~=2.37.0; platform_system != 'Emscripten'",
+    "msgpack~=1.1.0; platform_system != 'Emscripten'",
     "uvicorn>=0.15.0,<1.0.0; platform_system != 'Emscripten'",
     "websockets>=10.0,<11.0; platform_system != 'Emscripten'",
     # Native code dependencies
@@ -141,7 +108,7 @@ DEV_DEPENDENCIES = [
 setup(
     # Basic package metadata
     name="preswald",
-    version="0.1.42",
+    version="0.1.49",
     author="Structured Labs",
     author_email="founders@structuredlabs.com",
     description="A lightweight data workflow SDK.",
