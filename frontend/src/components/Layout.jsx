@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { useEffect } from 'react';
 
+import { PreswaldBadge } from './PreswaldBadge';
+
 export default function Layout({ branding, children }) {
   const [faviconLoaded, setFaviconLoaded] = useState(false);
 
@@ -60,9 +62,10 @@ export default function Layout({ branding, children }) {
 
   return (
     <div className="min-h-screen bg-background">
+      <PreswaldBadge />
       <div className="flex min-h-screen relative">
-        <main className="flex-1 main-content-layout relative z-0">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">{children}</div>
+        <main className="flex-1 main-content-layout relative">
+          <div className="pt-14 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">{children}</div>
         </main>
       </div>
     </div>

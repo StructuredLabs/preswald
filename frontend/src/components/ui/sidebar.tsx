@@ -10,6 +10,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 const Sidebar = ({
@@ -29,16 +31,16 @@ const Sidebar = ({
         <div className="sidebar-nav">
           {!isMobile && (
             <div className="sidebar-header">
-              <div className="sidebar-logo-container">
+              <div className="flex items-center">
                 <img
-                  className="sidebar-logo"
-                  src={`${branding?.logo}?timstamp=${new Date().getTime()}`}
+                  src={branding?.logo}
                   alt={branding?.name}
+                  className="sidebar-logo"
                 />
+                {!isCollapsed && (
+                  <span className="sidebar-title">{branding?.name}</span>
+                )}
               </div>
-              {!isCollapsed && (
-                <span className="sidebar-title">{branding?.name}</span>
-              )}
             </div>
           )}
           <nav className="sidebar-nav-list">
@@ -112,7 +114,7 @@ const Sidebar = ({
   }, [isCollapsed]);
 
   return (
-    <>
+    <div>
       {/* Mobile Sidebar */}
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
         <SheetContent side="left" className="sidebar-mobile">
@@ -121,7 +123,7 @@ const Sidebar = ({
               <SheetTitle className="sidebar-mobile-title">
                 <img
                   className="sidebar-logo"
-                  src={`${branding?.logo}?timstamp=${new Date().getTime()}`}
+                  src={branding?.logo}
                   alt={branding?.name}
                 />
                 <span>{branding?.name}</span>
@@ -140,24 +142,23 @@ const Sidebar = ({
           "sidebar-desktop",
           isCollapsed
             ? "sidebar-desktop-collapsed"
-            : "sidebar-desktop-expanded",
+            : "sidebar-desktop-expanded"
         )}
       >
-        <Button
-          variant="ghost"
-          size="icon"
+        <div
+          role="button"
           className="desktop-collapse-button"
           onClick={() => setIsCollapsed((prev) => !prev)}
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          <PanelLeft className="icon-button" />
-        </Button>
+          <PanelLeft />
+        </div>
 
         <div className="sidebar-desktop-content">
           <NavContent />
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

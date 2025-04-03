@@ -7,6 +7,7 @@ from preswald import (
     checkbox,
     connect,
     get_df,
+    image,
     playground,
     plotly,
     progress,
@@ -236,10 +237,18 @@ This improves the readability of your app by clearly distinguishing between diff
     )
 
 
+# --- IMAGE COMPONENT ---
+@workflow.atom()
+def image_demo():
+    text("## 7. Displaying Images with `image()`")
+    text("Let's display an image using the `image()` component.")
+    image("https://www.preswald.com/images/Logo.svg")
+
+
 # --- WORKFLOW DAG COMPONENT ---
 @workflow.atom()
 def workflow_dag_demo():
-    text("## 7. Visualizing Workflow Dependencies with `workflow_dag()`")
+    text("## 8. Visualizing Workflow Dependencies with `workflow_dag()`")
     text(
         """
 The `workflow_dag()` function renders a Directed Acyclic Graph (DAG) to visualize task dependencies in your workflow.
@@ -299,7 +308,7 @@ workflow_dag(workflow, title="Workflow Dependency Graph")
 # --- WORKFLOW ANALYZER COMPONENT ---
 @workflow.atom(dependencies=["workflow_dag_demo"])
 def workflow_analyzer_demo():
-    text("## 8. Optimizing Workflows with `WorkflowAnalyzer()`")
+    text("## 9. Optimizing Workflows with `WorkflowAnalyzer()`")
     text(
         "The `WorkflowAnalyzer()` provides tools to analyze and optimize workflows, helping you identify bottlenecks and parallel execution opportunities."
     )
@@ -351,7 +360,7 @@ for i, group in enumerate(parallel_groups, 1):
 # --- RETRY POLICY EXPLANATION ---
 @workflow.atom()
 def retry_policy_demo():
-    text("## 9. Making Workflows More Reliable with `RetryPolicy`")
+    text("## 10. Making Workflows More Reliable with `RetryPolicy`")
     text(
         """
 The `RetryPolicy` helps handle failures in your workflow by automatically retrying tasks if they fail. You can control how many times a task is retried, how long to wait between retries, and which errors should trigger a retry.
@@ -378,7 +387,7 @@ def fetch_data():
 
 @workflow.atom()
 def alert_demo():
-    text("## 10. Displaying Alerts with `alert()`")
+    text("## 11. Displaying Alerts with `alert()`")
     text(
         "The `alert()` function displays a message to the user, which can be used to provide information, warnings, or errors."
     )
@@ -387,7 +396,7 @@ def alert_demo():
 
 @workflow.atom()
 def checkbox_demo():
-    text("## 11. Adding Interactivity with `checkbox()`")
+    text("## 12. Adding Interactivity with `checkbox()`")
     text(
         "The `checkbox()` function allows users to select or deselect an option using a checkbox."
     )
@@ -396,7 +405,7 @@ def checkbox_demo():
 
 @workflow.atom()
 def progress_demo():
-    text("## 12. Tracking Progress with `progress()`")
+    text("## 13. Tracking Progress with `progress()`")
     text(
         "The `progress()` function displays a progress bar to indicate the completion status of a task."
     )
@@ -405,13 +414,13 @@ def progress_demo():
 
 @workflow.atom()
 def sidebar_demo():
-    text("## 13. Showing sidebar to your app with sidebar()")
+    text("## 14. Showing sidebar to your app with sidebar()")
     sidebar(defaultopen=True)
 
 
 @workflow.atom()
 def playground_demo():
-    text("## 14. Interacting with SQL queries using `playground()` component")
+    text("## 15. Interacting with SQL queries using `playground()` component")
     text(
         "The `playground` function provides a dynamic interface for querying connected data sources and visualizing results directly."
     )

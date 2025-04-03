@@ -125,9 +125,6 @@ const MemoizedComponent = memo(
           />
         );
 
-      case 'topbar':
-        return <TopbarWidget key={componentKey} {...props} />;
-
       case 'checkbox':
         return (
           <CheckboxWidget
@@ -294,6 +291,9 @@ const MemoizedComponent = memo(
             error={component.error}
           />
         );
+
+      case 'topbar':
+        return <TopbarWidget key={componentKey} {...props} />;
 
       default:
         console.warn(`[DynamicComponents] Unknown component type: ${component.type}`);

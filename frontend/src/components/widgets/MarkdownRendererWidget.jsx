@@ -2,15 +2,13 @@ import remarkGfm from 'remark-gfm';
 
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
 
 import { cn } from '@/lib/utils';
 
-const MarkdownRendererWidget = ({ markdown, value, error, className, variant = 'default' }) => {
+const MarkdownRendererWidget = ({ markdown, value, error, className }) => {
   const content = markdown || value || '';
 
   if (error) {
@@ -60,19 +58,7 @@ const MarkdownRendererWidget = ({ markdown, value, error, className, variant = '
           {lang && (
             <div className="absolute right-3 top-2 z-20 text-xs text-muted-foreground">{lang}</div>
           )}
-          <SyntaxHighlighter
-            language={lang}
-            style={oneDark}
-            customStyle={{
-              margin: 0,
-              borderRadius: '0.5rem',
-              background: 'rgb(24 24 27)',
-              padding: '1rem',
-              fontSize: '0.875rem',
-            }}
-          >
-            {String(children).replace(/\n$/, '')}
-          </SyntaxHighlighter>
+          {String(children).replace(/\n$/, '')}
         </div>
       );
     },
