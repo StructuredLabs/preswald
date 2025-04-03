@@ -9,7 +9,8 @@ import zipfile
 from datetime import datetime
 from importlib.metadata import version
 from pathlib import Path
-from typing import Union, Generator, Optional
+from typing import Generator, Optional, Union  
+
 
 import requests
 import toml
@@ -634,7 +635,11 @@ def deploy(  # noqa: C901
     port: int = 8501,
     github_username: Optional[str] = None,
     api_key: Optional[str] = None,
+
+) -> Union[str, Generator[dict, None, None]]:
+
 ) -> Union[str , Generator[dict, None, None]]:
+
     """
     Deploy a Preswald app.
 
