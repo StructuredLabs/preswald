@@ -8,11 +8,11 @@
 }
 
 .main-content-collapsed-sidebar {
-  @apply lg:pl-20 transition-all duration-300;
+  @apply lg:pl-20 transition-all duration-300 ease-in-out;
 }
 
 .main-content-open-sidebar {
-  @apply lg:pl-80 transition-all duration-300;
+  @apply lg:pl-64 transition-all duration-300 ease-in-out;
 }
 
 .topbar {
@@ -20,15 +20,15 @@
 }
 
 .mobile-menu-button {
-  @apply lg:hidden;
+  @apply fixed left-4 top-4 z-50 lg:hidden h-9 w-9 p-0 flex items-center justify-center;
 }
 
 .desktop-collapse-button {
-  @apply hidden lg:flex;
+  @apply hidden lg:flex absolute -right-4 top-3 h-6 w-6 items-center justify-center rounded-full z-50 translate-x-1/2;
 }
 
 .icon-button {
-  @apply h-6 w-6 transition-transform duration-200;
+  @apply h-4 w-4 transition-transform duration-200;
 }
 
 .separator {
@@ -52,7 +52,7 @@
 }
 
 .sidebar-container {
-  @apply flex grow flex-col h-full;
+  @apply flex grow flex-col gap-4 h-full py-2;
 }
 
 .sidebar-content {
@@ -60,43 +60,47 @@
 }
 
 .sidebar-nav {
-  @apply flex flex-col gap-y-5 w-full;
+  @apply flex flex-col gap-1 w-full;
 }
 
 .sidebar-header {
-  @apply flex h-16 shrink-0 items-center;
+  @apply flex h-16 items-center px-6 mb-2;
+}
+
+.sidebar-logo-container {
+  @apply w-6 h-6 flex items-center justify-center shrink-0;
 }
 
 .sidebar-logo {
-  @apply h-8 w-8;
+  @apply h-6 w-6;
 }
 
 .sidebar-title {
-  @apply ml-4 text-lg font-semibold transition-opacity duration-200;
+  @apply ml-2 text-lg font-medium text-foreground;
 }
 
 .sidebar-nav-list {
-  @apply flex flex-1 flex-col;
+  @apply flex flex-1 flex-col px-4;
 }
 
 .sidebar-nav-items {
-  @apply flex flex-1 flex-col gap-y-7;
+  @apply flex flex-1 flex-col gap-1;
 }
 
 .sidebar-nav-link {
-  @apply flex items-center gap-x-3 rounded-md px-2 py-2 text-sm font-semibold leading-6 transition-all duration-200 m-2;
+  @apply flex items-center gap-x-3 rounded-md px-3 py-2 text-sm text-muted-foreground font-medium transition-colors hover:bg-accent hover:text-accent-foreground;
 }
 
 .sidebar-nav-link-active {
-  @apply bg-accent hover:rounded-md;
+  @apply bg-accent/50 text-foreground;
 }
 
 .sidebar-nav-link-hover {
-  @apply hover:bg-accent;
+  @apply hover:bg-accent hover:text-accent-foreground;
 }
 
 .sidebar-icon {
-  @apply h-6 w-6 shrink-0 transition-transform duration-200;
+  @apply h-4 w-4 shrink-0 opacity-70;
 }
 
 .sidebar-footer {
@@ -109,15 +113,15 @@
 
 /* Mobile Sidebar */
 .sidebar-mobile {
-  @apply fixed inset-y-0 left-0 flex w-[280px] flex-col border-r bg-background p-0;
+  @apply fixed inset-y-0 left-0 flex w-[280px] flex-col bg-background p-0 shadow-lg;
 }
 
 .sidebar-mobile-header {
-  @apply p-4 border-b;
+  @apply flex h-16 items-center px-6 border-b border-border;
 }
 
 .sidebar-mobile-title {
-  @apply flex items-center gap-2;
+  @apply flex items-center gap-3;
 }
 
 .sidebar-mobile-close-btn {
@@ -125,32 +129,32 @@
 }
 
 .sidebar-mobile-content {
-  @apply flex-1 overflow-hidden px-4 py-2;
+  @apply flex-1 overflow-y-auto px-4 py-2;
+}
+
+.sidebar-mobile-logo-container {
+  @apply w-6 h-6 flex items-center justify-center shrink-0;
+}
+
+.sidebar-mobile-name {
+  @apply text-lg font-medium text-foreground;
 }
 
 /* Desktop Sidebar */
 .sidebar-desktop {
-  @apply hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col border-r bg-background transition-all duration-300 ease-in-out transform-gpu;
+  @apply hidden lg:flex fixed left-0 top-0 h-full flex-col bg-muted/50 transition-all duration-300 ease-in-out z-30 border-r border-border;
 }
 
 .sidebar-desktop-collapsed {
-  @apply lg:w-20 pt-6 items-center gap-y-4;
-}
-
-.sidebar-desktop-collapsed .sidebar-header {
-  @apply justify-center items-center;
+  width: 80px;
 }
 
 .sidebar-desktop-expanded {
-  @apply lg:w-80;
-}
-
-.sidebar-desktop-expanded .desktop-collapse-button {
-  @apply fixed top-6 right-2;
+  width: 256px;
 }
 
 .sidebar-desktop-content {
-  @apply flex-1 overflow-hidden px-4 py-2;
+  @apply flex-1 overflow-hidden px-2 py-2;
 }
 
 .loading-container {
@@ -560,106 +564,6 @@
   @apply text-muted-foreground;
 }
 
-.markdown-container {
-  @apply w-full;
-}
-
-.markdown-card-variant-default {
-  @apply bg-card;
-}
-
-.markdown-card-variant-outline {
-  @apply border rounded-lg;
-}
-
-.markdown-card-variant-ghost {
-  @apply bg-transparent border-none shadow-none;
-}
-
-.markdown-card-content {
-  @apply prose prose-sm md:prose-base lg:prose-lg dark:prose-invert max-w-none;
-}
-
-.markdown-headings {
-  @apply prose-headings:scroll-m-20;
-}
-
-.markdown-paragraph {
-  @apply prose-p:leading-7;
-}
-
-.markdown-list {
-  @apply prose-li:marker:text-muted-foreground;
-}
-
-.markdown-pre {
-  @apply prose-pre:p-0 prose-pre:bg-transparent prose-pre:shadow-lg;
-}
-
-.markdown-code {
-  @apply prose-code:text-zinc-900 dark:prose-code:text-zinc-100;
-}
-
-.markdown-padding {
-  @apply p-0;
-}
-
-.markdown-heading-1 {
-  @apply scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl;
-}
-
-.markdown-heading-2 {
-  @apply scroll-m-20 pb-2 text-3xl font-semibold tracking-tight first:mt-0;
-}
-
-.markdown-heading-3 {
-  @apply scroll-m-20 text-2xl font-semibold tracking-tight;
-}
-
-.markdown-link {
-  @apply font-medium text-primary underline underline-offset-4;
-}
-
-.markdown-pre-wrapper {
-  @apply mb-2 mt-2 overflow-x-auto rounded-lg bg-zinc-950 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 shadow-sm;
-}
-
-.markdown-inline-code {
-  @apply relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 whitespace-normal inline-block;
-}
-
-.markdown-code-lang {
-  @apply absolute right-2 top-2 z-10 rounded-md bg-zinc-700 px-2 py-1 text-xs font-medium text-zinc-200;
-}
-
-.markdown-blockquote {
-  @apply mt-2 border-l-2 pl-6 italic;
-}
-
-.markdown-ul {
-  @apply my-2 ml-6 list-disc [&>li]:mt-2;
-}
-
-.markdown-ol {
-  @apply my-2 ml-6 list-decimal [&>li]:mt-2;
-}
-
-.markdown-table-wrapper {
-  @apply my-4 w-full overflow-y-auto;
-}
-
-.markdown-table {
-  @apply w-full;
-}
-
-.markdown-th {
-  @apply border px-4 py-2 text-left font-bold [&[align=center]]:text-center [&[align=right]]:text-right;
-}
-
-.markdown-td {
-  @apply border px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right;
-}
-
 .image-widget-container {
   @apply overflow-hidden;
 }
@@ -831,4 +735,9 @@
 
 .dag-visualizer-tooltip-content {
   @apply text-xs;
+}
+
+/* Platform/Section Headers in Sidebar */
+.sidebar-section-header {
+  @apply px-2 py-4 text-xs font-medium text-muted-foreground/70 uppercase tracking-wider;
 }

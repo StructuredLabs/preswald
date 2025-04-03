@@ -9,10 +9,13 @@ from preswald import (
     # fastplotlib,
     get_df,
     plotly,
+    sidebar,
     table,
     text,
 )
 
+
+sidebar()
 
 # from preswald.engine.service import PreswaldService
 
@@ -162,7 +165,7 @@ plotly(fig10)
 text(
     "## Sample of the Iris Dataset \n Below is a preview of the first 10 rows of the dataset, showing key measurements for each iris species."
 )
-table(df, limit=10)
+table(df)
 
 # Add an interactive chat interface
 text(

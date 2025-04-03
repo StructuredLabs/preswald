@@ -65,16 +65,7 @@ class ErrorBoundary extends React.Component {
 
 // Memoized component wrapper
 const MemoizedComponent = memo(
-  ({
-    component,
-    index,
-    handleUpdate,
-    extractKeyProps,
-    sidebarOpen,
-    setSidebarOpen,
-    isCollapsed,
-    setIsCollapsed,
-  }) => {
+  ({ component, index, handleUpdate, extractKeyProps }) => {
     const [componentId, componentKey, props] = extractKeyProps(component, index);
 
     switch (component.type) {
@@ -248,12 +239,6 @@ const MemoizedComponent = memo(
             key={componentKey}
             {...props}
             rowData={component.data || []}
-            title={component.title || 'Table Viewer'}
-            variant={component.variant || 'default'}
-            showTitle={component.showTitle ?? true}
-            striped={component.striped ?? true}
-            dense={component.dense ?? false}
-            hoverable={component.hoverable ?? true}
             className={component.className}
           />
         );

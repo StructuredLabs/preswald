@@ -578,7 +578,7 @@ def spinner(label: str, size: float = 1.0):
     return component
 
 
-def sidebar(defaultopen: bool):
+def sidebar(defaultopen: bool = False):
     """Create a sidebar component."""
     service = PreswaldService.get_instance()
     id = generate_id("sidebar")
