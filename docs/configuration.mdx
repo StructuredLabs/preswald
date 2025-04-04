@@ -133,6 +133,29 @@ user = "default"
 password = ""
 ```
 
+### Parquet Example: `[data.sample_parquet]`
+
+Preswald supports high-performance Parquet files for fast, memory-efficient data loading—ideal for large datasets or production pipelines.
+
+#### Fields:
+
+- `type`: Use `"parquet"`.
+- `path`: Path to a local `.parquet` file (absolute or relative).
+- `columns`: (optional) List of column names to load as a subset. Useful for large files with many columns.
+
+#### Example Parquet Connection:
+
+```toml
+[data.sales_parquet]
+type = "parquet"
+path = "data/sales_data.parquet"
+
+[data.analytics_subset]
+type = "parquet"
+path = "data/analytics.parquet"
+columns = ["region", "revenue", "score"]
+```
+
 ---
 
 ## Logging Configuration
