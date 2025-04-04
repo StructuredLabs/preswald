@@ -94,6 +94,8 @@ CORE_DEPENDENCIES = [
     "Requests>=2.31.0",  # NOTE: maybe need to make this server only as well?
     "setuptools>=69.5.1",
     "tomli>=2.0.1",  # TODO: standardize alongside toml/tomllib
+    "playwright >=1.51.0",
+    "beautifulsoup4>=4.13.3"
 ]
 
 # Define additional dependencies for development

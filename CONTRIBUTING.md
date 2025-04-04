@@ -73,9 +73,18 @@ python setup.py build_frontend --watch
 
 Verify your setup by running the sample app:
 
+
 ```bash
 cd examples/iris && preswald run
 ```
+
+### 5.Install Playwright Browsers
+
+Required for saving webpages
+```bash
+playwright install
+```
+
 
 ## Development Workflow
 
