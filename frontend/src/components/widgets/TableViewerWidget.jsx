@@ -36,7 +36,7 @@ const TableViewerWidget = ({
 
   return (
     <div
-      className={`w-full my-4 rounded-sm overflow-hidden ${
+      className={`w-full rounded-sm overflow-hidden ${
         hasCard ? 'border border-gray-50 shadow-sm bg-white' : ''
       } ag-theme-alpine ${className} [&_.ag-row-alt]:bg-white`}
     >

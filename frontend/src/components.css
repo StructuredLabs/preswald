@@ -176,13 +176,11 @@
 
 .dynamiccomponent-row {
   @apply flex flex-row w-full;
-  margin-bottom: 1rem; /* Maintain inline style */
 }
 
 .dynamiccomponent-component {
   @apply bg-background rounded-lg transition-all duration-200 hover:border-muted-foreground/20;
-  padding: 1rem; /* Maintain inline style */
-  min-width: 0; /* Prevent flex items from overflowing */
+  min-width: 0;
 }
 
 .dynamiccomponent-hidden {
@@ -190,7 +188,7 @@
 }
 
 .dynamiccomponent-separator {
-  @apply w-px bg-gray-200 my-4 mx-4 h-auto;
+  @apply w-px bg-gray-200 my-0.5 mx-0.5 h-auto;
 }
 
 .dashboard-container {

@@ -1,89 +1,54 @@
 import React from 'react';
 
-import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 
 import { cn } from '@/lib/utils';
 
 const SliderWidget = ({
   label,
+  value = 50,
   min = 0,
   max = 100,
-  value = 50,
-  step = 1.0,
-  id,
+  step = 1,
   onChange,
+  id,
   className,
-  disabled = false,
-  showValue = true,
-  showMinMax = true,
-  variant = 'default', // default, card
 }) => {
   const [localValue, setLocalValue] = React.useState(value);
 
   const handleChange = (e) => {
-    const newValue = parseFloat(e.target.value, 10);
+    const newValue = parseFloat(e.target.value);
     setLocalValue(newValue);
-  };
-
-  const handleMouseUp = () => {
-    if (localValue !== value) {
-      console.log('[SliderWidget] Change event:', {
-        id,
-        value: localValue,
-        timestamp: new Date().toISOString(),
-      });
-      onChange?.(localValue);
-    }
+    onChange?.(newValue);
   };
 
   React.useEffect(() => {
     setLocalValue(value);
   }, [value]);
 
-  const SliderContent = (
-    <div className={cn('slider-container', className)}>
-      <div className="slider-header">
-        <Label htmlFor={id} className={cn('slider-label', disabled && 'slider-label-disabled')}>
+  return (
+    <div className={cn('grid gap-2 w-full max-w-sm mb-4', className)}>
+      <div className="flex items-center justify-between">
+        <Label
+          htmlFor={id}
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        >
           {label}
         </Label>
-        {showValue && <span className="slider-value">{localValue}</span>}
+        <span className="text-sm text-muted-foreground">{localValue}</span>
       </div>
-      <div className="slider-wrapper">
-        <div className="mt-2">
-          <input
-            id={id}
-            name={id}
-            type="range"
-            min={min}
-            max={max}
-            step={step}
-            value={localValue}
-            onChange={handleChange}
-            onMouseUp={handleMouseUp}
-            onTouchEnd={handleMouseUp}
-            className="slider-track"
-          />
-        </div>
-      </div>
-      {showMinMax && (
-        <div className="slider-min-max">
-          <span className="slider-minmax-label">{min}</span>
-          <span className="slider-minmax-label">{max}</span>
-        </div>
-      )}
+      <input
+        id={id}
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={localValue}
+        onChange={handleChange}
+        className="w-full h-2 appearance-none bg-secondary rounded-full cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary"
+      />
     </div>
   );
-
-  if (variant === 'card') {
-    return (
-      <Card>
-        <CardContent className="slider-card-content">{SliderContent}</CardContent>
-      </Card>
-    );
-  }
-
-  return SliderContent;
 };
 
 export default SliderWidget;

@@ -1,13 +1,17 @@
+import matplotlib.pyplot as plt
 import plotly.express as px
 
 from preswald import (
     Workflow,
     WorkflowAnalyzer,
     alert,
+    button,
+    chat,
     checkbox,
     connect,
     get_df,
     image,
+    matplotlib,
     playground,
     plotly,
     progress,
@@ -15,8 +19,10 @@ from preswald import (
     separator,
     sidebar,
     slider,
+    spinner,
     table,
     text,
+    text_input,
     topbar,
     workflow_dag,
 )
@@ -34,7 +40,7 @@ def render_topbar():
 # --- WELCOME MESSAGE ---
 @workflow.atom()
 def welcome_message():
-    text("# 🐵 Welcome to Preswald!")
+    text("# Welcome to Preswald!")
     text(
         """
 This tutorial app showcases **all the components** available in the Preswald library, with explanations and usage examples. For more details, check out the [GitHub repository](https://github.com/StructuredLabs/preswald) and the [documentation](https://docs.preswald.com).
@@ -137,7 +143,7 @@ def slider_demo(load_data):
     # Create a slider for selecting the number of rows to display
     num_rows = slider(
         label="Select number of rows to display",
-        min_val=1,
+        min_val=0,
         max_val=len(df),
         step=1,
         default=5,
@@ -203,24 +209,17 @@ In this example, selecting a column updates the histogram dynamically! """
 
 
 # --- SEPARATOR COMPONENT ---
-@workflow.atom(dependencies=["load_data"])
-def separator_demo(load_data):
-    df = load_data
+@workflow.atom()
+def separator_demo():
     text("## 6. Organizing Content with `separator()`")
     text(
         "The `separator()` function adds a simple visual break between sections for better readability."
     )
 
     # Display some content
-    text("### Section 1: Original Data")
-    table(df.head(5))
-
-    # Add a separator to visually break content
+    text("### Section 1")
     separator()
-
-    # Display more content after the separator
-    text("### Section 2: Data Summary")
-    table(df.describe())
+    text("### Section 2")
 
     text(
         """
@@ -336,19 +335,24 @@ The `WorkflowAnalyzer()` helps identify bottlenecks and optimize execution by hi
 ```python
 from preswald import WorkflowAnalyzer
 analyzer = WorkflowAnalyzer(workflow)
+
 # Visualize the workflow
 analyzer.visualize(title="Workflow Dependency Graph")
+
 # Display critical path
 critical_path = analyzer.get_critical_path()
 print("Critical Path:", ' → '.join(critical_path))
+
 # Visualize the critical path
 analyzer.visualize(highlight_path=critical_path,
                    title="Workflow Critical Path")
+
 # Display parallel execution groups
 parallel_groups = analyzer.get_parallel_groups()
 for i, group in enumerate(parallel_groups, 1):
     print(f"Group {i}: {', '.join(group)}")
 ```
+
 **Key Features:**
 - **Critical Path Analysis:** Identify workflow bottlenecks to improve execution time.
 - **Parallel Execution Groups:** Highlight tasks that can run in parallel for optimized performance.
@@ -400,7 +404,38 @@ def checkbox_demo():
     text(
         "The `checkbox()` function allows users to select or deselect an option using a checkbox."
     )
-    checkbox(label="Select me!")
+
+    # Simple checkbox example
+    is_selected = checkbox(label="Select me!")
+
+    # Show the checkbox state
+    if is_selected:
+        text("✅ Checkbox is selected!")
+    else:
+        text("⬜ Checkbox is not selected")
+
+    text(
+        """
+The `checkbox()` component creates an interactive checkbox input.
+**Example:**
+```python
+from preswald import checkbox
+
+# Basic usage
+is_checked = checkbox(
+    label="Enable feature",
+    default=False
+)
+
+# Use the checkbox value in your app
+if is_checked:
+    # Do something when checked
+    print("Feature enabled!")
+```
+
+The checkbox returns a boolean value that you can use to control your app's behavior.
+"""
+    )
 
 
 @workflow.atom()
@@ -409,7 +444,7 @@ def progress_demo():
     text(
         "The `progress()` function displays a progress bar to indicate the completion status of a task."
     )
-    progress(0.8)
+    progress(label="Progress", value=80)
 
 
 @workflow.atom()
@@ -427,6 +462,74 @@ def playground_demo():
 
     df = playground(label="Playground Example", query="SELECT * FROM sample_csv")
     text(f"Total Items: {df.shape[0]}")
+
+
+@workflow.atom()
+def chat_demo():
+    text("## 16. Chat with your data using `chat()`")
+    text(
+        "The `chat()` function allows you to chat with your data using a chat interface."
+    )
+    chat("sample_csv")
+
+
+@workflow.atom()
+def matplotlib_demo():
+    text("## 17. Visualizing data using `matplotlib()`")
+    text("The `matplotlib()` function allows you to visualize data using matplotlib.")
+    fig = plt.figure()
+    plt.plot([1, 2, 3, 4, 5])
+    matplotlib(fig)
+
+
+@workflow.atom()
+def button_demo():
+    text("## 18. Adding Interactivity with `button()`")
+    text(
+        "The `button()` function creates a simple interactive button. Here's an example:"
+    )
+
+    # Simple button example
+    clicked = button(label="Click me!")
+
+    # Show the button state
+    if clicked:
+        text("Button was clicked!")
+    else:
+        text("Click the button!")
+
+
+@workflow.atom()
+def spinner_demo():
+    text("## 19. Adding a spinner with `spinner()`")
+    text(
+        "The `spinner()` function creates a loading indicator. Here are some examples:"
+    )
+
+    # Default spinner
+    spinner(label="Loading data...")
+
+    # Card variant with a different message
+    spinner(label="Processing request...", variant="card")
+
+
+@workflow.atom()
+def text_input_demo():
+    text("## 20. Adding a text input with `text_input()`")
+    text(
+        "The `text_input()` function creates a text input field that returns its current value."
+    )
+
+    # Get user's name
+    name = text_input(
+        label="What's your name?",
+        placeholder="Enter your name here",
+        default="",
+    )
+
+    # Show a greeting if they've entered a name
+    if name:
+        text(f"👋 Hello, {name}!")
 
 
 # --- FINAL MESSAGE ---

@@ -53,16 +53,36 @@ def alert(message: str, level: str = "info", size: float = 1.0) -> str:
     return message
 
 
-# TODO: Add button functionality
-def button(label: str, size: float = 1.0):
-    """Create a button component."""
+def button(
+    label: str,
+    variant: str = "default",
+    disabled: bool = False,
+    loading: bool = False,
+    size: float = 1.0,
+) -> bool:
+    """Create a button component that returns True when clicked."""
     service = PreswaldService.get_instance()
-    id = generate_id("button")
-    logger.debug(f"Creating button component with id {id}, label: {label}")
-    component = {"type": "button", "id": id, "label": label, "size": size}
-    logger.debug(f"Created component: {component}")
+    component_id = generate_id_by_label("button", label)
+
+    # Get current state or use default
+    current_value = service.get_component_state(component_id)
+    if current_value is None:
+        current_value = False
+
+    component = {
+        "type": "button",
+        "id": component_id,
+        "label": label,
+        "variant": variant,
+        "disabled": disabled,
+        "loading": loading,
+        "size": size,
+        "value": current_value,
+        "onClick": True,  # Always enable click handling
+    }
+
     service.append_component(component)
-    return component
+    return current_value
 
 
 def chat(source: str, table: Optional[str] = None) -> Dict:
@@ -566,16 +586,34 @@ def slider(
     return current_value
 
 
-# TODO: requires testing
-def spinner(label: str, size: float = 1.0):
-    """Create a spinner component."""
+def spinner(
+    label: str = "Loading...",
+    variant: str = "default",
+    show_label: bool = True,
+    size: float = 1.0,
+) -> None:
+    """Create a loading spinner component.
+
+    Args:
+        label: Text to show below the spinner
+        variant: Visual style ("default" or "card")
+        show_label: Whether to show the label text
+        size: Component width (1.0 = full width)
+    """
     service = PreswaldService.get_instance()
-    id = generate_id("spinner")
-    logger.debug(f"Creating spinner component with id {id}, label: {label}")
-    component = {"type": "spinner", "id": id, "label": label, "size": size}
-    logger.debug(f"Created component: {component}")
+    component_id = generate_id("spinner")
+
+    component = {
+        "type": "spinner",
+        "id": component_id,
+        "label": label,
+        "variant": variant,
+        "showLabel": show_label,
+        "size": size,
+    }
+
     service.append_component(component)
-    return component
+    return None
 
 
 def sidebar(defaultopen: bool = False):
@@ -697,21 +735,31 @@ def text(markdown_str: str, size: float = 1.0) -> str:
     return markdown_str
 
 
-def text_input(label: str, placeholder: str = "", size: float = 1.0) -> str:
-    """Create a text input component with consistent ID based on label."""
-    service = PreswaldService.get_instance()
+def text_input(
+    label: str,
+    placeholder: str = "",
+    default: str = "",
+    size: float = 1.0,
+) -> str:
+    """Create a text input component.
 
-    # Create a consistent ID based on the label
+    Args:
+        label: Label text shown above the input
+        placeholder: Placeholder text shown when input is empty
+        default: Initial value for the input
+        size: Component width (1.0 = full width)
+
+    Returns:
+        str: Current value of the input
+    """
+    service = PreswaldService.get_instance()
     component_id = generate_id_by_label("text_input", label)
 
     # Get current state or use default
     current_value = service.get_component_state(component_id)
     if current_value is None:
-        current_value = ""
+        current_value = default
 
-    logger.debug(
-        f"Creating text input component with id {component_id}, label: {label}"
-    )
     component = {
         "type": "text_input",
         "id": component_id,
@@ -720,7 +768,7 @@ def text_input(label: str, placeholder: str = "", size: float = 1.0) -> str:
         "value": current_value,
         "size": size,
     }
-    logger.debug(f"Created component: {component}")
+
     service.append_component(component)
     return current_value
 
