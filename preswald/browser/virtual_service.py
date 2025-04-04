@@ -7,6 +7,8 @@ import logging
 import sys
 from typing import Any, Dict, Optional
 
+from preswald.engine.utils import RenderBuffer
+
 
 logger = logging.getLogger(__name__)
 
@@ -154,6 +156,7 @@ class VirtualPreswaldService:
         self._lock = Lock()
         self._is_shutting_down = False
         self._script_path = None
+        self._render_buffer = RenderBuffer()
 
         # Create browser-compatible managers
         from preswald.engine.managers.layout import LayoutManager
@@ -314,11 +317,10 @@ class VirtualPreswaldService:
             raise ValueError("Component update missing states")
 
         # Only rerun if any state actually changed
-        from preswald.engine.utils import clean_nan_values
 
         changed_states = {
             k: v for k, v in states.items()
-            if clean_nan_values(self.get_component_state(k)) != clean_nan_values(v)
+            if self._render_buffer.update_if_changed(k, v)
         }
 
         if not changed_states:
