@@ -1,18 +1,26 @@
-import React, { memo } from 'react';
+import React, { memo, useEffect } from 'react';
 
+// UI components
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import { cn } from '@/lib/utils';
+import { comm } from '@/utils/websocket';
 
-// Import all widgets
+// Utilities
+import { createExtractKeyProps } from '../utils/extractKeyProps';
+// Widgets
 import AlertWidget from './widgets/AlertWidget';
 import ButtonWidget from './widgets/ButtonWidget';
+import ChatWidget from './widgets/ChatWidget';
 import CheckboxWidget from './widgets/CheckboxWidget';
 import ConnectionInterfaceWidget from './widgets/ConnectionInterfaceWidget';
 import DAGVisualizationWidget from './widgets/DAGVisualizationWidget';
 import DataVisualizationWidget from './widgets/DataVisualizationWidget';
+import FastplotlibWidget from './widgets/FastplotlibWidget';
 import ImageWidget from './widgets/ImageWidget';
 import MarkdownRendererWidget from './widgets/MarkdownRendererWidget';
+import MatplotlibWidget from './widgets/MatplotlibWidget';
+import PlaygroundWidget from './widgets/PlaygroundWidget';
 import ProgressWidget from './widgets/ProgressWidget';
 import SelectboxWidget from './widgets/SelectboxWidget';
 import SidebarWidget from './widgets/SidebarWidget';
@@ -20,7 +28,10 @@ import SliderWidget from './widgets/SliderWidget';
 import SpinnerWidget from './widgets/SpinnerWidget';
 import TableViewerWidget from './widgets/TableViewerWidget';
 import TextInputWidget from './widgets/TextInputWidget';
+import TopbarWidget from './widgets/TopbarWidget';
 import UnknownWidget from './widgets/UnknownWidget';
+
+const extractKeyProps = createExtractKeyProps();
 
 // Error boundary component
 class ErrorBoundary extends React.Component {
@@ -54,13 +65,8 @@ class ErrorBoundary extends React.Component {
 
 // Memoized component wrapper
 const MemoizedComponent = memo(
-  ({ component, index, handleUpdate }) => {
-    const componentId = component.id || `component-${index}`;
-    const commonProps = {
-      key: componentId,
-      id: componentId,
-      ...component,
-    };
+  ({ component, index, handleUpdate, extractKeyProps }) => {
+    const [componentId, componentKey, props] = extractKeyProps(component, index);
 
     switch (component.type) {
       case 'sidebar':
@@ -69,21 +75,25 @@ const MemoizedComponent = memo(
       case 'button':
         return (
           <ButtonWidget
-            {...commonProps}
+            key={componentKey}
+            {...props}
             label={component.label || 'Button'}
             variant={component.variant || 'outline'}
             size={component.size || 'default'}
             disabled={component.disabled || false}
             loading={component.loading || false}
             onClick={() => handleUpdate(componentId, true)}
-            className={component.className}
           />
         );
+
+      case 'matplotlib':
+        return <MatplotlibWidget key={componentKey} {...props} image={component.image} />;
 
       case 'slider':
         return (
           <SliderWidget
-            {...commonProps}
+            key={componentKey}
+            {...props}
             label={component.label || 'Slider'}
             min={component.min || 0}
             max={component.max || 100}
@@ -94,14 +104,14 @@ const MemoizedComponent = memo(
             showValue={component.showValue !== undefined ? component.showValue : true}
             showMinMax={component.showMinMax !== undefined ? component.showMinMax : true}
             variant={component.variant || 'default'}
-            className={component.className}
           />
         );
 
       case 'text_input':
         return (
           <TextInputWidget
-            {...commonProps}
+            key={componentKey}
+            {...props}
             label={component.label}
             placeholder={component.placeholder}
             value={component.value || ''}
@@ -112,14 +122,17 @@ const MemoizedComponent = memo(
             type={component.type || 'text'}
             size={component.size || 'default'}
             variant={component.variant || 'default'}
-            className={component.className}
           />
         );
+
+      case 'topbar':
+        return <TopbarWidget key={componentKey} {...props} />;
 
       case 'checkbox':
         return (
           <CheckboxWidget
-            {...commonProps}
+            key={componentKey}
+            {...props}
             label={component.label || 'Checkbox'}
             checked={!!component.value}
             description={component.description}
@@ -131,7 +144,8 @@ const MemoizedComponent = memo(
       case 'selectbox':
         return (
           <SelectboxWidget
-            {...commonProps}
+            key={componentKey}
+            {...props}
             label={component.label}
             options={component.options || []}
             value={component.value || (component.options && component.options[0]) || ''}
@@ -141,39 +155,39 @@ const MemoizedComponent = memo(
             error={component.error}
             required={component.required}
             size={component.size || 'default'}
-            className={component.className}
           />
         );
 
       case 'progress':
         return (
           <ProgressWidget
-            {...commonProps}
+            key={componentKey}
+            {...props}
             label={component.label || 'Progress'}
             value={component.value !== undefined ? component.value : 0}
             steps={component.steps}
             showValue={component.showValue !== undefined ? component.showValue : true}
             size={component.size || 'default'}
-            className={component.className}
           />
         );
 
       case 'spinner':
         return (
           <SpinnerWidget
-            {...commonProps}
+            key={componentKey}
+            {...props}
             label={component.label || 'Loading...'}
             size={component.size || 'default'}
             variant={component.variant || 'default'}
             showLabel={component.showLabel !== undefined ? component.showLabel : true}
-            className={component.className}
           />
         );
 
       case 'alert':
         return (
           <AlertWidget
-            {...commonProps}
+            key={componentKey}
+            {...props}
             level={component.level || 'info'}
             message={component.message || component.content || ''}
           />
@@ -182,7 +196,8 @@ const MemoizedComponent = memo(
       case 'image':
         return (
           <ImageWidget
-            {...commonProps}
+            key={componentKey}
+            {...props}
             src={component.src}
             alt={component.alt || ''}
             size={component.size || 'medium'}
@@ -196,25 +211,34 @@ const MemoizedComponent = memo(
       case 'text':
         return (
           <MarkdownRendererWidget
-            {...commonProps}
+            key={componentKey}
+            {...props}
             markdown={component.markdown || component.content || component.value || ''}
             error={component.error}
             variant={component.variant || 'default'}
-            className={component.className}
+          />
+        );
+
+      case 'chat':
+        return (
+          <ChatWidget
+            key={componentKey}
+            {...props}
+            sourceId={component.config?.source || null}
+            sourceData={component.config?.data || null}
+            value={component.value || component.state || { messages: [] }}
+            onChange={(value) => {
+              handleUpdate(componentId, value);
+            }}
           />
         );
 
       case 'table':
         return (
           <TableViewerWidget
-            {...commonProps}
-            data={component.data || []}
-            title={component.title || 'Table Viewer'}
-            variant={component.variant || 'default'}
-            showTitle={component.showTitle !== undefined ? component.showTitle : true}
-            striped={component.striped !== undefined ? component.striped : true}
-            dense={component.dense !== undefined ? component.dense : false}
-            hoverable={component.hoverable !== undefined ? component.hoverable : true}
+            key={componentKey}
+            {...props}
+            rowData={component.data || []}
             className={component.className}
           />
         );
@@ -222,7 +246,8 @@ const MemoizedComponent = memo(
       case 'connection':
         return (
           <ConnectionInterfaceWidget
-            {...commonProps}
+            key={componentKey}
+            {...props}
             disabled={component.disabled}
             onConnect={(connectionData) => handleUpdate(componentId, connectionData)}
           />
@@ -231,7 +256,8 @@ const MemoizedComponent = memo(
       case 'plot':
         return (
           <DataVisualizationWidget
-            {...commonProps}
+            key={componentKey}
+            {...props}
             data={component.data || {}}
             layout={component.layout || {}}
             config={component.config || {}}
@@ -239,16 +265,44 @@ const MemoizedComponent = memo(
         );
 
       case 'dag':
-        return <DAGVisualizationWidget {...commonProps} data={component.data || {}} />;
+        return <DAGVisualizationWidget key={componentKey} {...props} data={component.data || {}} />;
+
+      case 'fastplotlib_component':
+        const { className, data, config, label, src } = component;
+        return (
+          <FastplotlibWidget
+            key={componentKey}
+            {...props}
+            data={component.data}
+            config={component.config}
+            src={src}
+            label={label}
+            className={className}
+            clientId={comm.clientId}
+          />
+        );
+
+      case 'playground':
+        return (
+          <PlaygroundWidget
+            key={componentKey}
+            {...props}
+            label={component.label || 'Query Playground'}
+            source={component.source}
+            value={component.value}
+            onChange={(value) => handleUpdate(componentId, value)}
+            error={component.error}
+          />
+        );
 
       default:
         console.warn(`[DynamicComponents] Unknown component type: ${component.type}`);
         return (
           <UnknownWidget
-            {...commonProps}
+            key={componentKey}
+            {...props}
             type={component.type || 'unknown'}
             variant={component.variant || 'default'}
-            className={component.className}
           />
         );
     }
@@ -265,6 +319,10 @@ const MemoizedComponent = memo(
 );
 
 const DynamicComponents = ({ components, onComponentUpdate }) => {
+  useEffect(() => {
+    extractKeyProps.reset();
+  }, []);
+
   console.log('[DynamicComponents] Rendering with components:', components);
 
   if (!components?.rows) {
@@ -292,10 +350,11 @@ const DynamicComponents = ({ components, onComponentUpdate }) => {
         {row.map((component, index) => {
           if (!component) return null;
 
+          const componentKey = component.id || `component-${index}`;
+
           return (
-            <>
+            <React.Fragment key={componentKey}>
               <div
-                key={component.id || `component-${index}`}
                 className={cn(
                   'dynamiccomponent-component',
                   component.type === 'separator' && 'dynamiccomponent-hidden'
@@ -307,11 +366,12 @@ const DynamicComponents = ({ components, onComponentUpdate }) => {
                     component={component}
                     index={index}
                     handleUpdate={handleUpdate}
+                    extractKeyProps={extractKeyProps}
                   />
                 </ErrorBoundary>
               </div>
               {index < row.length - 1 && <div className="dynamiccomponent-separator" />}
-            </>
+            </React.Fragment>
           );
         })}
       </div>

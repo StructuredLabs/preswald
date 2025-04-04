@@ -61,7 +61,7 @@ Special thanks to:
 For more information about Preswald integration capabilities:
 
 - [Preswald Documentation](https://docs.preswald.com/introduction)
-- [Preswald Developer Community](https://join.slack.com/t/preswald-community/shared_invite/zt-31vvfitfm-_vG1HR9hYysR_56u_PfI8Q)
+- [Preswald Developer Community](https://join.slack.com/t/structuredlabs-users/shared_invite/zt-31vvfitfm-_vG1HR9hYysR_56u_PfI8Q)
 
 ## License
 

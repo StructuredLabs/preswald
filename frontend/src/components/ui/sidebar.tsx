@@ -1,11 +1,9 @@
 "use client";
 
-import { X } from "lucide-react";
 import React, { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, PanelLeft, PanelLeftClose } from "lucide-react";
+import { PanelLeft, PanelLeftClose } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Sheet,
   SheetContent,
@@ -31,11 +29,13 @@ const Sidebar = ({
         <div className="sidebar-nav">
           {!isMobile && (
             <div className="sidebar-header">
-              <img
-                className="sidebar-logo"
-                src={`${branding?.logo}?timstamp=${new Date().getTime()}`}
-                alt={branding?.name}
-              />
+              <div className="sidebar-logo-container">
+                <img
+                  className="sidebar-logo"
+                  src={`${branding?.logo}?timstamp=${new Date().getTime()}`}
+                  alt={branding?.name}
+                />
+              </div>
               {!isCollapsed && (
                 <span className="sidebar-title">{branding?.name}</span>
               )}
@@ -87,15 +87,6 @@ const Sidebar = ({
               </li>
             </ul>
           </nav>
-        </div>
-        <div className="sidebar-footer">
-          Built By{" "}
-          <a
-            href="https://github.com/structuredlabs/preswald"
-            className="sidebar-footer-link"
-          >
-            Preswald
-          </a>
         </div>
       </div>
     </div>
@@ -159,11 +150,7 @@ const Sidebar = ({
           onClick={() => setIsCollapsed((prev) => !prev)}
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          {isCollapsed ? (
-            <PanelLeft className="icon-button" />
-          ) : (
-            <PanelLeftClose className="icon-button" />
-          )}
+          <PanelLeft className="icon-button" />
         </Button>
 
         <div className="sidebar-desktop-content">

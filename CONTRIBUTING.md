@@ -8,10 +8,12 @@ Thank you for your interest in contributing to **Preswald**! This document outli
 2. [Setup Guide](#setup-guide)
 3. [Development Workflow](#development-workflow)
 4. [Style Guide](#style-guide)
-5. [Pull Request Guidelines](#pull-request-guidelines)
-6. [Issue Reporting Guidelines](#issue-reporting-guidelines)
-7. [Community Support](#community-support)
-8. [Acknowledgments](#acknowledgments)
+5. [Code Quality](#code-quality)
+6. [Claiming an Issue](#claiming-an-issue)
+7. [Pull Request Guidelines](#pull-request-guidelines)
+8. [Issue Reporting Guidelines](#issue-reporting-guidelines)
+9. [Community Support](#community-support)
+10. [Acknowledgments](#acknowledgments)
 
 ## Project Structure
 
@@ -57,8 +59,14 @@ We recommend using Conda to manage dependencies:
 
 ### 3. Build the Frontend
 
+Build the frontend once
 ```bash
 python setup.py build_frontend
+```
+
+Or use watch mode to monitor changes and auto-rebuild
+```bash
+python setup.py build_frontend --watch
 ```
 
 ### 4. Run the Example App
@@ -140,6 +148,9 @@ These configurations ensure your code remains consistent with our standards when
    ```
    Make sure to do step 5 for **all** directories in `examples`, not just `earthquakes`
 
+## Claiming an Issue
+
+Issues are assigned and reviewed on a first come first serve basis. When you begin work on an issue, ensure you leave a comment acknowledging that you have done so such that other users who may be interested in the issue are aware of your work. 
 
 ## Pull Request Guidelines
 
