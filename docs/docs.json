@@ -64,8 +64,10 @@
               "sdk/slider",
               "sdk/table",
               "sdk/text",
+              "sdk/button",
               "sdk/text_input",
               "sdk/topbar",
+              "sdk/sidebar",
               "sdk/workflow_dag"
             ]
           },

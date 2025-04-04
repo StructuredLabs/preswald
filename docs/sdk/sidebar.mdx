@@ -1,18 +1,18 @@
 ---
 title: "sidebar"
-icon: "circle-sidebar"
+icon: "window"
 description: ""
 ---
 
 ```python
-sidebar(defaultopen = True) -> Dict
+sidebar(defaultopen = True) -> None
 ```
 
-The `sidebar` function adds sidebar to your app.
+The `sidebar` function adds a fixed sidebar to your app.
 
 ## Parameters
 
-- **`defaultopen`** _(True)_: Whether to expand sidebar on desktop by default
+- **`defaultopen`** _(True)_: _(Optional)_ Whether to expand sidebar on desktop by default
 
 <Frame>
 <img
@@ -24,7 +24,7 @@ The `sidebar` function adds sidebar to your app.
 
 ## Returns
 
-- `Dict` with sidebar component data
+- Returns a sidebar component object
 
 ## Usage Example
 
