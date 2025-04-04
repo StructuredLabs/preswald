@@ -1,0 +1,89 @@
+---
+title: 'Spinner'
+description: 'Display loading states in your Preswald application'
+icon: 'spinner'
+---
+
+The Spinner widget provides a visual loading indicator for your Preswald application. It's useful for indicating that content is being loaded or that an operation is in progress.
+
+## Properties
+
+| Property    | Type      | Required | Default      | Description                                        |
+|------------|-----------|----------|--------------|---------------------------------------------------|
+| label      | string    | No       | 'Loading...' | Text displayed below the spinner                  |
+| variant    | string    | No       | 'default'    | Visual style variant ('default' or 'card')        |
+| className  | string    | No       | ''          | Additional CSS classes to apply to the spinner    |
+| showLabel  | boolean   | No       | true        | Whether to show the loading text label            |
+
+## Basic Usage
+
+```python
+import preswald as pw
+
+def app():
+    pw.spinner(label="Loading data...")
+
+pw.run(app)
+```
+
+## Examples
+
+### Default Spinner
+
+```python
+import preswald as pw
+
+def app():
+    pw.spinner()  # Uses default "Loading..." text
+```
+
+### Custom Label
+
+```python
+import preswald as pw
+
+def app():
+    pw.spinner(label="Fetching results...")
+```
+
+### Card Variant
+
+The card variant wraps the spinner in a card container for better visual hierarchy.
+
+```python
+import preswald as pw
+
+def app():
+    pw.spinner(
+        label="Processing...",
+        variant="card"
+    )
+```
+
+### Hidden Label
+
+```python
+import preswald as pw
+
+def app():
+    pw.spinner(showLabel=False)  # Shows only the spinning animation
+```
+
+### Custom Styling
+
+```python
+import preswald as pw
+
+def app():
+    pw.spinner(
+        label="Please wait",
+        className="bg-gray-100 rounded-lg"
+    )
+```
+
+## Notes
+
+- The spinner uses a clean, animated border design that's visually appealing and lightweight
+- The card variant is useful when you want to emphasize the loading state in your layout
+- You can customize the appearance using the className property
+- The spinner is centered by default and works well in both inline and block contexts

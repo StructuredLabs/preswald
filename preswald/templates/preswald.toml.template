@@ -2,8 +2,8 @@
 title = "Preswald Project"
 version = "0.1.0"
 port = 8501
-slug = "preswald-project"  # Required: Unique identifier for your project
-entrypoint = "hello.py"    # Required: Main script to run when executing preswald run
+slug = "preswald-project"  
+entrypoint = "hello.py"    
 
 [branding]
 name = "Preswald Project"
@@ -16,5 +16,5 @@ type = "csv"
 path = "data/sample.csv"
 
 [logging]
-level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+level = "INFO"  
 format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

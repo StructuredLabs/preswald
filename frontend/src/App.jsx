@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 import { BrowserRouter as Router } from 'react-router-dom';
 
 import Layout from './components/Layout';
+import LoadingState from './components/LoadingState';
 import Dashboard from './components/pages/Dashboard';
 import { comm } from './utils/websocket';
 
@@ -146,15 +147,6 @@ const App = () => {
     setError(message.connected ? null : 'Lost connection. Attempting to reconnect...');
   };
 
-  const LoadingState = () => (
-    <div className="loading-container">
-      <div className="loading-content">
-        <div className="loading-spinner"></div>
-        <p className="loading-text">{isConnected ? 'Loading Components...' : 'Connecting...'}</p>
-      </div>
-    </div>
-  );
-
   console.log('[App] Rendering with:', { components, isConnected, error });
   console.log(window.location.pathname);
 
@@ -162,7 +154,7 @@ const App = () => {
     <Router>
       <Layout>
         {!isConnected || areComponentsLoading ? (
-          <LoadingState />
+          <LoadingState isConnected={isConnected} />
         ) : (
           <Dashboard
             components={components}

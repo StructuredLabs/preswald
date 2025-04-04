@@ -58,7 +58,7 @@ def init(name):
             "preswald.toml": "preswald.toml",
             "secrets.toml": "secrets.toml",
             ".gitignore": "gitignore",
-            "README.md": "readme.md",
+            "workbook.md": "workbook.md",
             "pyproject.toml": "pyproject.toml",
             "data/sample.csv": "sample.csv",
         }
@@ -256,7 +256,11 @@ def deploy(script, target, port, log_level, github, api_key):  # noqa: C901
             click.echo("Starting production deployment... 🚀")
             try:
                 for status_update in deploy_app(
-                    script, target, port=port, github_username=github.lower() if github else None, api_key=api_key
+                    script,
+                    target,
+                    port=port,
+                    github_username=github.lower() if github else None,
+                    api_key=api_key,
                 ):
                     status = status_update.get("status", "")
                     message = status_update.get("message", "")
