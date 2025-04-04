@@ -59,6 +59,7 @@ def init(name):
             "preswald.toml": "preswald.toml",
             "secrets.toml": "secrets.toml",
             ".gitignore": "gitignore",
+            "workbook.md": "workbook.md",
             "README.md": "readme.md",
             "pyproject.toml": "pyproject.toml",
             "data/sample.csv": "sample.csv",
