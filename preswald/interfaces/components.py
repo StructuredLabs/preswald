@@ -162,19 +162,7 @@ def chat(source: str, table: str | None = None) -> dict:
     serializable_data = None
     if df is not None:
         records = df.to_dict("records")
-        # Handle timestamp fields before general serialization
-        processed_records = []
-        for record in records:
-            processed_record = {}
-            for key, value in record.items():
-                if isinstance(value, pd.Timestamp | pd.NaT.__class__):
-                    processed_record[key] = (
-                        value.isoformat() if not pd.isna(value) else None
-                    )
-                else:
-                    processed_record[key] = value
-            processed_records.append(processed_record)
-        serializable_data = convert_to_serializable(processed_records)
+        serializable_data = convert_to_serializable(records)
 
     logger.debug(f"Creating chat component with id {component_id}, source: {source}")
     component = {
@@ -598,34 +586,9 @@ def plotly(fig, size: float = 1.0) -> dict:  # noqa: C901
 
         # Clean up any NaN values in the data
         clean_start = time.time()
-        for trace in fig_dict.get("data", []):
-            if isinstance(trace.get("marker"), dict):
-                marker = trace["marker"]
-                if "sizeref" in marker and (
-                    isinstance(marker["sizeref"], float) and np.isnan(marker["sizeref"])
-                ):
-                    marker["sizeref"] = None
-
-            # Clean up other potential NaN values
-            for key, value in trace.items():
-                if isinstance(value, list | np.ndarray):
-                    trace[key] = [
-                        (
-                            None
-                            if isinstance(x, float | np.floating) and np.isnan(x)
-                            else x
-                        )
-                        for x in value
-                    ]
-                elif isinstance(value, float | np.floating) and np.isnan(value):
-                    trace[key] = None
-        logger.debug(f"[PLOTLY] NaN cleanup took {time.time() - clean_start:.3f}s")
-
-        # Convert to JSON-serializable format
-        serialize_start = time.time()
         serializable_fig_dict = convert_to_serializable(fig_dict)
         logger.debug(
-            f"[PLOTLY] Serialization took {time.time() - serialize_start:.3f}s"
+            f"[PLOTLY] NaN cleanup and serialization took {time.time() - clean_start:.3f}s"
         )
 
         component = {
@@ -897,27 +860,13 @@ def table(
         else:
             column_defs = []
 
-        # Process each row to ensure JSON serialization
-        processed_data = []
-        for row in data:
-            processed_row = {
-                str(key): (
-                    value.item()
-                    if isinstance(value, np.integer | np.floating)
-                    else value
-                )
-                if value is not None
-                else ""  # Ensure no None values
-                for key, value in row.items()
-            }
-            processed_data.append(processed_row)
-
-        # Log debug info
-        logger.debug(f"Column Definitions: {column_defs}")
-        logger.debug(
-            f"Processed Data (first 5 rows): {processed_data[:5]}"
-        )  # Limit logs
-
+        # Process and serialize data rows
+        processed_data = [
+            {str(k): convert_to_serializable(v) for k, v in row.items()}
+            if isinstance(row, dict)
+            else {"value": str(row)}
+            for row in data
+        ]
         # Create AG Grid compatible component structure
         component = {
             "type": "table",
@@ -1124,26 +1073,32 @@ def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -
 
 
 def convert_to_serializable(obj):
-    """Convert numpy arrays and other non-serializable objects to Python native types."""
-    if isinstance(obj, np.ndarray):
-        return obj.tolist()
-    elif isinstance(obj, np.int8 | np.int16 | np.int32 | np.int64 | np.integer):
-        return int(obj)
-    elif isinstance(obj, np.float16 | np.float32 | np.float64 | np.floating):
-        if np.isnan(obj):
-            return None
-        return float(obj)
-    elif isinstance(obj, np.bool_):
-        return bool(obj)
-    elif isinstance(obj, dict):
-        return {k: convert_to_serializable(v) for k, v in obj.items()}
-    elif isinstance(obj, list | tuple):
+    """Convert numpy, pandas, and other non-serializable objects to native types."""
+    if isinstance(obj, np.ndarray | list | tuple):
         return [convert_to_serializable(item) for item in obj]
-    elif isinstance(obj, np.generic):
-        if np.isnan(obj):
-            return None
-        return obj.item()
-    return obj
+    if isinstance(obj, dict):
+        return {k: convert_to_serializable(v) for k, v in obj.items()}
+    if isinstance(obj, (np.integer | np.bool_)):
+        return int(obj) if isinstance(obj, np.integer) else bool(obj)
+    if isinstance(obj, (np.floating | float)) and np.isfinite(obj):
+        return float(obj)
+    if (
+        pd.isna(obj)
+        or isinstance(obj, pd.NaT.__class__)
+        or (isinstance(obj, (np.floating | float)) and not np.isfinite(obj))
+    ):
+        return None
+    if isinstance(obj, (pd.Timestamp | pd.DatetimeTZDtype)):
+        return str(obj) if not pd.isna(obj) else None
+    if isinstance(obj, np.generic):
+        if isinstance(obj, (np.bytes_ | np.str_)):
+            return str(obj.item())
+        return None if np.isnan(obj) else obj.item()
+    try:
+        json.dumps(obj)
+        return obj
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return str(obj)
 
 
 def generate_stable_id(prefix: str = "component", identifier: str | None = None) -> str:
