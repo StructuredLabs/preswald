@@ -328,11 +328,36 @@ def playground(
     # Initialize placeholders for data and error
     data = None
     error = None
+    processed_data = None
+    column_defs = []
 
     # Attempt to execute the query against the determined data source
     try:
         data = service.data_manager.query(current_query_value, data_source)
         logger.debug(f"Successfully queried data source: {data_source}")
+
+        # Process data for the table
+        if isinstance(data, pd.DataFrame):
+            data = data.reset_index(drop=True)
+            processed_data = data.to_dict("records")
+            column_defs = [
+                {"headerName": str(col), "field": str(col)} for col in data.columns
+            ]
+
+            # Process each row to ensure JSON serialization
+            processed_data = []
+            for _, row in data.iterrows():
+                processed_row = {
+                    str(key): (
+                        value.item()
+                        if isinstance(value, (np.integer, np.floating))
+                        else value
+                    )
+                    if value is not None
+                    else ""  # Ensure no None values
+                    for key, value in row.items()
+                }
+                processed_data.append(processed_row)
     except Exception as e:
         error = str(e)
         logger.error(f"Error querying data source: {e}")
@@ -345,13 +370,11 @@ def playground(
         "value": current_query_value,
         "size": size,
         "error": error,
+        "data": {"columnDefs": column_defs, "rowData": processed_data or []},
     }
 
     logger.debug(f"Created component: {component}")
     service.append_component(component)
-
-    # Add table for displaying the queried data
-    table(data, title="")
 
     # Return the raw DataFrame
     return data

@@ -274,6 +274,7 @@ const MemoizedComponent = memo(
             value={component.value}
             onChange={(value) => handleUpdate(componentId, value)}
             error={component.error}
+            data={component.data}
           />
         );
 
