@@ -9,7 +9,7 @@ slug = "preswald-tutorial"
 name = "Preswald Tutorial"
 logo = "images/logo.png"
 favicon = "images/favicon.ico"
-primaryColor = "#F89613"
+primaryColor = "#000000"
 
 [data.sample_csv]
 type = "csv"

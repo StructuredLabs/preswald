@@ -1,19 +1,9 @@
 'use client';
 
-import {
-  ChartBarIcon,
-  ClockIcon,
-  DocumentTextIcon,
-  GlobeAltIcon,
-  HomeIcon,
-  MagnifyingGlassIcon,
-  ServerIcon,
-  Squares2X2Icon,
-} from '@heroicons/react/24/solid';
-
 import React, { useState } from 'react';
 import { useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+
+import { PreswaldBadge } from './PreswaldBadge';
 
 export default function Layout({ branding, children }) {
   const [faviconLoaded, setFaviconLoaded] = useState(false);
@@ -72,11 +62,10 @@ export default function Layout({ branding, children }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <div id="sidebar-portal" />
-      {/* Main Content */}
-      <div className="flex flex-col min-h-screen main-content-layout">
-        <main className="flex-1 py-10">
-          <div className="px-4 sm:px-6 lg:px-8">{children}</div>
+      <PreswaldBadge />
+      <div className="flex min-h-screen relative">
+        <main className="flex-1 main-content-layout relative">
+          <div className="pt-14 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">{children}</div>
         </main>
       </div>
     </div>

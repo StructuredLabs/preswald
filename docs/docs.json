@@ -43,7 +43,6 @@
           {
             "group": "Contributing",
             "pages": [
-              "contributing",
               "addnewcomponent"
             ]
           }
@@ -56,12 +55,20 @@
             "group": "UI",
             "pages": [
               "sdk/alert",
+              "sdk/button",
               "sdk/checkbox",
+              "sdk/chat",
+              "sdk/fastplotlib",
+              "sdk/image",
+              "sdk/matplotlib",
+              "sdk/playground",
               "sdk/plotly",
               "sdk/progress",
               "sdk/selectbox",
               "sdk/separator",
+              "sdk/sidebar",
               "sdk/slider",
+              "sdk/spinner",
               "sdk/table",
               "sdk/text",
               "sdk/text_input",

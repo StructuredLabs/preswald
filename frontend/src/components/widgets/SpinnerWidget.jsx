@@ -6,29 +6,21 @@ import { cn } from '@/lib/utils';
 
 const SpinnerWidget = ({
   label = 'Loading...',
-  size = 'default', // "sm", "default", "lg"
-  variant = 'default', // "default", "card"
+  variant = 'default',
   className,
   showLabel = true,
 }) => {
-  // Size variants for the spinner
-  const sizeVariants = {
-    sm: 'spinner-size-sm',
-    default: 'spinner-size-default',
-    lg: 'spinner-size-lg',
-  };
-
   const SpinnerContent = (
-    <div className={cn('spinner-container', className)}>
-      {showLabel && label && <p className="spinner-label">{label}</p>}
-      <div className={cn('spinner-animation', sizeVariants[size])} />
+    <div className={cn('flex flex-col items-center gap-2 p-4', className)}>
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      {showLabel && label && <p className="text-sm text-muted-foreground">{label}</p>}
     </div>
   );
 
   if (variant === 'card') {
     return (
       <Card>
-        <CardContent className="spinner-card-content">{SpinnerContent}</CardContent>
+        <CardContent>{SpinnerContent}</CardContent>
       </Card>
     );
   }
