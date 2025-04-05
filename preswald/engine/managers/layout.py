@@ -17,6 +17,8 @@ class LayoutManager:
         # Handle separator component type which forces a new row
         if component.get("type") == "separator":
             self.finish_current_row()
+            # Add separator in its own row
+            self.rows.append([component])
             return
 
         # If component size is greater than remaining space, start new row

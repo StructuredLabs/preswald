@@ -6,7 +6,9 @@ from typing import Any, Dict, Optional
 
 import duckdb
 import pandas as pd
+import requests
 import tomli
+from requests.auth import HTTPBasicAuth
 
 
 logger = logging.getLogger(__name__)
@@ -39,6 +41,29 @@ class CSVConfig:
     path: str
 
 
+@dataclass
+class APIConfig:
+    """Configuration for API connection"""
+
+    url: str  #  URL of the API
+    method: str = "GET"  # HTTP method (GET, POST, etc.)
+    headers: Optional[Dict[str, str]] = None
+    params: Optional[Dict[str, Any]] = None  # Query parameters
+    auth: Optional[Dict[str, str]] = None  # Authentication (API key, Bearer token)
+    pagination: Optional[Dict[str, Any]] = None
+
+
+@dataclass
+class S3CSVConfig:
+    s3_endpoint: str
+    s3_region: str
+    s3_access_key_id: str
+    s3_secret_access_key: str
+    path: str
+    s3_use_ssl: bool = False
+    s3_url_style: str = "path"
+
+
 class DataSource:
     """Base class for all data sources"""
 
@@ -52,6 +77,44 @@ class DataSource:
     def to_df(self) -> pd.DataFrame:
         """Get entire source as a DataFrame"""
         raise NotImplementedError
+
+
+class S3CSVSource(DataSource):
+    def __init__(
+        self, name: str, config: S3CSVConfig, duckdb_conn: duckdb.DuckDBPyConnection
+    ):
+        super().__init__(name, duckdb_conn)
+        self.config = config
+
+        # Initialize httpfs extension
+        self._duckdb.execute("INSTALL httpfs;")
+        self._duckdb.execute("LOAD httpfs;")
+
+        use_ssl = "true" if config.s3_use_ssl else "false"
+
+        self._conn_string = (
+            f"?s3_endpoint={config.s3_endpoint}"
+            f"&s3_region={config.s3_region}"
+            f"&s3_use_ssl={use_ssl}"
+            f"&s3_access_key_id={config.s3_access_key_id}"
+            f"&s3_secret_access_key={config.s3_secret_access_key}"
+            f"&s3_url_style={config.s3_url_style}"
+        )
+
+        # Create a table in DuckDB for this CSV
+        self._table_name = f"s3_{name}_{uuid.uuid4().hex[:8]}"
+        self._duckdb.execute(f"""
+            CREATE TABLE {self._table_name} AS
+            SELECT * FROM read_csv_auto('{config.path}{self._conn_string}')
+        """)
+
+    def query(self, sql: str) -> pd.DataFrame:
+        sql = sql.replace(self.name, self._table_name)
+        return self._duckdb.execute(sql).df()
+
+    def to_df(self) -> pd.DataFrame:
+        """Get entire CSV as a DataFrame"""
+        return self._duckdb.execute(f"SELECT * FROM {self._table_name}").df()
 
 
 class CSVSource(DataSource):
@@ -176,13 +239,79 @@ class ClickhouseSource(DataSource):
             pass  # Ignore cleanup errors on destruction
 
 
+class APISource(DataSource):
+    def __init__(
+        self, name: str, config: APIConfig, duckdb_conn: duckdb.DuckDBPyConnection
+    ):
+        super().__init__(name, duckdb_conn)
+        self.config = config
+
+        # Create a table in db
+        self._table_name = f"api_{name}_{uuid.uuid4().hex[:8]}"
+        self._load_data_into_duckdb()
+
+    def _load_data_into_duckdb(self):
+        """Fetch data from the API and load it into DuckDB"""
+        try:
+            # API request
+            response = self._make_api_request()
+            data = response.json()
+
+            # Convert JSON to DF
+            df = pd.json_normalize(data)  # noqa: F841
+
+            # Create a table in DB
+            self._duckdb.execute(f"""
+                CREATE TABLE {self._table_name} AS
+                SELECT * FROM df
+            """)
+        except Exception as e:
+            logger.error(f"Error loading API data into DuckDB: {e}")
+            raise
+
+    def _make_api_request(self):
+        """Make an API request based on the configuration"""
+        try:
+            auth = None
+            if self.config.auth:
+                if "type" in self.config.auth and self.config.auth["type"] == "basic":
+                    auth = HTTPBasicAuth(
+                        self.config.auth["username"], self.config.auth["password"]
+                    )
+                elif (
+                    "type" in self.config.auth and self.config.auth["type"] == "bearer"
+                ):
+                    headers = self.config.headers or {}
+                    headers["Authorization"] = f"Bearer {self.config.auth['token']}"
+
+            response = requests.request(
+                method=self.config.method,
+                url=self.config.url,
+                headers=self.config.headers,
+                params=self.config.params,
+                auth=auth,
+            )
+            response.raise_for_status()
+            return response
+        except Exception as e:
+            logger.error(f"Error making API request: {e}")
+            raise
+
+    def query(self, sql: str) -> pd.DataFrame:
+        """Query the API data using DuckDB"""
+        sql = sql.replace(self.name, self._table_name)
+        return self._duckdb.execute(sql).df()
+
+    def to_df(self) -> pd.DataFrame:
+        """Get the entire API data as a DataFrame"""
+        return self._duckdb.execute(f"SELECT * FROM {self._table_name}").df()
+
+
 class DataManager:
     def __init__(self, preswald_path: str, secrets_path: Optional[str] = None):
         self.preswald_path = preswald_path
         self.secrets_path = secrets_path
         self.sources: Dict[str, DataSource] = {}
-
-        # TODO: efficiently manage this on-disk as well
         self.duckdb_conn = duckdb.connect(":memory:")
 
     def connect(self):
@@ -220,6 +349,30 @@ class DataManager:
                         verify=source_config.get("verify", True),
                     )
                     self.sources[name] = ClickhouseSource(name, cfg, self.duckdb_conn)
+
+                elif source_type == "api":
+                    cfg = APIConfig(
+                        url=source_config["url"],
+                        method=source_config.get("method", "GET"),
+                        headers=source_config.get("headers"),
+                        params=source_config.get("params"),
+                        auth=source_config.get("auth"),
+                        pagination=source_config.get("pagination"),
+                    )
+                    self.sources[name] = APISource(name, cfg, self.duckdb_conn)
+
+                elif source_type == "s3csv":
+                    cfg = S3CSVConfig(
+                        s3_endpoint=source_config["s3_endpoint"],
+                        s3_region=source_config["s3_region"],
+                        s3_access_key_id=source_config["s3_access_key_id"],
+                        s3_secret_access_key=source_config["s3_secret_access_key"],
+                        path=source_config["path"],
+                        s3_use_ssl=source_config.get("s3_use_ssl", False),
+                        s3_url_style=source_config.get("s3_url_style", "path"),
+                    )
+                    self.sources[name] = S3CSVSource(name, cfg, self.duckdb_conn)
+
             except Exception as e:
                 logger.error(f"Error initializing {source_type} source '{name}': {e}")
                 continue
@@ -253,13 +406,13 @@ class DataManager:
                     f"preswald.toml file not found at: {self.preswald_path}"
                 )
 
-            with open(self.preswald_path, 'rb') as f:
+            with open(self.preswald_path, "rb") as f:
                 config = tomli.load(f)
             data_config = config.get("data", {})
             logger.info("Successfully loaded preswald.toml")
 
             if self.secrets_path and os.path.exists(self.secrets_path):
-                with open(self.secrets_path, 'rb') as f:
+                with open(self.secrets_path, "rb") as f:
                     secrets = tomli.load(f)
                 logger.info("Successfully loaded secrets.toml")
 

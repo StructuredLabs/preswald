@@ -5,19 +5,25 @@ Grouping all the user-facing components of the SDK
 
 from .components import (
     alert,
+    button,
+    chat,
     checkbox,
+    # fastplotlib,
+    image,
+    matplotlib,
+    playground,
     plotly,
     progress,
     selectbox,
     separator,
+    sidebar,
     slider,
+    spinner,
     table,
     text,
     text_input,
+    topbar,
     workflow_dag,
-    button,
-    image,
-    spinner
 )
 from .data import connect, get_df, query
 from .workflow import RetryPolicy, Workflow, WorkflowAnalyzer

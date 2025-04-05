@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 import { BrowserRouter as Router } from 'react-router-dom';
 
 import Layout from './components/Layout';
+import LoadingState from './components/LoadingState';
 import Dashboard from './components/pages/Dashboard';
 import { comm } from './utils/websocket';
 
@@ -11,6 +12,7 @@ const App = () => {
   const [error, setError] = useState(null);
   const [config, setConfig] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [areComponentsLoading, setAreComponentsLoading] = useState(true);
 
   useEffect(() => {
     comm.connect();
@@ -67,6 +69,7 @@ const App = () => {
 
   const refreshComponentsList = (components) => {
     if (!components || !components.rows) {
+      setAreComponentsLoading(false);
       console.warn('[App] Invalid components data received:', components);
       setComponents({ rows: [] });
       return;
@@ -87,10 +90,12 @@ const App = () => {
       );
 
       console.log('[App] Updating components with:', { rows: updatedRows });
+      setAreComponentsLoading(false);
       setComponents({ rows: updatedRows });
       setError(null);
     } catch (error) {
       console.error('[App] Error processing components:', error);
+      setAreComponentsLoading(false);
       setError('Error processing components data');
       setComponents({ rows: [] });
     }
@@ -98,6 +103,7 @@ const App = () => {
 
   const handleError = (errorContent) => {
     console.error('[App] Received error:', errorContent);
+    setAreComponentsLoading(false);
     setError(errorContent.message);
 
     if (errorContent.componentId) {
@@ -141,23 +147,14 @@ const App = () => {
     setError(message.connected ? null : 'Lost connection. Attempting to reconnect...');
   };
 
-  const LoadingState = () => (
-    <div className="flex items-center justify-center h-screen">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">Connecting...</p>
-      </div>
-    </div>
-  );
-
   console.log('[App] Rendering with:', { components, isConnected, error });
   console.log(window.location.pathname);
 
   return (
     <Router>
       <Layout>
-        {!isConnected ? (
-          <LoadingState />
+        {!isConnected || areComponentsLoading ? (
+          <LoadingState isConnected={isConnected} />
         ) : (
           <Dashboard
             components={components}

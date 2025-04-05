@@ -1,0 +1,50 @@
+---
+title: "fastplotlib"
+icon: "forward"
+description: "Render high-performance scatter plots with GPU acceleration."
+---
+
+```python
+fastplotlib(label: str, data: dict, size: float = 1.0) -> str:
+```
+
+The `fastplotlib` function renders high-performance scatter plots using GPU acceleration via [Fastplotlib](https://fastplotlib.github.io/). It is ideal for visualizing large datasets directly from the backend with minimal frontend overhead.
+
+## Parameters
+
+- **`label`** _(str)_: A title or alt-text label describing the chart.
+- **`data`** _(dict)_: A dictionary containing the following keys:
+  - `x` _(list or np.ndarray)_: X-axis values.
+  - `y` _(list or np.ndarray)_: Y-axis values.
+  - `color` _(optional list)_: Labels used to assign different colors. The component cycles through a fixed palette.
+- **`size`** _(float)_: _(Optional)_ The width of the component in a row. Defaults to `1.0` (full row). See the [Layout Guide](/layout/guide) for details.
+
+## Returns
+
+- `str`: A unique component ID referencing the rendered image.
+
+## Usage Example
+
+```python
+from preswald import get_df, connect, fastplotlib
+
+connect()
+df = get_df("iris_csv")
+
+fastplotlib(
+    label="Iris Dataset (Fastplotlib)",
+    data={
+        "x": df["sepal.length"],
+        "y": df["petal.width"],
+        "color": df["variety"]
+    },
+    size=1.0
+)
+```
+
+This will render a GPU-accelerated scatter plot, cycling colors by species. It is exported server-side and displayed as an image in the frontend.
+
+## Notes
+
+- Rendering happens **offscreen** via Fastplotlib's WGPU backend, so this is ideal for large or compute-heavy charts.
+- Colors are currently **cycled from a fixed palette**. For more control over color schemes, we recommend extending the component in the future with support for RGBA arrays or named colors.

@@ -1,0 +1,93 @@
+---
+title: "playground"  
+icon: "paste"  
+description: "Interactive SQL playground for querying and visualizing data."  
+---
+
+```python
+playground(label: str, query: str, source: str = None, size: float = 1.0) -> pd.DataFrame
+```
+
+The `playground` function allows you to create an interactive SQL playground within your application. It provides a dynamic interface for querying connected data sources and visualizing results directly.
+
+## Parameters
+
+- **`label`** _(str)_: The display label for the playground component. This is used for identification and UI rendering.
+- **`query`** _(str)_: The SQL query string to execute. This supports standard SQL syntax and can include `SELECT`, `JOIN`, `WHERE`, etc.
+- **`source`** _(str, optional)_: _(Optional)_ The name of the specific data source to query. If not provided, the function attempts to **auto-detect** the data source from the SQL query itself. _(See "Default Behavior for `source`" below)_
+- **`size`** _(float)_: _(Optional)_ The width of the component in a row. Defaults to `1.0` (full row). 
+
+<Frame>
+<img
+  className="block dark:hidden"
+  src="/images/playground.png"
+  alt="Playground UI Example"
+/>
+</Frame>
+
+
+For example:  
+```python
+playground(
+    label="User Data",
+    query="SELECT * FROM users WHERE age > 30"
+)
+```
+In this case, `source` is auto-detected as `users`.
+
+**Note:** Auto-detection works best when the query has a clear `FROM` or `JOIN` clause.
+
+## Returns
+
+- `pd.DataFrame`: The resulting DataFrame after executing the query. You can use it for further processing or visualization.
+
+## Usage Example
+
+Here's how to create a simple playground:
+
+```python
+from preswald import playground
+
+# Create the playground with auto-detection of the data source
+df = playground(
+    label="User Age Filter", 
+    query="SELECT name, age FROM users WHERE age > 25"
+)
+```
+
+Or, explicitly pass the data source:
+
+```python
+df = playground(
+    label="User Age Filter",
+    query="SELECT name, age FROM users WHERE age > 25",
+    source="users"
+)
+```
+
+## Query Execution
+
+The playground component:
+1. Auto-loads any saved query state (if user modified the query previously).
+2. Runs the SQL query against the provided or detected data source.
+3. Renders the result interactively in the frontend.
+
+## Error Handling
+
+- Handles invalid queries and missing data sources gracefully
+- Captures and displays query errors in the UI
+- Logs detailed debug information for troubleshooting
+
+## Best Practices
+
+1. Use meaningful labels to distinguish multiple playgrounds.
+2. Prefer explicit `source` when working with complex queries or joins.
+3. Always review auto-detected source for correctness.
+4. Use appropriate `WHERE` clauses to limit large datasets.
+5. Handle exceptions gracefully to improve user experience.
+
+## Related Functions
+
+- `query()`: Executes SQL queries directly
+- `get_df()`: Retrieves full datasets
+- `view()`: Renders static data previews

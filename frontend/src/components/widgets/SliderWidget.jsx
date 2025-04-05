@@ -1,102 +1,54 @@
 import React from 'react';
 
-import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
 
 import { cn } from '@/lib/utils';
 
 const SliderWidget = ({
   label,
+  value = 50,
   min = 0,
   max = 100,
-  value = 50,
-  step = 1.0,
-  id,
+  step = 1,
   onChange,
+  id,
   className,
-  disabled = false,
-  showValue = true,
-  showMinMax = true,
-  variant = 'default', // default, card
 }) => {
   const [localValue, setLocalValue] = React.useState(value);
 
   const handleChange = (e) => {
-    const newValue = parseFloat(e.target.value, 10);
+    const newValue = parseFloat(e.target.value);
     setLocalValue(newValue);
-  };
-
-  const handleMouseUp = () => {
-    if (localValue !== value) {
-      console.log('[SliderWidget] Change event:', {
-        id,
-        value: localValue,
-        timestamp: new Date().toISOString(),
-      });
-      onChange?.(localValue);
-    }
+    onChange?.(newValue);
   };
 
   React.useEffect(() => {
     setLocalValue(value);
   }, [value]);
 
-  const SliderContent = (
-    <div className={cn('space-y-4', className)}>
+  return (
+    <div className={cn('grid gap-2 w-full max-w-sm mb-4', className)}>
       <div className="flex items-center justify-between">
-        <Label htmlFor={id} className={cn('text-sm font-medium', disabled && 'opacity-50')}>
+        <Label
+          htmlFor={id}
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        >
           {label}
         </Label>
-        {showValue && (
-          <span className="text-sm text-muted-foreground font-medium">{localValue}</span>
-        )}
+        <span className="text-sm text-muted-foreground">{localValue}</span>
       </div>
-      {/* <Slider
+      <input
         id={id}
+        type="range"
         min={min}
         max={max}
         step={step}
-        value={[localValue]}
-        onValueChange={handleValueChange}
-        disabled={disabled}
-        className="w-full text-black"
-      /> */}
-      <div className="p-4 bg-white">
-        <div className="mt-2">
-          <input
-            id={id}
-            name={id}
-            type="range"
-            min={min}
-            max={max}
-            step={step}
-            value={localValue}
-            onChange={handleChange}
-            onMouseUp={handleMouseUp}
-            onTouchEnd={handleMouseUp}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          />
-        </div>
-      </div>
-      {showMinMax && (
-        <div className="flex justify-between">
-          <span className="text-sm text-muted-foreground">{min}</span>
-          <span className="text-sm text-muted-foreground">{max}</span>
-        </div>
-      )}
+        value={localValue}
+        onChange={handleChange}
+        className="w-full h-2 appearance-none bg-secondary rounded-full cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary"
+      />
     </div>
   );
-
-  if (variant === 'card') {
-    return (
-      <Card>
-        <CardContent className="pt-6">{SliderContent}</CardContent>
-      </Card>
-    );
-  }
-
-  return SliderContent;
 };
 
 export default SliderWidget;

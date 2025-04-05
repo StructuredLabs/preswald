@@ -7,14 +7,14 @@ import shutil
 import subprocess
 import zipfile
 from datetime import datetime
-from importlib.metadata import version
 from pathlib import Path
-from typing import Generator, Optional
+from typing import Generator, Optional, Union
 
 import requests
 import tomli
+import tomli_w
 
-from preswald.utils import get_project_slug, read_template
+from preswald.utils import get_project_slug
 
 
 logger = logging.getLogger(__name__)
@@ -424,7 +424,7 @@ def deploy_to_gcp(script_path: str, port: int = 8501) -> str:  # noqa: C901
         config["project"]["port"] = 8080
 
         with open(script_dir / "preswald.toml", "w") as f:
-            tomli.dump(config, f)
+            tomli_w.dump(config, f)
 
         # Clear out old deployment directory contents while preserving the directory itself
         for item in deploy_dir.iterdir():
@@ -433,7 +433,7 @@ def deploy_to_gcp(script_path: str, port: int = 8501) -> str:  # noqa: C901
             elif item.is_dir():
                 shutil.rmtree(item)
 
-        dockerfile_content = """FROM structuredlabs/preswald-base:latest
+        dockerfile_content = """FROM structuredlabs/preswald:latest
 COPY . /app/project
 """
         with open(deploy_dir / "Dockerfile", "w") as f:
@@ -531,7 +531,7 @@ COPY . /app/project
 
         config["project"]["port"] = original_port
         with open(script_dir / "preswald.toml", "w") as f:
-            tomli.dump(config, f)
+            tomli_w.dump(config, f)
 
         deployed_url = url_result.stdout.strip()
         print(f"\n✨ Successfully deployed to: {deployed_url}")
@@ -564,18 +564,77 @@ COPY . /app/project
                 config = tomli.loads(f.read())
             config["project"]["port"] = original_port
             with open(script_dir / "preswald.toml", "w") as f:
-                tomli.dump(config, f)
+                tomli_w.dump(config, f)
         except Exception:
             pass
 
 
-def deploy(  # noqa: C901
+def find_available_port(start_port: int = 8501) -> int:
+    import socket
+
+    port = start_port
+    while True:
+        try:
+            # Try to bind to the port
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind(("", port))
+                return port
+        except OSError:
+            port += 1
+
+
+def deploy_to_local(script_path: str, start_port: int = 8501) -> str:
+    script_path = os.path.abspath(script_path)
+    script_dir = Path(script_path).parent
+    container_name = get_container_name(script_path)
+
+    try:
+        # Find an available port
+        port = find_available_port(start_port)
+        print(f"\nUsing port: {port}")
+
+        # Stop any existing container
+        print("Stopping existing deployment (if any)...")
+        stop_existing_container(container_name)
+
+        # Start the container with the prebuilt base image
+        print("Starting container with prebuilt base image...")
+        subprocess.run(
+            [
+                "docker",
+                "run",
+                "-d",
+                "--name",
+                container_name,
+                "-p",
+                f"{port}:{start_port}",
+                "-v",
+                f"{script_dir}:/app/project",
+                "structuredlabs/preswald:latest",
+            ],
+            check=True,
+        )
+
+        return f"http://localhost:{port}"
+
+    except subprocess.CalledProcessError as e:
+        raise Exception(f"Docker operation failed: {e!s}") from e
+    except FileNotFoundError as e:
+        raise Exception(
+            "Docker not found. Please install Docker Desktop from "
+            "https://www.docker.com/products/docker-desktop"
+        ) from e
+    except Exception as e:
+        raise Exception(f"Local deployment failed: {e!s}") from e
+
+
+def deploy(
     script_path: str,
     target: str = "local",
     port: int = 8501,
     github_username: Optional[str] = None,
     api_key: Optional[str] = None,
-) -> str | Generator[dict, None, None]:
+) -> Union[str, Generator[dict, None, None]]:
     """
     Deploy a Preswald app.
 
@@ -595,117 +654,22 @@ def deploy(  # noqa: C901
     elif target == "gcp":
         return deploy_to_gcp(script_path, port)
     elif target == "local":
-        script_path = os.path.abspath(script_path)
-        script_dir = Path(script_path).parent
-        container_name = get_container_name(script_path)
-        deploy_dir = get_deploy_dir(script_path)
-        # Get preswald version for exact version matching
-        preswald_version = version("preswald")
-
-        # First, clear out the old deployment directory contents while preserving the directory itself
-        for item in deploy_dir.iterdir():
-            if item.is_file():
-                item.unlink()
-            elif item.is_dir():
-                shutil.rmtree(item)
-        # Copy everything from the script's directory to the deployment directory
-        for item in script_dir.iterdir():
-            # Skip the deployment directory itself to avoid recursive copying
-            if item.name == ".preswald_deploy":
-                continue
-            # Copy files and directories
-            if item.is_file():
-                shutil.copy2(item, deploy_dir / item.name)
-            elif item.is_dir():
-                shutil.copytree(item, deploy_dir / item.name)
-        # Rename the main script to app.py if it's not already named that
-        if Path(script_path).name != "app.py":
-            shutil.move(deploy_dir / Path(script_path).name, deploy_dir / "app.py")
-        # Create startup script
-        startup_template = read_template("run.py")
-        startup_script = startup_template.format(port=port)
-        with open(deploy_dir / "run.py", "w") as f:
-            f.write(startup_script)
-        # Create Dockerfile
-        dockerfile_template = read_template("Dockerfile")
-        dockerfile_content = dockerfile_template.format(
-            port=port, preswald_version=preswald_version
-        )
-        with open(deploy_dir / "Dockerfile", "w") as f:
-            f.write(dockerfile_content)
-        # Store deployment info
-        deployment_info = {
-            "script": script_path,
-            "container_name": container_name,
-            "preswald_version": preswald_version,
-        }
-        with open(deploy_dir / "deployment.json", "w") as f:
-            json.dump(deployment_info, f, indent=2)
-        try:
-            # Stop any existing container
-            print("Stopping existing deployment (if any)...")
-            stop_existing_container(container_name)
-            # Build the Docker image
-            print(f"Building Docker image {container_name}...")
-            subprocess.run(
-                ["docker", "build", "-t", container_name, "."],
-                check=True,
-                cwd=deploy_dir,
-            )
-            # Start the container
-            print("Starting container...")
-            subprocess.run(
-                [
-                    "docker",
-                    "run",
-                    "-d",
-                    "--name",
-                    container_name,
-                    "-p",
-                    f"{port}:{port}",
-                    container_name,
-                ],
-                check=True,
-                cwd=deploy_dir,
-            )
-            return f"http://localhost:{port}"
-        except subprocess.CalledProcessError as e:
-            raise Exception(f"Docker operation failed: {e!s}") from e
-        except FileNotFoundError as e:
-            raise Exception(
-                "Docker not found. Please install Docker Desktop from "
-                "https://www.docker.com/products/docker-desktop"
-            ) from e
+        return deploy_to_local(script_path, port)
     else:
         raise ValueError(f"Unsupported deployment target: {target}")
 
 
-def stop(current_dir: Optional[str] = None) -> None:
-    """
-    Stop a running Preswald deployment.
-
-    If script_path is provided, stops that specific deployment.
-    Otherwise, looks for a deployment in the current directory.
-    """
-    if current_dir:
-        deploy_dir = Path(current_dir) / ".preswald_deploy"
-    else:
-        # Look for deployment in current directory
-        deploy_dir = Path.cwd() / ".preswald_deploy"
-
-    if not deploy_dir.exists():
-        raise Exception("No deployment found")
-
+def stop_local_deployment(script_dir: str) -> None:
     try:
-        with open(deploy_dir / "deployment.json") as f:
-            info = json.load(f)
-            container_name = info["container_name"]
-
-        print(f"Stopping deployment {container_name}...")
+        container_name = get_container_name(Path(script_dir) / "preswald.toml")
+        print(f"Stopping local deployment {container_name}...")
         stop_existing_container(container_name)
+        print("✅ Local deployment stopped successfully")
 
+    except FileNotFoundError as e:
+        raise Exception(f"No deployment configuration found: {e}") from e
     except Exception as e:
-        raise Exception(f"Failed to stop deployment: {e}") from e
+        raise Exception(f"Failed to stop local deployment: {e}") from e
 
 
 def stop_structured_deployment(script_dir: str) -> dict:
@@ -818,7 +782,7 @@ def cleanup_gcp_deployment(script_dir: str):  # noqa: C901
         script_dir = Path(script_dir)
 
         preswald_toml = script_dir / "preswald.toml"
-        if not preswald_tomli.exists():
+        if not preswald_toml.exists():
             raise FileNotFoundError(f"preswald.toml not found in {script_dir}")
 
         with open(preswald_toml) as f:
