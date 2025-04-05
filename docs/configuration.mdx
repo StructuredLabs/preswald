@@ -56,6 +56,8 @@ format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
 ## Connecting to Data Sources
 
+Preswald supports various data source types. Below are examples for CSV, PostgreSQL, Clickhouse, and GraphQL.
+
 ### CSV Example: `[data.sample_csv]`
 
 You can use a local or remote CSV file as a data source by defining it in `preswald.toml`.
@@ -131,6 +133,52 @@ user = "default"
 # secrets.toml
 [data.eq_clickhouse]
 password = ""
+```
+
+### GraphQL Example: `[data.countries]`
+
+Preswald supports connecting to remote GraphQL APIs. You can either define the GraphQL query inline or load it from an external file.
+
+#### Using an Inline Query
+
+```toml
+[data.countries]
+type = "graphql"
+url = "https://countries.trevorblades.com/"
+query = """
+  query {
+    countries {
+      code
+      name
+      capital
+    }
+  }
+"""
+flatten = true
+```
+
+#### Using an External Query File
+
+First, create an external file (e.g., `queries/get_countries.graphql`) with the following content:
+
+```graphql
+query {
+  countries {
+    code
+    name
+    capital
+  }
+}
+```
+
+Then, update your configuration as follows:
+
+```toml
+[data.countries]
+type = "graphql"
+url = "https://countries.trevorblades.com/"
+query_file = "queries/get_countries.graphql"
+flatten = true
 ```
 
 ---

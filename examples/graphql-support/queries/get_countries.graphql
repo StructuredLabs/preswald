@@ -1,0 +1,7 @@
+query {
+  countries {
+    code
+    name
+    capital
+  }
+}

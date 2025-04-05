@@ -44,6 +44,81 @@ view(data, limit=rows)
 
 ---
 
+## **GraphQL Data Source**
+
+Preswald supports connecting to GraphQL APIs, enabling you to load remote data into your dashboards. You can define the GraphQL query inline in your configuration file or load it from an external file.
+
+### **Using an Inline Query**
+
+Add the following to your `preswald.toml`:
+
+```toml
+[data.countries]
+type = "graphql"
+url = "https://countries.trevorblades.com/"
+query = """
+  query {
+    countries {
+      code
+      name
+      capital
+    }
+  }
+"""
+flatten = true
+```
+
+Then, use the following code to load and display the data:
+
+```python
+from preswald import connect, get_df, table, text
+
+# Initialize connection (loads data sources as defined in preswald.toml)
+connect()
+
+# Load the GraphQL data source (using the 'countries' key from your config)
+df = get_df("countries")
+
+# Display a title and explanation about GraphQL integration
+text(
+    "# Countries Data\n\n"
+    "This example demonstrates how GraphQL is implemented in Preswald. "
+    "The query is defined inline in the preswald.toml file, fetching data from a public Countries API. "
+    "The nested JSON response is automatically flattened into a simple DataFrame for display."
+)
+
+# Display the resulting data in a table
+table(df, title="Countries")
+```
+
+### **Using an External Query File**
+
+Alternatively, store your GraphQL query in an external file (e.g., `queries/get_countries.graphql`) with the following content:
+
+```graphql
+query {
+  countries {
+    code
+    name
+    capital
+  }
+}
+```
+
+Then, update your `preswald.toml` as follows:
+
+```toml
+[data.countries]
+type = "graphql"
+url = "https://countries.trevorblades.com/"
+query_file = "queries/get_countries.graphql"
+flatten = true
+```
+
+Use the same Python code as above to connect and display the data.
+
+---
+
 ## Learn More
 
 To explore these examples in depth and discover additional use cases, check out the [Preswald Examples](https://github.com/StructuredLabs/preswald/tree/main/examples). You'll find comprehensive guides and example projects to help you make the most of Preswald.
