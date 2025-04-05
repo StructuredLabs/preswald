@@ -1,0 +1,24 @@
+{
+  "meta": {
+    "source": "simulation",
+    "generated_at": "2025-03-28T12:00:00Z"
+  },
+  "events": [
+    {"user": "User1", "details": {"clicks": 10}},
+    {"user": "User2", "details": {"clicks": 5}},
+    {"user": "User3", "details": {"clicks": 8}},
+    {"user": "User4", "details": {"clicks": 12}},
+    {"user": "User5", "details": {"clicks": 7}},
+    {"user": "User6", "details": {"clicks": 9}},
+    {"user": "User7", "details": {"clicks": 4}},
+    {"user": "User8", "details": {"clicks": 11}},
+    {"user": "User9", "details": {"clicks": 6}},
+    {"user": "User10", "details": {"clicks": 10}},
+    {"user": "User11", "details": {"clicks": 3}},
+    {"user": "User12", "details": {"clicks": 8}},
+    {"user": "User13", "details": {"clicks": 5}},
+    {"user": "User14", "details": {"clicks": 7}},
+    {"user": "User15", "details": {"clicks": 9}}
+  ]
+}
+
