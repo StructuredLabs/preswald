@@ -491,5 +491,42 @@ def tutorial(ctx):
         ctx.invoke(run, port=8501)
 
 
+@cli.command()
+@click.option(
+    "--format",
+    type=click.Choice(["pdf"]),
+    default="pdf",
+    help="Export format (currently only pdf).",
+)
+@click.option(
+    "--output", required=True, help="Output file path for the exported report."
+)
+@click.option(
+    "--port",
+    required=False,
+    type=int,
+    help="Port your app is running on. Defaults to config or 8501.",
+)
+def export(format, output, port):
+    """
+    Export a Preswald app to PDF (e.g., for reports or sharing).
+    """
+    from preswald.utils import read_port_from_config
+    from preswald.utils.exporter import export_app_to_pdf
+
+    try:
+        # Read port from config if not provided
+        if not port:
+            port = read_port_from_config("preswald.toml", port=8501)
+
+        if format == "pdf":
+            export_app_to_pdf(output_path=output, port=port)
+            click.echo(click.style(f"✅ Exported PDF report to {output}", fg="green"))
+        else:
+            click.echo(click.style(f"❌ Unsupported export format: {format}", fg="red"))
+    except Exception as e:
+        click.echo(click.style(f"❌ Failed to export report: {e}", fg="red"))
+
+
 if __name__ == "__main__":
     cli()
