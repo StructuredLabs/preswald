@@ -5,7 +5,7 @@ import re
 from importlib.resources import files
 from typing import Optional
 
-import toml
+import tomli
 
 
 def read_template(template_name):
@@ -17,7 +17,8 @@ def read_template(template_name):
 def read_port_from_config(config_path: str, port: int):
     try:
         if os.path.exists(config_path):
-            config = toml.load(config_path)
+            with open(config_path, 'rb') as f:
+                config = tomli.load(f)
             if "project" in config and "port" in config["project"]:
                 port = config["project"]["port"]
         return port
@@ -45,8 +46,8 @@ def configure_logging(config_path: Optional[str] = None, level: Optional[str] = 
 
     if os.path.exists(config_path):
         try:
-            with open(config_path) as f:
-                config = toml.load(f)
+            with open(config_path, 'rb') as f:
+                config = tomli.load(f)
                 if "logging" in config:
                     log_config.update(config["logging"])
         except Exception as e:
@@ -80,7 +81,7 @@ def get_project_slug(config_path: str) -> str:
         raise Exception(f"Config file not found at: {config_path}")
 
     try:
-        config = toml.load(config_path)
+        config = tomli.load(config_path)
         if "project" not in config:
             raise Exception("Missing [project] section in preswald.toml")
 

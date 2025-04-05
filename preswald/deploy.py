@@ -11,7 +11,8 @@ from pathlib import Path
 from typing import Generator, Optional, Union
 
 import requests
-import toml
+import tomli
+import tomli_w
 
 from preswald.utils import get_project_slug
 
@@ -39,7 +40,7 @@ def get_container_name(script_path: str) -> str:
     script_dir = Path(script_path).parent
     with open(script_dir / "preswald.toml") as f:
         preswald_toml = f.read()
-    config = toml.loads(preswald_toml)
+    config = tomli.loads(preswald_toml)
     container_name = f"preswald-app-{config['project']['slug']}"
     container_name = container_name.lower()
     container_name = re.sub(r"[^a-z0-9-]", "", container_name)
@@ -418,12 +419,12 @@ def deploy_to_gcp(script_path: str, port: int = 8501) -> str:  # noqa: C901
 
         with open(script_dir / "preswald.toml") as f:
             preswald_toml = f.read()
-        config = toml.loads(preswald_toml)
+        config = tomli.loads(preswald_toml)
         original_port = config["project"]["port"]
         config["project"]["port"] = 8080
 
         with open(script_dir / "preswald.toml", "w") as f:
-            toml.dump(config, f)
+            tomli_w.dump(config, f)
 
         # Clear out old deployment directory contents while preserving the directory itself
         for item in deploy_dir.iterdir():
@@ -530,7 +531,7 @@ COPY . /app/project
 
         config["project"]["port"] = original_port
         with open(script_dir / "preswald.toml", "w") as f:
-            toml.dump(config, f)
+            tomli_w.dump(config, f)
 
         deployed_url = url_result.stdout.strip()
         print(f"\n✨ Successfully deployed to: {deployed_url}")
@@ -560,10 +561,10 @@ COPY . /app/project
     finally:
         try:
             with open(script_dir / "preswald.toml") as f:
-                config = toml.loads(f.read())
+                config = tomli.loads(f.read())
             config["project"]["port"] = original_port
             with open(script_dir / "preswald.toml", "w") as f:
-                toml.dump(config, f)
+                tomli_w.dump(config, f)
         except Exception:
             pass
 
@@ -785,7 +786,7 @@ def cleanup_gcp_deployment(script_dir: str):  # noqa: C901
             raise FileNotFoundError(f"preswald.toml not found in {script_dir}")
 
         with open(preswald_toml) as f:
-            config = toml.loads(f.read())
+            config = tomli.loads(f.read())
             slug = config["project"]["slug"]
             container_name = f"preswald-app-{slug}"
             container_name = container_name.lower()
