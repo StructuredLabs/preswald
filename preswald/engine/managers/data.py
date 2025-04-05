@@ -54,6 +54,18 @@ class APIConfig:
 
 
 @dataclass
+class GraphQLConfig:
+    """Configuration for GraphQL connection"""
+
+    url: str  # GraphQL endpoint URL
+    query: Optional[str] = None  # Inline GraphQL query
+    query_file: Optional[str] = None  # Path to a .graphql file
+    headers: Optional[Dict[str, str]] = None  # HTTP headers (e.g., auth tokens)
+    variables: Optional[Dict[str, Any]] = None  # Query variables
+    flatten: bool = True  # Whether to flatten nested JSON responses
+
+
+@dataclass
 class S3CSVConfig:
     s3_endpoint: str
     s3_region: str
@@ -138,6 +150,127 @@ class CSVSource(DataSource):
 
     def to_df(self) -> pd.DataFrame:
         """Get entire CSV as a DataFrame"""
+        return self._duckdb.execute(f"SELECT * FROM {self._table_name}").df()
+
+
+# Helper functions for recursive flattening of nested GraphQL responses
+def recursive_flatten(d, parent_key="", sep="."):
+    """
+    Recursively flattens a nested dictionary.
+    List values are converted to a comma-separated string if they are not dicts.
+    """
+    items = {}
+    for k, v in d.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+        if isinstance(v, dict):
+            items.update(recursive_flatten(v, new_key, sep=sep))
+        elif isinstance(v, list):
+            if all(isinstance(item, dict) for item in v):
+                # For lists of dicts, flatten each dictionary and convert to string
+                flattened_list = [recursive_flatten(item, "", sep=sep) for item in v]
+                items[new_key] = str(flattened_list)
+            else:
+                items[new_key] = ", ".join(map(str, v))
+        else:
+            items[new_key] = v
+    return items
+
+
+def flatten_graphql_data(data, sep="."):
+    """
+    General function to flatten GraphQL data.
+    If data is a dict with a single key that contains a list, we assume that list holds the records.
+    """
+    if isinstance(data, dict) and len(data) == 1:
+        key, value = next(iter(data.items()))
+        if isinstance(value, list):
+            records = value
+        else:
+            records = [data]
+    elif isinstance(data, list):
+        records = data
+    else:
+        records = [data]
+
+    flattened_records = [recursive_flatten(record, sep=sep) for record in records]
+    return pd.DataFrame(flattened_records)
+
+
+class GraphQLSource(DataSource):
+    def __init__(
+        self, name: str, config: GraphQLConfig, duckdb_conn: duckdb.DuckDBPyConnection
+    ):
+        super().__init__(name, duckdb_conn)
+        self.config = config
+        # Create a unique table name for the loaded GraphQL data
+        self._table_name = f"graphql_{name}_{uuid.uuid4().hex[:8]}"
+        self._load_data_into_duckdb()
+
+    def _load_data_into_duckdb(self):
+        """Fetch the data from the GraphQL API, flatten it, and load it to DuckDB"""
+        try:
+            # Retrieve the query from the config file
+            query = self.config.query
+            if not query and self.config.query_file:
+                with open(self.config.query_file) as f:
+                    query = f.read()
+            if not query:
+                raise ValueError("Either query or query_file must be specified")
+
+            # Prepare headers (expand environment variables)
+            headers = self.config.headers or {}
+            headers = {k: os.path.expandvars(v) for k, v in headers.items()}
+
+            # Debug logging: log query and headers before making the request
+            logger.info(f"GraphQL query: {query}")
+            logger.info(f"GraphQL headers: {headers}")
+
+            # Make the POST request to the GraphQL endpoint
+            response = requests.post(
+                self.config.url,
+                json={"query": query, "variables": self.config.variables or {}},
+                headers=headers,
+            )
+
+            # Check response status
+            if response.status_code != 200:
+                logger.error(
+                    f"GraphQL query failed with status {response.status_code}: {response.text}"
+                )
+                raise ValueError(f"GraphQL query failed: {response.text}")
+
+            # Extract data from response
+            data = response.json().get("data")
+            if not data:
+                raise ValueError("No data returned from GraphQL API")
+
+            # Use our generic flattening function if flattening is enabled
+            if self.config.flatten:
+                df = flatten_graphql_data(data, sep=".")
+            else:
+                df = pd.DataFrame([data])
+
+            # Optional: ensure that any remaining list values are converted to strings
+            df = df.applymap(
+                lambda x: x if not isinstance(x, list) else ", ".join(map(str, x))
+            )
+
+            # Create a table in DuckDB for the data
+            self._duckdb.execute(f"""
+                CREATE TABLE {self._table_name} AS
+                SELECT * FROM df
+            """)
+        except Exception as e:
+            logger.error(f"Error loading GraphQL data into DuckDB: {e}")
+            raise
+
+    def query(self, sql: str) -> pd.DataFrame:
+        # GraphQL sources typically don't support SQL queries directly.
+        sql = sql.replace(self.name, self._table_name)
+        return self._duckdb.execute(sql).df()
+
+    def to_df(self) -> pd.DataFrame:
+        """Return the entire GraphQL data as a DataFrame"""
         return self._duckdb.execute(f"SELECT * FROM {self._table_name}").df()
 
 
@@ -226,16 +359,14 @@ class ClickhouseSource(DataSource):
             return result
 
         except Exception as e:
-            # Clean up views if they exist
             logger.error(f"Error reading table {table_name}: {e}")
             raise
 
     def __del__(self):
         """Cleanup when the source is destroyed"""
         try:
-            # Clean up the CHSQL connection
             self._duckdb.execute("CALL chsql_cleanup();")
-        except:  # noqa: E722
+        except Exception:
             pass  # Ignore cleanup errors on destruction
 
 
@@ -253,14 +384,11 @@ class APISource(DataSource):
     def _load_data_into_duckdb(self):
         """Fetch data from the API and load it into DuckDB"""
         try:
-            # API request
             response = self._make_api_request()
             data = response.json()
 
-            # Convert JSON to DF
             df = pd.json_normalize(data)  # noqa: F841
 
-            # Create a table in DB
             self._duckdb.execute(f"""
                 CREATE TABLE {self._table_name} AS
                 SELECT * FROM df
@@ -283,7 +411,6 @@ class APISource(DataSource):
                 ):
                     headers = self.config.headers or {}
                     headers["Authorization"] = f"Bearer {self.config.auth['token']}"
-
             response = requests.request(
                 method=self.config.method,
                 url=self.config.url,
@@ -373,6 +500,17 @@ class DataManager:
                     )
                     self.sources[name] = S3CSVSource(name, cfg, self.duckdb_conn)
 
+                elif source_type == "graphql":
+                    cfg = GraphQLConfig(
+                        url=source_config["url"],
+                        query=source_config.get("query"),
+                        query_file=source_config.get("query_file"),
+                        headers=source_config.get("headers"),
+                        variables=source_config.get("variables"),
+                        flatten=source_config.get("flatten", True),
+                    )
+                    self.sources[name] = GraphQLSource(name, cfg, self.duckdb_conn)
+
             except Exception as e:
                 logger.error(f"Error initializing {source_type} source '{name}': {e}")
                 continue
@@ -405,24 +543,19 @@ class DataManager:
                 raise FileNotFoundError(
                     f"preswald.toml file not found at: {self.preswald_path}"
                 )
-
             config = toml.load(self.preswald_path)
             data_config = config.get("data", {})
             logger.info("Successfully loaded preswald.toml")
+            logger.debug(f"Data sources found: {list(data_config.keys())}")
 
             if self.secrets_path and os.path.exists(self.secrets_path):
                 secrets = toml.load(self.secrets_path)
                 logger.info("Successfully loaded secrets.toml")
-
                 secret_sources = secrets.get("data", {})
-
-                # Merge secrets into each connection config
                 for name, values in secret_sources.items():
                     if name in data_config:
                         data_config[name].update(values)
-
             return data_config
-
         except Exception as e:
             logger.error(f"Error loading configuration files: {e!s}")
             raise
