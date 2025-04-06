@@ -9,6 +9,7 @@ import pandas as pd
 import requests
 import toml
 from requests.auth import HTTPBasicAuth
+from supabase import create_client
 
 
 logger = logging.getLogger(__name__)
@@ -25,6 +26,13 @@ class ClickhouseConfig:
     password: str
     secure: bool = False  # Whether to use HTTPS/SSL
     verify: bool = True  # Whether to verify SSL certificate
+
+
+@dataclass
+class SupabaseConfig:
+    url: str
+    api_key: str
+    table: str
 
 
 @dataclass
@@ -139,6 +147,31 @@ class CSVSource(DataSource):
     def to_df(self) -> pd.DataFrame:
         """Get entire CSV as a DataFrame"""
         return self._duckdb.execute(f"SELECT * FROM {self._table_name}").df()
+
+
+class SupabaseSource(DataSource):
+    def __init__(self, name: str, config: SupabaseConfig, duckdb_conn):
+        super().__init__(name, duckdb_conn)
+        self.config = config
+
+        self.url = config.url
+        self.api_key = config.api_key
+        self.table = config.table
+
+        self.client = create_client(self.url, self.api_key)
+
+    def to_df(
+        self, table_name: Optional[str] = None, schema: Optional[str] = None
+    ) -> pd.DataFrame:
+        try:
+            response = self.client.table(self.table).select("*").execute()
+        except Exception as e:
+            raise RuntimeError(f"Error fetching data from Supabase: {e}") from e
+
+        if not response.data:
+            raise ValueError(f"No data returned from Supabase table: {self.table}")
+
+        return pd.DataFrame(response.data)
 
 
 class PostgresSource(DataSource):
@@ -327,6 +360,14 @@ class DataManager:
                 if source_type == "csv":
                     cfg = CSVConfig(path=source_config["path"])
                     self.sources[name] = CSVSource(name, cfg, self.duckdb_conn)
+
+                elif source_type == "supabase":
+                    cfg = SupabaseConfig(
+                        url=source_config["url"],
+                        api_key=source_config["api_key"],
+                        table=source_config["table"],
+                    )
+                    self.sources[name] = SupabaseSource(name, cfg, self.duckdb_conn)
 
                 elif source_type == "postgres":
                     cfg = PostgresConfig(

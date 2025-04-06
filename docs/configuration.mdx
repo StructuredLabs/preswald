@@ -132,6 +132,29 @@ user = "default"
 [data.eq_clickhouse]
 password = ""
 ```
+### Supabase Example: `[data.sample_supabase]`
+
+#### Fields:
+
+- `type`: Use `"supabase"`.
+- `url`: The Supabase project URL (e.g. `https://xyzcompany.supabase.co`)
+- `key`: The Supabase anon or service role key (for authenticated access)
+- `table`: The name of the table you want to query.
+
+You should put the **key** in `secrets.toml`, which is created via `preswald init`.
+
+#### Example Supabase Connection:
+
+```toml
+# preswald.toml
+[data.eq_supabase]
+type = "supabase"
+url = "https://xyzcompany.supabase.co"
+table = "my_table"
+
+# secrets.toml
+[data.eq_supabase]
+key = "your-supabase-service-key"
 
 ---
 

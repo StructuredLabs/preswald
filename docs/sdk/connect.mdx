@@ -108,6 +108,28 @@ password = ""
 ...
 ```
 
+Supabase sources can be configured with these parameters:
+
+```toml
+[data.source_name]
+type = "supabase"
+url = "https://xyzcompany.supabase.co"  # Supabase project URL
+table = "orders"                        # Table or view name to load
+
+Secrets (like the API key) should be placed in secrets.toml:
+
+[data.source_name]
+api_key = "your-service-role-key"  # Supabase API key
+
+Features:
+- Uses the official [supabase-py](https://github.com/supabase-community/supabase-py) client
+- Fetches data from Supabase via REST API
+- Automatically converts JSON responses into pandas.DataFrame
+- Supports table, view, and filtered row access
+- Handles API pagination automatically
+- Simple, no-SQL setup for PostgreSQL-backed dashboards
+
+
 ```python
 # hello.py
 from preswald import connect
