@@ -71,7 +71,6 @@ class BuildFrontendCommand(Command):
 CORE_DEPENDENCIES = [
     # Dependencies that work in browser and server environments
     "pandas>=1.5",
-    "toml==0.10.2",
     "plotly==5.24.1",
     "Markdown>=3.4.0",
     "matplotlib>=3.8.4",
@@ -93,7 +92,8 @@ CORE_DEPENDENCIES = [
     "networkx>=3.0",
     "Requests>=2.31.0",  # NOTE: maybe need to make this server only as well?
     "setuptools>=69.5.1",
-    "tomli>=2.0.1",  # TODO: standardize alongside toml/tomllib
+    "tomli>=2.0.1",
+    "tomli-w>=1.2.0"
 ]
 
 # Define additional dependencies for development
