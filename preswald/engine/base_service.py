@@ -1,15 +1,22 @@
-from typing import Any, Callable, Dict, Optional
-from threading import Lock
-from fastapi import WebSocket
-
-from preswald.engine.utils import RenderBuffer, clean_nan_values, compress_data
-from preswald.engine.runner import ScriptRunner
-from .managers.data import DataManager
-from .managers.layout import LayoutManager
-
 import logging
 import os
 import time
+from threading import Lock
+from typing import Any, Callable, Dict, Optional
+
+from fastapi import WebSocket
+
+from preswald.engine.runner import ScriptRunner
+from preswald.engine.utils import (
+    RenderBuffer,
+    clean_nan_values,
+    compress_data,
+    optimize_plotly_data,
+)
+
+from .managers.data import DataManager
+from .managers.layout import LayoutManager
+
 
 logger = logging.getLogger(__name__)
 

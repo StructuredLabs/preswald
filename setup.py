@@ -79,7 +79,7 @@ CORE_DEPENDENCIES = [
     "fastapi>=0.68.0,<1.0.0; platform_system != 'Emscripten'",
     # "fastplotlib[imgui]~=0.3.0; platform_system != 'Emscripten'",
     # "imageio~=2.37.0; platform_system != 'Emscripten'",
-    # "msgpack~=1.1.0; platform_system != 'Emscripten'",
+    "msgpack~=1.1.0; platform_system != 'Emscripten'",
     "uvicorn>=0.15.0,<1.0.0; platform_system != 'Emscripten'",
     "websockets>=10.0,<11.0; platform_system != 'Emscripten'",
     # Native code dependencies

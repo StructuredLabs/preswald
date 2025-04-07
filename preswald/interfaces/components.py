@@ -1,16 +1,15 @@
 # Standard Library
-import asyncio
 import base64
 import hashlib
 import io
 import json
 import logging
 import re
-import uuid
-from typing import Dict, List, Optional
 
 # Third-Party
 from inspect import currentframe, getframeinfo
+from typing import Dict, List, Optional
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -1023,26 +1022,26 @@ def convert_to_serializable(obj):
 
 def generate_stable_id(prefix: str = "component", identifier: Optional[str] = None) -> str:
     """
-    Generate a stable and deterministic component ID based on either a user-provided identifier 
+    Generate a stable and deterministic component ID based on either a user-provided identifier
     or the source code callsite.
 
-    This is useful for ensuring that components retain the same ID across script reruns, enabling 
+    This is useful for ensuring that components retain the same ID across script reruns, enabling
     reliable caching, state restoration, and render diffing.
 
     Args:
         prefix (str): A prefix to distinguish the type of component (e.g., "text", "plot").
-        identifier (Optional[str]): An optional string used to generate a stable hash. This can 
-                                    be a label, index, or any meaningful identifier. If not provided, 
+        identifier (Optional[str]): An optional string used to generate a stable hash. This can
+                                    be a label, index, or any meaningful identifier. If not provided,
                                     the callsite (filename and line number) will be used.
 
     Returns:
-        str: A stable component ID in the format "<prefix>-<hash>", where <hash> is the first 
+        str: A stable component ID in the format "<prefix>-<hash>", where <hash> is the first
              8 characters of an MD5 hash derived from the identifier or callsite.
 
     Notes:
-        - If no identifier is provided, the function inspects the call stack and hashes the 
+        - If no identifier is provided, the function inspects the call stack and hashes the
           file name and line number where `generate_stable_id` was originally invoked.
-        - This makes it easy to write deterministic scripts without manually assigning IDs, 
+        - This makes it easy to write deterministic scripts without manually assigning IDs,
           while still supporting manual overrides.
     """
     def get_callsite_id():
@@ -1060,90 +1059,90 @@ def generate_stable_id(prefix: str = "component", identifier: Optional[str] = No
         hashed = hashlib.md5(identifier.encode()).hexdigest()[:8]
     return f"{prefix}-{hashed}"
 
-async def render_and_send_fastplotlib(
-    fig: "fplt.Figure",
-    component_id: str,
-    label: str,
-    size: float,
-    client_id: str,
-    data_hash: str,
-) -> Optional[str]:
-    """
-    Asynchronously renders a Fastplotlib figure to an offscreen canvas, encodes it as a PNG,
-    and streams the resulting image data via WebSocket to the connected frontend client.
+# async def render_and_send_fastplotlib(
+#     fig: "fplt.Figure",
+#     component_id: str,
+#     label: str,
+#     size: float,
+#     client_id: str,
+#     data_hash: str,
+# ) -> Optional[str]:
+#     """
+#     Asynchronously renders a Fastplotlib figure to an offscreen canvas, encodes it as a PNG,
+#     and streams the resulting image data via WebSocket to the connected frontend client.
 
-    This helper function handles rendering logic, alpha-blending, and ensures robust error
-    handling. It updates the component state after successfully sending the image data.
+#     This helper function handles rendering logic, alpha-blending, and ensures robust error
+#     handling. It updates the component state after successfully sending the image data.
 
-    Args:
-        fig (fplt.Figure): The fully configured Fastplotlib figure instance to render.
-        component_id (str): Unique identifier for the component instance receiving this image.
-        label (str): Human-readable label describing the component (for logging/debugging).
-        size (float): Relative size of the component in the UI layout (0.0-1.0).
-        client_id (str): WebSocket client identifier to route the rendered image correctly.
-        data_hash (str): SHA-256 hash representing the figure state, used for cache invalidation.
+#     Args:
+#         fig (fplt.Figure): The fully configured Fastplotlib figure instance to render.
+#         component_id (str): Unique identifier for the component instance receiving this image.
+#         label (str): Human-readable label describing the component (for logging/debugging).
+#         size (float): Relative size of the component in the UI layout (0.0-1.0).
+#         client_id (str): WebSocket client identifier to route the rendered image correctly.
+#         data_hash (str): SHA-256 hash representing the figure state, used for cache invalidation.
 
-    Returns:
-        str: Returns "Render failed" if framebuffer blending fails, otherwise None.
+#     Returns:
+#         str: Returns "Render failed" if framebuffer blending fails, otherwise None.
 
-    Raises:
-        Logs and handles any exceptions internally without raising further.
-    """
-    service = PreswaldService.get_instance()
+#     Raises:
+#         Logs and handles any exceptions internally without raising further.
+#     """
+#     service = PreswaldService.get_instance()
 
-    fig.show()  # must call even in offscreen mode to initialize GPU resources
+#     fig.show()  # must call even in offscreen mode to initialize GPU resources
 
-    # manually render the scene for all subplots
-    for subplot in fig:
-        subplot.viewport.render(subplot.scene, subplot.camera)
+#     # manually render the scene for all subplots
+#     for subplot in fig:
+#         subplot.viewport.render(subplot.scene, subplot.camera)
 
-    # read from the framebuffer
-    try:
-        fig.canvas.request_draw()
-        raw_img = np.asarray(fig.renderer.target.draw())
+#     # read from the framebuffer
+#     try:
+#         fig.canvas.request_draw()
+#         raw_img = np.asarray(fig.renderer.target.draw())
 
-        if raw_img.ndim != 3 or raw_img.shape[2] != 4:
-            raise ValueError(f"Unexpected image shape: {raw_img.shape}")
+#         if raw_img.ndim != 3 or raw_img.shape[2] != 4:
+#             raise ValueError(f"Unexpected image shape: {raw_img.shape}")
 
-        # handle alpha blending
-        alpha = raw_img[..., 3:4] / 255.0
-        rgb = (raw_img[..., :3] * alpha + (1 - alpha) * 255).astype(np.uint8)
+#         # handle alpha blending
+#         alpha = raw_img[..., 3:4] / 255.0
+#         rgb = (raw_img[..., :3] * alpha + (1 - alpha) * 255).astype(np.uint8)
 
-    except Exception as e:
-        logger.error(f"Framebuffer blending failed for {component_id}: {e}")
-        return "Render failed"
+#     except Exception as e:
+#         logger.error(f"Framebuffer blending failed for {component_id}: {e}")
+#         return "Render failed"
 
-    # encode image to PNG
-    img_buf = io.BytesIO()
-    Image.fromarray(rgb).save(img_buf, format="PNG")
-    png_bytes = img_buf.getvalue()
+#     # encode image to PNG
+#     img_buf = io.BytesIO()
+#     Image.fromarray(rgb).save(img_buf, format="PNG")
+#     png_bytes = img_buf.getvalue()
 
-    # handle websocket communication
-    client_websocket = service.websocket_connections.get(client_id)
-    if client_websocket:
-        packed_msg = msgpack.packb(
-            {
-                "type": "image_update",
-                "component_id": component_id,
-                "format": "png",
-                "label": label,
-                "size": size,
-                "data": png_bytes,
-            },
-            use_bin_type=True,
-        )
+#     # handle websocket communication
+#     client_websocket = service.websocket_connections.get(client_id)
+#     if client_websocket:
+#         packed_msg = msgpack.packb(
+#             {
+#                 "type": "image_update",
+#                 "component_id": component_id,
+#                 "format": "png",
+#                 "label": label,
+#                 "size": size,
+#                 "data": png_bytes,
+#             },
+#             use_bin_type=True,
+#         )
 
-        try:
-            await client_websocket.send_bytes(packed_msg)
-            await service.handle_client_message(
-                client_id,
-                {
-                    "type": "component_update",
-                    "states": {f"{component_id}_img_hash": data_hash},
-                },
-            )
-            logger.debug(f"✅ Sent {component_id} image to client {client_id}")
-        except Exception as e:
-            logger.error(f"WebSocket send failed for {component_id}: {e}")
-    else:
-        logger.warning(f"No active WebSocket found for client ID: {client_id}")
+#         try:
+#             await client_websocket.send_bytes(packed_msg)
+#             await service.handle_client_message(
+#                 client_id,
+#                 {
+#                     "type": "component_update",
+#                     "states": {f"{component_id}_img_hash": data_hash},
+#                 },
+#             )
+#             logger.debug(f"✅ Sent {component_id} image to client {client_id}")
+#         except Exception as e:
+#             logger.error(f"WebSocket send failed for {component_id}: {e}")
+#     else:
+#         logger.warning(f"No active WebSocket found for client ID: {client_id}")

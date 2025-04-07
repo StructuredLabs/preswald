@@ -1,16 +1,12 @@
 import asyncio
 import logging
-import os
-import threading
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Dict
 
 from fastapi import WebSocket, WebSocketDisconnect
 
 from preswald.engine.base_service import BasePreswaldService
-from .managers.data import DataManager
-from .managers.layout import LayoutManager
+
 from .runner import ScriptRunner
-from .utils import RenderBuffer, clean_nan_values, compress_data, optimize_plotly_data
 
 
 logger = logging.getLogger(__name__)
@@ -39,7 +35,7 @@ class ServerPreswaldService(BasePreswaldService):
 
         # Initialize session tracking
         self.websocket_connections: Dict[str, WebSocket] = {}
-        
+
     async def register_client(
         self, client_id: str, websocket: WebSocket
     ) -> ScriptRunner:
