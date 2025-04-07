@@ -1,0 +1,46 @@
+---
+title: "big_number"
+icon: "big number"
+description: ""
+---
+
+```python
+big_number(value: str||int||float, label: str, delta: str, delta_color: str||green, icon: str, description: str)
+```
+
+#BigNumber
+The `big_number` function adds a visual highlight of KPIs like total revenue, conversion rate, or average score.
+
+
+## Properties
+
+| Property     | Type                | Required | Default | Description                                                            |
+|--------------|---------------------|--------- |---------|------------------------------------------------------------------------|
+| value        | string|float|int    | Yes      | -       | The Big number to display                                              |
+| label        | string              | Yes      | ''      | Label text for the big number                                          |
+| delta        | string              | Yes      | ''      | This display's the percentage rise or decrease in the metrics          |
+| delta_color  | string              | Yes      | 'green' | This display's the percentage rise or decrease in the color specified  |
+| icon         | string              | Yes      | -       | This is a lucide react icon which is to the right of big number        |
+| description  | string              | No       | -       | The description of the metrics that the big number is representing     |
+
+
+
+## Basic Usage
+
+```python
+import preswald as pw
+
+def app():
+    pw.big_number(value="12345678",label="Nvidia stocks",delta="+4.15%",delta_color="green",icon="User",description="Up by 4.15%")
+
+pw.run(app)
+```
+
+
+
+## Notes
+
+- The big_number() function introduces visual highlight of KPIs like total revenue, conversion rate, or average score.
+- Make sure you provide the value in string ,number or float only.
+- Start the lucide react icon with a capital letter (for ex. if the icon in lucide.dev website is this "chart-no-axes-combined" then your react lucide icon will be "ChartNoAxesCombined")
+- Make sure that the colors that you enter (to delta_color attribute) is present within tailwind css colours
