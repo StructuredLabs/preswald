@@ -10,7 +10,7 @@ import { comm } from '@/utils/websocket';
 import { createExtractKeyProps } from '../utils/extractKeyProps';
 // Widgets
 import AlertWidget from './widgets/AlertWidget';
-import BigNumberWidget from './widgets/BigNumberWidget';
+import BigNumberCard from './widgets/BigNumberCard';
 import ButtonWidget from './widgets/ButtonWidget';
 import ChatWidget from './widgets/ChatWidget';
 import CheckboxWidget from './widgets/CheckboxWidget';
@@ -214,6 +214,20 @@ const MemoizedComponent = memo(
             withCard={component.withCard}
             aspectRatio={component.aspectRatio || 1}
             objectFit={component.objectFit || 'cover'}
+          />
+        );
+
+      case 'big_number_card':
+        return (
+          <BigNumberCard
+            key={componentKey}
+            {...props}
+            value={component.value || 0}
+            label={component.label || ''}
+            delta={component.delta || ''}
+            deltaColor={component.deltaColor || 'green'}
+            icon={component.icon || null}
+            description={component.description || ''}
           />
         );
 
