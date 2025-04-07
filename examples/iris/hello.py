@@ -4,7 +4,6 @@
 import plotly.express as px
 
 from preswald import (
-    big_number,
     chat,
     connect,
     # fastplotlib,
@@ -46,46 +45,6 @@ fig1 = px.scatter(
 )
 fig1.update_layout(template="plotly_white")
 plotly(fig1)
-
-big_number(
-    value=15602,
-    label="Active Users",
-    delta="+5.4%",
-    delta_color="green",
-    icon="user",
-    description="Since last week",
-    size=0.2,
-)
-
-big_number(
-    value=480602,
-    label="Active Resources",
-    delta="+5.4%",
-    delta_color="green",
-    icon="user",
-    description="Since last week",
-    size=0.2,
-)
-
-big_number(
-    value=156020000,
-    label="Total Users",
-    delta="+5.4%",
-    delta_color="green",
-    icon="user",
-    description="Since last week",
-    size=0.2,
-)
-
-big_number(
-    value=9965088,
-    label="Total Resources",
-    delta="-5.7%",
-    delta_color="red",
-    icon="user",
-    description="Since last week",
-    size=0.2,
-)
 
 # 2. Histogram of Sepal Length
 text(
