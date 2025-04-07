@@ -435,7 +435,6 @@ def big_number(
         delta_color: Color of the delta indicator ("green", "red", etc.).
         icon: Optional icon name (e.g., "Backpack").
         description: Optional description text.
-        size: Component width (1.0 = full width).
     Returns:
         Dict: Component metadata.
     """
