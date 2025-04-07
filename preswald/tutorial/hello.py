@@ -237,56 +237,6 @@ This improves the readability of your app by clearly distinguishing between diff
     )
 
 
-# --- BIG NUMBER METRIC CARDS COMPONENT ---
-@workflow.atom()
-def big_number_demo():
-    text("## 6. Highlighting Key Metrics with `big_number()`")
-    text(
-        """The `big_number()` component lets you visually emphasize important single-value KPIs like active users, usage trends, or totals. It supports delta indicators, icons, automatic number formatting (e.g., 1.2M), and stacking layout.**Example Use Cases:**
-- Total Users
-- Active Sessions
-- System Resources"""
-    )
-
-    # Display metric cards
-    big_number(
-        value=15602,
-        label="Active Users",
-        delta="+5.4%",
-        delta_color="green",
-        icon="user",
-        description="Since last week",
-        size=0.2,
-    )
-    big_number(
-        value=480602,
-        label="Active Resources",
-        delta="+5.4%",
-        delta_color="green",
-        icon="server",
-        description="Since last week",
-        size=0.2,
-    )
-    big_number(
-        value=156020000,
-        label="Total Users",
-        delta="+5.4%",
-        delta_color="green",
-        icon="users",
-        description="Since last week",
-        size=0.2,
-    )
-    big_number(
-        value=9965088,
-        label="Total Resources",
-        delta="-5.7%",
-        delta_color="red",
-        icon="database",
-        description="Since last week",
-        size=0.2,
-    )
-
-
 # --- IMAGE COMPONENT ---
 @workflow.atom()
 def image_demo():
@@ -581,6 +531,56 @@ def text_input_demo():
     # Show a greeting if they've entered a name
     if name:
         text(f"👋 Hello, {name}!")
+
+
+# --- BIG NUMBER METRIC CARDS COMPONENT ---
+@workflow.atom()
+def big_number_demo():
+    text("## 21. Highlighting Key Metrics with `big_number()`")
+    text(
+        """The `big_number()` component lets you visually emphasize important single-value KPIs like active users, usage trends, or totals. It supports delta indicators, icons, automatic number formatting (e.g., 1.2M), and stacking layout.**Example Use Cases:**
+- Total Users
+- Active Sessions
+- System Resources"""
+    )
+
+    # Display metric cards
+    big_number(
+        value=15602,
+        label="Active Users",
+        delta="+5.4%",
+        delta_color="green",
+        icon="user",
+        description="Since last week",
+        size=0.2,
+    )
+    big_number(
+        value=480602,
+        label="Active Resources",
+        delta="+5.4%",
+        delta_color="green",
+        icon="server",
+        description="Since last week",
+        size=0.2,
+    )
+    big_number(
+        value=156020000,
+        label="Total Users",
+        delta="+5.4%",
+        delta_color="green",
+        icon="users",
+        description="Since last week",
+        size=0.2,
+    )
+    big_number(
+        value=9965088,
+        label="Total Resources",
+        delta="-5.7%",
+        delta_color="red",
+        icon="database",
+        description="Since last week",
+        size=0.2,
+    )
 
 
 # --- FINAL MESSAGE ---
