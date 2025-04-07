@@ -53,6 +53,40 @@ def alert(message: str, level: str = "info", size: float = 1.0) -> str:
     return message
 
 
+def big_number(
+    value: int | float | str,
+    label: Optional[str] = None,
+    delta: Optional[str] = None,
+    delta_color: Optional[str] = None,
+    icon: Optional[str] = None,
+    description: Optional[str] = None,
+    size: float = 1.0,
+) -> str:
+    """Create a big number metric card component."""
+    service = PreswaldService.get_instance()
+    component_id = generate_id("big_number")
+
+    logger.debug(
+        f"Creating big number component with id {component_id}, value: {value}"
+    )
+
+    component = {
+        "type": "big_number",
+        "id": component_id,
+        "value": value,
+        "label": label,
+        "delta": delta,
+        "delta_color": delta_color,
+        "icon": icon,
+        "description": description,
+        "size": size,
+    }
+
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+    return str(value)
+
+
 def button(
     label: str,
     variant: str = "default",

@@ -5,6 +5,7 @@ Grouping all the user-facing components of the SDK
 
 from .components import (
     alert,
+    big_number,
     button,
     chat,
     checkbox,
