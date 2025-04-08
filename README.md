@@ -90,7 +90,7 @@ This will create a folder called `my_project` with all the basics you need:
 
 ### **2. Write Your First App**
 
-Time to make something magical! Open up `hello.py` and write:
+Time to make something magical! Open up `hello.py` and you should see something like this:
 
 ```python
 from preswald import text, plotly, connect, get_df, table
