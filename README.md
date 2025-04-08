@@ -66,6 +66,10 @@ First, install Preswald using pip. https://pypi.org/project/preswald/
 
 ```bash
 pip install preswald
+
+or 
+
+uv pip install preswald
 ```
 
 ![Demo GIF](assets/demo1.gif)

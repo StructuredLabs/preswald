@@ -24,7 +24,7 @@ preswald/
 ├── examples/       # Sample apps to showcase Preswald's capabilities
 ├── tutorial/       # Tutorial for getting started with Preswald
 ├── tests/          # Unit and integration tests
-├── setup.py        # Python package configuration
+├── pyproject.toml  # Python package configuration
 └── README.md       # Project overview
 ```
 
@@ -43,16 +43,20 @@ preswald/
 
 We recommend using Conda to manage dependencies:
 
-1. Create and activate a Conda environment:
+1. Install uv (this makes things so much faster):
    ```bash
-   conda create -n preswald python=3.11 -y
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   ```
+2. Create and activate a Conda environment:
+   ```bash
+   conda create -n preswald python=3.10 -y
    conda activate preswald
    ```
-2. Install dependencies:
+3. Install dependencies:
    ```bash
-   pip install -e ".[dev]"
+   uv pip install -e ".[dev]"
    ```
-3. Set up pre-commit hooks:
+4. Set up pre-commit hooks:
    ```
    pre-commit install
    ```
@@ -61,12 +65,12 @@ We recommend using Conda to manage dependencies:
 
 Build the frontend once
 ```bash
-python setup.py build_frontend
+python -m preswald.build frontend
 ```
 
 Or use watch mode to monitor changes and auto-rebuild
 ```bash
-python setup.py build_frontend --watch
+python -m preswald.build watch
 ```
 
 ### 4. Run the Example App
@@ -126,7 +130,7 @@ These configurations ensure your code remains consistent with our standards when
 1. Create and activate another Conda environment for testing:
    ```bash
    conda deactivate # if inside an existing conda env
-   conda create -n preswald-test python=3.11 -y
+   conda create -n preswald-test python=3.10 -y
    conda activate preswald-test
    ```
 2. Clear old builds:
@@ -135,12 +139,12 @@ These configurations ensure your code remains consistent with our standards when
    ```
 3. Build frontend and backend:
    ```bash
-   python setup.py build_frontend
+   python -m preswald.build frontend
    python -m build
    ```
 4. Install the pip package
    ```bash
-   pip install dist/preswald-0.xx.xx.tar.gz
+   uv pip install dist/preswald-0.xx.xx.tar.gz
    ```
 5. Run a test app
    ```
