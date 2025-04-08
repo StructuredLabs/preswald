@@ -1,0 +1,18 @@
+[
+  {"user": "User1", "clicks": 10},
+  {"user": "User2", "clicks": 5},
+  {"user": "User3", "clicks": 8},
+  {"user": "User4", "clicks": 12},
+  {"user": "User5", "clicks": 7},
+  {"user": "User6", "clicks": 9},
+  {"user": "User7", "clicks": 4},
+  {"user": "User8", "clicks": 11},
+  {"user": "User9", "clicks": 6},
+  {"user": "User10", "clicks": 10},
+  {"user": "User11", "clicks": 3},
+  {"user": "User12", "clicks": 8},
+  {"user": "User13", "clicks": 5},
+  {"user": "User14", "clicks": 7},
+  {"user": "User15", "clicks": 9}
+]
+
