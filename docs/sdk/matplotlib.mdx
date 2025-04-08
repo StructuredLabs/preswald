@@ -1,0 +1,100 @@
+---
+title: 'Matplotlib'
+description: 'Display Matplotlib plots in your Preswald application'
+icon: 'chart-pie'
+---
+
+The Matplotlib widget allows you to seamlessly display Matplotlib plots in your Preswald application. It renders plots as images within a card container, providing a clean and consistent presentation.
+
+## Properties
+
+| Property  | Type     | Required | Default | Description                                      |
+|-----------|----------|----------|---------|--------------------------------------------------|
+| _label    | string   | No       | -       | Title text displayed above the plot              |
+| image     | string   | No       | -       | Base64-encoded PNG image data of the plot       |
+| className | string   | No       | ''      | Additional CSS classes to apply to the container |
+
+## Basic Usage
+
+```python
+import preswald as pw
+import matplotlib.pyplot as plt
+import numpy as np
+
+def app():
+    # Create a simple plot
+    x = np.linspace(0, 10, 100)
+    y = np.sin(x)
+    
+    plt.figure(figsize=(8, 6))
+    plt.plot(x, y)
+    plt.title('Sine Wave')
+    
+    pw.matplotlib(_label="My Plot")
+
+pw.run(app)
+```
+
+## Examples
+
+### Plot with Custom Title
+
+```python
+import preswald as pw
+import matplotlib.pyplot as plt
+import numpy as np
+
+def app():
+    x = np.arange(0, 5, 0.1)
+    y = np.exp(-x) * np.cos(2*np.pi*x)
+    
+    plt.figure(figsize=(10, 6))
+    plt.plot(x, y)
+    plt.grid(True)
+    
+    pw.matplotlib(_label="Damped Oscillation")
+```
+
+### Multiple Plots
+
+```python
+import preswald as pw
+import matplotlib.pyplot as plt
+import numpy as np
+
+def app():
+    # First plot
+    plt.figure(figsize=(8, 4))
+    x = np.linspace(-5, 5, 100)
+    plt.plot(x, x**2)
+    pw.matplotlib(_label="Quadratic Function")
+    
+    # Second plot
+    plt.figure(figsize=(8, 4))
+    plt.plot(x, np.abs(x))
+    pw.matplotlib(_label="Absolute Function")
+```
+
+### Custom Styling
+
+```python
+import preswald as pw
+import matplotlib.pyplot as plt
+
+def app():
+    plt.figure(figsize=(10, 6))
+    # ... plot creation ...
+    
+    pw.matplotlib(
+        _label="Custom Styled Plot",
+        className="shadow-lg rounded-xl p-4"
+    )
+```
+
+## Notes
+
+- The widget automatically handles the conversion of Matplotlib plots to images
+- Plots are displayed responsively, adjusting to the container width
+- If no plot data is available, a "No plot available" message is shown
+- Use `plt.figure()` to create new figures when displaying multiple plots
+- The widget supports all types of Matplotlib plots: line plots, scatter plots, histograms, etc.

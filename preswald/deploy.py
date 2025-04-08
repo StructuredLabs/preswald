@@ -7,14 +7,13 @@ import shutil
 import subprocess
 import zipfile
 from datetime import datetime
-from importlib.metadata import version
 from pathlib import Path
-from typing import Generator, Optional
+from typing import Generator, Optional, Union
 
 import requests
 import toml
 
-from preswald.utils import get_project_slug, read_template
+from preswald.utils import get_project_slug
 
 
 logger = logging.getLogger(__name__)
@@ -433,7 +432,7 @@ def deploy_to_gcp(script_path: str, port: int = 8501) -> str:  # noqa: C901
             elif item.is_dir():
                 shutil.rmtree(item)
 
-        dockerfile_content = """FROM structuredlabs/preswald-base:latest
+        dockerfile_content = """FROM structuredlabs/preswald:latest
 COPY . /app/project
 """
         with open(deploy_dir / "Dockerfile", "w") as f:
@@ -571,34 +570,34 @@ COPY . /app/project
 
 def find_available_port(start_port: int = 8501) -> int:
     import socket
-    
+
     port = start_port
     while True:
         try:
             # Try to bind to the port
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.bind(('', port))
+                s.bind(("", port))
                 return port
         except OSError:
             port += 1
 
 
-def deploy_to_local(script_path: str) -> str:
+def deploy_to_local(script_path: str, start_port: int = 8501) -> str:
     script_path = os.path.abspath(script_path)
     script_dir = Path(script_path).parent
     container_name = get_container_name(script_path)
-    
+
     try:
         # Find an available port
-        port = find_available_port()
+        port = find_available_port(start_port)
         print(f"\nUsing port: {port}")
-        
+
         # Stop any existing container
         print("Stopping existing deployment (if any)...")
         stop_existing_container(container_name)
-        
+
         # Start the container with the prebuilt base image
-        print(f"Starting container with prebuilt base image...")
+        print("Starting container with prebuilt base image...")
         subprocess.run(
             [
                 "docker",
@@ -607,16 +606,16 @@ def deploy_to_local(script_path: str) -> str:
                 "--name",
                 container_name,
                 "-p",
-                f"{port}:8501",
+                f"{port}:{start_port}",
                 "-v",
                 f"{script_dir}:/app/project",
-                "structuredlabs/preswald-base:latest"
+                "structuredlabs/preswald:latest",
             ],
             check=True,
         )
-        
+
         return f"http://localhost:{port}"
-        
+
     except subprocess.CalledProcessError as e:
         raise Exception(f"Docker operation failed: {e!s}") from e
     except FileNotFoundError as e:
@@ -628,19 +627,33 @@ def deploy_to_local(script_path: str) -> str:
         raise Exception(f"Local deployment failed: {e!s}") from e
 
 
-def deploy(  # noqa: C901
+def deploy(
     script_path: str,
     target: str = "local",
     port: int = 8501,
     github_username: Optional[str] = None,
     api_key: Optional[str] = None,
-) -> str | Generator[dict, None, None]:
+) -> Union[str, Generator[dict, None, None]]:
+    """
+    Deploy a Preswald app.
+
+    Args:
+        script_path: Path to the Preswald application script
+        target: Deployment target ("local", "gcp", "aws", or "prod")
+        port: Port number for the deployment
+        github_username: Optional GitHub username for structured deployment
+        api_key: Optional Structured Cloud API key for structured deployment
+
+    Returns:
+        str | Generator: URL where the application can be accessed for local/cloud deployments,
+                        or a Generator yielding deployment status for production deployments
+    """
     if target == "structured":
         return deploy_to_prod(script_path, port, github_username, api_key)
     elif target == "gcp":
         return deploy_to_gcp(script_path, port)
     elif target == "local":
-        return deploy_to_local(script_path)
+        return deploy_to_local(script_path, port)
     else:
         raise ValueError(f"Unsupported deployment target: {target}")
 
@@ -656,6 +669,7 @@ def stop_local_deployment(script_dir: str) -> None:
         raise Exception(f"No deployment configuration found: {e}") from e
     except Exception as e:
         raise Exception(f"Failed to stop local deployment: {e}") from e
+
 
 def stop_structured_deployment(script_dir: str) -> dict:
     """

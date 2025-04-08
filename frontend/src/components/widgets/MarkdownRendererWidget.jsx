@@ -1,6 +1,8 @@
+import { Link2Icon } from 'lucide-react';
 import remarkGfm from 'remark-gfm';
+import remarkSlug from 'remark-slug';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -10,14 +12,29 @@ import { Card, CardContent } from '@/components/ui/card';
 
 import { cn } from '@/lib/utils';
 
-const MarkdownRendererWidget = ({
-  markdown,
-  value,
-  error,
-  className,
-  variant = 'default', // default, outline, or ghost
-}) => {
+const MarkdownRendererWidget = ({ markdown, value, error, className }) => {
   const content = markdown || value || '';
+  const [targetId, setTargetId] = useState('');
+
+  // Handle URL hash navigation on mount
+  useEffect(() => {
+    // Set scroll padding for all anchor navigation
+    document.documentElement.style.scrollPaddingTop = '50px';
+
+    if (window.location.hash) {
+      const hash = window.location.hash.substring(1);
+      setTargetId(hash);
+
+      // Add a small delay to ensure the headings are rendered
+      setTimeout(() => {
+        const element = document.getElementById(hash);
+        if (element) {
+          element.scrollIntoView();
+          window.scrollBy(0, -50);
+        }
+      }, 300);
+    }
+  }, []);
 
   if (error) {
     return (
@@ -27,80 +44,91 @@ const MarkdownRendererWidget = ({
     );
   }
 
-  const variantStyles = {
-    default: 'markdown-card-variant-default',
-    outline: 'markdown-card-variant-outline',
-    ghost: 'markdown-card-variant-ghost',
-  };
-
-  const components = {
-    h1: ({ className, ...props }) => (
-      <h1 className={cn('markdown-heading-1', className)} {...props} />
-    ),
-    h2: ({ className, ...props }) => (
-      <h2 className={cn('markdown-heading-2', className)} {...props} />
-    ),
-    h3: ({ className, ...props }) => (
-      <h3 className={cn('markdown-heading-3', className)} {...props} />
-    ),
-    a: ({ className, ...props }) => <a className={cn('markdown-link', className)} {...props} />,
-    pre: ({ className, ...props }) => (
-      <pre className={cn('markdown-pre-wrapper', className)} {...props} />
-    ),
-    code: ({ node, inline, className, children, ...props }) => {
-      const match = /language-(\w+)/.exec(className || '');
-      const lang = match ? match[1] : '';
-      const isInline = inline || !lang;
-
-      if (isInline) {
-        return (
-          <code className={cn('markdown-inline-code', className)} {...props}>
-            {children}
-          </code>
-        );
-      }
-
-      return (
-        <div className="relative">
-          {lang && <div className="markdown-code-lang">{lang}</div>}
-          <SyntaxHighlighter
-            language={lang}
-            style={oneDark}
-            customStyle={{ margin: 0, borderRadius: '0.5rem', background: 'rgb(24 24 27)' }}
-          >
-            {String(children).replace(/\n$/, '')}
-          </SyntaxHighlighter>
-        </div>
-      );
-    },
-    blockquote: ({ className, ...props }) => (
-      <blockquote className={cn('markdown-blockquote', className)} {...props} />
-    ),
-    ul: ({ className, ...props }) => <ul className={cn('markdown-ul', className)} {...props} />,
-    ol: ({ className, ...props }) => <ol className={cn('markdown-ol', className)} {...props} />,
-    table: ({ className, ...props }) => (
-      <div className="markdown-table-wrapper">
-        <table className={cn('markdown-table', className)} {...props} />
-      </div>
-    ),
-    th: ({ className, ...props }) => <th className={cn('markdown-th', className)} {...props} />,
-    td: ({ className, ...props }) => <td className={cn('markdown-td', className)} {...props} />,
-  };
-
   return (
-    <Card className={cn('markdown-container', variantStyles[variant], className)}>
-      <CardContent
-        className={cn(
-          'markdown-card-content markdown-headings markdown-paragraph markdown-list markdown-pre markdown-code',
-          variant === 'ghost' ? 'p-0' : 'markdown-padding'
-        )}
-      >
-        <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+    <Card className={cn('overflow-hidden', className)}>
+      <CardContent className="prose max-w-none prose-pre:p-0 prose-pre:bg-transparent prose-pre:m-0 prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-foreground prose-code:before:content-none prose-code:after:content-none">
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm, remarkSlug]}
+          components={{
+            h1: createHeadingComponent('h1', targetId),
+            h2: createHeadingComponent('h2', targetId),
+            h3: createHeadingComponent('h3', targetId),
+            h4: createHeadingComponent('h4', targetId),
+            h5: createHeadingComponent('h5', targetId),
+            h6: createHeadingComponent('h6', targetId),
+            code({ node, inline, className, children, ...props }) {
+              // Only apply syntax highlighting for code blocks with language
+              const match = /language-(\w+)/.exec(className || '');
+              if (!inline && match) {
+                return (
+                  <SyntaxHighlighter style={oneDark} language={match[1]} PreTag="div" {...props}>
+                    {String(children).replace(/\n$/, '')}
+                  </SyntaxHighlighter>
+                );
+              }
+
+              return (
+                <code className={className} {...props}>
+                  {children}
+                </code>
+              );
+            },
+          }}
+        >
           {content}
         </ReactMarkdown>
       </CardContent>
     </Card>
   );
 };
+
+// Helper function to create heading components
+function createHeadingComponent(level, targetId) {
+  return function HeadingComponent({ node, children, ...props }) {
+    const id = props.id || '';
+    const isTarget = id === targetId;
+
+    const copyToClipboard = () => {
+      const url = `${window.location.origin}${window.location.pathname}#${id}`;
+      navigator.clipboard
+        .writeText(url)
+        .then(() => {
+          console.log('Link copied to clipboard');
+        })
+        .catch((err) => {
+          console.error('Could not copy text: ', err);
+        });
+    };
+
+    const handleHeadingClick = () => {
+      copyToClipboard();
+      // Update URL and scroll to the element
+      window.location.hash = id;
+    };
+
+    return React.createElement(
+      level,
+      {
+        className: cn(
+          'group relative hover:cursor-pointer scroll-mt-[50px]',
+          isTarget && 'bg-muted/30'
+        ),
+        id: id,
+        onClick: handleHeadingClick,
+      },
+      <>
+        <a
+          href={`#${id}`}
+          className="opacity-0 group-hover:opacity-100 hover:opacity-100 absolute -left-6 top-1/2 -translate-y-1/2 flex items-center justify-center text-muted-foreground no-underline transition-opacity duration-150"
+          aria-label={`Link to this heading`}
+          onClick={copyToClipboard}
+        >
+          <Link2Icon className="h-4 w-4" />
+        </a>
+        {children}
+      </>
+    );
+  };
+}
 
 export default MarkdownRendererWidget;

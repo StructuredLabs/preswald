@@ -77,9 +77,9 @@ CORE_DEPENDENCIES = [
     "matplotlib>=3.8.4",
     # Server-only dependencies
     "fastapi>=0.68.0,<1.0.0; platform_system != 'Emscripten'",
-    "fastplotlib[imgui]~=0.3.0; platform_system != 'Emscripten'",
-    "imageio~=2.37.0; platform_system != 'Emscripten'",
-    "msgpack~=1.1.0; platform_system != 'Emscripten'",
+    # "fastplotlib[imgui]~=0.3.0; platform_system != 'Emscripten'",
+    # "imageio~=2.37.0; platform_system != 'Emscripten'",
+    # "msgpack~=1.1.0; platform_system != 'Emscripten'",
     "uvicorn>=0.15.0,<1.0.0; platform_system != 'Emscripten'",
     "websockets>=10.0,<11.0; platform_system != 'Emscripten'",
     # Native code dependencies
@@ -108,7 +108,7 @@ DEV_DEPENDENCIES = [
 setup(
     # Basic package metadata
     name="preswald",
-    version="0.1.48",
+    version="0.1.51",
     author="Structured Labs",
     author_email="founders@structuredlabs.com",
     description="A lightweight data workflow SDK.",
