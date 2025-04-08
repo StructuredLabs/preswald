@@ -871,6 +871,24 @@ def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -
         return error_component
 
 
+def json_viewer(src: dict | list | str, title: str = "", expanded: bool = False):
+    """Creates a json_viewer component."""
+    service = PreswaldService.get_instance()
+    id = generate_id("json_viewer")
+    logger.debug(f"Creating json_viewer component with id {id}")
+
+    component = {
+        "type": "json_viewer",
+        "id": id,
+        "src": src,
+        "title": title,
+        "expanded": expanded,
+    }
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+    return component
+
+
 # Helpers
 
 

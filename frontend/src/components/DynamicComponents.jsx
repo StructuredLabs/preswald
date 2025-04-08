@@ -17,6 +17,7 @@ import DAGVisualizationWidget from './widgets/DAGVisualizationWidget';
 import DataVisualizationWidget from './widgets/DataVisualizationWidget';
 import FastplotlibWidget from './widgets/FastplotlibWidget';
 import ImageWidget from './widgets/ImageWidget';
+import JsonViewerWidget from './widgets/JsonViewerWidget';
 import MarkdownRendererWidget from './widgets/MarkdownRendererWidget';
 import MatplotlibWidget from './widgets/MatplotlibWidget';
 import PlaygroundWidget from './widgets/PlaygroundWidget';
@@ -69,6 +70,15 @@ const MemoizedComponent = memo(
     const [componentId, componentKey, props] = extractKeyProps(component, index);
 
     switch (component.type) {
+      case 'json_viewer':
+        return (
+          <JsonViewerWidget
+            src={component.src}
+            title={component.title}
+            expanded={component.expanded}
+          />
+        );
+
       case 'sidebar':
         return <SidebarWidget defaultOpen={component.defaultopen} />;
 

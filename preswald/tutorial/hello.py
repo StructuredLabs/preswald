@@ -11,6 +11,7 @@ from preswald import (
     connect,
     get_df,
     image,
+    json_viewer,
     matplotlib,
     playground,
     plotly,
@@ -511,6 +512,17 @@ def spinner_demo():
 
     # Card variant with a different message
     spinner(label="Processing request...", variant="card")
+
+
+@workflow.atom()
+def json_viewer_demo():
+    text("## 20. Adding a json viewer with `json_viewer()`")
+
+    json_viewer(
+        {"user": {"name": "Alice", "id": 123}, "active": True},
+        title="User Info",
+        expanded=True,
+    )
 
 
 @workflow.atom()

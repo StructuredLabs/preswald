@@ -1,0 +1,37 @@
+---
+title: "json_viewer"
+icon: "font"
+description: ""
+---
+
+```python
+json_viewer(src: list | dict | str, title: str, expanded: bool)
+```
+
+The `json_viewer` function allows you to display JSON data in a nicely formatted, collapsible tree view—similar to how the table() widget works for DataFrames.
+
+## Parameters
+
+- **`src`** _(list | dict | str)_: The source containing string, list or dict data to be displayed.
+- **`title`** _(str)_: _(Optional)_ The title of the section.
+- **`expanded`** _(bool)_: _(Optional)_ Whether to open data in expanded form.
+
+## Returns
+
+- Returns a json_viewer component object with nicely formatted json data
+
+## Usage Example
+
+Here’s an example of how to use the `json_viewer` function:
+
+```python
+from preswald import json_viewer
+
+json_viewer({
+    "user": {
+        "name": "Alice",
+        "id": 123
+    },
+    "active": True
+}, title="User Info", expanded=True)
+```
