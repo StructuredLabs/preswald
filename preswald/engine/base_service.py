@@ -4,8 +4,6 @@ import time
 from threading import Lock
 from typing import Any, Callable, Dict, Optional
 
-from fastapi import WebSocket
-
 from preswald.engine.runner import ScriptRunner
 from preswald.engine.utils import (
     RenderBuffer,
@@ -195,7 +193,7 @@ class BasePreswaldService:
         except Exception as e:
             logger.error(f"Error unregistering client {client_id}: {e}")
 
-    def _create_send_callback(self, websocket: WebSocket) -> Callable:
+    def _create_send_callback(self, websocket: Any) -> Callable:
         """Create a message sending callback for a specific websocket"""
 
         async def send_message(msg: Dict[str, Any]):
@@ -300,7 +298,7 @@ class BasePreswaldService:
             except Exception as e:
                 logger.error(f"Error sending error message: {e}")
 
-    async def _send_initial_states(self, websocket: WebSocket):
+    async def _send_initial_states(self, websocket: Any):
         """Send initial component states to a new client"""
         try:
             with self._lock:

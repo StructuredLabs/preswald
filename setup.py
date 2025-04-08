@@ -75,15 +75,15 @@ CORE_DEPENDENCIES = [
     "plotly==5.24.1",
     "Markdown>=3.4.0",
     "matplotlib>=3.8.4",
+    "msgpack~=1.1.0",
     # Server-only dependencies
     "fastapi>=0.68.0,<1.0.0; platform_system != 'Emscripten'",
     # "fastplotlib[imgui]~=0.3.0; platform_system != 'Emscripten'",
     # "imageio~=2.37.0; platform_system != 'Emscripten'",
-    "msgpack~=1.1.0; platform_system != 'Emscripten'",
     "uvicorn>=0.15.0,<1.0.0; platform_system != 'Emscripten'",
     "websockets>=10.0,<11.0; platform_system != 'Emscripten'",
     # Native code dependencies
-    "duckdb>=1.1.2; platform_system != 'Emscripten'",
+    "duckdb>=1.1.2",
     "scipy>=1.15.2; platform_system != 'Emscripten'",
     # Other dependencies
     "httpx>=0.23.0,<1.0.0",
