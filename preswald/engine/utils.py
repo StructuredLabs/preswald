@@ -197,8 +197,6 @@ class RenderBuffer:
 
     def has_changed(self, component_id: str, new_value: Any) -> bool:
         """Check if the new value differs from the cached value."""
-        from preswald.engine.utils import clean_nan_values
-
         new_clean = clean_nan_values(new_value)
         old_clean = clean_nan_values(self._state_cache.get(component_id))
 
