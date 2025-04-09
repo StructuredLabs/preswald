@@ -66,6 +66,10 @@ First, install Preswald using pip. https://pypi.org/project/preswald/
 
 ```bash
 pip install preswald
+
+or 
+
+uv pip install preswald
 ```
 
 ![Demo GIF](assets/demo1.gif)
@@ -90,7 +94,7 @@ This will create a folder called `my_project` with all the basics you need:
 
 ### **2. Write Your First App**
 
-Time to make something magical! Open up `hello.py` and write:
+Time to make something magical! Open up `hello.py` and you should see something like this:
 
 ```python
 from preswald import text, plotly, connect, get_df, table

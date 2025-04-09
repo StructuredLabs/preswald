@@ -13,7 +13,6 @@ RUN pip install .
 
 # Install preswald with exact version
 RUN pip install preswald=={preswald_version}
-RUN pip install setuptools
 
 # Copy app and assets
 COPY . .
