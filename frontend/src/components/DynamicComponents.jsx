@@ -17,6 +17,7 @@ import DAGVisualizationWidget from './widgets/DAGVisualizationWidget';
 import DataVisualizationWidget from './widgets/DataVisualizationWidget';
 import FastplotlibWidget from './widgets/FastplotlibWidget';
 import ImageWidget from './widgets/ImageWidget';
+import JSONViewerWidget from './widgets/JSONViewerWidget';
 import MarkdownRendererWidget from './widgets/MarkdownRendererWidget';
 import MatplotlibWidget from './widgets/MatplotlibWidget';
 import PlaygroundWidget from './widgets/PlaygroundWidget';
@@ -107,6 +108,17 @@ const MemoizedComponent = memo(
             showValue={component.showValue !== undefined ? component.showValue : true}
             showMinMax={component.showMinMax !== undefined ? component.showMinMax : true}
             variant={component.variant || 'default'}
+          />
+        );
+
+      case 'json_viewer':
+        return (
+          <JSONViewerWidget
+            key={componentKey}
+            data={component.data || component.value} // fallback if `data` isn't set
+            title={component.title}
+            expanded={component.expanded !== false}
+            className={component.className}
           />
         );
 
