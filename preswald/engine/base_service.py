@@ -143,13 +143,16 @@ class BasePreswaldService:
 
     def force_recompute(self, component_ids: set[str]) -> None:
         """Mark components as needing recomputation."""
+        logger.debug(f"[DAG] Forcing recompute for: {component_ids}")
         for cid in component_ids:
             if cid in self._workflow.atoms:
                 self._workflow.atoms[cid].force_recompute = True
 
     def get_affected_components(self, changed_components: set[str]) -> set[str]:
         """Compute all components affected by the updated component state."""
-        return self._workflow._get_affected_atoms(changed_components)
+        affected = self._workflow._get_affected_atoms(changed_components)
+        logger.debug(f"Changed: {changed_components} → Affected: {affected}")
+        return affected
 
     def get_component_state(self, component_id: str, default: Any = None) -> Any:
         """Retrieve the current state for a given component."""
@@ -160,6 +163,7 @@ class BasePreswaldService:
 
             # register a DAG dependency if workflow is active
             if self._current_atom:
+                logger.debug(f"[DAG] {self._current_atom} depends on {component_id}")
                 if self._current_atom not in self._workflow.atoms:
                     self._workflow.atoms[self._current_atom] = Atom(name=self._current_atom, func=lambda: None)
                 self._workflow.atoms[self._current_atom].dependencies.add(component_id)

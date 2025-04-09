@@ -234,12 +234,15 @@ class Workflow:
         """
         affected = set(changed_atoms)
 
+        logger.debug(f"[DAG] Starting traversal from: {changed_atoms}")
+
         # Repeatedly find atoms that depend on affected atoms until no new ones are found
         while True:
             new_affected = set()
             for atom_name, atom in self.atoms.items():
                 if atom_name not in affected:  # Skip already affected atoms
                     if any(dep in affected for dep in atom.dependencies):
+                        logger.debug(f"[DAG] Visiting: {atom_name}")
                         new_affected.add(atom_name)
 
             if not new_affected:  # No new affected atoms found
