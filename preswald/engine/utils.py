@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Union
 
 import numpy as np
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -184,3 +185,30 @@ def decompress_data(compressed_data: bytes) -> Union[Dict, List, str]:
     """Decompress zlib compressed data."""
     decompressed = zlib.decompress(compressed_data)
     return loads(decompressed.decode("utf-8"))
+
+class RenderBuffer:
+    """
+    Tracks previous render states and computes diffs to avoid unnecessary updates.
+    Used by services to avoid redundant component reruns and frontend updates.
+    """
+
+    def __init__(self):
+        self._state_cache: Dict[str, Any] = {}
+
+    def has_changed(self, component_id: str, new_value: Any) -> bool:
+        """Check if the new value differs from the cached value."""
+        new_clean = clean_nan_values(new_value)
+        old_clean = clean_nan_values(self._state_cache.get(component_id))
+
+        return new_clean != old_clean
+
+    def update(self, component_id: str, new_value: Any):
+        """Update the cached value."""
+        self._state_cache[component_id] = new_value
+
+    def update_if_changed(self, component_id: str, new_value: Any) -> bool:
+        """Update cache and return True if value actually changed."""
+        if self.has_changed(component_id, new_value):
+            self.update(component_id, new_value)
+            return True
+        return False

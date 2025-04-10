@@ -1,0 +1,64 @@
+---
+title: 'Image'
+description: 'Display images in your Preswald application'
+icon: 'image'
+---
+
+# Image
+
+The Image widget allows you to display images in your Preswald application. It's a simple wrapper around the HTML `<img>` element
+that provides consistent styling and integration with the Preswald framework.
+
+## Properties
+
+| Property  | Type     | Required | Default | Description                                      |
+|-----------|----------|----------|---------|--------------------------------------------------|
+| src       | string   | Yes      | -       | The URL or path to the image                    |
+| alt       | string   | No       | ''      | Alternative text for the image                  |
+| className | string   | No       | ''      | Additional CSS classes to apply to the image    |
+
+## Basic Usage
+
+```python
+import preswald as pw
+
+def app():
+    pw.image(src="https://example.com/image.jpg", alt="Example image")
+
+pw.run(app)
+```
+
+## Examples
+
+### Display a Local Image
+
+```python
+import preswald as pw
+
+def app():
+    pw.image(src="./assets/local-image.png", alt="Local image")
+
+pw.run(app)
+```
+
+### Adding Custom Styling
+
+```python
+import preswald as pw
+
+def app():
+    pw.image(
+        src="https://example.com/image.jpg",
+        alt="Styled image",
+        className="rounded-lg shadow-md"
+    )
+
+pw.run(app)
+```
+
+## Notes
+
+- The image widget supports common image formats like PNG, JPG, GIF, and SVG
+- Make sure the image source URL is accessible from your application
+- For local images, ensure the path is relative to your application's root directory
+- The widget automatically applies responsive sizing while maintaining aspect ratio

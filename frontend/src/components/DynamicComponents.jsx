@@ -10,10 +10,10 @@ import { comm } from '@/utils/websocket';
 import { createExtractKeyProps } from '../utils/extractKeyProps';
 // Widgets
 import AlertWidget from './widgets/AlertWidget';
+import BigNumberWidget from './widgets/BigNumberWidget';
 import ButtonWidget from './widgets/ButtonWidget';
 import ChatWidget from './widgets/ChatWidget';
 import CheckboxWidget from './widgets/CheckboxWidget';
-import ConnectionInterfaceWidget from './widgets/ConnectionInterfaceWidget';
 import DAGVisualizationWidget from './widgets/DAGVisualizationWidget';
 import DataVisualizationWidget from './widgets/DataVisualizationWidget';
 import FastplotlibWidget from './widgets/FastplotlibWidget';
@@ -23,6 +23,7 @@ import MatplotlibWidget from './widgets/MatplotlibWidget';
 import PlaygroundWidget from './widgets/PlaygroundWidget';
 import ProgressWidget from './widgets/ProgressWidget';
 import SelectboxWidget from './widgets/SelectboxWidget';
+import SeparatorWidget from './widgets/SeparatorWidget';
 import SidebarWidget from './widgets/SidebarWidget';
 import SliderWidget from './widgets/SliderWidget';
 import SpinnerWidget from './widgets/SpinnerWidget';
@@ -65,16 +66,7 @@ class ErrorBoundary extends React.Component {
 
 // Memoized component wrapper
 const MemoizedComponent = memo(
-  ({
-    component,
-    index,
-    handleUpdate,
-    extractKeyProps,
-    sidebarOpen,
-    setSidebarOpen,
-    isCollapsed,
-    setIsCollapsed,
-  }) => {
+  ({ component, index, handleUpdate, extractKeyProps }) => {
     const [componentId, componentKey, props] = extractKeyProps(component, index);
 
     switch (component.type) {
@@ -85,13 +77,32 @@ const MemoizedComponent = memo(
         return (
           <ButtonWidget
             key={componentKey}
+            onClick={() => {
+              if (component.onClick) {
+                handleUpdate(componentId, true);
+              }
+            }}
+            disabled={component.disabled}
+            isLoading={component.loading}
+            variant={component.variant}
+          >
+            {component.label}
+          </ButtonWidget>
+        );
+
+      case 'big_number':
+        return (
+          <BigNumberWidget
+            key={componentKey}
             {...props}
-            label={component.label || 'Button'}
-            variant={component.variant || 'outline'}
-            size={component.size || 'default'}
-            disabled={component.disabled || false}
-            loading={component.loading || false}
-            onClick={() => handleUpdate(componentId, true)}
+            value={component.value}
+            label={component.label}
+            delta={component.delta}
+            delta_color={component.delta_color}
+            icon={component.icon}
+            description={component.description}
+            size={component.size}
+            className={component.className}
           />
         );
 
@@ -134,9 +145,6 @@ const MemoizedComponent = memo(
           />
         );
 
-      case 'topbar':
-        return <TopbarWidget key={componentKey} {...props} />;
-
       case 'checkbox':
         return (
           <CheckboxWidget
@@ -155,15 +163,10 @@ const MemoizedComponent = memo(
           <SelectboxWidget
             key={componentKey}
             {...props}
-            label={component.label}
             options={component.options || []}
             value={component.value || (component.options && component.options[0]) || ''}
             onChange={(value) => handleUpdate(componentId, value)}
             placeholder={component.placeholder}
-            disabled={component.disabled}
-            error={component.error}
-            required={component.required}
-            size={component.size || 'default'}
           />
         );
 
@@ -173,10 +176,7 @@ const MemoizedComponent = memo(
             key={componentKey}
             {...props}
             label={component.label || 'Progress'}
-            value={component.value !== undefined ? component.value : 0}
-            steps={component.steps}
-            showValue={component.showValue !== undefined ? component.showValue : true}
-            size={component.size || 'default'}
+            value={component.value}
           />
         );
 
@@ -248,23 +248,7 @@ const MemoizedComponent = memo(
             key={componentKey}
             {...props}
             rowData={component.data || []}
-            title={component.title || 'Table Viewer'}
-            variant={component.variant || 'default'}
-            showTitle={component.showTitle ?? true}
-            striped={component.striped ?? true}
-            dense={component.dense ?? false}
-            hoverable={component.hoverable ?? true}
             className={component.className}
-          />
-        );
-
-      case 'connection':
-        return (
-          <ConnectionInterfaceWidget
-            key={componentKey}
-            {...props}
-            disabled={component.disabled}
-            onConnect={(connectionData) => handleUpdate(componentId, connectionData)}
           />
         );
 
@@ -307,8 +291,15 @@ const MemoizedComponent = memo(
             value={component.value}
             onChange={(value) => handleUpdate(componentId, value)}
             error={component.error}
+            data={component.data}
           />
         );
+
+      case 'topbar':
+        return <TopbarWidget key={componentKey} {...props} />;
+
+      case 'separator':
+        return <SeparatorWidget key={componentKey} />;
 
       default:
         console.warn(`[DynamicComponents] Unknown component type: ${component.type}`);
@@ -366,15 +357,13 @@ const DynamicComponents = ({ components, onComponentUpdate }) => {
           if (!component) return null;
 
           const componentKey = component.id || `component-${index}`;
+          const isSeparator = component.type === 'separator';
 
           return (
             <React.Fragment key={componentKey}>
               <div
-                className={cn(
-                  'dynamiccomponent-component',
-                  component.type === 'separator' && 'dynamiccomponent-hidden'
-                )}
-                style={{ flex: component.flex || 1 }}
+                className={cn(isSeparator ? 'w-full' : 'dynamiccomponent-component')}
+                style={!isSeparator ? { flex: component.flex || 1 } : undefined}
               >
                 <ErrorBoundary>
                   <MemoizedComponent
@@ -385,7 +374,9 @@ const DynamicComponents = ({ components, onComponentUpdate }) => {
                   />
                 </ErrorBoundary>
               </div>
-              {index < row.length - 1 && <div className="dynamiccomponent-separator" />}
+              {index < row.length - 1 && !isSeparator && (
+                <div className="dynamiccomponent-separator" />
+              )}
             </React.Fragment>
           );
         })}

@@ -10,7 +10,7 @@ from fastapi import WebSocket, WebSocketDisconnect
 from .managers.data import DataManager
 from .managers.layout import LayoutManager
 from .runner import ScriptRunner
-from .utils import clean_nan_values, compress_data, optimize_plotly_data
+from .utils import RenderBuffer, clean_nan_values, compress_data, optimize_plotly_data
 
 
 logger = logging.getLogger(__name__)
@@ -66,6 +66,7 @@ class ServerPreswaldService:
         # Initialize service state
         self._script_path: Optional[str] = None
         self._is_shutting_down: bool = False
+        self._render_buffer = RenderBuffer()
 
     @property
     def script_path(self) -> Optional[str]:
@@ -273,11 +274,11 @@ class ServerPreswaldService:
         # Only rerun if any state actually changed
         changed_states = {
             k: v for k, v in states.items()
-            if clean_nan_values(self.get_component_state(k)) != clean_nan_values(v)
+            if self._render_buffer.update_if_changed(k, v)
         }
 
         if not changed_states:
-            logger.debug(f"[STATE] No actual state changes detected. Skipping rerun.")
+            logger.debug("[STATE] No actual state changes detected. Skipping rerun.")
             return
 
         # Update only changed states

@@ -7,6 +7,8 @@ import logging
 import sys
 from typing import Any, Dict, Optional
 
+from preswald.engine.utils import RenderBuffer
+
 
 logger = logging.getLogger(__name__)
 
@@ -154,6 +156,7 @@ class VirtualPreswaldService:
         self._lock = Lock()
         self._is_shutting_down = False
         self._script_path = None
+        self._render_buffer = RenderBuffer()
 
         # Create browser-compatible managers
         from preswald.engine.managers.layout import LayoutManager
@@ -191,15 +194,32 @@ class VirtualPreswaldService:
         # Create proxies for JavaScript to call Python
         from pyodide.ffi import create_proxy  # type: ignore
 
-        # Handler for incoming messages from JavaScript
         def handle_message_from_js(client_id, message_type, data):
-            """Handle message from JavaScript"""
-            logger.info(f"Received message from JS: {message_type}")
+            try:
+                import json
 
-            # Create a task to handle the message asynchronously
-            message = {"type": message_type, "data": data}
-            asyncio.create_task(self.handle_client_message(client_id, message))  # noqa: RUF006
-            return True
+                # Convert JsProxy to real Python dict using JSON workaround
+                # Note: Although we're on Pyodide 0.27.2, the environment seems to lack `to_py`
+                # likely due to an incomplete or custom Pyodide build
+
+                json_str = window.JSON.stringify(data)
+                py_data = json.loads(json_str)
+
+                if isinstance(py_data, dict):
+                    message = dict(py_data)
+                    message["type"] = message_type
+                else:
+                    message = {"type": message_type, "data": py_data}
+
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug(f"Handling JS message from {client_id}: {message}")
+
+                asyncio.create_task(self.handle_client_message(client_id, message))   # noqa: RUF006
+                return True
+            except Exception:
+                import traceback
+                logger.error("Error in handle_message_from_js: %s", traceback.format_exc())
+                return False
 
         # Export the function to JavaScript
         handle_message_proxy = create_proxy(handle_message_from_js)
@@ -296,17 +316,28 @@ class VirtualPreswaldService:
             await self._send_error(client_id, "Component update missing states")
             raise ValueError("Component update missing states")
 
-        # Update component states
-        self._update_component_states(states)
+        # Only rerun if any state actually changed
+
+        changed_states = {
+            k: v for k, v in states.items()
+            if self._render_buffer.update_if_changed(k, v)
+        }
+
+        if not changed_states:
+            logger.debug("[STATE] No actual state changes detected. Skipping rerun.")
+            return
+
+        # Update only changed states
+        self._update_component_states(changed_states)
         self._layout_manager.clear_layout()
 
         # Update states and trigger script rerun
         runner = self.script_runners.get(client_id)
         if runner:
-            await runner.rerun(states)
+            await runner.rerun(changed_states)
 
         # Broadcast updates to other clients
-        await self._broadcast_state_updates(states, exclude_client=client_id)
+        await self._broadcast_state_updates(changed_states, exclude_client=client_id)
 
     def _update_component_states(self, states: Dict[str, Any]):
         """Update component states"""
