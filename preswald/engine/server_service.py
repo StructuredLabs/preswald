@@ -46,6 +46,9 @@ class ServerPreswaldService:
         self._component_states: Dict[str, Any] = {}
         self._lock = threading.Lock()
 
+        self.mode = "default"
+        self.notebook_sessions = {}
+
         # TODO: deprecated
         # Connection management
         self._connections: Dict[str, Any] = {}
@@ -67,6 +70,9 @@ class ServerPreswaldService:
         self._script_path: Optional[str] = None
         self._is_shutting_down: bool = False
 
+        # holds notebook cell definitions
+        self.persistent_notebook_state = []
+
     @property
     def script_path(self) -> Optional[str]:
         return self._script_path
@@ -80,10 +86,8 @@ class ServerPreswaldService:
         self._script_path = path
         self._initialize_data_manager(path)
 
-    async def register_client(
-        self, client_id: str, websocket: WebSocket
-    ) -> ScriptRunner:
-        """Register a new client connection and create its script runner"""
+    async def register_client(self, client_id: str, websocket: WebSocket):
+        """Register a new client connection and create its script runner or notebook session."""
         try:
             logger.info(f"[WebSocket] New connection request from client: {client_id}")
             await websocket.accept()
@@ -91,7 +95,26 @@ class ServerPreswaldService:
 
             self.websocket_connections[client_id] = websocket
 
-            # Create script runner for this client
+            # Check if running in notebook mode.
+            if getattr(self, "mode", "default") == "notebook":
+                from preswald.engine.notebook import NotebookSession
+
+                # Ensure notebook_sessions attribute exists.
+                if not hasattr(self, "notebook_sessions"):
+                    self.notebook_sessions = {}
+                notebook_session = NotebookSession(self._script_path, client_id)
+                # Use the persistent state
+                notebook_session.cells = self.persistent_notebook_state
+                self.notebook_sessions[client_id] = notebook_session
+                # Optionally, send initial notebook state.
+                await self._send_message(
+                    client_id,
+                    {"type": "notebook_state", "cells": notebook_session.cells},
+                )
+                await self._send_initial_states(websocket)
+                return notebook_session
+
+            # Default behavior: create a ScriptRunner.
             runner = ScriptRunner(
                 session_id=client_id,
                 send_message_callback=self._create_send_callback(websocket),
@@ -99,13 +122,12 @@ class ServerPreswaldService:
             )
             self.script_runners[client_id] = runner
 
-            # Send initial states
+            # Send initial states.
             await self._send_initial_states(websocket)
 
-            # Start script if path is set
+            # Start script if the script path is set.
             if self._script_path:
                 await runner.start(self._script_path)
-
             return runner
 
         except WebSocketDisconnect:
@@ -147,9 +169,26 @@ class ServerPreswaldService:
 
             if msg_type == "component_update":
                 await self._handle_component_update(client_id, message)
+            elif msg_type == "run_cell":
+                cell_id = message.get("cell_id")
+                code = message.get("code")
+                if (
+                    hasattr(self, "notebook_sessions")
+                    and client_id in self.notebook_sessions
+                ):
+                    notebook_session = self.notebook_sessions.get(client_id)
+                    result = await notebook_session.run_cell(cell_id, code)
+                    await self._send_message(
+                        client_id, {"type": "cell_result", **result}
+                    )
+                else:
+                    logger.error(f"No NotebookSession found for client {client_id}")
+            elif message.get("type") == "update_notebook":
+                cells = message.get("cells")
+                if cells is not None:
+                    self.persistent_notebook_state = cells
             else:
                 logger.warning(f"Unknown message type: {msg_type}")
-
         except Exception as e:
             logger.error(f"Error handling message from {client_id}: {e}")
             await self._send_error(client_id, str(e))
@@ -157,6 +196,16 @@ class ServerPreswaldService:
             logger.info(
                 f"[WebSocket] Total message handling took {time.time() - start_time:.3f}s"
             )
+
+    async def _send_message(self, client_id: str, message: dict):
+        if client_id in self.websocket_connections:
+            try:
+                await self.websocket_connections[client_id].send_json(message)
+                logger.info(f"Sent message to {client_id}: {message}")
+            except Exception as e:
+                logger.error(f"Error sending message to {client_id}: {e}")
+        else:
+            logger.error(f"Cannot send message, no WebSocket for client {client_id}")
 
     async def shutdown(self):
         """Gracefully shut down the service"""

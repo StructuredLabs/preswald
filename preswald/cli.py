@@ -102,7 +102,8 @@ def init(name):
     default=False,
     help="Disable automatically opening a new browser tab",
 )
-def run(port, log_level, disable_new_tab):
+@click.option("--mode", default="default", help="Switch between app and notebook mode.")
+def run(port, log_level, disable_new_tab, mode):
     """
     Run a Preswald app from the current directory.
 
@@ -154,13 +155,31 @@ def run(port, log_level, disable_new_tab):
     url = f"http://localhost:{port}"
     click.echo(f"Running '{script}' on {url} with log level {log_level}  🎉!")
 
+    if mode == "notebook":
+        click.echo("Starting Notebook mode... 📝")
+        try:
+            click.echo(
+                "Notebook mode started. Connect via the notebook UI to execute cells interactively."
+            )
+            url = url + "/notebook"
+            if not disable_new_tab:
+                import webbrowser
+
+                webbrowser.open(url)
+            start_server(mode=mode, script=script, port=port)
+            # Remove manual NotebookSession creation.
+
+        except Exception as e:
+            click.echo(f"Notebook mode error: {e} ❌")
+        return
+
     try:
         if not disable_new_tab:
             import webbrowser
 
             webbrowser.open(url)
 
-        start_server(script=script, port=port)
+        start_server(mode=mode, script=script, port=port)
 
     except Exception as e:
         click.echo(f"Error: {e}")
@@ -256,7 +275,11 @@ def deploy(script, target, port, log_level, github, api_key):  # noqa: C901
             click.echo("Starting production deployment... 🚀")
             try:
                 for status_update in deploy_app(
-                    script, target, port=port, github_username=github.lower() if github else None, api_key=api_key
+                    script,
+                    target,
+                    port=port,
+                    github_username=github.lower() if github else None,
+                    api_key=api_key,
                 ):
                     status = status_update.get("status", "")
                     message = status_update.get("message", "")
