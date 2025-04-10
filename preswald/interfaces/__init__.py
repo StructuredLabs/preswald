@@ -10,6 +10,7 @@ from .components import (
     checkbox,
     # fastplotlib,
     image,
+    json_viewer,
     matplotlib,
     playground,
     plotly,
