@@ -1,4 +1,8 @@
 /* app.css */
+.json-clipboard-button {
+  @apply absolute top-2 right-2 text-white z-50;
+}
+
 .selectbox-trigger {
   @apply min-w-[8rem];
 }

@@ -73,7 +73,8 @@
               "sdk/text",
               "sdk/text_input",
               "sdk/topbar",
-              "sdk/workflow_dag"
+              "sdk/workflow_dag",
+              "sdk/json_viewer"
             ]
           },
           {
