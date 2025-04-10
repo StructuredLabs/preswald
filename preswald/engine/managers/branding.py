@@ -1,9 +1,11 @@
 import logging
 import os
 import shutil
-from typing import Any, Dict, Optional
 import time
+from typing import Any
+
 import toml
+
 
 logger = logging.getLogger(__name__)
 
@@ -14,16 +16,16 @@ class BrandingManager:
     This includes logo, favicon, and other customizable UI elements.
     """
 
-    def __init__(self, static_dir: str, assets_dir: str):
+    def __init__(self, static_dir: str, branding_dir: str):
         self.static_dir = static_dir
-        self.assets_dir = assets_dir
+        self.branding_dir = branding_dir
 
-    def get_branding_config(self, script_path: Optional[str] = None) -> Dict[str, Any]:
+    def get_branding_config(self, script_path: str | None = None) -> dict[str, Any]:
         """Get branding configuration from config file or defaults"""
         branding = {
             "name": "Preswald",
-            "logo": "/assets/logo.png",
-            "favicon": f"/assets/favicon.ico?timestamp={time.time()}",
+            "logo": "/images/logo.png",
+            "favicon": f"/images/favicon.ico?timestamp={time.time()}",
             "primaryColor": "#000000",
         }
 
@@ -51,7 +53,7 @@ class BrandingManager:
         return branding
 
     def _handle_logo(
-        self, config: Dict[str, Any], script_dir: str, branding: Dict[str, Any]
+        self, config: dict[str, Any], script_dir: str, branding: dict[str, Any]
     ):
         """Handle logo configuration and file copying"""
         if logo := config.get("logo"):
@@ -61,18 +63,12 @@ class BrandingManager:
             else:
                 logo_path = os.path.join(script_dir, logo)
                 logger.info(f"Looking for logo at: {logo_path}")
-                if os.path.exists(logo_path):
-                    logo_ext = os.path.splitext(logo_path)[1]
-                    dest_path = os.path.join(self.assets_dir, f"logo{logo_ext}")
-                    shutil.copy2(logo_path, dest_path)
-                    branding["logo"] = f"/assets/logo{logo_ext}"
-                    logger.info(f"Copied logo to: {dest_path}")
-                else:
+                if not os.path.exists(logo_path):
                     self._copy_default_logo()
                     logger.info("Using default logo")
 
     def _handle_favicon(
-        self, config: Dict[str, Any], script_dir: str, branding: Dict[str, Any]
+        self, config: dict[str, Any], script_dir: str, branding: dict[str, Any]
     ):
         """Handle favicon configuration and file copying"""
         if favicon := config.get("favicon"):
@@ -81,13 +77,7 @@ class BrandingManager:
             else:
                 favicon_path = os.path.join(script_dir, favicon)
                 logger.info(f"Looking for favicon at: {favicon_path}")
-                if os.path.exists(favicon_path):
-                    favicon_ext = os.path.splitext(favicon_path)[1]
-                    dest_path = os.path.join(self.assets_dir, f"favicon{favicon_ext}")
-                    shutil.copy2(favicon_path, dest_path)
-                    branding["favicon"] = f"/assets/favicon{favicon_ext}?timestamp=${time.time()}"
-                    logger.info(f"Copied favicon to: {dest_path}")
-                else:
+                if not os.path.exists(favicon_path):
                     self._copy_default_favicon()
                     logger.info("Using default favicon")
 
@@ -100,10 +90,12 @@ class BrandingManager:
         """Copy default logo to assets directory"""
         default_logo = os.path.join(self.static_dir, "logo.png")
         if os.path.exists(default_logo):
-            shutil.copy2(default_logo, os.path.join(self.assets_dir, "logo.png"))
+            shutil.copy2(default_logo, os.path.join(self.branding_dir, "logo.png"))
 
     def _copy_default_favicon(self):
         """Copy default favicon to assets directory"""
         default_favicon = os.path.join(self.static_dir, "favicon.ico")
         if os.path.exists(default_favicon):
-            shutil.copy2(default_favicon, os.path.join(self.assets_dir, "favicon.ico"))
+            shutil.copy2(
+                default_favicon, os.path.join(self.branding_dir, "favicon.ico")
+            )
