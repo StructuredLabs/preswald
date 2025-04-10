@@ -16,6 +16,7 @@ import ChatWidget from './widgets/ChatWidget';
 import CheckboxWidget from './widgets/CheckboxWidget';
 import DAGVisualizationWidget from './widgets/DAGVisualizationWidget';
 import DataVisualizationWidget from './widgets/DataVisualizationWidget';
+import DownloadButtonWidget from './widgets/DownloadButtonWidget';
 import FastplotlibWidget from './widgets/FastplotlibWidget';
 import ImageWidget from './widgets/ImageWidget';
 import MarkdownRendererWidget from './widgets/MarkdownRendererWidget';
@@ -265,6 +266,21 @@ const MemoizedComponent = memo(
 
       case 'dag':
         return <DAGVisualizationWidget key={componentKey} {...props} data={component.data || {}} />;
+
+
+      case 'download_button':
+        return (
+          <DownloadButtonWidget
+            {...commonProps}
+            label={component.label}
+            content={component.content}
+            file_name={component.file_name}
+            mime_type={component.mime_type}
+            size={component.size || 1.0}
+          />
+        );
+
+      // Add Fastplotlib component
 
       case 'fastplotlib_component':
         const { className, data, config, label, src } = component;
