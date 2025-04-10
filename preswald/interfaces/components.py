@@ -54,6 +54,39 @@ def alert(message: str, level: str = "info", size: float = 1.0, component_id: Op
 
     return ComponentReturn(message, component)
 
+@with_render_tracking('big_number')
+def big_number(
+    value: int | float | str,
+    label: Optional[str] = None,
+    delta: Optional[str] = None,
+    delta_color: Optional[str] = None,
+    icon: Optional[str] = None,
+    description: Optional[str] = None,
+    size: float = 1.0,
+    component_id: Optional[str] = None
+) -> ComponentReturn:
+    """Create a big number metric card component."""
+
+    logger.debug(
+        f"Creating big number component with id {component_id}, value: {value}"
+    )
+
+    component = {
+        "type": "big_number",
+        "id": component_id,
+        "value": value,
+        "label": label,
+        "delta": delta,
+        "delta_color": delta_color,
+        "icon": icon,
+        "description": description,
+        "size": size,
+    }
+
+    logger.debug(f"Created component: {component}")
+    
+    return ComponentReturn(str(value), component)
+
 @with_render_tracking('button')
 def button(
     label: str,
