@@ -413,16 +413,35 @@ class DataManager:
         self.preswald_path = preswald_path
         self.secrets_path = secrets_path
         self.sources: dict[str, DataSource] = {}
+        self.sources_cache: dict[str, dict] = {}  # Cache of source configurations
         self.duckdb_conn = duckdb.connect(":memory:")
 
-    def connect(self):
+    def connect(self):  # noqa: C901
         """Initialize all data sources from config"""
         config = self._load_sources()
+        sources_to_remove = set(self.sources.keys()) - set(config.keys())
+
+        # Remove sources that no longer exist in config
+        for name in sources_to_remove:
+            if name in self.sources:
+                self._drop_source_table(self.sources[name])
+            del self.sources[name]
+            del self.sources_cache[name]
+
+        # Only process sources that are new or have changed
         for name, source_config in config.items():
             if "type" not in source_config:
                 continue
 
+            if not self._has_source_changed(name, source_config):
+                logger.debug(f"Skipping unchanged source: {name}")
+                continue
+
+            if name in self.sources:
+                self._drop_source_table(self.sources[name])
+
             source_type = source_config["type"]
+            logger.info(f"Initializing/updating source: {name} ({source_type})")
 
             try:
                 if source_type == "csv":
@@ -489,6 +508,9 @@ class DataManager:
                     )
                     self.sources[name] = ParquetSource(name, cfg, self.duckdb_conn)
 
+                # Cache the config after successful initialization
+                self.sources_cache[name] = source_config
+
             except Exception as e:
                 logger.error(f"Error initializing {source_type} source '{name}': {e}")
                 continue
@@ -511,6 +533,20 @@ class DataManager:
                 raise ValueError("table_name is required for Postgres sources")
             return source.to_df(table_name)
         return source.to_df()
+
+    def _has_source_changed(self, name: str, config: dict) -> bool:
+        """Check if a source's configuration has changed"""
+        if name not in self.sources_cache:
+            return True
+        return self.sources_cache[name] != config
+
+    def _drop_source_table(self, source: DataSource) -> None:
+        """Drop the DuckDB table for a source if it exists"""
+        if isinstance(
+            source, CSVSource | JSONSource | S3CSVSource | APISource | ParquetSource
+        ):
+            logger.info(f"Dropping table {source._table_name}")
+            self.duckdb_conn.execute(f"DROP TABLE IF EXISTS {source._table_name}")
 
     def _load_sources(self) -> dict[str, Any]:
         """Load data sources from preswald config and secrets files."""
