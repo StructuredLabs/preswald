@@ -8,7 +8,6 @@ import re
 
 # Third-Party
 from inspect import currentframe, getframeinfo
-from typing import Dict, List, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -57,22 +56,25 @@ def alert(message: str, level: str = "info", size: float = 1.0) -> str:
         service.append_component(component)
     else:
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"No changes detected. skipping append for component {component}")
+            logger.debug(
+                f"No changes detected. skipping append for component {component}"
+            )
 
     return message
 
+
 def big_number(
     value: int | float | str,
-    label: Optional[str] = None,
-    delta: Optional[str] = None,
-    delta_color: Optional[str] = None,
-    icon: Optional[str] = None,
-    description: Optional[str] = None,
+    label: str | None = None,
+    delta: str | None = None,
+    delta_color: str | None = None,
+    icon: str | None = None,
+    description: str | None = None,
     size: float = 1.0,
 ) -> str:
     """Create a big number metric card component."""
     service = PreswaldService.get_instance()
-    component_id = generate_id("big_number")
+    component_id = generate_stable_id("big_number")
 
     logger.debug(
         f"Creating big number component with id {component_id}, value: {value}"
@@ -129,12 +131,14 @@ def button(
         service.append_component(component)
     else:
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"No changes detected. skipping append for component {component}")
+            logger.debug(
+                f"No changes detected. skipping append for component {component}"
+            )
 
     return current_value
 
 
-def chat(source: str, table: Optional[str] = None) -> Dict:
+def chat(source: str, table: str | None = None) -> dict:
     """Create a chat component to chat with data source"""
     service = PreswaldService.get_instance()
 
@@ -162,7 +166,7 @@ def chat(source: str, table: Optional[str] = None) -> Dict:
         for record in records:
             processed_record = {}
             for key, value in record.items():
-                if isinstance(value, (pd.Timestamp, pd.NaT.__class__)):
+                if isinstance(value, pd.Timestamp | pd.NaT.__class__):
                     processed_record[key] = (
                         value.isoformat() if not pd.isna(value) else None
                     )
@@ -190,7 +194,9 @@ def chat(source: str, table: Optional[str] = None) -> Dict:
         service.append_component(component)
     else:
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"No changes detected. skipping append for component {component}")
+            logger.debug(
+                f"No changes detected. skipping append for component {component}"
+            )
     return component
 
 
@@ -221,7 +227,9 @@ def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
         service.append_component(component)
     else:
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"No changes detected. skipping append for component {component}")
+            logger.debug(
+                f"No changes detected. skipping append for component {component}"
+            )
 
     return current_value
 
@@ -306,7 +314,13 @@ def image(src, alt="Image", size=1.0):
     service = PreswaldService.get_instance()
     component_id = generate_stable_id("image")
     logger.debug(f"Creating image component with id {component_id}, src: {src}")
-    component = {"type": "image", "id": component_id, "src": src, "alt": alt, "size": size}
+    component = {
+        "type": "image",
+        "id": component_id,
+        "src": src,
+        "alt": alt,
+        "size": size,
+    }
 
     if service.should_render(component_id, component):
         if logger.isEnabledFor(logging.DEBUG):
@@ -314,12 +328,14 @@ def image(src, alt="Image", size=1.0):
         service.append_component(component)
     else:
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"No changes detected. skipping append for component {component}")
+            logger.debug(
+                f"No changes detected. skipping append for component {component}"
+            )
 
     return component
 
 
-def matplotlib(fig: Optional[plt.Figure] = None, label: str = "plot") -> str:
+def matplotlib(fig: plt.Figure | None = None, label: str = "plot") -> str:
     """Render a Matplotlib figure as a component."""
     service = PreswaldService.get_instance()
 
@@ -349,7 +365,9 @@ def matplotlib(fig: Optional[plt.Figure] = None, label: str = "plot") -> str:
         service.append_component(component)
     else:
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"No changes detected. skipping append for component {component}")
+            logger.debug(
+                f"No changes detected. skipping append for component {component}"
+            )
 
     return component_id  # Returning ID for potential tracking
 
@@ -424,7 +442,7 @@ def playground(
                 processed_row = {
                     str(key): (
                         value.item()
-                        if isinstance(value, (np.integer, np.floating))
+                        if isinstance(value, np.integer | np.floating)
                         else value
                     )
                     if value is not None
@@ -453,13 +471,15 @@ def playground(
         service.append_component(component)
     else:
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"No changes detected. skipping append for component {component}")
+            logger.debug(
+                f"No changes detected. skipping append for component {component}"
+            )
 
     # Return the raw DataFrame
     return data
 
 
-def plotly(fig, size: float = 1.0) -> Dict:  # noqa: C901
+def plotly(fig, size: float = 1.0) -> dict:  # noqa: C901
     """
     Render a Plotly figure.
 
@@ -484,13 +504,13 @@ def plotly(fig, size: float = 1.0) -> Dict:  # noqa: C901
             for attr in ["x", "y", "z", "lat", "lon"]:
                 if hasattr(trace, attr):
                     values = getattr(trace, attr)
-                    if isinstance(values, (list, np.ndarray)):
+                    if isinstance(values, list | np.ndarray):
                         if np.issubdtype(np.array(values).dtype, np.floating):
                             setattr(trace, attr, np.round(values, decimals=4))
 
             # Optimize marker sizes
             if hasattr(trace, "marker") and hasattr(trace.marker, "size"):
-                if isinstance(trace.marker.size, (list, np.ndarray)):
+                if isinstance(trace.marker.size, list | np.ndarray):
                     # Scale marker sizes to a reasonable range
                     sizes = np.array(trace.marker.size)
                     if len(sizes) > 0:
@@ -542,16 +562,16 @@ def plotly(fig, size: float = 1.0) -> Dict:  # noqa: C901
 
             # Clean up other potential NaN values
             for key, value in trace.items():
-                if isinstance(value, (list, np.ndarray)):
+                if isinstance(value, list | np.ndarray):
                     trace[key] = [
                         (
                             None
-                            if isinstance(x, (float, np.floating)) and np.isnan(x)
+                            if isinstance(x, float | np.floating) and np.isnan(x)
                             else x
                         )
                         for x in value
                     ]
-                elif isinstance(value, (float, np.floating)) and np.isnan(value):
+                elif isinstance(value, float | np.floating) and np.isnan(value):
                     trace[key] = None
         logger.debug(f"[PLOTLY] NaN cleanup took {time.time() - clean_start:.3f}s")
 
@@ -596,7 +616,9 @@ def plotly(fig, size: float = 1.0) -> Dict:  # noqa: C901
             service.append_component(component)
         else:
             if logger.isEnabledFor(logging.DEBUG):
-                logger.debug(f"No changes detected. skipping append for component {component}")
+                logger.debug(
+                    f"No changes detected. skipping append for component {component}"
+                )
         return component
 
     except Exception as e:
@@ -630,13 +652,15 @@ def progress(label: str, value: float = 0.0, size: float = 1.0) -> float:
         service.append_component(component)
     else:
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"No changes detected. skipping append for component {component}")
+            logger.debug(
+                f"No changes detected. skipping append for component {component}"
+            )
 
     return value
 
 
 def selectbox(
-    label: str, options: List[str], default: Optional[str] = None, size: float = 1.0
+    label: str, options: list[str], default: str | None = None, size: float = 1.0
 ) -> str:
     """Create a select component with consistent ID based on label."""
     service = PreswaldService.get_instance()
@@ -663,12 +687,14 @@ def selectbox(
         service.append_component(component)
     else:
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"No changes detected. skipping append for component {component}")
+            logger.debug(
+                f"No changes detected. skipping append for component {component}"
+            )
 
     return current_value
 
 
-def separator() -> Dict:
+def separator() -> dict:
     """Create a separator component that forces a new row."""
     service = PreswaldService.get_instance()
     component_id = generate_stable_id("separator")
@@ -680,7 +706,9 @@ def separator() -> Dict:
         service.append_component(component)
     else:
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"No changes detected. skipping append for component {component}")
+            logger.debug(
+                f"No changes detected. skipping append for component {component}"
+            )
 
     return component
 
@@ -690,7 +718,7 @@ def slider(
     min_val: float = 0.0,
     max_val: float = 100.0,
     step: float = 1.0,
-    default: Optional[float] = None,
+    default: float | None = None,
     size: float = 1.0,
 ) -> float:
     """Create a slider component with consistent ID based on label"""
@@ -721,7 +749,9 @@ def slider(
         service.append_component(component)
     else:
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"No changes detected. skipping append for component {component}")
+            logger.debug(
+                f"No changes detected. skipping append for component {component}"
+            )
 
     return current_value
 
@@ -758,7 +788,9 @@ def spinner(
         service.append_component(component)
     else:
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"No changes detected. skipping append for component {component}")
+            logger.debug(
+                f"No changes detected. skipping append for component {component}"
+            )
 
     return None
 
@@ -775,13 +807,15 @@ def sidebar(defaultopen: bool = False):
         service.append_component(component)
     else:
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"No changes detected. skipping append for component {component}")
+            logger.debug(
+                f"No changes detected. skipping append for component {component}"
+            )
     return component
 
 
 def table(
-    data: pd.DataFrame, title: Optional[str] = None, limit: Optional[int] = None
-) -> Dict:
+    data: pd.DataFrame, title: str | None = None, limit: int | None = None
+) -> dict:
     """Create a table component that renders data using TableViewerWidget.
 
     Args:
@@ -823,7 +857,7 @@ def table(
             processed_row = {
                 str(key): (
                     value.item()
-                    if isinstance(value, (np.integer, np.floating))
+                    if isinstance(value, np.integer | np.floating)
                     else value
                 )
                 if value is not None
@@ -855,7 +889,9 @@ def table(
             service.append_component(component)
         else:
             if logger.isEnabledFor(logging.DEBUG):
-                logger.debug(f"No changes detected. skipping append for component {component}")
+                logger.debug(
+                    f"No changes detected. skipping append for component {component}"
+                )
 
         return component
 
@@ -872,6 +908,7 @@ def table(
         }
         service.append_component(error_component)
         return error_component
+
 
 def text(markdown_str: str, size: float = 1.0) -> str:
     """Create a text/markdown component."""
@@ -891,7 +928,9 @@ def text(markdown_str: str, size: float = 1.0) -> str:
         service.append_component(component)
     else:
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"No changes detected. skipping append for component {component}")
+            logger.debug(
+                f"No changes detected. skipping append for component {component}"
+            )
     return markdown_str
 
 
@@ -935,12 +974,14 @@ def text_input(
         service.append_component(component)
     else:
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"No changes detected. skipping append for component {component}")
+            logger.debug(
+                f"No changes detected. skipping append for component {component}"
+            )
 
     return current_value
 
 
-def topbar() -> Dict:
+def topbar() -> dict:
     """Creates a topbar component."""
     service = PreswaldService.get_instance()
     component_id = generate_stable_id("topbar")
@@ -953,12 +994,14 @@ def topbar() -> Dict:
         service.append_component(component)
     else:
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"No changes detected. skipping append for component {component}")
+            logger.debug(
+                f"No changes detected. skipping append for component {component}"
+            )
 
     return component
 
 
-def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -> Dict:
+def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -> dict:
     """
     Render the workflow's DAG visualization.
 
@@ -1012,7 +1055,9 @@ def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -
             service.append_component(component)
         else:
             if logger.isEnabledFor(logging.DEBUG):
-                logger.debug(f"No changes detected. skipping append for component {component}")
+                logger.debug(
+                    f"No changes detected. skipping append for component {component}"
+                )
 
         return component
 
@@ -1036,9 +1081,9 @@ def convert_to_serializable(obj):
     """Convert numpy arrays and other non-serializable objects to Python native types."""
     if isinstance(obj, np.ndarray):
         return obj.tolist()
-    elif isinstance(obj, (np.int8, np.int16, np.int32, np.int64, np.integer)):
+    elif isinstance(obj, np.int8 | np.int16 | np.int32 | np.int64 | np.integer):
         return int(obj)
-    elif isinstance(obj, (np.float16, np.float32, np.float64, np.floating)):
+    elif isinstance(obj, np.float16 | np.float32 | np.float64 | np.floating):
         if np.isnan(obj):
             return None
         return float(obj)
@@ -1046,7 +1091,7 @@ def convert_to_serializable(obj):
         return bool(obj)
     elif isinstance(obj, dict):
         return {k: convert_to_serializable(v) for k, v in obj.items()}
-    elif isinstance(obj, (list, tuple)):
+    elif isinstance(obj, list | tuple):
         return [convert_to_serializable(item) for item in obj]
     elif isinstance(obj, np.generic):
         if np.isnan(obj):
@@ -1054,7 +1099,8 @@ def convert_to_serializable(obj):
         return obj.item()
     return obj
 
-def generate_stable_id(prefix: str = "component", identifier: Optional[str] = None) -> str:
+
+def generate_stable_id(prefix: str = "component", identifier: str | None = None) -> str:
     """
     Generate a stable and deterministic component ID based on either a user-provided identifier
     or the source code callsite.
@@ -1078,6 +1124,7 @@ def generate_stable_id(prefix: str = "component", identifier: Optional[str] = No
         - This makes it easy to write deterministic scripts without manually assigning IDs,
           while still supporting manual overrides.
     """
+
     def get_callsite_id():
         frame = currentframe()
         for _ in range(3):  # skip generate_stable_id, text(), etc.
@@ -1092,6 +1139,7 @@ def generate_stable_id(prefix: str = "component", identifier: Optional[str] = No
         identifier = get_callsite_id()
         hashed = hashlib.md5(identifier.encode()).hexdigest()[:8]
     return f"{prefix}-{hashed}"
+
 
 # async def render_and_send_fastplotlib(
 #     fig: "fplt.Figure",
