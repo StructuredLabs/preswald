@@ -511,8 +511,7 @@ def export(format, output, port):
     """
     Export a Preswald app to PDF (e.g., for reports or sharing).
     """
-    from preswald.utils import read_port_from_config
-    from preswald.utils.exporter import export_app_to_pdf
+    from preswald.utils import export_app_to_pdf, read_port_from_config
 
     try:
         # Read port from config if not provided
