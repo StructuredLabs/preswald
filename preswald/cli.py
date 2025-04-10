@@ -101,7 +101,8 @@ def init(name):
     default=False,
     help="Disable automatically opening a new browser tab",
 )
-def run(port, log_level, disable_new_tab):
+@click.option("--mode", default="default", help="Switch between app and notebook mode.")
+def run(port, log_level, disable_new_tab, mode):
     """
     Run a Preswald app from the current directory.
 
@@ -153,13 +154,31 @@ def run(port, log_level, disable_new_tab):
     url = f"http://localhost:{port}"
     click.echo(f"Running '{script}' on {url} with log level {log_level}  🎉!")
 
+    if mode == "notebook":
+        click.echo("Starting Notebook mode... 📝")
+        try:
+            click.echo(
+                "Notebook mode started. Connect via the notebook UI to execute cells interactively."
+            )
+            url = url + "/notebook"
+            if not disable_new_tab:
+                import webbrowser
+
+                webbrowser.open(url)
+            start_server(mode=mode, script=script, port=port)
+            # Remove manual NotebookSession creation.
+
+        except Exception as e:
+            click.echo(f"Notebook mode error: {e} ❌")
+        return
+
     try:
         if not disable_new_tab:
             import webbrowser
 
             webbrowser.open(url)
 
-        start_server(script=script, port=port)
+        start_server(mode=mode, script=script, port=port)
 
     except Exception as e:
         click.echo(f"Error: {e}")

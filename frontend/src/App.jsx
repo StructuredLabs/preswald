@@ -5,6 +5,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import Layout from './components/Layout';
 import LoadingState from './components/LoadingState';
 import Dashboard from './components/pages/Dashboard';
+import NotebookView from './components/pages/NotebookView';
 import { comm } from './utils/websocket';
 
 const App = () => {
@@ -153,15 +154,25 @@ const App = () => {
   return (
     <Router>
       <Layout>
-        {!isConnected || areComponentsLoading ? (
-          <LoadingState isConnected={isConnected} />
-        ) : (
-          <Dashboard
-            components={components}
-            error={error}
-            handleComponentUpdate={handleComponentUpdate}
+        <Routes>
+          <Route path="/notebook" element={<NotebookView />} />
+          <Route
+            path="/"
+            element={
+              !isConnected ? (
+                <LoadingState />
+              ) : (
+                <Dashboard
+                  components={components}
+                  error={error}
+                  handleComponentUpdate={(id, value) => {
+                    comm.updateComponentState(id, value);
+                  }}
+                />
+              )
+            }
           />
-        )}
+        </Routes>
       </Layout>
     </Router>
   );
