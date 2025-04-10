@@ -28,7 +28,7 @@ class ServerPreswaldService(BasePreswaldService):
 
         # TODO: deprecated
         # Connection management
-        self._connections: Dict[str, Any] = {}
+        self._connections: dict[str, Any] = {}
 
         # Branding management
         self.branding_manager = None  # set during server creation

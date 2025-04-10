@@ -50,6 +50,7 @@ def load_json_source(config: dict[str, Any]) -> pd.DataFrame:
         ) from e
 
 
+# Database Configs ############################################################
 @dataclass
 class ClickhouseConfig:
     """Configuration for Clickhouse connection"""
@@ -72,6 +73,7 @@ class PostgresConfig:
     password: str
 
 
+# File Configs ################################################################
 @dataclass
 class CSVConfig:
     path: str
@@ -85,6 +87,13 @@ class JSONConfig:
 
 
 @dataclass
+class ParquetConfig:
+    path: str
+    columns: list[str] | None
+
+
+# API Configs #################################################################
+@dataclass
 class APIConfig:
     """Configuration for API connection"""
 
@@ -96,6 +105,7 @@ class APIConfig:
     pagination: dict[str, Any] | None = None
 
 
+# S3 Configs ##################################################################
 @dataclass
 class S3CSVConfig:
     s3_endpoint: str
@@ -105,12 +115,6 @@ class S3CSVConfig:
     path: str
     s3_use_ssl: bool = False
     s3_url_style: str = "path"
-
-
-@dataclass
-class ParquetConfig:
-    path: str
-    columns: list[str] | None
 
 
 class DataSource:
@@ -418,6 +422,21 @@ class DataManager:
 
     def connect(self):  # noqa: C901
         """Initialize all data sources from config"""
+        # Useful debugging query - Log final DuckDB state
+        # tables_df = self.duckdb_conn.execute("""
+        #     SELECT
+        #         table_name,
+        #         column_count,
+        #         estimated_size as size_b
+        #     FROM duckdb_tables()
+        # """).df()
+
+        # logger.info(f"Current DuckDB state - {len(tables_df)} tables:")
+        # for _, row in tables_df.iterrows():
+        #     logger.info(
+        #         f"Table: {row['table_name']}, Columns: {row['column_count']}, Estimated Size: {row['size_b']:.2f}B"
+        #     )
+
         config = self._load_sources()
         sources_to_remove = set(self.sources.keys()) - set(config.keys())
 

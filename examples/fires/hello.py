@@ -1,14 +1,11 @@
 import pandas as pd
 import plotly.express as px
 
-from preswald import connect, get_df, plotly, text
+from preswald import get_df, plotly, text
 
 
 # Display the dashboard title
 text("# Fire Incident Analytics Dashboard 🔥")
-
-# Connect to the data
-connect()
 
 # Load and preprocess the data
 data = get_df("csv")
