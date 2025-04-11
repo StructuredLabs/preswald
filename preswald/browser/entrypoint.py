@@ -6,7 +6,7 @@ Python functionality to JavaScript.
 
 import logging
 import sys
-from typing import Any, Optional
+from typing import Any
 
 
 # Configure logging for browser environment
@@ -29,7 +29,7 @@ _script_runner = None
 _client_id = "browser-client"
 
 
-async def initialize_preswald(script_path: Optional[str] = None):
+async def initialize_preswald(script_path: str | None = None):
     """Initialize the Preswald service in the browser"""
     global _service, _script_runner, _client_id
 

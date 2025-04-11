@@ -10,6 +10,7 @@ import { comm } from '@/utils/websocket';
 import { createExtractKeyProps } from '../utils/extractKeyProps';
 // Widgets
 import AlertWidget from './widgets/AlertWidget';
+import BigNumberWidget from './widgets/BigNumberWidget';
 import ButtonWidget from './widgets/ButtonWidget';
 import ChatWidget from './widgets/ChatWidget';
 import CheckboxWidget from './widgets/CheckboxWidget';
@@ -88,6 +89,22 @@ const MemoizedComponent = memo(
           >
             {component.label}
           </ButtonWidget>
+        );
+
+      case 'big_number':
+        return (
+          <BigNumberWidget
+            key={componentKey}
+            {...props}
+            value={component.value}
+            label={component.label}
+            delta={component.delta}
+            delta_color={component.delta_color}
+            icon={component.icon}
+            description={component.description}
+            size={component.size}
+            className={component.className}
+          />
         );
 
       case 'matplotlib':

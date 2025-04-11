@@ -1,9 +1,11 @@
 import logging
 import os
 import shutil
-from typing import Any, Dict, Optional
 import time
+from typing import Any
+
 import toml
+
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +20,7 @@ class BrandingManager:
         self.static_dir = static_dir
         self.assets_dir = assets_dir
 
-    def get_branding_config(self, script_path: Optional[str] = None) -> Dict[str, Any]:
+    def get_branding_config(self, script_path: str | None = None) -> dict[str, Any]:
         """Get branding configuration from config file or defaults"""
         branding = {
             "name": "Preswald",
@@ -51,7 +53,7 @@ class BrandingManager:
         return branding
 
     def _handle_logo(
-        self, config: Dict[str, Any], script_dir: str, branding: Dict[str, Any]
+        self, config: dict[str, Any], script_dir: str, branding: dict[str, Any]
     ):
         """Handle logo configuration and file copying"""
         if logo := config.get("logo"):
@@ -72,7 +74,7 @@ class BrandingManager:
                     logger.info("Using default logo")
 
     def _handle_favicon(
-        self, config: Dict[str, Any], script_dir: str, branding: Dict[str, Any]
+        self, config: dict[str, Any], script_dir: str, branding: dict[str, Any]
     ):
         """Handle favicon configuration and file copying"""
         if favicon := config.get("favicon"):
@@ -85,7 +87,9 @@ class BrandingManager:
                     favicon_ext = os.path.splitext(favicon_path)[1]
                     dest_path = os.path.join(self.assets_dir, f"favicon{favicon_ext}")
                     shutil.copy2(favicon_path, dest_path)
-                    branding["favicon"] = f"/assets/favicon{favicon_ext}?timestamp=${time.time()}"
+                    branding["favicon"] = (
+                        f"/assets/favicon{favicon_ext}?timestamp=${time.time()}"
+                    )
                     logger.info(f"Copied favicon to: {dest_path}")
                 else:
                     self._copy_default_favicon()

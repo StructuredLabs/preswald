@@ -3,14 +3,15 @@ import logging
 import os
 import threading
 import time
-from typing import Any, Callable, Dict, Optional
+from collections.abc import Callable
+from typing import Any
 
 from fastapi import WebSocket, WebSocketDisconnect
 
 from .managers.data import DataManager
 from .managers.layout import LayoutManager
 from .runner import ScriptRunner
-from .utils import clean_nan_values, compress_data, optimize_plotly_data
+from .utils import RenderBuffer, clean_nan_values, compress_data, optimize_plotly_data
 
 
 logger = logging.getLogger(__name__)
@@ -43,12 +44,12 @@ class ServerPreswaldService:
 
     def __init__(self):
         # Component state management
-        self._component_states: Dict[str, Any] = {}
+        self._component_states: dict[str, Any] = {}
         self._lock = threading.Lock()
 
         # TODO: deprecated
         # Connection management
-        self._connections: Dict[str, Any] = {}
+        self._connections: dict[str, Any] = {}
 
         # Data management
         self.data_manager: DataManager = None  # set during server creation
@@ -60,15 +61,16 @@ class ServerPreswaldService:
         self.branding_manager = None  # set during server creation
 
         # Initialize session tracking
-        self.websocket_connections: Dict[str, WebSocket] = {}
-        self.script_runners: Dict[str, ScriptRunner] = {}
+        self.websocket_connections: dict[str, WebSocket] = {}
+        self.script_runners: dict[str, ScriptRunner] = {}
 
         # Initialize service state
-        self._script_path: Optional[str] = None
+        self._script_path: str | None = None
         self._is_shutting_down: bool = False
+        self._render_buffer = RenderBuffer()
 
     @property
-    def script_path(self) -> Optional[str]:
+    def script_path(self) -> str | None:
         return self._script_path
 
     @script_path.setter
@@ -139,7 +141,7 @@ class ServerPreswaldService:
         except Exception as e:
             logger.error(f"Error unregistering client {client_id}: {e}")
 
-    async def handle_client_message(self, client_id: str, message: Dict[str, Any]):
+    async def handle_client_message(self, client_id: str, message: dict[str, Any]):
         """Process incoming messages from clients"""
         start_time = time.time()
         try:
@@ -221,7 +223,7 @@ class ServerPreswaldService:
             logger.debug(f"[STATE] Getting state for {component_id}: {value}")
             return value
 
-    def _update_component_states(self, states: Dict[str, Any]):
+    def _update_component_states(self, states: dict[str, Any]):
         """Update the state of a component and trigger callbacks"""
         with self._lock:
             logger.debug("[STATE] Updating states")
@@ -243,7 +245,7 @@ class ServerPreswaldService:
     def _create_send_callback(self, websocket: WebSocket) -> Callable:
         """Create a message sending callback for a specific websocket"""
 
-        async def send_message(msg: Dict[str, Any]):
+        async def send_message(msg: dict[str, Any]):
             if not self._is_shutting_down:
                 try:
                     await websocket.send_json(msg)
@@ -263,7 +265,7 @@ class ServerPreswaldService:
         except Exception as e:
             logger.error(f"Error sending initial states: {e}")
 
-    async def _handle_component_update(self, client_id: str, message: Dict[str, Any]):
+    async def _handle_component_update(self, client_id: str, message: dict[str, Any]):
         """Handle component state update messages"""
         states = message.get("states", {})
         if not states:
@@ -272,12 +274,13 @@ class ServerPreswaldService:
 
         # Only rerun if any state actually changed
         changed_states = {
-            k: v for k, v in states.items()
-            if clean_nan_values(self.get_component_state(k)) != clean_nan_values(v)
+            k: v
+            for k, v in states.items()
+            if self._render_buffer.update_if_changed(k, v)
         }
 
         if not changed_states:
-            logger.debug(f"[STATE] No actual state changes detected. Skipping rerun.")
+            logger.debug("[STATE] No actual state changes detected. Skipping rerun.")
             return
 
         # Update only changed states
@@ -293,7 +296,7 @@ class ServerPreswaldService:
         await self._broadcast_state_updates(changed_states, exclude_client=client_id)
 
     async def _broadcast_state_updates(
-        self, states: Dict[str, Any], exclude_client: Optional[str] = None
+        self, states: dict[str, Any], exclude_client: str | None = None
     ):
         """Broadcast state updates to all clients except the sender"""
 

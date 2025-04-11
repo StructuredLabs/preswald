@@ -1,10 +1,9 @@
+import json
 import logging
 import os
 import uuid
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
-import pandas as pd
-import json
+from typing import Any
 
 import duckdb
 import pandas as pd
@@ -15,14 +14,15 @@ from requests.auth import HTTPBasicAuth
 
 logger = logging.getLogger(__name__)
 
-def load_json_source(config: Dict[str, Any]) -> pd.DataFrame:
+
+def load_json_source(config: dict[str, Any]) -> pd.DataFrame:
     path = config["path"]
     record_path = config.get("record_path")
     flatten = config.get("flatten", True)
 
     # Open and load the JSON file
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             data = json.load(f)
     except json.JSONDecodeError as e:
         raise ValueError(f"Malformed JSON in file '{path}': {e}")
@@ -34,7 +34,9 @@ def load_json_source(config: Dict[str, Any]) -> pd.DataFrame:
         try:
             data = data[record_path]
         except (KeyError, TypeError) as e:
-            raise ValueError(f"Invalid record_path '{record_path}' for JSON file '{path}': {e}")
+            raise ValueError(
+                f"Invalid record_path '{record_path}' for JSON file '{path}': {e}"
+            )
 
     # Normalize or convert data if "flatten"
     try:
@@ -43,7 +45,10 @@ def load_json_source(config: Dict[str, Any]) -> pd.DataFrame:
         else:
             return pd.DataFrame(data)
     except Exception as e:
-        raise ValueError(f"Error converting JSON data from file '{path}' to DataFrame: {e}")
+        raise ValueError(
+            f"Error converting JSON data from file '{path}' to DataFrame: {e}"
+        )
+
 
 @dataclass
 class ClickhouseConfig:
@@ -75,7 +80,7 @@ class CSVConfig:
 @dataclass
 class JSONConfig:
     path: str
-    record_path: Optional[str] = None
+    record_path: str | None = None
     flatten: bool = True
 
 
@@ -85,10 +90,10 @@ class APIConfig:
 
     url: str  #  URL of the API
     method: str = "GET"  # HTTP method (GET, POST, etc.)
-    headers: Optional[Dict[str, str]] = None
-    params: Optional[Dict[str, Any]] = None  # Query parameters
-    auth: Optional[Dict[str, str]] = None  # Authentication (API key, Bearer token)
-    pagination: Optional[Dict[str, Any]] = None
+    headers: dict[str, str] | None = None
+    params: dict[str, Any] | None = None  # Query parameters
+    auth: dict[str, str] | None = None  # Authentication (API key, Bearer token)
+    pagination: dict[str, Any] | None = None
 
 
 @dataclass
@@ -105,7 +110,7 @@ class S3CSVConfig:
 @dataclass
 class ParquetConfig:
     path: str
-    columns: Optional[list[str]]
+    columns: list[str] | None
 
 
 class DataSource:
@@ -184,8 +189,11 @@ class CSVSource(DataSource):
         """Get entire CSV as a DataFrame"""
         return self._duckdb.execute(f"SELECT * FROM {self._table_name}").df()
 
+
 class JSONSource(DataSource):
-    def __init__(self, name: str, config: JSONConfig, duckdb_conn: duckdb.DuckDBPyConnection):
+    def __init__(
+        self, name: str, config: JSONConfig, duckdb_conn: duckdb.DuckDBPyConnection
+    ):
         super().__init__(name, duckdb_conn)
         df = load_json_source(config.__dict__)
         self._table_name = f"json_{name}_{uuid.uuid4().hex[:8]}"
@@ -196,6 +204,7 @@ class JSONSource(DataSource):
 
     def to_df(self) -> pd.DataFrame:
         return self._duckdb.execute(f"SELECT * FROM {self._table_name}").df()
+
 
 class PostgresSource(DataSource):
     def __init__(
@@ -400,10 +409,10 @@ class ParquetSource(DataSource):
 
 
 class DataManager:
-    def __init__(self, preswald_path: str, secrets_path: Optional[str] = None):
+    def __init__(self, preswald_path: str, secrets_path: str | None = None):
         self.preswald_path = preswald_path
         self.secrets_path = secrets_path
-        self.sources: Dict[str, DataSource] = {}
+        self.sources: dict[str, DataSource] = {}
         self.duckdb_conn = duckdb.connect(":memory:")
 
     def connect(self):
@@ -491,9 +500,7 @@ class DataManager:
             raise ValueError(f"Unknown source: {source_name}")
         return self.sources[source_name].query(sql)
 
-    def get_df(
-        self, source_name: str, table_name: Optional[str] = None
-    ) -> pd.DataFrame:
+    def get_df(self, source_name: str, table_name: str | None = None) -> pd.DataFrame:
         """Get entire source as DataFrame"""
         if source_name not in self.sources:
             raise ValueError(f"Unknown source: {source_name}")
@@ -505,7 +512,7 @@ class DataManager:
             return source.to_df(table_name)
         return source.to_df()
 
-    def _load_sources(self) -> Dict[str, Any]:
+    def _load_sources(self) -> dict[str, Any]:
         """Load data sources from preswald config and secrets files."""
         try:
             if not os.path.exists(self.preswald_path):

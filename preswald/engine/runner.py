@@ -1,14 +1,16 @@
-import os
 import asyncio
 import logging
+import os
 import sys
 import threading
 import time
 import traceback
+from collections.abc import Callable
 from contextlib import contextmanager
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +29,7 @@ class ScriptRunner:
         self,
         session_id: str,
         send_message_callback: Callable,
-        initial_states: Dict = None,
+        initial_states: dict = None,
     ):
         """Initialize the ScriptRunner with enhanced state management.
 
@@ -38,7 +40,7 @@ class ScriptRunner:
         """
         self.session_id = session_id
         self._send_message_callback = send_message_callback
-        self.script_path: Optional[str] = None
+        self.script_path: str | None = None
         self.widget_states = initial_states or {}
         self._state = ScriptState.INITIAL
         self._last_run_time = 0
@@ -85,7 +87,7 @@ class ScriptRunner:
         try:
             await self.run_script()
         except Exception as e:
-            await self._send_error(f"Failed to start script: {str(e)}")
+            await self._send_error(f"Failed to start script: {e!s}")
             self._state = ScriptState.ERROR
 
     async def stop(self):
@@ -99,7 +101,7 @@ class ScriptRunner:
             logger.error(f"[ScriptRunner] Error stopping script: {e}")
             raise
 
-    async def rerun(self, new_widget_states: Dict[str, Any] = None):
+    async def rerun(self, new_widget_states: dict[str, Any] = None):
         """Rerun the script with new widget values and debouncing.
 
         Args:
@@ -133,7 +135,7 @@ class ScriptRunner:
             await self.run_script()
 
         except Exception as e:
-            error_msg = f"Error updating widget states: {str(e)}"
+            error_msg = f"Error updating widget states: {e!s}"
             logger.error(f"[ScriptRunner] {error_msg}")
             await self._send_error(error_msg)
             self._state = ScriptState.ERROR
@@ -210,12 +212,15 @@ class ScriptRunner:
             logger.warning("[ScriptRunner] Not running or no script path set")
             return
 
-        logger.info(f"[ScriptRunner] Running script: {self.script_path} (run #{self._run_count})")
+        logger.info(
+            f"[ScriptRunner] Running script: {self.script_path} (run #{self._run_count})"
+        )
 
         try:
             from .service import PreswaldService
+
             service = PreswaldService.get_instance()
-            
+
             # Clear previous components before execution
             service.clear_components()
 
@@ -227,7 +232,7 @@ class ScriptRunner:
             # Capture script output
             with self._redirect_stdout():
                 # Execute script
-                with open(self.script_path, "r", encoding='utf-8') as f:
+                with open(self.script_path, encoding="utf-8") as f:
                     # Save current cwd
                     current_working_dir = os.getcwd()
                     # Execute script with script directory set as cwd
@@ -252,7 +257,7 @@ class ScriptRunner:
                     logger.debug("[ScriptRunner] Sent components to frontend")
 
         except Exception as e:
-            error_msg = f"Error executing script: {str(e)}"
+            error_msg = f"Error executing script: {e!s}"
             logger.error(f"[ScriptRunner] {error_msg}", exc_info=True)
             await self._send_error(error_msg)
             self._state = ScriptState.ERROR

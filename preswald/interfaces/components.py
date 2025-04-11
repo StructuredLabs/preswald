@@ -6,7 +6,6 @@ import json
 import logging
 import re
 import uuid
-from typing import Dict, List, Optional
 
 # Third-Party
 import matplotlib.pyplot as plt
@@ -53,6 +52,40 @@ def alert(message: str, level: str = "info", size: float = 1.0) -> str:
     return message
 
 
+def big_number(
+    value: int | float | str,
+    label: str | None = None,
+    delta: str | None = None,
+    delta_color: str | None = None,
+    icon: str | None = None,
+    description: str | None = None,
+    size: float = 1.0,
+) -> str:
+    """Create a big number metric card component."""
+    service = PreswaldService.get_instance()
+    component_id = generate_id("big_number")
+
+    logger.debug(
+        f"Creating big number component with id {component_id}, value: {value}"
+    )
+
+    component = {
+        "type": "big_number",
+        "id": component_id,
+        "value": value,
+        "label": label,
+        "delta": delta,
+        "delta_color": delta_color,
+        "icon": icon,
+        "description": description,
+        "size": size,
+    }
+
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+    return str(value)
+
+
 def button(
     label: str,
     variant: str = "default",
@@ -85,7 +118,7 @@ def button(
     return current_value
 
 
-def chat(source: str, table: Optional[str] = None) -> Dict:
+def chat(source: str, table: str | None = None) -> dict:
     """Create a chat component to chat with data source"""
     service = PreswaldService.get_instance()
 
@@ -113,7 +146,7 @@ def chat(source: str, table: Optional[str] = None) -> Dict:
         for record in records:
             processed_record = {}
             for key, value in record.items():
-                if isinstance(value, (pd.Timestamp, pd.NaT.__class__)):
+                if isinstance(value, pd.Timestamp, pd.NaT.__class__):
                     processed_record[key] = (
                         value.isoformat() if not pd.isna(value) else None
                     )
@@ -252,8 +285,8 @@ def image(src, alt="Image", size=1.0):
 
 
 def json_viewer(
-    data, title: Optional[str] = None, expanded: bool = True, size: float = 1.0
-) -> Dict:
+    data, title: str | None = None, expanded: bool = True, size: float = 1.0
+) -> dict:
     """Create a JSON viewer component with collapsible tree view."""
     service = PreswaldService.get_instance()
 
@@ -283,7 +316,7 @@ def json_viewer(
     return component
 
 
-def matplotlib(fig: Optional[plt.Figure] = None, label: str = "plot") -> str:
+def matplotlib(fig: plt.Figure | None = None, label: str = "plot") -> str:
     """Render a Matplotlib figure as a component."""
     service = PreswaldService.get_instance()
 
@@ -412,7 +445,7 @@ def playground(
     return data
 
 
-def plotly(fig, size: float = 1.0) -> Dict:  # noqa: C901
+def plotly(fig, size: float = 1.0) -> dict:  # noqa: C901
     """
     Render a Plotly figure.
 
@@ -575,7 +608,7 @@ def progress(label: str, value: float = 0.0, size: float = 1.0) -> float:
 
 
 def selectbox(
-    label: str, options: List[str], default: Optional[str] = None, size: float = 1.0
+    label: str, options: list[str], default: str | None = None, size: float = 1.0
 ) -> str:
     """Create a select component with consistent ID based on label."""
     service = PreswaldService.get_instance()
@@ -599,7 +632,7 @@ def selectbox(
     return current_value
 
 
-def separator() -> Dict:
+def separator() -> dict:
     """Create a separator component that forces a new row."""
     service = PreswaldService.get_instance()
     component = {"type": "separator", "id": str(uuid.uuid4())}
@@ -612,7 +645,7 @@ def slider(
     min_val: float = 0.0,
     max_val: float = 100.0,
     step: float = 1.0,
-    default: Optional[float] = None,
+    default: float | None = None,
     size: float = 1.0,
 ) -> float:
     """Create a slider component with consistent ID based on label"""
@@ -683,8 +716,8 @@ def sidebar(defaultopen: bool = False):
 
 
 def table(
-    data: pd.DataFrame, title: Optional[str] = None, limit: Optional[int] = None
-) -> Dict:
+    data: pd.DataFrame, title: str | None = None, limit: int | None = None
+) -> dict:
     """Create a table component that renders data using TableViewerWidget.
 
     Args:
@@ -828,7 +861,7 @@ def text_input(
     return current_value
 
 
-def topbar() -> Dict:
+def topbar() -> dict:
     """Creates a topbar component."""
     service = PreswaldService.get_instance()
     id = generate_id("topbar")
@@ -839,7 +872,7 @@ def topbar() -> Dict:
     return component
 
 
-def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -> Dict:
+def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -> dict:
     """
     Render the workflow's DAG visualization.
 

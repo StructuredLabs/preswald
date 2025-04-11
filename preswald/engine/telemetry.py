@@ -2,7 +2,6 @@ import logging
 import os
 from importlib.metadata import version
 from pathlib import Path
-from typing import Dict, List, Optional
 
 import requests
 import tomli
@@ -13,11 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 class TelemetryService:
-    def __init__(self, script_path: Optional[str] = None):
+    def __init__(self, script_path: str | None = None):
         self.update_script_path(script_path)
         self.preswald_version = version("preswald")
 
-        self._config_cache: Optional[Dict] = None
+        self._config_cache: dict | None = None
         self._last_read_time = 0
         self._telemetry_enabled = True
 
@@ -38,7 +37,7 @@ class TelemetryService:
             logger.debug(f"Error reading telemetry configuration: {e}")
             return True
 
-    def update_script_path(self, script_path: Optional[str] = None) -> None:
+    def update_script_path(self, script_path: str | None = None) -> None:
         self.script_path = script_path
         if script_path:
             self.script_dir = Path(script_path).parent
@@ -51,7 +50,7 @@ class TelemetryService:
         self._last_read_time = 0
         self._telemetry_enabled = self._is_telemetry_enabled()
 
-    def _read_config(self, force: bool = False) -> Dict:
+    def _read_config(self, force: bool = False) -> dict:
         current_time = (
             os.path.getmtime(self.config_path) if self.config_path.exists() else 0
         )
@@ -73,7 +72,7 @@ class TelemetryService:
         except Exception:
             return {}
 
-    def _get_project_info(self) -> Dict:
+    def _get_project_info(self) -> dict:
         config = self._read_config()
         project_info = config.get("project", {})
 
@@ -83,7 +82,7 @@ class TelemetryService:
             "project_name": project_info.get("title", "Unknown Project"),
         }
 
-    def _get_data_sources(self) -> List[str]:
+    def _get_data_sources(self) -> list[str]:
         config = self._read_config()
         data_sources = []
 
@@ -98,7 +97,7 @@ class TelemetryService:
         return data_sources
 
     def send_telemetry(
-        self, event_type: str, additional_data: Optional[Dict] = None
+        self, event_type: str, additional_data: dict | None = None
     ) -> bool:
         if not self._telemetry_enabled:
             logger.debug("Telemetry is disabled, skipping data collection")
@@ -130,7 +129,7 @@ class TelemetryService:
             logger.debug(f"Error sending telemetry data: {e}")
             return False
 
-    def track_command(self, command: str, args: Optional[Dict] = None) -> bool:
+    def track_command(self, command: str, args: dict | None = None) -> bool:
         if args and "script" in args:
             script_path = args["script"]
             self.update_script_path(script_path)

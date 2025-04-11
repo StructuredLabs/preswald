@@ -5,7 +5,9 @@ Browser compatibility layer for Preswald in Pyodide environments
 import asyncio
 import logging
 import sys
-from typing import Any, Dict, Optional
+from typing import Any
+
+from preswald.engine.utils import RenderBuffer
 
 
 logger = logging.getLogger(__name__)
@@ -34,7 +36,7 @@ class VirtualWebSocket:
         )
         console.log(f"[Communication] is browser mode: {self.is_browser_mode}")
 
-    async def send_json(self, data: Dict[str, Any]):
+    async def send_json(self, data: dict[str, Any]):
         """Send JSON data to JavaScript frontend"""
         if not self.is_connected:
             logger.error(f"Cannot send message, connection closed for {self.client_id}")
@@ -154,6 +156,7 @@ class VirtualPreswaldService:
         self._lock = Lock()
         self._is_shutting_down = False
         self._script_path = None
+        self._render_buffer = RenderBuffer()
 
         # Create browser-compatible managers
         from preswald.engine.managers.layout import LayoutManager
@@ -211,11 +214,14 @@ class VirtualPreswaldService:
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug(f"Handling JS message from {client_id}: {message}")
 
-                asyncio.create_task(self.handle_client_message(client_id, message))   # noqa: RUF006
+                asyncio.create_task(self.handle_client_message(client_id, message))  # noqa: RUF006
                 return True
             except Exception:
                 import traceback
-                logger.error("Error in handle_message_from_js: %s", traceback.format_exc())
+
+                logger.error(
+                    "Error in handle_message_from_js: %s", traceback.format_exc()
+                )
                 return False
 
         # Export the function to JavaScript
@@ -266,7 +272,7 @@ class VirtualPreswaldService:
     def _create_send_callback(self, websocket):
         """Create a callback to send messages to the client"""
 
-        async def send_message(msg: Dict[str, Any]):
+        async def send_message(msg: dict[str, Any]):
             if not self._is_shutting_down:
                 try:
                     await websocket.send_json(msg)
@@ -286,7 +292,7 @@ class VirtualPreswaldService:
         except Exception as e:
             logger.error(f"Error sending initial states: {e}")
 
-    async def handle_client_message(self, client_id: str, message: Dict[str, Any]):
+    async def handle_client_message(self, client_id: str, message: dict[str, Any]):
         """Process messages from clients"""
         import time
 
@@ -306,7 +312,7 @@ class VirtualPreswaldService:
         finally:
             logger.info(f"Total message handling took {time.time() - start_time:.3f}s")
 
-    async def _handle_component_update(self, client_id: str, message: Dict[str, Any]):
+    async def _handle_component_update(self, client_id: str, message: dict[str, Any]):
         """Handle component state updates"""
         states = message.get("states", {})
         if not states:
@@ -314,11 +320,11 @@ class VirtualPreswaldService:
             raise ValueError("Component update missing states")
 
         # Only rerun if any state actually changed
-        from preswald.engine.utils import clean_nan_values
 
         changed_states = {
-            k: v for k, v in states.items()
-            if clean_nan_values(self.get_component_state(k)) != clean_nan_values(v)
+            k: v
+            for k, v in states.items()
+            if self._render_buffer.update_if_changed(k, v)
         }
 
         if not changed_states:
@@ -337,7 +343,7 @@ class VirtualPreswaldService:
         # Broadcast updates to other clients
         await self._broadcast_state_updates(changed_states, exclude_client=client_id)
 
-    def _update_component_states(self, states: Dict[str, Any]):
+    def _update_component_states(self, states: dict[str, Any]):
         """Update component states"""
         from preswald.engine.utils import clean_nan_values
 
@@ -358,7 +364,7 @@ class VirtualPreswaldService:
                     logger.debug(f"  - New value: {cleaned_new_value}")
 
     async def _broadcast_state_updates(
-        self, states: Dict[str, Any], exclude_client: Optional[str] = None
+        self, states: dict[str, Any], exclude_client: str | None = None
     ):
         """Broadcast state updates to all clients except the sender"""
         from preswald.engine.utils import compress_data, optimize_plotly_data
@@ -443,7 +449,7 @@ class VirtualPreswaldService:
 
     # Same methods as original to maintain compatibility
     @property
-    def script_path(self) -> Optional[str]:
+    def script_path(self) -> str | None:
         return self._script_path
 
     @script_path.setter

@@ -4,7 +4,6 @@ import os
 import re
 import signal
 from importlib.resources import files
-from typing import Optional
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
@@ -19,7 +18,7 @@ from preswald.engine.service import PreswaldService
 logger = logging.getLogger(__name__)
 
 
-def create_app(script_path: Optional[str] = None) -> FastAPI:
+def create_app(script_path: str | None = None) -> FastAPI:
     """Create and configure the FastAPI application"""
     app = FastAPI()
     service = PreswaldService.initialize(script_path)
@@ -113,7 +112,7 @@ def _register_routes(app: FastAPI):
     _register_static_routes(app)  # order matters for static routes
 
 
-def start_server(script: Optional[str] = None, port: int = 8501):
+def start_server(script: str | None = None, port: int = 8501):
     """Start the FastAPI server"""
     app = create_app(script)
 
