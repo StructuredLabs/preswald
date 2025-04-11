@@ -1,0 +1,68 @@
+name: Deployment Autotests
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - cicd
+  schedule:
+    - cron: "0 */12 * * *"
+
+jobs:
+  deployment-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install Docker
+        uses: docker/setup-buildx-action@v2
+
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Add uv to PATH
+        run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Build and install SDK
+        run: |
+          uv venv
+          source .venv/bin/activate
+          uv pip install -U pytest
+          uv pip install -e .
+          python -m preswald.build frontend
+          uv build
+          pip install ./dist/*.whl
+
+      - name: Create .env file
+        run: |
+          mkdir -p autotest/deployments/structured
+          echo "GITHUB_USERNAME=${{ secrets.DEPLOYMENT_AUTOTEST_GITHUB_USERNAME }}" > autotest/deployments/structured/.env.structured
+          echo "STRUCTURED_CLOUD_API_KEY=${{ secrets.DEPLOYMENT_AUTOTEST_STRUCTURED_CLOUD_API_KEY }}" >> autotest/deployments/structured/.env.structured
+
+      - name: Run structured target deployment tests
+        run: |
+          source .venv/bin/activate
+          chmod +x autotest/deployments/structured/test.sh
+          ./autotest/deployments/structured/test.sh
+
+      - name: Run local target deployment tests
+        run: |
+          source .venv/bin/activate
+          chmod +x autotest/deployments/local/test.sh
+          ./autotest/deployments/local/test.sh
+
+      - name: Check test results
+        run: |
+          if [ $? -eq 0 ]; then
+            echo "Deployment tests passed successfully!"
+            exit 0
+          else
+            echo "Deployment tests failed!"
+            exit 1
+          fi
