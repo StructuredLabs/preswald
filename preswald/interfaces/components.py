@@ -4,6 +4,7 @@ import hashlib
 import io
 import json
 import logging
+import os
 import re
 
 # Third-Party
@@ -308,16 +309,61 @@ def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
 #     return component_id
 
 
-# TODO: requires testing
 def image(src, alt="Image", size=1.0):
-    """Create an image component."""
+    """Create an image component.
+
+    Args:
+        src: The image source. Can be:
+            - A URL to a remote image
+            - A local file path (relative to the project root)
+            - A base64 encoded image string
+            - A data URI
+        alt: Alternative text for the image
+        size: Size of the component (0.0-1.0)
+    """
     service = PreswaldService.get_instance()
     component_id = generate_stable_id("image")
     logger.debug(f"Creating image component with id {component_id}, src: {src}")
+
+    # Handle different types of image sources
+    processed_src = src
+
+    # If it's a local file path, convert it to a data URL
+    if isinstance(src, str) and not src.startswith(
+        ("http://", "https://", "data:", "/")
+    ):
+        # Check if file exists in project's images directory
+        project_images_dir = os.path.join(os.getcwd(), "images")
+        local_path = os.path.join(project_images_dir, src)
+        if os.path.exists(local_path):
+            try:
+                # Read the image file and convert to base64
+                with open(local_path, "rb") as img_file:
+                    img_data = img_file.read()
+                    img_base64 = base64.b64encode(img_data).decode("utf-8")
+
+                    # Get the file extension to determine MIME type
+                    _, ext = os.path.splitext(src)
+                    mime_type = {
+                        ".png": "image/png",
+                        ".jpg": "image/jpeg",
+                        ".jpeg": "image/jpeg",
+                        ".gif": "image/gif",
+                        ".svg": "image/svg+xml",
+                    }.get(ext.lower(), "image/png")
+
+                    # Create data URL
+                    processed_src = f"data:{mime_type};base64,{img_base64}"
+            except Exception as e:
+                logger.error(f"Error converting local image to data URL: {e}")
+                processed_src = f"/images/{src}"  # Fallback to regular URL
+        else:
+            logger.warning(f"Local image file not found in images directory: {src}")
+
     component = {
         "type": "image",
         "id": component_id,
-        "src": src,
+        "src": processed_src,
         "alt": alt,
         "size": size,
     }
