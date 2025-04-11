@@ -64,11 +64,6 @@ We recommend using Conda to manage dependencies:
    ```
    pre-commit install
    ```
-5. Install Playwright Browsers
-Required for saving webpages
-```bash
-playwright install
-```
 
 ### 3. Build the Frontend
 
@@ -89,6 +84,13 @@ Verify your setup by running the sample app:
 ```bash
 cd examples/iris && preswald run
 ```
+### 5. Install Playwright Browsers
+
+Required for saving webpages
+```bash
+playwright install
+```
+
 
 ## Development Workflow
 

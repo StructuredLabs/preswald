@@ -61,7 +61,7 @@ async def export_to_pdf(url: str, output_path: str):
         
         curr_height=0
         max=await page.evaluate("document.body.scrollHeight")
-        while True:
+        while True: 
             if curr_height >= max:
                 break
             curr_height+=500
