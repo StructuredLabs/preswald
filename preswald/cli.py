@@ -5,6 +5,7 @@ import tempfile
 import click
 
 from preswald.engine.telemetry import TelemetryService
+from preswald.util.exporter import export_html_sync , export_pdf_sync
 
 
 # Create a temporary directory for IPC
@@ -163,6 +164,44 @@ def run(port, log_level, disable_new_tab):
 
     except Exception as e:
         click.echo(f"Error: {e}")
+
+
+@cli.command("export")
+@click.option(
+    "--format",
+    type=click.Choice(["html","pdf"], case_sensitive=False),
+    default="html",
+    help="Format to export the app in (currently only HTML and pdf are supported).",
+)
+@click.option(
+    "--output",
+    type=click.Path(),
+    help="Output file for the export.",
+)
+@click.option(
+    "--page",
+    default="http://localhost:8501",
+    help="Page Url to export from (defaults to http://localhost:8501)",
+)
+def export_app(format,output,page):
+    """
+    Export a Preswald app to a static html page
+    """
+    if format=="html":
+        if output is None:
+            output = "./output/report.html"
+        click.echo(f"Exporting app from {page} to {output}")
+        export_html_sync(page, output)
+        click.echo(f"Exported app to {output}")
+    
+    elif format=="pdf":
+        if output is None:
+            output = "./output/report.pdf"
+        click.echo(f"Exporting app from {page} to {output}")
+        export_pdf_sync(page, output)
+        click.echo(f"Exported app to {output}")
+    else:
+        click.echo(f"Error: Format {format} not supported")
 
 
 @cli.command()

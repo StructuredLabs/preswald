@@ -24,6 +24,8 @@ dependencies = [
     "networkx>=3.0",
     "requests>=2.31.0",
     "tomli>=2.0.1",
+    "playwright>=1.51.0",
+    "beautifulsoup4>=4.13.3",
     # Server-only dependencies
     "fastapi>=0.68.0,<1.0.0; platform_system != 'Emscripten'",
     # "fastplotlib[imgui]~=0.3.0; platform_system != 'Emscripten'",

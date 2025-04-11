@@ -64,6 +64,11 @@ We recommend using Conda to manage dependencies:
    ```
    pre-commit install
    ```
+5. Install Playwright Browsers
+Required for saving webpages
+```bash
+playwright install
+```
 
 ### 3. Build the Frontend
 
