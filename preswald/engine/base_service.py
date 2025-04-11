@@ -41,7 +41,7 @@ class BasePreswaldService:
         self._render_buffer = RenderBuffer()
 
         # DAG workflow engine
-        self._workflow = Workflow()
+        self._workflow = Workflow(service=self)
         self._current_atom: Optional[str] = None
 
         # Initialize session tracking
@@ -51,9 +51,9 @@ class BasePreswaldService:
         self._layout_manager = LayoutManager()
 
     @contextmanager
-    def active_atom(self, component_id: str):
+    def active_atom(self, atom_name: str):
         previous_atom = self._current_atom
-        self._current_atom = component_id
+        self._current_atom = atom_name
         try:
             yield
         finally:
@@ -90,7 +90,6 @@ class BasePreswaldService:
     def append_component(self, component):
         """Add a component to the layout manager"""
         try:
-
             if isinstance(component, dict):
                 logger.info(f"[APPEND] Appending component: {component.get('id')}, type: {component.get('type')}")
                 # Clean any NaN values in the component
@@ -101,6 +100,7 @@ class BasePreswaldService:
                 # Ensure component has current state
                 if "id" in cleaned_component:
                     component_id = cleaned_component["id"]
+                    logger.info(f"[TEST] append_component() called with id: {component_id}")
                     if component_id not in self._layout_manager.seen_ids:
                         # Update component with current state if it exists
                         if "value" in cleaned_component:
@@ -113,18 +113,33 @@ class BasePreswaldService:
                                     logger.debug(
                                         f"Updated component {component_id} with state: {current_state}"
                                     )
-
-                        with self.active_atom(component_id):
-                            # track which atom produced this component
+                        with self.active_atom(self._workflow._current_atom):
+                            # Track the producing atom
+                            logger.info(f"[DEBUG] Current atom before register: {self._workflow._current_atom}")
                             self._workflow.register_component_producer(component_id)
 
+                            # Store return value in workflow context (if present)
+                            if "value" in cleaned_component:
+                                producer = self._workflow.get_component_producer(component_id)
+                                if producer:
+                                    self._workflow.context.set_variable(producer, cleaned_component["value"])
+                                    logger.info(f"[DAG] Stored return value of {component_id} in context under {producer}")
+
+                            # Register dummy atom if needed
                             if component_id not in self._workflow.atoms:
-                                self._workflow.atoms[component_id] = Atom(name=component_id, func=lambda: None)
+                                # TODO: TEMP fallback - clean up after final DAG model is enforced
+                                # This is a fallback for cases where atoms are referenced before being explicitly defined.
+                                # This should only happen in testing or non-standard usage (e.g., manual workflow.execute()).
+                                # In the final model, atoms should always be registered via the @atom decorator.
+                                logger.warning(
+                                    f"[DAG] (append_component) Atom '{component_id}' was used as a dependency before being explicitly defined. "
+                                    "Registering placeholder (dummy) atom."
+                                )
+                                self._register_dummy_atom(component_id)
 
                             self._layout_manager.add_component(cleaned_component)
                             if logger.isEnabledFor(logging.DEBUG):
                                 logger.debug(f"Added component with state: {cleaned_component}")
-
                 else:
                     # Components without IDs are added as-is
                     self._layout_manager.add_component(cleaned_component)
@@ -172,8 +187,17 @@ class BasePreswaldService:
                 # track component-level dependency
                 logger.debug(f"[DAG] {self._current_atom} depends on {component_id}")
                 if self._current_atom not in self._workflow.atoms:
-                    self._workflow.atoms[self._current_atom] = Atom(name=self._current_atom, func=lambda: None)
-                self._workflow.atoms[self._current_atom].dependencies.add(component_id)
+                    # TODO: TEMP fallback - clean up after final DAG model is enforced
+                    # This is a fallback for cases where atoms are referenced before being explicitly defined.
+                    # This should only happen in testing or non-standard usage (e.g., manual workflow.execute()).
+                    # In the final model, atoms should always be registered via the @atom decorator.
+                    logger.warning(
+                        f"[DAG] (get_component_state) Atom '{self._current_atom}' was used as a dependency before being explicitly defined. "
+                        "Registering placeholder (dummy) atom."
+                    )
+                    self._register_dummy_atom(self._current_atom)
+                if component_id != self._current_atom:
+                    self._workflow.atoms[self._current_atom].dependencies.add(component_id)
 
                 # also register dependency on the atom that produced this component, if known
                 producer = self._workflow.get_component_producer(component_id)
@@ -341,6 +365,12 @@ class BasePreswaldService:
             await runner.start(self._script_path)
 
         return runner
+
+    def _register_dummy_atom(self, atom_name: str):
+        # TODO: TEMP fallback - clean up after final DAG model is enforced
+        logger.warning(f"[DAG] (fallback) Registering dummy atom for '{atom_name}'")
+        dummy_func = lambda **kwargs: None
+        self.atoms[atom_name] = Atom(name=atom_name, func=dummy_func, original_func=dummy_func)
 
     async def _send_error(self, client_id: str, message: str):
         """Send error message to a client"""
