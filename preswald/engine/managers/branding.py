@@ -1,3 +1,4 @@
+import base64
 import logging
 import os
 import shutil
@@ -51,6 +52,61 @@ class BrandingManager:
 
         logger.info(f"Final branding configuration: {branding}")
         return branding
+
+    def get_branding_config_with_data_urls(
+        self, script_path: str | None = None
+    ) -> dict[str, Any]:
+        """Get branding config with logo and favicon as data URLs"""
+        branding = self.get_branding_config(script_path)
+
+        # Convert logo and favicon to data URLs
+        branding["logo"] = self._convert_to_data_url(branding["logo"])
+        branding["favicon"] = self._convert_to_data_url(
+            branding["favicon"].split("?")[0]
+        )  # Remove timestamp query param
+
+        logger.info(f"Actual final branding configuration: {branding}")
+        return branding
+
+    def _convert_to_data_url(self, path: str) -> str:
+        """Convert a local file path to a data URL"""
+        try:
+            # Check if it's already a URL or data URL
+            if path.startswith(("http://", "https://", "data:")):
+                return path
+
+            # Remove leading slash if present
+            if path.startswith("/"):
+                path = path[1:]
+
+            # Check in branding directory
+            # local_path = os.path.join(self.branding_dir, path)
+            local_path = path
+            if not os.path.exists(local_path):
+                logger.warning(f"File not found at {local_path}")
+                return path
+
+            # Read file and convert to base64
+            with open(local_path, "rb") as f:
+                data = f.read()
+                b64_data = base64.b64encode(data).decode("utf-8")
+
+            # Get MIME type from extension
+            _, ext = os.path.splitext(path)
+            mime_type = {
+                ".png": "image/png",
+                ".jpg": "image/jpeg",
+                ".jpeg": "image/jpeg",
+                ".gif": "image/gif",
+                ".svg": "image/svg+xml",
+                ".ico": "image/x-icon",
+            }.get(ext.lower(), "application/octet-stream")
+
+            return f"data:{mime_type};base64,{b64_data}"
+
+        except Exception as e:
+            logger.error(f"Error converting {path} to data URL: {e}")
+            return path
 
     def _handle_logo(
         self, config: dict[str, Any], script_dir: str, branding: dict[str, Any]
