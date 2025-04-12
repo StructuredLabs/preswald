@@ -1,16 +1,11 @@
 import pandas as pd
 import plotly.express as px
 
-from preswald import connect, get_df, plotly, slider, table, text
+from preswald import get_df, plotly, slider, table, text
 
 
 # Title
 text("# Earthquake Analytics Dashboard 🌍")
-
-# Load and connect data
-connect()
-
-# ---
 
 # Clickhouse section
 

@@ -1,6 +1,7 @@
 {
     "include": ["src/**/*.tsx", "src/**/*.ts"],
     "compilerOptions": {
+      "jsx": "react",
       "baseUrl": ".",
       "paths": {
         "@/*": ["./src/*"]

@@ -52,7 +52,7 @@
         // Then serve it locally and load it:
         await pyodide.runPythonAsync(`
           import micropip
-          await micropip.install("http://localhost:8000/dist/preswald-0.1.49-py3-none-any.whl");
+          await micropip.install("http://localhost:8000/dist/preswald-0.1.51-py3-none-any.whl");
           import preswald
           print("Successfully imported from wheel")
           from preswald.engine.service import PreswaldService

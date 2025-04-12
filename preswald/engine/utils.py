@@ -3,8 +3,10 @@ import logging
 import zlib
 from datetime import date, datetime
 from typing import Any, Dict, List, Union
-
+import hashlib
+import msgpack
 import numpy as np
+import re
 
 
 logger = logging.getLogger(__name__)
@@ -186,28 +188,52 @@ def decompress_data(compressed_data: bytes) -> Union[Dict, List, str]:
     decompressed = zlib.decompress(compressed_data)
     return loads(decompressed.decode("utf-8"))
 
+
 class RenderBuffer:
     """
     Tracks previous render states and computes diffs to avoid unnecessary updates.
     Used by services to avoid redundant component reruns and frontend updates.
     """
 
+    HASH_PATTERN = re.compile(r"^[0-9a-f]{64}$")
+
     def __init__(self):
-        self._state_cache: Dict[str, Any] = {}
+        self._state_cache: Dict[str, str] = {}
 
     def has_changed(self, component_id: str, new_value: Any) -> bool:
-        """Check if the new value differs from the cached value."""
+        """Check if the new hash differs from the cached one."""
         new_clean = clean_nan_values(new_value)
-        old_clean = clean_nan_values(self._state_cache.get(component_id))
 
+        if component_id not in self._state_cache:
+            return True  # always render the first time
+
+        old_clean = clean_nan_values(self._state_cache[component_id])
         return new_clean != old_clean
 
     def update(self, component_id: str, new_value: Any):
-        """Update the cached value."""
-        self._state_cache[component_id] = new_value
+        """Update the cached hash value."""
+        self._state_cache[component_id] = self._ensure_hash(new_value)
 
-    def update_if_changed(self, component_id: str, new_value: Any) -> bool:
-        """Update cache and return True if value actually changed."""
+    def should_render(self, component_id: str, new_value: Any) -> bool:
+        """
+        High-level API to check whether a component should rerender.
+        Updates the cache if the value has changed.
+        """
+        return self._update_if_changed(component_id, new_value)
+
+    def _ensure_hash(self, value: Any) -> str:
+        """Convert value to SHA256 hash. Accepts either a hash string or a hashable object."""
+        if isinstance(value, str) and HASH_PATTERN.match(value):
+            return value  # already a hash
+        try:
+            cleaned = clean_nan_values(value)
+            packed = msgpack.packb(cleaned, use_bin_type=True)
+            return hashlib.sha256(packed).hexdigest()
+        except Exception as e:
+            raise ValueError(f"RenderBuffer failed to compute hash: {e}")
+
+    def _update_if_changed(self, component_id: str, new_value: Any) -> bool:
+        """Update cache and return True if hash changed."""
         if self.has_changed(component_id, new_value):
             self.update(component_id, new_value)
             return True
