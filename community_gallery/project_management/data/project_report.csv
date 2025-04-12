@@ -1,0 +1,29 @@
+ID,Project_Name,Start_Date,End_Date,Status,Budget,Team_Size,Technology,Client,Location
+1,Project Alpha,2025-01-01,2025-03-01,Completed,50000,5,Python,Client A,New York
+2,Project Beta,2025-02-01,2025-04-01,Ongoing,75000,8,Java,Client B,Los Angeles
+3,Project Gamma,2025-01-15,2025-05-15,Cancelled,60000,6,C#,Client C,Chicago
+4,Project Delta,2025-03-01,2025-06-01,Ongoing,80000,10,JavaScript,Client D,Houston
+5,Project Epsilon,2025-01-20,2025-04-20,Completed,55000,4,Ruby,Client E,Phoenix
+6,Project Zeta,2025-02-10,2025-05-10,Ongoing,72000,7,PHP,Client F,San Diego
+7,Project Eta,2025-01-25,2025-03-25,Completed,65000,5,Go,Client G,San Francisco
+8,Project Theta,2025-03-05,2025-07-05,Ongoing,90000,9,Swift,Client H,Seattle
+9,Project Iota,2025-02-15,2025-05-15,Completed,70000,6,Scala,Client I,Miami
+10,Project Kappa,2025-01-30,2025-04-30,Cancelled,85000,8,TypeScript,Client J,Atlanta
+11,Project Lambda,2025-02-20,2025-06-20,Completed,62000,5,Python,Client K,Denver
+12,Project Mu,2025-03-10,2025-07-10,Ongoing,78000,7,Java,Client L,Boston
+13,Project Nu,2025-01-05,2025-03-05,Cancelled,59000,4,C#,Client M,Orlando
+14,Project Xi,2025-02-25,2025-06-25,Ongoing,71000,6,JavaScript,Client N,Las Vegas
+15,Project Omicron,2025-01-15,2025-04-15,Completed,64000,5,Ruby,Client O,Philadelphia
+16,Project Pi,2025-03-01,2025-05-01,Ongoing,83000,8,PHP,Client P,Portland
+17,Project Rho,2025-02-05,2025-06-05,Completed,67000,6,Go,Client Q,Charlotte
+18,Project Sigma,2025-01-10,2025-03-10,Ongoing,72000,7,Swift,Client R,Detroit
+19,Project Tau,2025-03-15,2025-07-15,Completed,80000,9,Scala,Client S,Indianapolis
+20,Project Upsilon,2025-02-12,2025-05-12,Ongoing,75000,8,TypeScript,Client T,San Antonio
+21,Project Phi,2025-01-22,2025-04-22,Completed,59000,5,Python,Client U,Virginia Beach
+22,Project Chi,2025-03-20,2025-07-20,Ongoing,82000,7,Java,Client V,Omaha
+23,Project Psi,2025-02-18,2025-06-18,Cancelled,64000,6,C#,Client W,Baltimore
+24,Project Omega,2025-01-28,2025-04-28,Ongoing,78000,8,JavaScript,Client X,Milwaukee
+25,Project Alpha 2,2025-02-08,2025-05-08,Completed,70000,5,Ruby,Client Y,Tucson
+26,Project Beta 2,2025-03-12,2025-07-12,Ongoing,85000,9,PHP,Client Z,Washington
+27,Project Gamma 2,2025-01-18,2025-04-18,Cancelled,62000,4,Go,Client AA,Atlanta
+28,Project Delta 2,2025-02-28,2025-06-28,Ongoing,90000,10,Swift,Client AB,Miami
