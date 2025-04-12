@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import re
+from typing import Optional, Dict
 
 # Third-Party
 from inspect import currentframe, getframeinfo
@@ -439,7 +440,7 @@ def big_number(
         Dict: Component metadata.
     """
     service = PreswaldService.get_instance()
-    component_id = generate_id("big_number_card")
+    component_id = generate_stable_id("big_number_card")
     logger.debug(f"Creating big number card component with id {component_id}")
 
     component = {
