@@ -9,6 +9,7 @@ from preswald import (
     get_df,
     plotly,
     sidebar,
+    tab,
     table,
     text,
 )
@@ -28,6 +29,14 @@ text(
 
 # Load the CSV
 df = get_df("iris_csv")
+
+tab(
+    label="Data Views",
+    tabs=[
+        {"title": "Intro", "components": [text("Welcome to the Iris app.")]},
+        {"title": "Table", "components": [table(df)]},
+    ],
+)
 
 # 1. Scatter plot - Sepal Length vs Sepal Width
 text(

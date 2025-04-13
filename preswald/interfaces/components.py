@@ -859,6 +859,38 @@ def sidebar(defaultopen: bool = False):
     return component
 
 
+def tab(
+    label: str,
+    tabs: list[dict],
+    size: float = 1.0,
+) -> None:
+    """
+    tab() component that enables developers to
+    organize UI content into labeled tabs within their
+    Preswald apps—ideal for sectioning long dashboards,
+    multiple views, or split data insights.
+
+    Args:
+        label: Text to show on the tab-bar
+        tabs: Sections to be placed under the tab (including their title and component)
+        size: Customizable, full-width by default (=1.0)
+    """
+
+    service = PreswaldService.get_instance()
+    component_id = generate_stable_id("tab", label)
+
+    component = {
+        "type": "tab",
+        "id": component_id,
+        "label": label,
+        "size": size,
+        "tabs": tabs,
+    }
+
+    service.append_component(component)
+    return component
+
+
 def table(
     data: pd.DataFrame, title: str | None = None, limit: int | None = None
 ) -> dict:
