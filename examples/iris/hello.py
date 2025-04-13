@@ -7,6 +7,7 @@ from preswald import (
     chat,
     # fastplotlib,
     get_df,
+    mosaic,
     plotly,
     sidebar,
     table,
@@ -43,6 +44,26 @@ fig1 = px.scatter(
 )
 fig1.update_layout(template="plotly_white")
 plotly(fig1)
+
+
+text("# Mosaic Example")
+
+mosaic(
+    label="Iris Mosaic Plot",
+    spec={
+        "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+        "description": "A scatterplot showing horsepower and miles per gallons for various cars.",
+        "data": {
+            "url": "https://raw.githubusercontent.com/vega/vega-datasets/refs/heads/main/data/cars.json"
+        },
+        "mark": "point",
+        "encoding": {
+            "x": {"field": "Horsepower", "type": "quantitative"},
+            "y": {"field": "Miles_per_Gallon", "type": "quantitative"},
+        },
+    },
+)
+
 
 # 2. Histogram of Sepal Length
 text(
