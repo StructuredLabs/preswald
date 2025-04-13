@@ -20,6 +20,7 @@ import FastplotlibWidget from './widgets/FastplotlibWidget';
 import ImageWidget from './widgets/ImageWidget';
 import MarkdownRendererWidget from './widgets/MarkdownRendererWidget';
 import MatplotlibWidget from './widgets/MatplotlibWidget';
+import MosaicWidget from './widgets/MosaicWidget';
 import PlaygroundWidget from './widgets/PlaygroundWidget';
 import ProgressWidget from './widgets/ProgressWidget';
 import SelectboxWidget from './widgets/SelectboxWidget';
@@ -90,6 +91,15 @@ const MemoizedComponent = memo(
           </ButtonWidget>
         );
 
+      case 'mosaic':
+        return (
+          <MosaicWidget
+            {...props}
+            className={component.className}
+            _size={component.size}
+            spec={component.spec}
+          />
+        );
       case 'big_number':
         return (
           <BigNumberWidget

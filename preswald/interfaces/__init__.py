@@ -12,6 +12,7 @@ from .components import (
     # fastplotlib,
     image,
     matplotlib,
+    mosaic,
     playground,
     plotly,
     progress,
