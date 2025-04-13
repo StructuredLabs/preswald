@@ -104,6 +104,7 @@ def button(
     disabled: bool = False,
     loading: bool = False,
     size: float = 1.0,
+    can_be_reclicked: bool = False,
 ) -> bool:
     """Create a button component that returns True when clicked."""
     service = PreswaldService.get_instance()
@@ -123,6 +124,7 @@ def button(
         "loading": loading,
         "size": size,
         "value": current_value,
+        "random_state": (np.random.randn() if can_be_reclicked else None),
         "onClick": True,  # Always enable click handling
     }
 
