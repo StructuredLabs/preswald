@@ -27,28 +27,25 @@ import SeparatorWidget from './widgets/SeparatorWidget';
 import SidebarWidget from './widgets/SidebarWidget';
 import SliderWidget from './widgets/SliderWidget';
 import SpinnerWidget from './widgets/SpinnerWidget';
+import TabWidget from './widgets/TabWidget';
 import TableViewerWidget from './widgets/TableViewerWidget';
 import TextInputWidget from './widgets/TextInputWidget';
 import TopbarWidget from './widgets/TopbarWidget';
 import UnknownWidget from './widgets/UnknownWidget';
 
 const extractKeyProps = createExtractKeyProps();
-
 // Error boundary component
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
     this.state = { hasError: false, error: null };
   }
-
   static getDerivedStateFromError(error) {
     return { hasError: true, error };
   }
-
   componentDidCatch(error, errorInfo) {
     console.error('[DynamicComponents] Component Error:', error, errorInfo);
   }
-
   render() {
     if (this.state.hasError) {
       return (
@@ -59,20 +56,16 @@ class ErrorBoundary extends React.Component {
         </Alert>
       );
     }
-
     return this.props.children;
   }
 }
-
 // Memoized component wrapper
 const MemoizedComponent = memo(
   ({ component, index, handleUpdate, extractKeyProps }) => {
     const [componentId, componentKey, props] = extractKeyProps(component, index);
-
     switch (component.type) {
       case 'sidebar':
         return <SidebarWidget defaultOpen={component.defaultopen} />;
-
       case 'button':
         return (
           <ButtonWidget
@@ -108,7 +101,6 @@ const MemoizedComponent = memo(
 
       case 'matplotlib':
         return <MatplotlibWidget key={componentKey} {...props} image={component.image} />;
-
       case 'slider':
         return (
           <SliderWidget
@@ -126,7 +118,6 @@ const MemoizedComponent = memo(
             variant={component.variant || 'default'}
           />
         );
-
       case 'text_input':
         return (
           <TextInputWidget
@@ -144,7 +135,6 @@ const MemoizedComponent = memo(
             variant={component.variant || 'default'}
           />
         );
-
       case 'checkbox':
         return (
           <CheckboxWidget
@@ -157,7 +147,6 @@ const MemoizedComponent = memo(
             onChange={(value) => handleUpdate(componentId, value)}
           />
         );
-
       case 'selectbox':
         return (
           <SelectboxWidget
@@ -169,7 +158,6 @@ const MemoizedComponent = memo(
             placeholder={component.placeholder}
           />
         );
-
       case 'progress':
         return (
           <ProgressWidget
@@ -179,7 +167,6 @@ const MemoizedComponent = memo(
             value={component.value}
           />
         );
-
       case 'spinner':
         return (
           <SpinnerWidget
@@ -191,7 +178,6 @@ const MemoizedComponent = memo(
             showLabel={component.showLabel !== undefined ? component.showLabel : true}
           />
         );
-
       case 'alert':
         return (
           <AlertWidget
@@ -201,7 +187,6 @@ const MemoizedComponent = memo(
             message={component.message || component.content || ''}
           />
         );
-
       case 'image':
         return (
           <ImageWidget
@@ -216,7 +201,6 @@ const MemoizedComponent = memo(
             objectFit={component.objectFit || 'cover'}
           />
         );
-
       case 'text':
         return (
           <MarkdownRendererWidget
@@ -227,7 +211,6 @@ const MemoizedComponent = memo(
             variant={component.variant || 'default'}
           />
         );
-
       case 'chat':
         return (
           <ChatWidget
@@ -242,6 +225,24 @@ const MemoizedComponent = memo(
           />
         );
 
+      case 'tab':
+        return (
+          <TabWidget
+            key={componentKey}
+            {...props}
+            label={component.label || 'Tabs'}
+            tabs={component.tabs || []}
+            onComponentUpdate={(childComponentId, value) => {
+              console.log(
+                '[DynamicComponents] Tab component forwarding update:',
+                childComponentId,
+                value
+              );
+              handleUpdate(childComponentId, value);
+            }}
+          />
+        );
+
       case 'table':
         return (
           <TableViewerWidget
@@ -251,7 +252,6 @@ const MemoizedComponent = memo(
             className={component.className}
           />
         );
-
       case 'plot':
         return (
           <DataVisualizationWidget
@@ -262,10 +262,8 @@ const MemoizedComponent = memo(
             config={component.config || {}}
           />
         );
-
       case 'dag':
         return <DAGVisualizationWidget key={componentKey} {...props} data={component.data || {}} />;
-
       case 'fastplotlib_component':
         const { className, data, config, label, src } = component;
         return (
@@ -280,7 +278,6 @@ const MemoizedComponent = memo(
             clientId={comm.clientId}
           />
         );
-
       case 'playground':
         return (
           <PlaygroundWidget
@@ -294,13 +291,10 @@ const MemoizedComponent = memo(
             data={component.data}
           />
         );
-
       case 'topbar':
         return <TopbarWidget key={componentKey} {...props} />;
-
       case 'separator':
         return <SeparatorWidget key={componentKey} />;
-
       default:
         console.warn(`[DynamicComponents] Unknown component type: ${component.type}`);
         return (
@@ -323,19 +317,15 @@ const MemoizedComponent = memo(
     );
   }
 );
-
 const DynamicComponents = ({ components, onComponentUpdate }) => {
   useEffect(() => {
     extractKeyProps.reset();
   }, []);
-
   console.log('[DynamicComponents] Rendering with components:', components);
-
   if (!components?.rows) {
     console.warn('[DynamicComponents] No components or invalid structure received');
     return null;
   }
-
   const handleUpdate = (componentId, value) => {
     console.log(`[DynamicComponents] Component update triggered:`, {
       componentId,
@@ -344,21 +334,17 @@ const DynamicComponents = ({ components, onComponentUpdate }) => {
     });
     onComponentUpdate(componentId, value);
   };
-
   const renderRow = (row, rowIndex) => {
     if (!Array.isArray(row)) {
       console.warn(`[DynamicComponents] Invalid row at index ${rowIndex}`);
       return null;
     }
-
     return (
       <div key={`row-${rowIndex}`} className="dynamiccomponent-row">
         {row.map((component, index) => {
           if (!component) return null;
-
           const componentKey = component.id || `component-${index}`;
           const isSeparator = component.type === 'separator';
-
           return (
             <React.Fragment key={componentKey}>
               <div
@@ -383,12 +369,10 @@ const DynamicComponents = ({ components, onComponentUpdate }) => {
       </div>
     );
   };
-
   return (
     <div className="dynamiccomponent-container">
       {components.rows.map((row, index) => renderRow(row, index))}
     </div>
   );
 };
-
 export default memo(DynamicComponents);

@@ -76,20 +76,61 @@ const App = () => {
     }
 
     try {
-      const updatedRows = components.rows.map((row) =>
-        row.map((component) => {
-          if (!component || !component.id) return component;
+      const tabComponentRegistry = {
+        ids: new Set(),
+        content: new Set(),
+      };
 
-          const currentState = comm.getComponentState(component.id);
-          return {
+      components.rows.forEach((row) => {
+        row.forEach((component) => {
+          if (component?.type === 'tab' && component.tabs) {
+            component.tabs.forEach((tab) => {
+              (tab.components || []).forEach((tabComponent) => {
+                if (tabComponent?.id) {
+                  tabComponentRegistry.ids.add(tabComponent.id);
+                }
+                if (typeof tabComponent === 'string') {
+                  tabComponentRegistry.content.add(tabComponent.trim());
+                }
+                const content =
+                  tabComponent?.content?.trim() ||
+                  tabComponent?.markdown?.trim() ||
+                  (typeof tabComponent?.value === 'string' ? tabComponent.value.trim() : '');
+                if (content) {
+                  tabComponentRegistry.content.add(content);
+                }
+              });
+            });
+          }
+        });
+      });
+
+      const updatedRows = components.rows.map((row) =>
+        row
+          .filter((component) => {
+            if (!component) return false;
+            if (component.type === 'tab') return true;
+
+            const content =
+              component.content?.trim() ||
+              component.markdown?.trim() ||
+              (typeof component.value === 'string' ? component.value.trim() : '');
+
+            return !(
+              (component.id && tabComponentRegistry.ids.has(component.id)) ||
+              (content && tabComponentRegistry.content.has(content))
+            );
+          })
+          .map((component) => ({
             ...component,
-            value: currentState !== undefined ? currentState : component.value,
+            value: component?.id
+              ? (comm.getComponentState(component.id) ?? component.value)
+              : component.value,
             error: null,
-          };
-        })
+          }))
       );
 
-      console.log('[App] Updating components with:', { rows: updatedRows });
+      console.log('[App] Final filtered components:', { rows: updatedRows });
       setAreComponentsLoading(false);
       setComponents({ rows: updatedRows });
       setError(null);

@@ -439,6 +439,94 @@
   @apply transition-all duration-200 ease-in-out p-0 opacity-100;
 }
 
+/* Tab Widget Styles */
+.tab-widget-container {
+  @apply w-full mb-6;
+}
+
+.tab-widget-header {
+  @apply font-semibold text-lg mb-3;
+}
+
+.tab-list {
+  @apply flex space-x-2 mb-3;
+}
+
+.tab-trigger {
+  @apply px-4 py-2 text-sm font-medium rounded-md transition-colors;
+  @apply bg-muted text-muted-foreground hover:bg-muted/80;
+  @apply data-[state=active]:bg-primary data-[state=active]:text-primary-foreground;
+}
+
+.tab-content {
+  @apply mt-4 outline-none;
+}
+
+.tab-content-container {
+  @apply w-full;
+  contain: content;
+  overflow: hidden;
+}
+
+.tab-content-inner {
+  @apply p-4 bg-background rounded-lg border border-border;
+}
+
+/* Ensure tab content is properly contained */
+.tab-content > .dynamiccomponent-container {
+  @apply mt-0;
+}
+
+/* Prevent double rendering of components meant for tabs */
+.dynamiccomponent-container:has(+ .tab-widget-container) {
+  @apply hidden;
+  contain: content;
+}
+
+/* Special case for when tab is the only component */
+.dynamiccomponent-container:has(
+    > .dynamiccomponent-row > .dynamiccomponent-component > .tab-widget-container
+  ) {
+  @apply block;
+}
+
+/* Loading state for tabs */
+.tab-loading {
+  @apply flex items-center justify-center h-32;
+}
+
+.tab-loading-spinner {
+  @apply animate-spin rounded-full h-8 w-8 border-b-2 border-primary;
+}
+
+.tab-loading-text {
+  @apply mt-2 text-sm text-muted-foreground;
+}
+
+/* Empty tab state */
+.tab-empty {
+  @apply flex items-center justify-center h-32 text-sm text-muted-foreground;
+}
+
+/* Error state for tabs */
+.tab-error {
+  @apply p-4 bg-destructive/10 text-destructive rounded-md;
+}
+
+/* Tab content transitions */
+.tab-content[data-state='inactive'] {
+  @apply hidden;
+}
+
+.tab-content[data-state='active'] {
+  @apply block;
+}
+
+/* Ensure tab content doesn't affect layout when hidden */
+.tab-content-hidden {
+  @apply absolute opacity-0 pointer-events-none;
+}
+
 .spinner-container {
   @apply flex flex-col items-center justify-center gap-3 p-4;
 }
