@@ -489,12 +489,14 @@ def playground(
             for _, row in data.iterrows():
                 processed_row = {
                     str(key): (
-                        value.item()
-                        if isinstance(value, np.integer | np.floating)
-                        else value
-                    )
-                    if value is not None
-                    else ""  # Ensure no None values
+                        (
+                            value.item()
+                            if isinstance(value, np.integer | np.floating)
+                            else value
+                        )
+                        if value is not None
+                        else ""
+                    )  # Ensure no None values
                     for key, value in row.items()
                 }
                 processed_data.append(processed_row)
@@ -904,12 +906,14 @@ def table(
         for row in data:
             processed_row = {
                 str(key): (
-                    value.item()
-                    if isinstance(value, np.integer | np.floating)
-                    else value
-                )
-                if value is not None
-                else ""  # Ensure no None values
+                    (
+                        value.item()
+                        if isinstance(value, np.integer | np.floating)
+                        else value
+                    )
+                    if value is not None
+                    else ""
+                )  # Ensure no None values
                 for key, value in row.items()
             }
             processed_data.append(processed_row)
