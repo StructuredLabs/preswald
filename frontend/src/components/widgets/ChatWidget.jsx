@@ -1,8 +1,10 @@
 'use client';
 
 import { Bot, Loader2, Send, Settings, User } from 'lucide-react';
+import remarkGfm from 'remark-gfm';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -108,7 +110,7 @@ const ChatWidget = ({
       - Include specific examples from the dataset when relevant
       - Highlight any assumptions or limitations in your analysis
       
-      When answering questions, always reference specific data points to support your conclusions.`;
+      When answering questions, always reference specific data points to support your conclusions and when asked for data, show as markdown table format`;
     } catch (error) {
       console.error('Error formatting source context:', error);
       return null;
@@ -281,9 +283,57 @@ const ChatWidget = ({
                           : 'bg-muted/50 text-foreground ring-border/50 rounded-tl-sm'
                       )}
                     >
-                      <p className="whitespace-pre-wrap break-words leading-relaxed">
-                        {message.content}
-                      </p>
+                      {message.role === 'user' ? (
+                        <p className="whitespace-pre-wrap break-words leading-relaxed">
+                          {message.content}
+                        </p>
+                      ) : (
+                        <div className="markdown-content">
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            className="whitespace-pre-wrap break-words leading-relaxed"
+                            components={{
+                              table: ({ node, ...props }) => (
+                                <div className="overflow-auto my-2 rounded-md">
+                                  <table className="w-full" {...props} />
+                                </div>
+                              ),
+                              thead: (props) => <thead className="bg-muted/50" {...props} />,
+                              tr: (props) => <tr className="border-b border-border" {...props} />,
+                              th: (props) => (
+                                <th
+                                  className="border-r border-border px-2 py-1 text-left last:border-r-0"
+                                  {...props}
+                                />
+                              ),
+                              td: (props) => (
+                                <td
+                                  className="border-r border-border px-2 py-1 last:border-r-0"
+                                  {...props}
+                                />
+                              ),
+                              code: ({ node, inline, className, children, ...props }) => {
+                                return inline ? (
+                                  <code
+                                    className="bg-muted/70 px-1 py-0.5 rounded text-xs"
+                                    {...props}
+                                  >
+                                    {children}
+                                  </code>
+                                ) : (
+                                  <div className="bg-muted/70 p-2 rounded-md my-2 overflow-auto">
+                                    <code className="text-xs" {...props}>
+                                      {children}
+                                    </code>
+                                  </div>
+                                );
+                              },
+                            }}
+                          >
+                            {message.content}
+                          </ReactMarkdown>
+                        </div>
+                      )}
                       <span className="text-[0.65rem] opacity-50 mt-1 block">
                         {formatTimestamp(message.timestamp)}
                       </span>
