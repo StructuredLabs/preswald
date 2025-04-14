@@ -10,7 +10,7 @@ import re
 
 # Third-Party
 from inspect import currentframe, getframeinfo
-from typing import Dict, List, Optional
+from typing import Any, Dict, Optional, List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -57,11 +57,11 @@ def alert(message: str, level: str = "info", size: float = 1.0, component_id: Op
 @with_render_tracking('big_number')
 def big_number(
     value: int | float | str,
-    label: Optional[str] = None,
-    delta: Optional[str] = None,
-    delta_color: Optional[str] = None,
-    icon: Optional[str] = None,
-    description: Optional[str] = None,
+    label: str | None = None,
+    delta: str | None = None,
+    delta_color: str | None = None,
+    icon: str | None = None,
+    description: str | None = None,
     size: float = 1.0,
     component_id: Optional[str] = None
 ) -> ComponentReturn:
@@ -144,7 +144,7 @@ def chat(source: str, table: Optional[str] = None, component_id: Optional[str] =
         for record in records:
             processed_record = {}
             for key, value in record.items():
-                if isinstance(value, (pd.Timestamp, pd.NaT.__class__)):
+                if isinstance(value, pd.Timestamp | pd.NaT.__class__):
                     processed_record[key] = (
                         value.isoformat() if not pd.isna(value) else None
                     )
@@ -264,14 +264,65 @@ def checkbox(label: str, default: bool = False, size: float = 1.0, component_id:
 #     return component_id
 
 
-# TODO: requires testing
 @with_render_tracking('image')
 def image(src, alt="Image", size=1.0, component_id: Optional[str] = None) -> ComponentReturn:
-    """Create an image component."""
+    """Create an image component.
+
+    Args:
+        src: The image source. Can be:
+            - A URL to a remote image
+            - A local file path (relative to the project root)
+            - A base64 encoded image string
+            - A data URI
+        alt: Alternative text for the image
+        size: Size of the component (0.0-1.0)
+    """
     service = PreswaldService.get_instance()
 
     logger.debug(f"Creating image component with id {component_id}, src: {src}")
-    component = {"type": "image", "id": component_id, "src": src, "alt": alt, "size": size}
+
+    # Handle different types of image sources
+    processed_src = src
+
+    # If it's a local file path, convert it to a data URL
+    if isinstance(src, str) and not src.startswith(
+        ("http://", "https://", "data:", "/")
+    ):
+        # Check if file exists in project's images directory
+        project_images_dir = os.path.join(os.getcwd(), "images")
+        local_path = os.path.join(project_images_dir, src)
+        if os.path.exists(local_path):
+            try:
+                # Read the image file and convert to base64
+                with open(local_path, "rb") as img_file:
+                    img_data = img_file.read()
+                    img_base64 = base64.b64encode(img_data).decode("utf-8")
+
+                    # Get the file extension to determine MIME type
+                    _, ext = os.path.splitext(src)
+                    mime_type = {
+                        ".png": "image/png",
+                        ".jpg": "image/jpeg",
+                        ".jpeg": "image/jpeg",
+                        ".gif": "image/gif",
+                        ".svg": "image/svg+xml",
+                    }.get(ext.lower(), "image/png")
+
+                    # Create data URL
+                    processed_src = f"data:{mime_type};base64,{img_base64}"
+            except Exception as e:
+                logger.error(f"Error converting local image to data URL: {e}")
+                processed_src = f"/images/{src}"  # Fallback to regular URL
+        else:
+            logger.warning(f"Local image file not found in images directory: {src}")
+
+    component = {
+        "type": "image",
+        "id": component_id,
+        "src": processed_src,
+        "alt": alt,
+        "size": size,
+    }
 
     return ComponentReturn(component, component)
 
@@ -298,6 +349,7 @@ def matplotlib(fig: Optional[plt.Figure] = None, label: str = "plot", component_
     }
 
     return ComponentReturn(component_id, component)  # Returning ID for potential tracking
+
 
 @with_render_tracking('playground')
 def playground(
@@ -368,7 +420,7 @@ def playground(
                 processed_row = {
                     str(key): (
                         value.item()
-                        if isinstance(value, (np.integer, np.floating))
+                        if isinstance(value, np.integer | np.floating)
                         else value
                     )
                     if value is not None
@@ -418,13 +470,13 @@ def plotly(fig, size: float = 1.0, component_id: Optional[str] = None) -> Compon
             for attr in ["x", "y", "z", "lat", "lon"]:
                 if hasattr(trace, attr):
                     values = getattr(trace, attr)
-                    if isinstance(values, (list, np.ndarray)):
+                    if isinstance(values, list | np.ndarray):
                         if np.issubdtype(np.array(values).dtype, np.floating):
                             setattr(trace, attr, np.round(values, decimals=4))
 
             # Optimize marker sizes
             if hasattr(trace, "marker") and hasattr(trace.marker, "size"):
-                if isinstance(trace.marker.size, (list, np.ndarray)):
+                if isinstance(trace.marker.size, list | np.ndarray):
                     # Scale marker sizes to a reasonable range
                     sizes = np.array(trace.marker.size)
                     if len(sizes) > 0:
@@ -476,16 +528,16 @@ def plotly(fig, size: float = 1.0, component_id: Optional[str] = None) -> Compon
 
             # Clean up other potential NaN values
             for key, value in trace.items():
-                if isinstance(value, (list, np.ndarray)):
+                if isinstance(value, list | np.ndarray):
                     trace[key] = [
                         (
                             None
-                            if isinstance(x, (float, np.floating)) and np.isnan(x)
+                            if isinstance(x, float | np.floating) and np.isnan(x)
                             else x
                         )
                         for x in value
                     ]
-                elif isinstance(value, (float, np.floating)) and np.isnan(value):
+                elif isinstance(value, float | np.floating) and np.isnan(value):
                     trace[key] = None
         logger.debug(f"[PLOTLY] NaN cleanup took {time.time() - clean_start:.3f}s")
 
@@ -591,7 +643,7 @@ def slider(
     min_val: float = 0.0,
     max_val: float = 100.0,
     step: float = 1.0,
-    default: Optional[float] = None,
+    default: float | None = None,
     size: float = 1.0,
     component_id: Optional[str] = None,
 ) -> ComponentReturn:
@@ -698,7 +750,7 @@ def table(
             processed_row = {
                 str(key): (
                     value.item()
-                    if isinstance(value, (np.integer, np.floating))
+                    if isinstance(value, np.integer | np.floating)
                     else value
                 )
                 if value is not None
@@ -873,9 +925,9 @@ def convert_to_serializable(obj):
     """Convert numpy arrays and other non-serializable objects to Python native types."""
     if isinstance(obj, np.ndarray):
         return obj.tolist()
-    elif isinstance(obj, (np.int8, np.int16, np.int32, np.int64, np.integer)):
+    elif isinstance(obj, np.int8 | np.int16 | np.int32 | np.int64 | np.integer):
         return int(obj)
-    elif isinstance(obj, (np.float16, np.float32, np.float64, np.floating)):
+    elif isinstance(obj, np.float16 | np.float32 | np.float64 | np.floating):
         if np.isnan(obj):
             return None
         return float(obj)
@@ -883,7 +935,7 @@ def convert_to_serializable(obj):
         return bool(obj)
     elif isinstance(obj, dict):
         return {k: convert_to_serializable(v) for k, v in obj.items()}
-    elif isinstance(obj, (list, tuple)):
+    elif isinstance(obj, list | tuple):
         return [convert_to_serializable(item) for item in obj]
     elif isinstance(obj, np.generic):
         if np.isnan(obj):

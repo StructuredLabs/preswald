@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+from collections.abc import Callable
 from threading import Lock
 from typing import Any, Callable, Dict, Optional
 from contextlib import contextmanager
@@ -29,14 +30,14 @@ class BasePreswaldService:
     _not_initialized_msg = "Base service not initialized."
 
     def __init__(self):
-        self._component_states: Dict[str, Any] = {}
+        self._component_states: dict[str, Any] = {}
         self._lock = Lock()
 
         # Data management
-        self.data_manager: Optional[DataManager] = None  # set during server creation
+        self.data_manager: DataManager | None = None  # set during server creation
 
         # Initialize service state
-        self._script_path: Optional[str] = None
+        self._script_path: str | None = None
         self._is_shutting_down: bool = False
         self._render_buffer = RenderBuffer()
 
@@ -45,7 +46,7 @@ class BasePreswaldService:
         self._current_atom: Optional[str] = None
 
         # Initialize session tracking
-        self.script_runners: Dict[str, ScriptRunner] = {}
+        self.script_runners: dict[str, ScriptRunner] = {}
 
         # Layout management
         self._layout_manager = LayoutManager()
@@ -75,7 +76,7 @@ class BasePreswaldService:
         return cls._instance
 
     @property
-    def script_path(self) -> Optional[str]:
+    def script_path(self) -> str | None:
         return self._script_path
 
     @script_path.setter
@@ -90,9 +91,10 @@ class BasePreswaldService:
     def append_component(self, component):
         """Add a component to the layout manager"""
         try:
-
             if isinstance(component, dict):
-                logger.info(f"[APPEND] Appending component: {component.get('id')}, type: {component.get('type')}")
+                logger.info(
+                    f"[APPEND] Appending component: {component.get('id')}, type: {component.get('type')}"
+                )
                 # Clean any NaN values in the component
                 clean_start = time.time()
                 cleaned_component = clean_nan_values(component)
@@ -237,7 +239,7 @@ class BasePreswaldService:
     def _create_send_callback(self, websocket: Any) -> Callable:
         """Create a message sending callback for a specific websocket"""
 
-        async def send_message(msg: Dict[str, Any]):
+        async def send_message(msg: dict[str, Any]):
             if not self._is_shutting_down:
                 try:
                     await websocket.send_json(msg)
@@ -247,7 +249,7 @@ class BasePreswaldService:
         return send_message
 
     async def _broadcast_state_updates(
-        self, states: Dict[str, Any], exclude_client: Optional[str] = None
+        self, states: dict[str, Any], exclude_client: str | None = None
     ):
         """Broadcast state updates to all clients except the sender"""
 
@@ -272,7 +274,7 @@ class BasePreswaldService:
                     except Exception as e:
                         logger.error(f"Error broadcasting to {client_id}: {e}")
 
-    async def _handle_component_update(self, client_id: str, message: Dict[str, Any]):
+    async def _handle_component_update(self, client_id: str, message: dict[str, Any]):
         """Handle component state update messages"""
         states = message.get("states", {})
         if not states:
@@ -280,10 +282,7 @@ class BasePreswaldService:
             raise ValueError("Component update missing states")
 
         # Only rerun if any state actually changed
-        changed_states = {
-            k: v for k, v in states.items()
-            if self.should_render(k, v)
-        }
+        changed_states = {k: v for k, v in states.items() if self.should_render(k, v)}
 
         if not changed_states:
             logger.debug("[STATE] No actual state changes detected. Skipping rerun.")
@@ -301,6 +300,10 @@ class BasePreswaldService:
         # Broadcast updates to other clients
         await self._broadcast_state_updates(changed_states, exclude_client=client_id)
 
+    def connect_data_manager(self):
+        """Connect the data manager"""
+        self.data_manager.connect()
+
     def _initialize_data_manager(self, script_path: str) -> None:
         script_dir = os.path.dirname(script_path)
         preswald_path = os.path.join(script_dir, "preswald.toml")
@@ -310,7 +313,9 @@ class BasePreswaldService:
             preswald_path=preswald_path, secrets_path=secrets_path
         )
 
-    async def _register_common_client_setup(self, client_id: str, websocket: Any) -> ScriptRunner:
+    async def _register_common_client_setup(
+        self, client_id: str, websocket: Any
+    ) -> ScriptRunner:
         logger.info(f"Registering client: {client_id}")
 
         self.websocket_connections[client_id] = websocket
@@ -350,7 +355,7 @@ class BasePreswaldService:
         except Exception as e:
             logger.error(f"Error sending initial states: {e}")
 
-    def _update_component_states(self, states: Dict[str, Any]):
+    def _update_component_states(self, states: dict[str, Any]):
         """Update internal state dictionary with cleaned component values."""
         with self._lock:
             logger.debug("[STATE] Updating states")
