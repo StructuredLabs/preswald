@@ -125,10 +125,9 @@ def button(
         "size": size,
         "value": current_value,
         "onClick": True,  # Always enable click handling
+        "random_state": np.random.randn(),
+        "state_key": "random_state" if can_be_reclicked else "value",
     }
-
-    if can_be_reclicked:
-        component["random_state"] = np.random.randn()
 
     if service.should_render(component_id, component):
         if logger.isEnabledFor(logging.DEBUG):
@@ -368,9 +367,9 @@ def image(src, alt="Image", size=1.0):
         "type": "image",
         "id": component_id,
         "src": processed_src,
-        "value": processed_src,
         "alt": alt,
         "size": size,
+        "state_key": "src",
     }
 
     if service.should_render(component_id, component):
@@ -651,7 +650,7 @@ def plotly(fig, size: float = 1.0) -> dict:  # noqa: C901
                 },
             },
             "size": size,
-            "value": serializable_fig_dict.get("data", []),
+            "state_key": "data",
         }
 
         # Verify JSON serialization

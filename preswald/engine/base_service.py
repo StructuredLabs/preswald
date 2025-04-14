@@ -90,11 +90,13 @@ class BasePreswaldService:
                 if "id" in cleaned_component:
                     component_id = cleaned_component["id"]
                     if component_id not in self._layout_manager.seen_ids:
-                        # Update component with current state if it exists
-                        if "value" in cleaned_component:
+                        state_key = cleaned_component.get("state_key", "value")
+                        if state_key in cleaned_component:
+                            # Update component with current state if it exists
                             current_state = self.get_component_state(component_id)
+
                             if current_state is not None:
-                                cleaned_component["value"] = clean_nan_values(
+                                cleaned_component[state_key] = clean_nan_values(
                                     current_state
                                 )
                                 if logger.isEnabledFor(logging.DEBUG):
