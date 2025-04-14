@@ -1,0 +1,18 @@
+[project]
+title = "Sales Performance Dashboard"
+version = "1.2.0"
+port = 8501
+slug = "sales-performance-dashboard"
+entrypoint = "hello.py"
+
+[branding]
+name = "Sales Insights & Trends"
+primaryColor = "#ff6f61"
+
+[data.superstore_sales]
+type = "csv"
+path = "data/train.csv"
+encoding = "utf-8"
+
+[logging]
+level = "INFO"
