@@ -8,6 +8,7 @@ text("This is your first app. 🎉")
 
 # Load the JSON source defined as "user_events" in preswald.toml
 connect()  # This loads all data sources, including our nested JSON source.
+
 df = get_df("user_events")
 
 # Create a scatter plot using the flattened data.
@@ -22,7 +23,8 @@ fig = px.scatter(
 )
 
 # Add labels for each point
-fig.update_traces(textposition="top center", marker=dict(size=12, color="lightblue"))
+fig.update_traces(textposition="top center", marker={"size": 12, "color": "lightblue"})
+
 
 # Style the plot
 fig.update_layout(template="plotly_white")

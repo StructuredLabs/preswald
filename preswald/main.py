@@ -156,11 +156,18 @@ def _setup_static_files(app: FastAPI) -> BrandingManager:
     os.makedirs(static_dir, exist_ok=True)
     os.makedirs(assets_dir, exist_ok=True)
 
-    # Initialize branding manager
-    branding_manager = BrandingManager(static_dir, assets_dir)
-
     # Mount static files
     app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+    # Mount project's images directory if it exists
+    project_images_dir = os.path.join(os.getcwd(), "images")
+    if not os.path.exists(project_images_dir):
+        os.mkdir(project_images_dir)
+
+    app.mount("/images", StaticFiles(directory=project_images_dir), name="images")
+
+    # Initialize branding manager
+    branding_manager = BrandingManager(static_dir, project_images_dir)
 
     return branding_manager
 

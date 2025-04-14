@@ -9,7 +9,6 @@ from preswald import (
     button,
     chat,
     checkbox,
-    connect,
     get_df,
     image,
     json_viewer,
@@ -73,7 +72,6 @@ def load_data():
     text("## 2. Viewing Data with `table()`")
     text("Let's load a sample dataset and display it using the `table()` component.")
 
-    connect()
     df = get_df("sample_csv")
     table(df, limit=10)  # Display first 10 rows
 
@@ -261,7 +259,6 @@ The `workflow_dag()` function renders a Directed Acyclic Graph (DAG) to visualiz
 
     @demo_workflow.atom()
     def demo_load_data():
-        connect()
         return get_df("sample_csv")
 
     @demo_workflow.atom(dependencies=["demo_load_data"])
@@ -287,7 +284,6 @@ from preswald import workflow_dag, Workflow
 workflow = Workflow()
 @workflow.atom()
 def load_data():
-    connect()
     return get_df("sample_csv")
 @workflow.atom(dependencies=['load_data'])
 def clean_data(load_data):

@@ -35,6 +35,7 @@ async def initialize_preswald(script_path: str | None = None):
 
     try:
         # Import the service
+        from preswald.engine.managers.branding import BrandingManager
         from preswald.engine.service import PreswaldService
 
         # Initialize the service
@@ -43,8 +44,16 @@ async def initialize_preswald(script_path: str | None = None):
         # Register a client
         _script_runner = await _service.register_client(_client_id)
 
+        # Set branding
+        _service.branding_manager = BrandingManager(
+            static_dir="",
+            branding_dir="images",
+        )
+
         if _service and hasattr(_service, "branding_manager"):
-            branding = _service.branding_manager.get_branding_config(script_path or "")
+            branding = _service.branding_manager.get_branding_config_with_data_urls(
+                script_path or ""
+            )
 
             import json
 

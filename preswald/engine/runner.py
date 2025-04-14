@@ -29,7 +29,7 @@ class ScriptRunner:
         self,
         session_id: str,
         send_message_callback: Callable,
-        initial_states: dict = None,
+        initial_states: dict | None = None,
     ):
         """Initialize the ScriptRunner with enhanced state management.
 
@@ -101,7 +101,7 @@ class ScriptRunner:
             logger.error(f"[ScriptRunner] Error stopping script: {e}")
             raise
 
-    async def rerun(self, new_widget_states: dict[str, Any] = None):
+    async def rerun(self, new_widget_states: dict[str, Any] | None = None):
         """Rerun the script with new widget values and debouncing.
 
         Args:
@@ -175,7 +175,7 @@ class ScriptRunner:
                         for line in lines[:-1]:
                             if line.strip():
                                 logger.debug(f"[ScriptRunner] Captured output: {line}")
-                                asyncio.create_task(
+                                asyncio.create_task(  # noqa: RUF006
                                     self.callback(
                                         {"type": "output", "content": line + "\n"}
                                     )
@@ -189,7 +189,7 @@ class ScriptRunner:
                             logger.debug(
                                 f"[ScriptRunner] Flushing output: {self.buffer}"
                             )
-                            asyncio.create_task(
+                            asyncio.create_task(  # noqa: RUF006
                                 self.callback(
                                     {"type": "output", "content": self.buffer}
                                 )
@@ -223,6 +223,7 @@ class ScriptRunner:
 
             # Clear previous components before execution
             service.clear_components()
+            service.connect_data_manager()
 
             # Set up script environment
             self._script_globals = {
