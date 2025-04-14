@@ -125,9 +125,11 @@ def button(
         "size": size,
         "value": current_value,
         "onClick": True,  # Always enable click handling
-        "random_state": np.random.randn(),
-        "state_key": "random_state" if can_be_reclicked else "value",
     }
+
+    if can_be_reclicked:
+        component["random_state"] = np.random.randn()
+        component["state_key"] = "random_state"
 
     if service.should_render(component_id, component):
         if logger.isEnabledFor(logging.DEBUG):
