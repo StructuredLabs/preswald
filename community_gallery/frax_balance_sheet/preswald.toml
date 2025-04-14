@@ -1,0 +1,9 @@
+[project]
+title = "Frax Balance Sheet"
+version = "0.1.0"
+slug = "preswald-frax"
+entrypoint = "hello.py"
+
+[data.frax_assets]
+type = "csv"
+path = "data/frax_assets.csv"
