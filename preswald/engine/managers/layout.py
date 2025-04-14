@@ -72,7 +72,6 @@ class LayoutManager:
         component_id = updated_component["id"]
         logger.debug(f"[PATCH] Patching existing component { component_id }")
 
-        patched = False
         for row in self.rows:
             for i, existing in enumerate(row):
                 if existing.get("id") == component_id:

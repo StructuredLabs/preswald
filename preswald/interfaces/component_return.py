@@ -1,9 +1,3 @@
-# from dataclasses import dataclass
-
-# @dataclass
-# class ComponentReturn:
-#     value: any
-
 class ComponentReturn:
     """
     Wrapper for component return values that separates the visible return

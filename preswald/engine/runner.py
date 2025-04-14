@@ -48,7 +48,9 @@ class ScriptRunner:
         self._lock = threading.Lock()
         self._script_globals = {}
 
-        from .service import PreswaldService # deferred import to avoid cyclic dependency
+        from .service import (
+            PreswaldService,  # deferred import to avoid cyclic dependency
+        )
         self._service = PreswaldService.get_instance()
 
         logger.info(f"[ScriptRunner] Initialized with session_id: {session_id}")
@@ -139,6 +141,7 @@ class ScriptRunner:
                 for cid in changed_component_ids
                 if self._service.get_workflow().get_component_producer(cid)
             }
+
             affected = self._service.get_affected_components(changed_atoms)
             self._service.force_recompute(affected)
 
@@ -162,7 +165,7 @@ class ScriptRunner:
                 logger.info("[ScriptRunner] Sent components to frontend")
 
         except Exception as e:
-            error_msg = f"Error updating widget states: {str(e)}"
+            error_msg = f"Error updating widget states: {e!s}"
             logger.error(f"[ScriptRunner] {error_msg}", exc_info=True)
             await self._send_error(error_msg)
             self._state = ScriptState.ERROR
