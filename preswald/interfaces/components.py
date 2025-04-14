@@ -140,6 +140,9 @@ def button(
     current_value = service.get_component_state(component_id)
     if current_value is None:
         current_value = False
+    else:
+        # after the first click, the button is always true
+        current_value = True
 
     component = {
         "type": "button",
