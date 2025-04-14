@@ -28,7 +28,8 @@ import pandas as pd
 # Internal
 from preswald.engine.service import PreswaldService
 from preswald.interfaces.workflow import Workflow
-from preswald.utils import with_render_tracking, ComponentReturn
+from preswald.interfaces.component_return import ComponentReturn
+from preswald.utils import with_render_tracking
 
 # Configure logging
 logger = logging.getLogger(__name__)
