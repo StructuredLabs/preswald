@@ -468,8 +468,6 @@ def tutorial(ctx):
 
     This command runs the tutorial app located in the package's tutorial directory.
     """
-    import contextlib
-
     import preswald
 
     package_dir = os.path.dirname(preswald.__file__)
@@ -485,10 +483,16 @@ def tutorial(ctx):
 
     click.echo("🚀 Launching the Preswald tutorial app! 🎉")
 
-    # Use context manager to temporarily change directory
-    with contextlib.chdir(tutorial_dir):
+    # Save current directory
+    current_dir = os.getcwd()
+    try:
+        # Change to tutorial directory
+        os.chdir(tutorial_dir)
         # Invoke the 'run' command from the tutorial directory
         ctx.invoke(run, port=8501)
+    finally:
+        # Change back to original directory
+        os.chdir(current_dir)
 
 
 if __name__ == "__main__":

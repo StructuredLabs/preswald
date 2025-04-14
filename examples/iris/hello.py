@@ -5,7 +5,6 @@ import plotly.express as px
 
 from preswald import (
     chat,
-    connect,
     # fastplotlib,
     get_df,
     plotly,
@@ -28,7 +27,6 @@ text(
 )
 
 # Load the CSV
-connect()  # Load in all sources, which by default is the iris_csv
 df = get_df("iris_csv")
 
 # 1. Scatter plot - Sepal Length vs Sepal Width

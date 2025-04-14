@@ -5,7 +5,7 @@ Browser compatibility layer for Preswald in Pyodide environments
 import asyncio
 import logging
 import sys
-from typing import Any, Dict, Optional
+from typing import Any
 
 from preswald.engine.base_service import BasePreswaldService
 from preswald.engine.utils import RenderBuffer
@@ -37,7 +37,7 @@ class VirtualWebSocket:
         )
         console.log(f"[Communication] is browser mode: {self.is_browser_mode}")
 
-    async def send_json(self, data: Dict[str, Any]):
+    async def send_json(self, data: dict[str, Any]):
         """Send JSON data to JavaScript frontend"""
         if not self.is_connected:
             logger.error(f"Cannot send message, connection closed for {self.client_id}")
@@ -185,11 +185,14 @@ class VirtualPreswaldService(BasePreswaldService):
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug(f"Handling JS message from {client_id}: {message}")
 
-                asyncio.create_task(self.handle_client_message(client_id, message))   # noqa: RUF006
+                asyncio.create_task(self.handle_client_message(client_id, message))  # noqa: RUF006
                 return True
             except Exception:
                 import traceback
-                logger.error("Error in handle_message_from_js: %s", traceback.format_exc())
+
+                logger.error(
+                    "Error in handle_message_from_js: %s", traceback.format_exc()
+                )
                 return False
 
         # Export the function to JavaScript
