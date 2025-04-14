@@ -1,3 +1,29 @@
+"""
+Components are used to create the UI and interact with the data. They are functions that a) create
+and append a component to the component list and b) return an output to be used in the the app workflow.
+
+In order to ensure proper state management and efficient rendering, the state of the component is created,
+by default, on the value of the "value" key in the component dictionary. If you need to set an alternative key to
+manage the state of the component, you can set the "state_key" key in the component dictionary.
+
+```
+# will re-render with every rerun
+component = {
+    ...,
+    "random_state": randn(),
+    "state_key": "random_state",
+}
+
+# will re-render only when the data changes
+component = {
+    ...,
+    "data": json_data,
+    "state_key": "data",
+}
+```
+
+"""
+
 # Standard Library
 import base64
 import hashlib
