@@ -938,6 +938,7 @@ def table(
                 "rowData": processed_data,
                 "title": str(title) if title else None,
             },
+            "state_key": "props",
         }
 
         if service.should_render(component_id, component):
@@ -1103,6 +1104,7 @@ def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -
                 ],
                 "layout": {"title": {"text": title}, "showlegend": True},
             },
+            "state_key": "data",
         }
 
         logger.debug(f"[WORKFLOW_DAG] Created DAG component with id {component_id}")
