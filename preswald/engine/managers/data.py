@@ -38,6 +38,7 @@ def load_json_source(config: dict[str, Any]) -> pd.DataFrame:
                 f"Invalid record_path '{record_path}' for JSON file '{path}': {e}"
             ) from e
 
+
     # Normalize or convert data if "flatten"
     try:
         if flatten:
@@ -48,6 +49,7 @@ def load_json_source(config: dict[str, Any]) -> pd.DataFrame:
         raise ValueError(
             f"Error converting JSON data from file '{path}' to DataFrame: {e}"
         ) from e
+
 
 
 # Database Configs ############################################################
@@ -115,7 +117,6 @@ class S3CSVConfig:
     path: str
     s3_use_ssl: bool = False
     s3_url_style: str = "path"
-
 
 class DataSource:
     """Base class for all data sources"""

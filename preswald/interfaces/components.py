@@ -320,6 +320,34 @@ def image(src, alt="Image", size=1.0, component_id: str | None = None) -> Compon
 
     return ComponentReturn(component, component)
 
+@with_render_tracking('json_viewer')
+def json_viewer(
+    data, title: str | None = None, expanded: bool = True, size: float = 1.0, component_id: str | None = None
+) -> dict:
+    """Create a JSON viewer component with collapsible tree view."""
+    # Attempt to ensure JSON is serializable and safe
+    try:
+        if isinstance(data, str):
+            parsed_data = json.loads(data)
+        else:
+            parsed_data = data
+        serializable_data = convert_to_serializable(parsed_data)
+    except Exception as e:
+        serializable_data = {"error": f"Invalid JSON: {e!s}"}
+
+    component = {
+        "type": "json_viewer",
+        "id": component_id,
+        "data": serializable_data,
+        "title": title,
+        "expanded": expanded,
+        "size": size,
+    }
+
+    logger.debug(f"Created JSON viewer component with id {component_id}")
+    return ComponentReturn(component, component)
+   
+
 @with_render_tracking('matplotlib')
 def matplotlib(fig: plt.Figure | None = None, label: str = "plot", component_id: str | None = None) -> ComponentReturn:
     """Render a Matplotlib figure as a component."""

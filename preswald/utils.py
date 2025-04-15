@@ -32,7 +32,7 @@ def read_port_from_config(config_path: str, port: int):
         print(f"Warning: Could not load port config from {config_path}: {e}")
 
 
-def configure_logging(config_path: Optional[str] = None, level: Optional[str] = None):
+def configure_logging(config_path: str | None = None, level: str | None = None):
     """
     Configure logging globally for the application.
 
