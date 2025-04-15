@@ -11,6 +11,7 @@ from preswald import (
     checkbox,
     get_df,
     image,
+    json_viewer,
     matplotlib,
     playground,
     plotly,
@@ -529,10 +530,42 @@ def text_input_demo():
         text(f"👋 Hello, {name}!")
 
 
+# --- JSON VIEWER COMPONENT ---
+@workflow.atom()
+def json_viewer_demo():
+    text("## 21. Exploring Structured Data with `json_viewer()`")
+    text(
+        "Use the `json_viewer()` component to visualize deeply nested JSON objects interactively."
+    )
+
+    sample_json = {
+        "user": {
+            "id": 123,
+            "name": "Alice",
+            "isActive": True,
+            "email": "alice@example.com",
+            "roles": ["admin", "editor"],
+            "profile": {
+                "age": 30,
+                "address": {
+                    "street": "123 Main St",
+                    "city": "Wonderland",
+                    "zip": "12345",
+                },
+            },
+        },
+        "stats": {"posts": 34, "followers": 1200, "following": 150},
+        "createdAt": "2025-04-09T12:00:00Z",
+        "metadata": None,
+    }
+
+    json_viewer(sample_json, title="Sample User Data", expanded=True)
+
+
 # --- BIG NUMBER METRIC CARDS COMPONENT ---
 @workflow.atom()
 def big_number_demo():
-    text("## 21. Highlighting Key Metrics with `big_number()`")
+    text("## 22. Highlighting Key Metrics with `big_number()`")
     text(
         """The `big_number()` component lets you visually emphasize important single-value KPIs like active users, usage trends, or totals. It supports delta indicators, icons, automatic number formatting (e.g., 1.2M), and stacking layout.**Example Use Cases:**
 - Total Users

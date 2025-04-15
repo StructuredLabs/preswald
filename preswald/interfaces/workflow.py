@@ -396,7 +396,6 @@ class Workflow:
             if has_cycle(atom_name):
                 raise ValueError("Circular dependency detected in workflow")
 
-
     def _get_execution_order(self) -> list[str]:
         """Returns a valid execution order for atoms based on dependencies."""
         self._validate_dependencies()
