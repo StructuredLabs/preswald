@@ -137,12 +137,12 @@ def button(
     component_id = generate_stable_id("button")
 
     # Get current state or use default
-    current_value = service.get_component_state(component_id)
-    if current_value is None:
+    current_state = service.get_component_state(component_id)
+    if current_state is None:
         current_value = False
     else:
-        # after the first click, the button is always true
-        current_value = True
+        # the current value is stored in the "value" key of the stateful_value dictionary
+        current_value = current_state["value"]
 
     component = {
         "type": "button",
@@ -153,12 +153,13 @@ def button(
         "loading": loading,
         "size": size,
         "value": current_value,
+        "stateful_value": {
+            "value": current_value,
+            "random_state": np.random.randn() if can_be_reclicked else None,
+        },
+        "state_key": "stateful_value",
         "onClick": True,  # Always enable click handling
     }
-
-    if can_be_reclicked:
-        component["random_state"] = np.random.randn()
-        component["state_key"] = "random_state"
 
     if service.should_render(component_id, component):
         if logger.isEnabledFor(logging.DEBUG):

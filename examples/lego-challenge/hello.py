@@ -209,38 +209,41 @@ def get_legos_stepped_on(take_a_step, choose_shoe_size, dump_out_legos):
         return legos_stepped_on
 
 
-@workflow.atom(dependencies=["get_legos_stepped_on"])
-def render_legos_stepped_on(get_legos_stepped_on):
-    colors_fig = visualize_lego_colors(get_legos_stepped_on)
-    plotly(colors_fig)
+@workflow.atom(dependencies=["take_a_step", "get_legos_stepped_on"])
+def render_legos_stepped_on(take_a_step, get_legos_stepped_on):
+    if take_a_step:
+        colors_fig = visualize_lego_colors(get_legos_stepped_on)
+        plotly(colors_fig)
 
 
-@workflow.atom(dependencies=["get_legos_stepped_on"])
-def render_death_roll(get_legos_stepped_on):
-    # Show Minifigs vanquished with step
-    minifigs_vanquished = get_death_roll(get_legos_stepped_on)
-    text(
-        f"## **You vanquished {len(minifigs_vanquished)} Minifig{'s' if len(minifigs_vanquished) > 1 else ''} 💀⚔️**"
-    )
-    text("_(victorious trumpet sounds)_")
-
-    if len(minifigs_vanquished.dropna()) > 0:
-        # Get the first minifig in the death roll that has an image
-        featured_enemy = minifigs_vanquished.dropna().iloc[0]
-        text("### 🏆 Featured Enemy:")
-        text(featured_enemy["part_name"])
-        image(
-            featured_enemy["img_url"],
-            alt=featured_enemy["part_name"],
-            size=0.7,
+@workflow.atom(dependencies=["take_a_step", "get_legos_stepped_on"])
+def render_death_roll(take_a_step, get_legos_stepped_on):
+    if take_a_step:
+        # Show Minifigs vanquished with step
+        minifigs_vanquished = get_death_roll(get_legos_stepped_on)
+        text(
+            f"## **You vanquished {len(minifigs_vanquished)} Minifig{'s' if len(minifigs_vanquished) > 1 else ''} 💀⚔️**"
         )
+        text("_(victorious trumpet sounds)_")
+
+        if len(minifigs_vanquished.dropna()) > 0:
+            # Get the first minifig in the death roll that has an image
+            featured_enemy = minifigs_vanquished.dropna().iloc[0]
+            text("### 🏆 Featured Enemy:")
+            text(featured_enemy["part_name"])
+            image(
+                featured_enemy["img_url"],
+                alt=featured_enemy["part_name"],
+                size=0.7,
+            )
 
 
-@workflow.atom(dependencies=["get_legos_stepped_on"])
-def render_damage(get_legos_stepped_on):
-    damage = calculate_damage(get_legos_stepped_on)
-    text(f"## Total Damage Taken: {damage}")
-    alert("Damage calculation is 1 point per Lego, 2 points per Duplo.")
+@workflow.atom(dependencies=["take_a_step", "get_legos_stepped_on"])
+def render_damage(take_a_step, get_legos_stepped_on):
+    if take_a_step:
+        damage = calculate_damage(get_legos_stepped_on)
+        text(f"## Total Damage Taken: {damage}")
+        alert("Damage calculation is 1 point per Lego, 2 points per Duplo.")
 
 
 # Execute the workflow
