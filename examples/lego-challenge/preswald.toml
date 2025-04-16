@@ -7,8 +7,8 @@ slug = "chemery-online-assessment"
 
 [branding]
 name = "The Lego Challenge"
-logo = "images/silly-goose-logo.png"
-favicon = "images/llego-head.ico"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
 primaryColor = "#000000"
 
 [data.lego_pile]
