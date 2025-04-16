@@ -6,9 +6,11 @@ from dataclasses import dataclass
 from typing import Any
 
 import duckdb
+import firebase_admin
 import pandas as pd
 import requests
 import toml
+from firebase_admin import credentials, db, firestore
 from requests.auth import HTTPBasicAuth
 
 
@@ -38,7 +40,6 @@ def load_json_source(config: dict[str, Any]) -> pd.DataFrame:
                 f"Invalid record_path '{record_path}' for JSON file '{path}': {e}"
             ) from e
 
-
     # Normalize or convert data if "flatten"
     try:
         if flatten:
@@ -50,6 +51,84 @@ def load_json_source(config: dict[str, Any]) -> pd.DataFrame:
             f"Error converting JSON data from file '{path}' to DataFrame: {e}"
         ) from e
 
+
+def load_firebase_source(config: dict) -> pd.DataFrame:
+    """
+    Load data from Firebase (Firestore or Realtime Database) and return a DataFrame.
+
+    Required config fields:
+      - credentials_path: path to Firebase service account key JSON
+      - project_id: Firebase project ID
+    For Firestore (default):
+      - collection: name of the collection to load from
+      - mode: "firestore" (optional, default)
+    For Realtime Database:
+      - path: reference path to data
+      - mode: "realtime"
+
+    Returns:
+        pd.DataFrame: A flattened DataFrame of the Firebase data.
+    """
+    try:
+        # Check if the credential file exists
+        if not os.path.exists(config["credentials_path"]):
+            raise ValueError(
+                f"Credentials file not found: {config['credentials_path']}"
+            )
+
+        # Create credentials and initialize Firebase app.
+        cred = credentials.Certificate(config["credentials_path"])
+        app_options = {
+            "projectId": config["project_id"],
+        }
+        # Realtime DB requires databaseURL; Firestore does not.
+        if config.get("mode", "firestore") == "realtime":
+            # Construct the database URL using the project_id.
+            app_options["databaseURL"] = (
+                f"https://{config['project_id']}.firebaseio.com"
+            )
+
+        # Avoid initializing the app multiple times.
+        if not firebase_admin._apps:
+            firebase_admin.initialize_app(cred, app_options)
+
+        # Load data based on mode.
+        mode = config.get("mode", "firestore")
+        if mode == "firestore":
+            # Using Firestore client
+            client = firestore.client()
+            if "collection" not in config:
+                raise ValueError(
+                    "Missing 'collection' field for Firestore data source."
+                )
+            docs = client.collection(config["collection"]).stream()
+            records = [doc.to_dict() for doc in docs]
+        elif mode == "realtime":
+            if "path" not in config:
+                raise ValueError(
+                    "Missing 'path' field for Realtime Database data source."
+                )
+            ref = db.reference(config["path"])
+            records = ref.get()
+            # If we got back a plain dict-of-scalars (no nested objects),
+            # treat it as one record so we keep the keys as column names.
+            if isinstance(records, dict):
+                # all values are primitives? wrap the dict itself as one record
+                if all(not isinstance(v, dict | list) for v in records.values()):
+                    records = [records]
+                else:
+                    # nested dict → list of sub-records
+                    records = list(records.values())
+        else:
+            raise ValueError(f"Unsupported mode '{mode}' for Firebase data source.")
+
+        # Normalize and flatten the JSON records into a DataFrame.
+        df = pd.json_normalize(records, sep=".")
+        return df
+
+    except Exception as e:
+        # Consider logging and/or raising a more detailed error.
+        raise Exception(f"Error loading Firebase data: {e}") from e
 
 
 # Database Configs ############################################################
@@ -117,6 +196,17 @@ class S3CSVConfig:
     path: str
     s3_use_ssl: bool = False
     s3_url_style: str = "path"
+
+
+# Firebase Configs ##################################################################
+@dataclass
+class FirebaseConfig:
+    credentials_path: str
+    project_id: str
+    mode: str = "firestore"  # or "realtime"
+    collection: str | None = None  # for Firestore
+    path: str | None = None  # for Realtime DB
+
 
 class DataSource:
     """Base class for all data sources"""
@@ -413,6 +503,28 @@ class ParquetSource(DataSource):
         return self._duckdb.execute(f"SELECT * FROM {self._table_name}").df()
 
 
+class FirebaseSource(DataSource):
+    def __init__(
+        self, name: str, config: FirebaseConfig, duckdb_conn: duckdb.DuckDBPyConnection
+    ):
+        super().__init__(name, duckdb_conn)
+        self.config = config
+        # Load data into a pandas DataFrame
+        df = load_firebase_source(config.__dict__)
+        self._duckdb.register("df", df)
+
+        # Register that DataFrame as a DuckDB table
+        self._table_name = f"firebase_{name}_{uuid.uuid4().hex[:8]}"
+        self._duckdb.execute(f"CREATE TABLE {self._table_name} AS SELECT * FROM df")
+
+    def query(self, sql: str) -> pd.DataFrame:
+        # allow SQL queries against our temp table
+        return self._duckdb.execute(sql.replace(self.name, self._table_name)).df()
+
+    def to_df(self) -> pd.DataFrame:
+        return self._duckdb.execute(f"SELECT * FROM {self._table_name}").df()
+
+
 class DataManager:
     def __init__(self, preswald_path: str, secrets_path: str | None = None):
         self.preswald_path = preswald_path
@@ -527,6 +639,16 @@ class DataManager:
                         columns=source_config.get("columns"),
                     )
                     self.sources[name] = ParquetSource(name, cfg, self.duckdb_conn)
+
+                elif source_type == "firebase":
+                    cfg = FirebaseConfig(
+                        credentials_path=source_config["credentials_path"],
+                        project_id=source_config["project_id"],
+                        mode=source_config.get("mode", "firestore"),
+                        collection=source_config.get("collection"),
+                        path=source_config.get("path"),
+                    )
+                self.sources[name] = FirebaseSource(name, cfg, self.duckdb_conn)
 
                 # Cache the config after successful initialization
                 self.sources_cache[name] = source_config

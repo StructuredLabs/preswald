@@ -177,6 +177,39 @@ path = "data/analytics.parquet"
 columns = ["region", "revenue", "score"]
 ```
 
+### Firebase Example: `[data.<your_source_name>]`
+
+Use **Firestore** or **Realtime Database** as a data source.
+
+#### Fields:
+
+- `type`: Must be `"firebase"`.  
+- `credentials_path`: Path to your Firebase service account JSON key.  
+- `project_id`: Your Firebase project ID (for RTDB, include the full instance name, e.g. `my-project-default-rtdb`).  
+- `mode` (optional): `"firestore"` (default) or `"realtime"`.  
+- `collection`: *(Firestore only)* Name of the Firestore collection to load.  
+- `path`: *(Realtime DB only)* Path in your Realtime Database to load.
+
+#### Example Firestore Connection:
+
+```toml
+[data.user_metrics]
+type             = "firebase"
+credentials_path = "secrets/firebase-key.json"
+project_id       = "my-firebase-project"
+collection       = "metrics"
+mode             = "firestore"
+
+#### Example Realtime DB Connection:
+
+```toml
+[data.sensors]
+type             = "firebase"
+credentials_path = "secrets/firebase-key.json"
+project_id       = "my-firebase-project-default-rtdb"
+path             = "/devices/sensors"
+mode             = "realtime"
+
 ---
 
 ## Logging Configuration
