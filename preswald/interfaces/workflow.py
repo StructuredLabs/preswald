@@ -292,9 +292,12 @@ class Workflow:
             atoms_to_recompute = set()
             if recompute_atoms:
                 atoms_to_recompute = self._get_affected_atoms(recompute_atoms)
-                logger.info(f"Atoms requiring recomputation: {atoms_to_recompute}")
+                logger.debug(f"Atoms requiring recomputation: {atoms_to_recompute}")
 
             for atom_name in execution_order:
+                if self._is_rerun and atoms_to_recompute and atom_name not in atoms_to_recompute:
+                    logger.debug(f"Skipping atom {atom_name} (not affected)")
+                    continue
                 atom = self.atoms[atom_name]
 
                 # Force recomputation if needed
@@ -323,6 +326,8 @@ class Workflow:
         """Retrieve the name of the atom that last produced the component."""
         return self._component_producers.get(component_id)
 
+    #TODO: I need to update this function with a log
+    # but it is different.
     def register_component_producer(self, component_id: str):
         """Associate a component ID with the currently active atom."""
         logger.info(f"[DEBUG] Called register_component_producer({component_id})")
