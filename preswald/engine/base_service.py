@@ -123,25 +123,25 @@ class BasePreswaldService:
                 return
 
             logger.info(f"[APPEND] Appending component: {component.get('id')}, type: {component.get('type')}")
+
             # Clean any NaN values in the component
             clean_start = time.time()
             cleaned_component = clean_nan_values(component)
             logger.debug(f"NaN cleanup took {time.time() - clean_start:.3f}s")
 
-            # Ensure component has current state
             if "id" in cleaned_component:
                 component_id = cleaned_component["id"]
                 logger.info(f"[TEST] append_component() called with id: {component_id}")
+
+                # Try to patch instead of re-adding if already exists
                 if not self._layout_manager.patch_component(cleaned_component):
-                    # Update component with current state if it exists
+                    # Update value if we have previous state
                     if "value" in cleaned_component:
                         current_state = self.get_component_state(component_id)
                         if current_state is not None:
                             cleaned_component["value"] = clean_nan_values(current_state)
                             if logger.isEnabledFor(logging.DEBUG):
-                                logger.debug(
-                                    f"Updated component {component_id} with state: {current_state}"
-                                )
+                                logger.debug(f"Updated component {component_id} with state: {current_state}")
 
                     with self.active_atom(self._workflow._current_atom):
                         current_atom = self._workflow._current_atom
@@ -170,6 +170,7 @@ class BasePreswaldService:
                 self._layout_manager.add_component(cleaned_component)
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug(f"Added component without ID: {cleaned_component}")
+
         except Exception as e:
             logger.error(f"Error adding component: {e}", exc_info=True)
 

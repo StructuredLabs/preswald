@@ -11,8 +11,11 @@ RUN apt-get update && \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# COPY ./preswald-0.1.52-py3-none-any.whl /app/
+
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir --upgrade preswald
+	# pip install --no-cache-dir --upgrade ./preswald-0.1.52-py3-none-any.whl --force-reinstall
 
 FROM python:3.12-slim-bullseye
 

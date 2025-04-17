@@ -248,7 +248,7 @@ class ScriptRunner:
 
         try:
             # Clear previous components before execution
-            self._service._layout_manager.clear_layout()
+            self._service.clear_components()
             self._service.connect_data_manager()
 
             # Set up script environment
