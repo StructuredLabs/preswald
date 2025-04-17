@@ -2,6 +2,7 @@ import logging
 import os
 import time
 from collections.abc import Callable
+from contextlib import contextmanager
 from threading import Lock
 from typing import Any
 
@@ -12,6 +13,7 @@ from preswald.engine.utils import (
     compress_data,
     optimize_plotly_data,
 )
+from preswald.interfaces.workflow import Atom, Workflow
 
 from .managers.data import DataManager
 from .managers.layout import LayoutManager
@@ -40,11 +42,24 @@ class BasePreswaldService:
         self._is_shutting_down: bool = False
         self._render_buffer = RenderBuffer()
 
+        # DAG workflow engine
+        self._workflow = Workflow()
+        self._current_atom: str | None = None
+
         # Initialize session tracking
         self.script_runners: dict[str, ScriptRunner] = {}
 
         # Layout management
         self._layout_manager = LayoutManager()
+
+    @contextmanager
+    def active_atom(self, component_id: str):
+        previous_atom = self._current_atom
+        self._current_atom = component_id
+        try:
+            yield
+        finally:
+            self._current_atom = previous_atom
 
     @classmethod
     def get_instance(cls):
@@ -103,11 +118,16 @@ class BasePreswaldService:
                                     logger.debug(
                                         f"Updated component {component_id} with state: {current_state}"
                                     )
-                        self._layout_manager.add_component(cleaned_component)
-                        if logger.isEnabledFor(logging.DEBUG):
-                            logger.debug(
-                                f"Added component with state: {cleaned_component}"
-                            )
+                        with self.active_atom(component_id):
+                            if component_id not in self._workflow.atoms:
+                                self._workflow.atoms[component_id] = Atom(
+                                    name=component_id, func=lambda: None
+                                )
+                            self._layout_manager.add_component(cleaned_component)
+                            if logger.isEnabledFor(logging.DEBUG):
+                                logger.debug(
+                                    f"Added component with state: {cleaned_component}"
+                                )
                 else:
                     # Components without IDs are added as-is
                     self._layout_manager.add_component(cleaned_component)
@@ -130,18 +150,44 @@ class BasePreswaldService:
         """Clear all components from the layout manager"""
         self._layout_manager.clear_layout()
 
+    def force_recompute(self, component_ids: set[str]) -> None:
+        """Mark components as needing recomputation."""
+        logger.debug(f"[DAG] Forcing recompute for: {component_ids}")
+        for cid in component_ids:
+            if cid in self._workflow.atoms:
+                self._workflow.atoms[cid].force_recompute = True
+
+    def get_affected_components(self, changed_components: set[str]) -> set[str]:
+        """Compute all components affected by the updated component state."""
+        affected = self._workflow._get_affected_atoms(changed_components)
+        logger.debug(f"Changed: {changed_components} → Affected: {affected}")
+        return affected
+
     def get_component_state(self, component_id: str, default: Any = None) -> Any:
         """Retrieve the current state for a given component."""
         with self._lock:
             value = self._component_states.get(component_id, default)
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug(f"[STATE] Getting state for {component_id}: {value}")
+
+            # register a DAG dependency if workflow is active
+            if self._current_atom:
+                logger.debug(f"[DAG] {self._current_atom} depends on {component_id}")
+                if self._current_atom not in self._workflow.atoms:
+                    self._workflow.atoms[self._current_atom] = Atom(
+                        name=self._current_atom, func=lambda: None
+                    )
+                self._workflow.atoms[self._current_atom].dependencies.add(component_id)
+
             return value
 
     def get_rendered_components(self):
         """Get all rendered components"""
         rows = self._layout_manager.get_layout()
         return {"rows": rows}
+
+    def get_workflow(self) -> Workflow:
+        return self._workflow
 
     async def handle_client_message(self, client_id: str, message: dict[str, Any]):
         """Process incoming messages from clients"""

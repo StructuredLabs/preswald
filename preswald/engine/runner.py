@@ -48,6 +48,12 @@ class ScriptRunner:
         self._lock = threading.Lock()
         self._script_globals = {}
 
+        from .service import (
+            PreswaldService,
+        )  # deferred import to avoid cyclic dependency
+
+        self._service = PreswaldService.get_instance()
+
         logger.info(f"[ScriptRunner] Initialized with session_id: {session_id}")
         if initial_states:
             logger.debug(f"[ScriptRunner] Loaded initial states: {initial_states}")
@@ -131,6 +137,11 @@ class ScriptRunner:
 
                 self._run_count += 1
                 self._last_run_time = current_time
+
+            # determine affected components and force recomputation
+            changed = set(new_widget_states.keys())
+            affected = self._service.get_affected_components(changed)
+            self._service.force_recompute(affected)
 
             await self.run_script()
 
@@ -217,13 +228,9 @@ class ScriptRunner:
         )
 
         try:
-            from .service import PreswaldService
-
-            service = PreswaldService.get_instance()
-
             # Clear previous components before execution
-            service.clear_components()
-            service.connect_data_manager()
+            self._service.clear_components()
+            self._service.connect_data_manager()
 
             # Set up script environment
             self._script_globals = {
@@ -247,8 +254,17 @@ class ScriptRunner:
                     os.chdir(current_working_dir)
 
                 # Process rendered components
-                components = service.get_rendered_components()
+                components = self._service.get_rendered_components()
                 logger.info(f"[ScriptRunner] Rendered {len(components)} components")
+
+                rows = components.get("rows", [])
+                for row in rows:
+                    for component in row:
+                        component_id = component.get("id")
+                        if not component_id:
+                            continue
+                        with self._service.active_atom(component_id):
+                            _ = self._service.get_component_state(component_id)
 
                 if components:
                     # Send to frontend
