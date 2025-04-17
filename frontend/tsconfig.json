@@ -1,5 +1,5 @@
 {
-    "include": ["src/**/*.tsx", "src/**/*.ts"],
+    "include": ["src/**/*.tsx", "src/**/*.ts", "src/components/widgets/Document.jsx"],
     "compilerOptions": {
       "jsx": "react",
       "baseUrl": ".",
