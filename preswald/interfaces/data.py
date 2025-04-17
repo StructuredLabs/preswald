@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 import pandas as pd
 
@@ -37,7 +36,7 @@ def query(sql: str, source_name: str) -> pd.DataFrame:
         logger.error(f"Error querying data source: {e}")
 
 
-def get_df(source_name: str, table_name: Optional[str] = None) -> pd.DataFrame:
+def get_df(source_name: str, table_name: str | None = None) -> pd.DataFrame:
     """
     Get a dataframe from the named data source from preswald.toml
     If the source is a database/has multiple tables, you must specify a table_name

@@ -1,16 +1,19 @@
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Set, Callable, Union
+import hashlib
+import inspect
+import logging
+import pickle
+import time
+import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from functools import wraps
+from datetime import datetime
 from enum import Enum
+from functools import wraps
+from typing import Any
+
 import networkx as nx
 import plotly.graph_objects as go
-import inspect
-import uuid
-import time
-import logging
-import hashlib
-import pickle
+
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -33,14 +36,14 @@ class AtomResult:
 
     status: AtomStatus
     value: Any = None
-    error: Optional[Exception] = None
+    error: Exception | None = None
     attempts: int = 0
-    start_time: Optional[float] = None
-    end_time: Optional[float] = None
-    input_hash: Optional[str] = None  # Hash of input parameters
+    start_time: float | None = None
+    end_time: float | None = None
+    input_hash: str | None = None  # Hash of input parameters
 
     @property
-    def execution_time(self) -> Optional[float]:
+    def execution_time(self) -> float | None:
         """Calculate the execution time if both start and end times are available."""
         if self.start_time and self.end_time:
             return self.end_time - self.start_time
@@ -75,10 +78,10 @@ class AtomCache:
     """Manages caching of atom results and determines when recomputation is needed."""
 
     def __init__(self):
-        self.cache: Dict[str, AtomResult] = {}
-        self.hash_cache: Dict[str, str] = {}  # Stores input parameter hashes
+        self.cache: dict[str, AtomResult] = {}
+        self.hash_cache: dict[str, str] = {}  # Stores input parameter hashes
 
-    def compute_input_hash(self, atom_name: str, kwargs: Dict[str, Any]) -> str:
+    def compute_input_hash(self, atom_name: str, kwargs: dict[str, Any]) -> str:
         """
         Compute a hash of the input parameters to determine if recomputation is needed.
         The hash includes:
@@ -126,8 +129,8 @@ class Atom:
 
     name: str
     func: Callable
-    dependencies: Set[str] = field(default_factory=set)
-    retry_policy: Optional[RetryPolicy] = None
+    dependencies: set[str] = field(default_factory=set)
+    retry_policy: RetryPolicy | None = None
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     force_recompute: bool = False  # Flag to force recomputation regardless of cache
 
@@ -152,7 +155,7 @@ class Atom:
                 return result
             except Exception as e:
                 logger.error(
-                    f"Atom {self.name} failed with error: {str(e)}", exc_info=True
+                    f"Atom {self.name} failed with error: {e!s}", exc_info=True
                 )
                 raise
             finally:
@@ -170,8 +173,8 @@ class WorkflowContext:
     """
 
     def __init__(self):
-        self.variables: Dict[str, Any] = {}
-        self.results: Dict[str, AtomResult] = {}
+        self.variables: dict[str, Any] = {}
+        self.results: dict[str, AtomResult] = {}
 
     def get_variable(self, name: str) -> Any:
         return self.variables.get(name)
@@ -190,16 +193,16 @@ class Workflow:
     Main workflow class that manages atoms and their execution.
     """
 
-    def __init__(self, default_retry_policy: Optional[RetryPolicy] = None):
-        self.atoms: Dict[str, Atom] = {}
+    def __init__(self, default_retry_policy: RetryPolicy | None = None):
+        self.atoms: dict[str, Atom] = {}
         self.context = WorkflowContext()
         self.default_retry_policy = default_retry_policy or RetryPolicy()
         self.cache = AtomCache()
 
     def atom(
         self,
-        dependencies: Optional[List[str]] = None,
-        retry_policy: Optional[RetryPolicy] = None,
+        dependencies: list[str] | None = None,
+        retry_policy: RetryPolicy | None = None,
         force_recompute: bool = False,
     ):
         """
@@ -227,7 +230,7 @@ class Workflow:
 
         return decorator
 
-    def _get_affected_atoms(self, changed_atoms: Set[str]) -> Set[str]:
+    def _get_affected_atoms(self, changed_atoms: set[str]) -> set[str]:
         """
         Determine which atoms need to be recomputed based on changes.
         Returns a set of atom names that need recomputation.
@@ -282,7 +285,7 @@ class Workflow:
             if has_cycle(atom_name):
                 raise ValueError("Circular dependency detected in workflow")
 
-    def _get_execution_order(self) -> List[str]:
+    def _get_execution_order(self) -> list[str]:
         """Returns a valid execution order for atoms based on dependencies."""
         self._validate_dependencies()
 
@@ -357,9 +360,7 @@ class Workflow:
                         input_hash=input_hash,
                     )
 
-    def execute(
-        self, recompute_atoms: Optional[Set[str]] = None
-    ) -> Dict[str, AtomResult]:
+    def execute(self, recompute_atoms: set[str] | None = None) -> dict[str, AtomResult]:
         """
         Executes atoms in the workflow, with selective recomputation.
 
@@ -462,7 +463,7 @@ class WorkflowAnalyzer:
         self._last_analysis_time = datetime.now()
         return self.graph
 
-    def get_critical_path(self) -> List[str]:
+    def get_critical_path(self) -> list[str]:
         """
         Identifies the critical path through the workflow - the longest dependency chain
         that must be executed sequentially.
@@ -499,7 +500,7 @@ class WorkflowAnalyzer:
             print(f"Error finding critical path: {e}")
             return []
 
-    def get_parallel_groups(self) -> List[Set[str]]:
+    def get_parallel_groups(self) -> list[set[str]]:
         """
         Identifies groups of atoms that could potentially be executed in parallel.
         """
@@ -514,7 +515,7 @@ class WorkflowAnalyzer:
 
     def visualize(
         self,
-        highlight_path: Optional[List[str]] = None,
+        highlight_path: list[str] | None = None,
         title: str = "Workflow Dependency Graph",
     ):
         """

@@ -6,9 +6,9 @@ import re
 import shutil
 import subprocess
 import zipfile
+from collections.abc import Generator
 from datetime import datetime
 from pathlib import Path
-from typing import Generator, Optional, Union
 
 import requests
 import toml
@@ -241,8 +241,8 @@ def deploy_to_cloud_run(deploy_dir: Path, container_name: str, port: int = 8501)
 def deploy_to_prod(  # noqa: C901
     script_path: str,
     port: int = 8501,
-    github_username: Optional[str] = None,
-    api_key: Optional[str] = None,
+    github_username: str | None = None,
+    api_key: str | None = None,
 ) -> Generator[dict, None, None]:
     """
     Deploy a Preswald app to production via Structured Cloud service.
@@ -631,9 +631,9 @@ def deploy(
     script_path: str,
     target: str = "local",
     port: int = 8501,
-    github_username: Optional[str] = None,
-    api_key: Optional[str] = None,
-) -> Union[str, Generator[dict, None, None]]:
+    github_username: str | None = None,
+    api_key: str | None = None,
+) -> str | Generator[dict, None, None]:
     """
     Deploy a Preswald app.
 
