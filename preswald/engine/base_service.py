@@ -115,12 +115,18 @@ class BasePreswaldService:
                                     logger.debug(
                                         f"Updated component {component_id} with state: {current_state}"
                                     )
+
                         with self.active_atom(component_id):
+                            # track which atom produced this component
+                            self._workflow.register_component_producer(component_id)
+
                             if component_id not in self._workflow.atoms:
                                 self._workflow.atoms[component_id] = Atom(name=component_id, func=lambda: None)
+
                             self._layout_manager.add_component(cleaned_component)
                             if logger.isEnabledFor(logging.DEBUG):
                                 logger.debug(f"Added component with state: {cleaned_component}")
+
                 else:
                     # Components without IDs are added as-is
                     self._layout_manager.add_component(cleaned_component)
@@ -165,10 +171,17 @@ class BasePreswaldService:
 
             # register a DAG dependency if workflow is active
             if self._current_atom:
+                # track component-level dependency
                 logger.debug(f"[DAG] {self._current_atom} depends on {component_id}")
                 if self._current_atom not in self._workflow.atoms:
                     self._workflow.atoms[self._current_atom] = Atom(name=self._current_atom, func=lambda: None)
                 self._workflow.atoms[self._current_atom].dependencies.add(component_id)
+
+                # also register dependency on the atom that produced this component, if known
+                producer = self._workflow.get_component_producer(component_id)
+                if producer:
+                    logger.debug(f"[DAG] {self._current_atom} also depends on producer atom {producer}")
+                    self._workflow.atoms[self._current_atom].dependencies.add(producer)
 
             return value
 

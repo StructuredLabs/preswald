@@ -198,6 +198,7 @@ class Workflow:
         self.context = WorkflowContext()
         self.default_retry_policy = default_retry_policy or RetryPolicy()
         self.cache = AtomCache()
+        self._component_producers: Dict[str, str] = {}  # component_id -> atom_name
 
     def atom(
         self,
@@ -208,20 +209,34 @@ class Workflow:
         """
         Decorator to create and register an atom in the workflow.
 
-        @workflow.atom(
-            dependencies=['atom1', 'atom2'],
-            force_recompute=True  # Force this atom to always recompute
-        )
-        def my_atom(x, y):
-            return x + y
-        """
+        If no dependencies are provided explicitly, the decorator will infer them
+        from the function’s parameter names.
 
+        Example:
+            @workflow.atom()
+            def show_name(name):
+                text(f"Hello, {name}")
+
+            @workflow.atom()
+            def name_input():
+                return text_input("Enter your name")
+
+        Args:
+            dependencies: Optional list of atom names this atom depends on.
+            retry_policy: Optional custom retry policy.
+            force_recompute: If True, this atom will always recompute on execution.
+        """
         def decorator(func):
             atom_name = func.__name__
+
+            # Infer dependencies from parameter names if not provided
+            inferred_deps = list(inspect.signature(func).parameters.keys())
+            atom_deps = dependencies if dependencies is not None else inferred_deps
+
             atom = Atom(
                 name=atom_name,
                 func=func,
-                dependencies=set(dependencies or []),
+                dependencies=set(atom_deps),
                 retry_policy=retry_policy or self.default_retry_policy,
                 force_recompute=force_recompute,
             )
@@ -312,8 +327,15 @@ class Workflow:
 
     def _execute_atom(self, atom: Atom, **kwargs) -> AtomResult:
         """Execute a single atom with retry logic and caching."""
+        # Compute input arguments from declared dependencies
+        dependency_values = {
+            dep: self.context.variables[dep]
+            for dep in atom.dependencies
+            if dep in self.context.variables
+        }
+
         # Compute input hash
-        input_hash = self.cache.compute_input_hash(atom.name, kwargs)
+        input_hash = self.cache.compute_input_hash(atom.name, dependency_values)
 
         # Check if we can use cached result
         if not atom.force_recompute and not self.cache.should_recompute(
@@ -331,7 +353,7 @@ class Workflow:
         while True:
             attempts += 1
             try:
-                result = atom.func(**kwargs)
+                result = atom.func(**dependency_values)
                 end_time = time.time()
                 atom_result = AtomResult(
                     status=AtomStatus.COMPLETED,
@@ -386,14 +408,8 @@ class Workflow:
             if atom_name in atoms_to_recompute:
                 atom.force_recompute = True
 
-            # Prepare arguments for the atom based on its signature
-            kwargs = {}
-            for param_name in atom.signature.parameters:
-                if param_name in self.context.variables:
-                    kwargs[param_name] = self.context.variables[param_name]
-
-            # Execute the atom
-            result = self._execute_atom(atom, **kwargs)
+            # Execute the atom using values from dependencies
+            result = self._execute_atom(atom)
 
             # Store the result in the context
             self.context.set_result(atom_name, result)
@@ -408,7 +424,7 @@ class Workflow:
 
         return self.context.results
 
-
+    
 class WorkflowAnalyzer:
     """
     Provides visualization and analysis capabilities for workflow structures.
@@ -466,7 +482,11 @@ class WorkflowAnalyzer:
         self._last_analysis_time = datetime.now()
         return self.graph
 
-    def get_critical_path(self) -> list[str]:
+    def get_component_producer(self, component_id: str) -> Optional[str]:
+        """Retrieve the name of the atom that last produced the component."""
+        return self._component_producers.get(component_id)
+
+    def get_critical_path(self) -> List[str]:
         """
         Identifies the critical path through the workflow - the longest dependency chain
         that must be executed sequentially.
@@ -515,6 +535,12 @@ class WorkflowAnalyzer:
         except nx.NetworkXException as e:
             print(f"Error finding parallel groups: {e}")
             return []
+
+    def register_component_producer(self, component_id: str):
+        """Associate a component ID with the currently active atom."""
+        if hasattr(self, '_current_atom') and self._current_atom:
+            logger.debug(f"[DAG] Registering {component_id} as output of {self._current_atom}")
+            self._component_producers[component_id] = self._current_atom
 
     def visualize(
         self,
