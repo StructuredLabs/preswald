@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from functools import wraps
-from typing import Any
+from typing import Any, Optional
 
 import networkx as nx
 import plotly.graph_objects as go
@@ -130,8 +130,8 @@ class Atom:
     name: str
     func: Callable
     original_func: Callable
-    dependencies: Set[str] = field(default_factory=set)
-    retry_policy: Optional[RetryPolicy] = None
+    dependencies: set[str] = field(default_factory=set)
+    retry_policy: RetryPolicy | None = None
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     force_recompute: bool = False  # Flag to force recomputation regardless of cache
 
@@ -194,13 +194,13 @@ class Workflow:
     Main workflow class that manages atoms and their execution.
     """
 
-    def __init__(self, service: Optional["BasePreswaldService"] = None, default_retry_policy: Optional[RetryPolicy] = None):
-        self.atoms: Dict[str, Atom] = {}
+    def __init__(self, service: Optional["BasePreswaldService"] = None, default_retry_policy: RetryPolicy | None = None):
+        self.atoms: dict[str, Atom] = {}
         self.context = WorkflowContext()
         self.default_retry_policy = default_retry_policy or RetryPolicy()
         self.cache = AtomCache()
-        self._component_producers: Dict[str, str] = {}  # component_id -> atom_name
-        self._current_atom: Optional[str] = None  # currently executing atom
+        self._component_producers: dict[str, str] = {}  # component_id -> atom_name
+        self._current_atom: str | None = None  # currently executing atom
         self._service = service
         self._is_rerun = False
 
@@ -255,8 +255,8 @@ class Workflow:
         return decorator
 
     def execute(
-        self, recompute_atoms: Optional[Set[str]] = None
-    ) -> Dict[str, AtomResult]:
+        self, recompute_atoms: set[str] | None = None
+    ) -> dict[str, AtomResult]:
         """
         Executes atoms in the workflow, with selective recomputation.
 
@@ -322,7 +322,7 @@ class Workflow:
         finally:
             self._is_rerun = False  # reset after execution
 
-    def get_component_producer(self, component_id: str) -> Optional[str]:
+    def get_component_producer(self, component_id: str) -> str | None:
         """Retrieve the name of the atom that last produced the component."""
         return self._component_producers.get(component_id)
 
@@ -335,7 +335,7 @@ class Workflow:
             logger.info(f"[DAG] Registering {component_id} as output of {self._current_atom}")
             self._component_producers[component_id] = self._current_atom
 
-    def _get_affected_atoms(self, changed_atoms: Set[str]) -> Set[str]:
+    def _get_affected_atoms(self, changed_atoms: set[str]) -> set[str]:
         """
         Determine which atoms need to be recomputed based on changes.
         Returns a set of atom names that need recomputation.
@@ -396,7 +396,7 @@ class Workflow:
             if has_cycle(atom_name):
                 raise ValueError("Circular dependency detected in workflow")
 
-    def _get_execution_order(self) -> List[str]:
+    def _get_execution_order(self) -> list[str]:
         """Returns a valid execution order for atoms based on dependencies."""
         self._validate_dependencies()
 
@@ -486,7 +486,7 @@ class Workflow:
                         input_hash=input_hash,
                     )
 
-    
+
 class WorkflowAnalyzer:
     """
     Provides visualization and analysis capabilities for workflow structures.
@@ -544,7 +544,7 @@ class WorkflowAnalyzer:
         self._last_analysis_time = datetime.now()
         return self.graph
 
-    def get_critical_path(self) -> List[str]:
+    def get_critical_path(self) -> list[str]:
         """
         Identifies the critical path through the workflow - the longest dependency chain
         that must be executed sequentially.
