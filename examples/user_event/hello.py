@@ -13,6 +13,8 @@ df = get_df("user_events")
 
 # Create a scatter plot using the flattened data.
 # Assuming the JSON file has been flattened to include "user" and "details.clicks"
+print(type(df))
+
 fig = px.scatter(
     df,
     x="user",

@@ -16,6 +16,7 @@ import ChatWidget from './widgets/ChatWidget';
 import CheckboxWidget from './widgets/CheckboxWidget';
 import DAGVisualizationWidget from './widgets/DAGVisualizationWidget';
 import DataVisualizationWidget from './widgets/DataVisualizationWidget';
+import DocumentWidget from './widgets/DocumentWidget';
 import FastplotlibWidget from './widgets/FastplotlibWidget';
 import ImageWidget from './widgets/ImageWidget';
 import JSONViewerWidget from './widgets/JSONViewerWidget';
@@ -312,6 +313,9 @@ const MemoizedComponent = memo(
 
       case 'separator':
         return <SeparatorWidget key={componentKey} />;
+
+      case 'document':
+        return <DocumentWidget key={componentKey} {...props} />;
 
       default:
         console.warn(`[DynamicComponents] Unknown component type: ${component.type}`);

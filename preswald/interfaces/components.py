@@ -10,6 +10,7 @@ import re
 # Third-Party
 from inspect import currentframe, getframeinfo
 
+# need to install geopandas using conda
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -387,7 +388,7 @@ def json_viewer(
     """Create a JSON viewer component with collapsible tree view."""
     service = PreswaldService.get_instance()
 
-    component_id = generate_id("json_viewer")
+    component_id = generate_stable_id("json_viewer")
 
     # Attempt to ensure JSON is serializable and safe
     try:
@@ -411,6 +412,7 @@ def json_viewer(
     logger.debug(f"Created JSON viewer component with id {component_id}")
     service.append_component(component)
     return component
+
 
 def matplotlib(fig: plt.Figure | None = None, label: str = "plot") -> str:
     """Render a Matplotlib figure as a component."""
@@ -1149,6 +1151,57 @@ def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -
         }
         service.append_component(error_component)
         return error_component
+
+
+def document(file_path: str, title: str = "Document", size: float = 1.0) -> dict:
+    """Create a document component.
+
+    Args:
+        file_path: Path to the document file
+        title: Title of the document
+        size: Size of the component (0.0-1.0)
+
+    Returns:
+        dict: Component configuration
+
+    Raises:
+        ValueError: If file type is unsupported or file cannot be read
+    """
+    service = PreswaldService.get_instance()
+    try:
+        if not file_path.endswith(".pdf"):
+            raise ValueError(
+                f"Unsupported file type: {file_path}. Only PDF files are supported."
+            )
+        extension = file_path.split(".")[-1]
+
+        source_name = file_path.replace(f".{extension}", "")
+        blob = service.data_manager.get_pdf(f"{source_name}_{extension}")
+        if not blob:
+            raise ValueError(f"Could not read PDF file: {file_path}")
+
+        component_id = generate_stable_id("document")
+        component = {
+            "type": "document",
+            "id": component_id,
+            "file_path": file_path,
+            "extension": extension,
+            "title": title,
+            "size": size,
+            "blob": base64.b64encode(blob).decode("utf-8"),
+        }
+
+        if service.should_render(component_id, component):
+            logger.debug(f"Created document component: {component_id}")
+            service.append_component(component)
+        else:
+            logger.debug(f"No changes detected for document component: {component_id}")
+
+        return component
+
+    except Exception as e:
+        logger.error(f"Error creating document component: {e}")
+        raise
 
 
 # Helpers
