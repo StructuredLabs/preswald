@@ -11,6 +11,7 @@ from preswald import (
     sidebar,
     table,
     text,
+    big_number,
 )
 
 
@@ -171,3 +172,11 @@ text(
 )
 
 chat("iris_csv")
+
+text(" ")
+
+big_number(value="12345678",label="Nvidia Stock Metrics",delta="-4.15%",delta_color="red",icon="ChartNoAxesCombined",description="Down by 4.15%")
+
+text(" ")
+
+big_number(value="12345678",label="Nvidia Stock Metrics",delta="+4.15%",delta_color="green",icon="ChartNoAxesCombined",description="Up by 4.15%")

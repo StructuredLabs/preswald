@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import re
+from typing import Optional, Dict
 
 # Third-Party
 from inspect import currentframe, getframeinfo
@@ -447,6 +448,46 @@ def matplotlib(fig: plt.Figure | None = None, label: str = "plot") -> str:
             )
 
     return component_id  # Returning ID for potential tracking
+
+
+def big_number(
+    value: int,
+    label: str,
+    delta: str,
+    delta_color: str = "green",
+    icon: Optional[str] = None,
+    description: Optional[str] = None,
+) -> Dict:
+    """
+    Create a big number card component.
+    Args:
+        value: The main numeric value to display.
+        label: A label describing the value.
+        delta: The change in value (e.g., "+455.222%").
+        delta_color: Color of the delta indicator ("green", "red", etc.).
+        icon: Optional icon name (e.g., "Backpack").
+        description: Optional description text.
+    Returns:
+        Dict: Component metadata.
+    """
+    service = PreswaldService.get_instance()
+    component_id = generate_stable_id("big_number_card")
+    logger.debug(f"Creating big number card component with id {component_id}")
+
+    component = {
+        "type": "big_number_card",
+        "id": component_id,
+        "value": value,
+        "label": label,
+        "delta": delta,
+        "deltaColor": delta_color,
+        "icon": icon,
+        "description": description,
+    }
+
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+    return component
 
 
 def playground(
