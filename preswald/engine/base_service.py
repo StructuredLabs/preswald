@@ -2,9 +2,9 @@ import logging
 import os
 import time
 from collections.abc import Callable
-from threading import Lock
-from typing import Any, Callable, Dict, Optional
 from contextlib import contextmanager
+from threading import Lock
+from typing import Any
 
 from preswald.engine.runner import ScriptRunner
 from preswald.engine.utils import (
@@ -13,7 +13,8 @@ from preswald.engine.utils import (
     compress_data,
     optimize_plotly_data,
 )
-from preswald.interfaces.workflow import Workflow, Atom
+from preswald.interfaces.workflow import Atom, Workflow
+
 from .managers.data import DataManager
 from .managers.layout import LayoutManager
 
@@ -43,7 +44,7 @@ class BasePreswaldService:
 
         # DAG workflow engine
         self._workflow = Workflow()
-        self._current_atom: Optional[str] = None
+        self._current_atom: str | None = None
 
         # Initialize session tracking
         self.script_runners: dict[str, ScriptRunner] = {}
@@ -104,11 +105,13 @@ class BasePreswaldService:
                 if "id" in cleaned_component:
                     component_id = cleaned_component["id"]
                     if component_id not in self._layout_manager.seen_ids:
-                        # Update component with current state if it exists
-                        if "value" in cleaned_component:
+                        state_key = cleaned_component.get("state_key", "value")
+                        if state_key in cleaned_component:
+                            # Update component with current state if it exists
                             current_state = self.get_component_state(component_id)
+
                             if current_state is not None:
-                                cleaned_component["value"] = clean_nan_values(
+                                cleaned_component[state_key] = clean_nan_values(
                                     current_state
                                 )
                                 if logger.isEnabledFor(logging.DEBUG):
@@ -117,10 +120,14 @@ class BasePreswaldService:
                                     )
                         with self.active_atom(component_id):
                             if component_id not in self._workflow.atoms:
-                                self._workflow.atoms[component_id] = Atom(name=component_id, func=lambda: None)
+                                self._workflow.atoms[component_id] = Atom(
+                                    name=component_id, func=lambda: None
+                                )
                             self._layout_manager.add_component(cleaned_component)
                             if logger.isEnabledFor(logging.DEBUG):
-                                logger.debug(f"Added component with state: {cleaned_component}")
+                                logger.debug(
+                                    f"Added component with state: {cleaned_component}"
+                                )
                 else:
                     # Components without IDs are added as-is
                     self._layout_manager.add_component(cleaned_component)
@@ -167,7 +174,9 @@ class BasePreswaldService:
             if self._current_atom:
                 logger.debug(f"[DAG] {self._current_atom} depends on {component_id}")
                 if self._current_atom not in self._workflow.atoms:
-                    self._workflow.atoms[self._current_atom] = Atom(name=self._current_atom, func=lambda: None)
+                    self._workflow.atoms[self._current_atom] = Atom(
+                        name=self._current_atom, func=lambda: None
+                    )
                 self._workflow.atoms[self._current_atom].dependencies.add(component_id)
 
             return value
@@ -180,7 +189,7 @@ class BasePreswaldService:
     def get_workflow(self) -> Workflow:
         return self._workflow
 
-    async def handle_client_message(self, client_id: str, message: Dict[str, Any]):
+    async def handle_client_message(self, client_id: str, message: dict[str, Any]):
         """Process incoming messages from clients"""
         start_time = time.time()
         try:

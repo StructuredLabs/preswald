@@ -77,11 +77,12 @@ class WebSocketClient {
 
               case 'state_update':
                 if (data.component_id) {
-                  this.componentStates[data.component_id] = data.value;
+                  const stateKey = component.state_key || 'value';
+                  this.componentStates[data.component_id] = data[stateKey];
                 }
                 console.log('[WebSocket] Component state updated:', {
                   componentId: data.component_id,
-                  value: data.value,
+                  value: data[stateKey],
                 });
                 break;
 
@@ -89,11 +90,12 @@ class WebSocketClient {
                 if (data.components?.rows) {
                   data.components.rows.forEach((row) => {
                     row.forEach((component) => {
-                      if (component.id && 'value' in component) {
-                        this.componentStates[component.id] = component.value;
+                      const stateKey = component.state_key || 'value';
+                      if (component.id) {
+                        this.componentStates[component.id] = component[stateKey];
                         console.log('[WebSocket] Component state updated:', {
                           componentId: component.id,
-                          value: component.value,
+                          value: component[stateKey],
                         });
                       }
                     });
@@ -292,11 +294,12 @@ class PostMessageClient {
 
       case 'state_update':
         if (data.component_id) {
-          this.componentStates[data.component_id] = data.value;
+          const stateKey = data.state_key || 'value';
+          this.componentStates[data.component_id] = data[stateKey];
         }
         console.log('[PostMessage] Component state updated:', {
           componentId: data.component_id,
-          value: data.value,
+          value: data[stateKey],
         });
         this._notifySubscribers(data);
         break;
@@ -305,11 +308,12 @@ class PostMessageClient {
         if (data.components && data.components.rows) {
           data.components.rows.forEach((row) => {
             row.forEach((component) => {
-              if (component.id && 'value' in component) {
-                this.componentStates[component.id] = component.value;
+              const stateKey = component.state_key || 'value';
+              if (component.id) {
+                this.componentStates[component.id] = component[stateKey];
                 console.log('[PostMessage] Component state updated:', {
                   componentId: component.id,
-                  value: component.value,
+                  value: component[stateKey],
                 });
               }
             });

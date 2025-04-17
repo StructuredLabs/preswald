@@ -33,11 +33,16 @@ def helloworldcomponent(
         "id": component_id,
         "label": label,
         "size": size,
+        "state_key": "label"
     }
 
     service.append_component(component)
     return "hello world"
 ```
+
+NOTE: Be sure to include either "value" or "state_key" in your component. The value 
+corresponding to the "state_key" (or "value", if "state_key" is not found) defines
+the state of the frontend component.
 
 ---
 

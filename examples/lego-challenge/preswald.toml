@@ -1,0 +1,20 @@
+[project]
+title = "Step on a Lego"
+version = "0.1.0"
+port = 8501
+entrypoint = "hello.py"
+slug = "chemery-online-assessment"
+
+[branding]
+name = "The Lego Challenge"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#000000"
+
+[data.lego_pile]
+type = "csv"
+path = "data/lego_pile_reduced.csv"
+
+[logging]
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

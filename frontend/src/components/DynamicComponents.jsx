@@ -80,7 +80,11 @@ const MemoizedComponent = memo(
             key={componentKey}
             onClick={() => {
               if (component.onClick) {
-                handleUpdate(componentId, true);
+                const newStatefulValue = {
+                  ...component.stateful_value,
+                  value: true,
+                };
+                handleUpdate(componentId, newStatefulValue);
               }
             }}
             disabled={component.disabled}

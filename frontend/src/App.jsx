@@ -81,9 +81,10 @@ const App = () => {
           if (!component || !component.id) return component;
 
           const currentState = comm.getComponentState(component.id);
+          const stateKey = component.state_key || 'value';
           return {
             ...component,
-            value: currentState !== undefined ? currentState : component.value,
+            value: currentState !== undefined ? currentState : component[stateKey],
             error: null,
           };
         })

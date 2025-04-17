@@ -48,7 +48,10 @@ class ScriptRunner:
         self._lock = threading.Lock()
         self._script_globals = {}
 
-        from .service import PreswaldService # deferred import to avoid cyclic dependency
+        from .service import (
+            PreswaldService,
+        )  # deferred import to avoid cyclic dependency
+
         self._service = PreswaldService.get_instance()
 
         logger.info(f"[ScriptRunner] Initialized with session_id: {session_id}")
