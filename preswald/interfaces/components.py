@@ -1,4 +1,5 @@
 # Standard Library
+import asyncio
 import base64
 import io
 import json
@@ -7,6 +8,7 @@ import os
 import re
 
 # Third-Party
+from inspect import currentframe, getframeinfo
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -964,6 +966,13 @@ def convert_to_serializable(obj):
         return obj.item()
     return obj
 
+def generate_stable_id(prefix: str = "component", identifier: Optional[str] = None) -> str:
+    """
+    Generate a stable and deterministic component ID based on either a user-provided identifier 
+    or the source code callsite.
+
+    This is useful for ensuring that components retain the same ID across script reruns, enabling 
+    reliable caching, state restoration, and render diffing.
 
 # async def render_and_send_fastplotlib(
 #     fig: "fplt.Figure",
