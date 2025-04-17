@@ -8,3 +8,9 @@ from .interfaces import *  # noqa: F403
 
 
 __all__ = _interfaces.__all__
+
+
+# Lazy getter to avoid circular import at startup
+def get_workflow():
+    from preswald.engine.service import PreswaldService
+    return PreswaldService.get_instance()._workflow
