@@ -1,0 +1,24 @@
+[project]
+title = "Preswald Project"
+version = "0.1.0"
+port = 8501
+slug = "document display"
+entrypoint = "hello.py"
+
+[branding]
+name = "Preswald Project"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#F89613"
+
+[docs.sample_pdf]
+type = "pdf"
+path = "docs/sample.pdf"
+
+[data.iris_csv]
+type = "csv"
+path = "data/iris.csv"
+
+[logging]
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
