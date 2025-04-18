@@ -1,7 +1,7 @@
 import inspect
 import builtins
 import logging
-from functools import wraps
+from functools import wraps, lru_cache
 from types import FunctionType
 from preswald import get_workflow
 from preswald.interfaces.workflow import AtomContext
@@ -12,11 +12,23 @@ from preswald.interfaces.dependency_tracker import (
     pop_context,
 )
 
+import preswald.interfaces.components as components_module
+
+
 logger = logging.getLogger(__name__)
 
-# built-in component functions that should not be auto-wrapped as atoms
-# TODO: dynamically populate the list of builtin components
-BUILTIN_COMPONENTS = {"text", "slider", "sidebar", "chat", "plotly", "fastplotlib"}
+
+@lru_cache(maxsize=1)
+def get_builtin_components():
+    results = {
+        name
+        for name, val in vars(components_module).items()
+        if callable(val) and getattr(val, "_preswald_component_type", None)
+    }
+    logger.debug(f"[get_builtin_components] builtin component names: {results}")
+    return results
+
+
 
 def reactive(func=None, *, workflow=None):
     if func is None:
@@ -88,12 +100,13 @@ def wrap_auto_atoms(globals_dict, workflow=None):
         wf._registered_reactive_atoms = []
 
     registry = wf._auto_atom_registry
+    builtin_names = get_builtin_components()
 
     for name, val in globals_dict.items():
         if (
             isinstance(val, FunctionType)
+            and name not in builtin_names
             and name not in registry
-            and name not in BUILTIN_COMPONENTS
         ):
             logger.debug(f"[AUTO-ATOM] Auto-wrapping {name} at module scope")
             globals_dict[name] = reactive(val, workflow=wf)

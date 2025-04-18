@@ -197,16 +197,15 @@ def with_render_tracking(component_type: str):
 
             result = func(*args, **kwargs)
 
-            # extract the component dict
-            if isinstance(result, dict) and "id" in result:
+            component = getattr(result, "_preswald_component", None)
+            if not component and isinstance(result, dict) and "id" in result:
                 component = result
-                return_value = result
-            else:
-                component = getattr(result, "_preswald_component", None)
-                if not component:
-                    logger.warning(f"[{component_type}] No component metadata found for tracking.")
-                    return result
-                return_value = result.value if isinstance(result, ComponentReturn) else result
+
+            if not component:
+                logger.warning(f"[{component_type}] No component metadata found for tracking.")
+                return result
+
+            return_value = result.value if isinstance(result, ComponentReturn) else result
 
             with service.active_atom(service._workflow._current_atom):
                 if service.should_render(component_id, component):
@@ -216,5 +215,8 @@ def with_render_tracking(component_type: str):
                     logger.debug(f"[{component_type}] No changes detected. Skipping append for {component_id}")
 
             return return_value
+
+        # used by sl_reactive decorator to discover builtin component types
+        wrapper._preswald_component_type = component_type
         return wrapper
     return decorator
