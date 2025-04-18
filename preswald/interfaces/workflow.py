@@ -11,12 +11,23 @@ from enum import Enum
 from functools import wraps
 from typing import Any, Optional
 
+from preswald.interfaces.tracked_value import TrackedValue
+
 import networkx as nx
 import plotly.graph_objects as go
 
 
 # Set up logging
 logger = logging.getLogger(__name__)
+
+
+class AtomContext:
+    def __init__(self, workflow, atom_name):
+        self.workflow = workflow
+        self.atom_name = atom_name
+
+    def __repr__(self):
+        return f"AtomContext({self.atom_name})"
 
 
 class AtomStatus(Enum):
@@ -148,11 +159,10 @@ class Atom:
         # Create the wrapped function
         @wraps(self.original_func)
         def wrapped_func(*args, **kwargs):
-            logger.info(f"Executing atom: {self.name}")
             start_time = time.time()
             try:
                 result = self.original_func(*args, **kwargs)
-                logger.info(f"Atom {self.name} completed successfully")
+                logger.debug(f"Atom {self.name} completed successfully")
                 return result
             except Exception as e:
                 logger.error(
@@ -187,7 +197,8 @@ class WorkflowContext:
         self.results[atom_name] = result
         if result.status == AtomStatus.COMPLETED:
             self.variables[atom_name] = result.value
-            logger.info(f"[CONTEXT] Set result for {atom_name} = {result.value}")
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug(f"[CONTEXT] Set result for {atom_name} = {result.value}")
 
 class Workflow:
     """
@@ -236,9 +247,16 @@ class Workflow:
             if self._is_rerun and atom_name in self.atoms:
                 return func
 
+            logger.info(f"[workflow.atom] Registered atom: {atom_name}")
+
             # Use the unwrapped function to infer dependencies
             raw_func = getattr(func, 'original_func', func)
-            inferred_deps = list(inspect.signature(raw_func).parameters.keys())
+
+            inferred_deps = [
+                k for k, v in inspect.signature(raw_func).parameters.items()
+                if v.kind not in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD)
+            ]
+
             atom_deps = dependencies if dependencies is not None else inferred_deps
 
             atom = Atom(
@@ -326,13 +344,13 @@ class Workflow:
         """Retrieve the name of the atom that last produced the component."""
         return self._component_producers.get(component_id)
 
-    #TODO: I need to update this function with a log
-    # but it is different.
+    # TODO: Investigate why _current_atom is None during component registration.
+    # This may cause DAG to miss component -> atom associations in edge cases.
     def register_component_producer(self, component_id: str):
         """Associate a component ID with the currently active atom."""
-        logger.info(f"[DEBUG] Called register_component_producer({component_id})")
+        logger.debug(f"[DEBUG] Called register_component_producer({component_id})")
         if hasattr(self, '_current_atom') and self._current_atom:
-            logger.info(f"[DAG] Registering {component_id} as output of {self._current_atom}")
+            logger.debug(f"[DAG] Registering {component_id} as output of {self._current_atom}")
             self._component_producers[component_id] = self._current_atom
 
     def _get_affected_atoms(self, changed_atoms: set[str]) -> set[str]:
@@ -422,7 +440,11 @@ class Workflow:
         """Execute a single atom with retry logic and caching."""
         # Compute input arguments from declared dependencies
         dependency_values = {
-            dep: self.context.variables[dep]
+            dep: (
+                self.context.variables[dep].value
+                if isinstance(self.context.variables[dep], TrackedValue)
+                else self.context.variables[dep]
+            )
             for dep in atom.dependencies
             if dep in self.context.variables
         }
@@ -431,7 +453,7 @@ class Workflow:
         if not atom.force_recompute and not self.cache.should_recompute(
             atom.name, input_hash
         ):
-            logger.info(f"Using cached result for atom: {atom.name}")
+            logger.debug(f"Using cached result for atom: {atom.name}")
             cached_result = self.cache.cache[atom.name]
             cached_result.status = AtomStatus.SKIPPED
             return cached_result
@@ -485,6 +507,13 @@ class Workflow:
                         end_time=current_time,
                         input_hash=input_hash,
                     )
+
+    def _register_dependency(self, atom_name, dep_name):
+        if atom_name in self.atoms:
+            self.atoms[atom_name].dependencies.add(dep_name)
+            logger.debug(f"[DAG] {atom_name} depends on {dep_name} (registered)")
+        else:
+            logger.warning(f"[DAG] Tried to register dependency for unknown atom {atom_name}")
 
 
 class WorkflowAnalyzer:
