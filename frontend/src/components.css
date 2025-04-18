@@ -61,7 +61,7 @@
 }
 
 .sidebar-desktop-collapsed .sidebar-logo {
-  @apply h-8 w-auto;
+  @apply h-8 w-8 rounded-sm ml-3;
 }
 
 .sidebar-title {
