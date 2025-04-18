@@ -1,4 +1,5 @@
 import asyncio
+import builtins
 import logging
 import os
 import sys
@@ -10,6 +11,8 @@ from contextlib import contextmanager
 from enum import Enum
 from pathlib import Path
 from typing import Any
+
+import preswald.interfaces.reactive  # loads builtins.sl_wrap_auto_atoms
 
 
 logger = logging.getLogger(__name__)
@@ -267,6 +270,16 @@ class ScriptRunner:
                     logger.debug("[ScriptRunner] Script compiled")
                     exec(code, self._script_globals)
                     logger.debug("[ScriptRunner] Script executed")
+                    wrap_auto_atoms = builtins.sl_wrap_auto_atoms
+                    wrap_auto_atoms(self._script_globals)
+
+                    # TODO: This is a temporary workaround. We must remove this
+                    # once AST re-writing is in place
+                    main = self._script_globals.get("main")
+                    if callable(main):
+                        logger.info("[ScriptRunner] Calling main() after auto-wrapping")
+                        main()
+
                     # Change back to original working dir
                     os.chdir(current_working_dir)
 

@@ -3,9 +3,7 @@ import builtins
 import logging
 from functools import wraps, lru_cache
 from types import FunctionType
-from preswald import get_workflow
 from preswald.interfaces.workflow import AtomContext
-from preswald.interfaces.components import ComponentReturn
 from preswald.interfaces.tracked_value import TrackedValue
 from preswald.interfaces.dependency_tracker import (
     push_context,
@@ -13,7 +11,6 @@ from preswald.interfaces.dependency_tracker import (
 )
 
 import preswald.interfaces.components as components_module
-
 
 logger = logging.getLogger(__name__)
 
@@ -29,13 +26,13 @@ def get_builtin_components():
     return results
 
 
-
 def reactive(func=None, *, workflow=None):
     if func is None:
         return lambda actual_func: reactive(actual_func, workflow=workflow)
 
     @wraps(func)
     def wrapper(*args, **kwargs):
+        from preswald import get_workflow
         wf = workflow or get_workflow()
         logger.debug(f"[reactive] using workflow id: {id(wf)}")
         atom_name = func.__name__
@@ -51,6 +48,7 @@ def reactive(func=None, *, workflow=None):
             wf._registered_reactive_atoms.append(func)
 
             def wrapped_body(*args, **kwargs):
+                from preswald.interfaces.components import ComponentReturn
                 ctx = AtomContext(workflow=wf, atom_name=atom_name)
                 push_context(ctx)
                 try:
@@ -89,10 +87,12 @@ def reactive(func=None, *, workflow=None):
     return wrapper
 
 def get_registered_reactive_atoms(workflow=None):
+    from preswald import get_workflow
     wf = workflow or get_workflow()
     return getattr(wf, "_registered_reactive_atoms", [])
 
 def wrap_auto_atoms(globals_dict, workflow=None):
+    from preswald import get_workflow
     wf = workflow or get_workflow()
 
     if not hasattr(wf, "_auto_atom_registry"):
@@ -115,5 +115,6 @@ def wrap_auto_atoms(globals_dict, workflow=None):
     for name in registry:
         registry[name]()
 
-# patch builtins so users don't need to import the decorator
+# patch builtins so users don't need to import the decorator or wrap helper
 builtins.sl_reactive = reactive
+builtins.sl_wrap_auto_atoms = wrap_auto_atoms
