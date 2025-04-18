@@ -214,6 +214,9 @@ class Workflow:
         self._current_atom: str | None = None  # currently executing atom
         self._service = service
         self._is_rerun = False
+        self._auto_atom_registry: dict[str, Callable] = {}
+        self._registered_reactive_atoms: list[Callable] = []
+
 
     def atom(
         self,
