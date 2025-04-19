@@ -1,0 +1,65 @@
+---
+title: "collapsible"
+icon: "chevron-down"
+description: ""
+---
+
+```python
+collapsible(
+    label: str,
+    open: bool = True,
+    size: float = 1.0,
+) -> None:
+```
+
+The `collapsible` function creates an expandable/collapsible container that groups related UI components. This helps organize complex interfaces by reducing visual clutter and allowing users to focus on relevant content.
+
+## Parameters
+
+- **`label`** _(str)_: The title/header of the collapsible section.
+- **`open`** _(bool)_: Whether the section is open (expanded) by default. Defaults to `True`.
+- **`size`** _(float)_: _(Optional)_ The width of the component in a row. Defaults to `1.0` (full row). See the [Layout Guide](/layout/guide) for details.
+
+<Frame>
+<img
+  className="block dark:hidden"
+  src="/images/collapsible.png"
+  alt="Collapsible component"
+/>
+</Frame>
+
+## Returns
+
+- This component doesn't return a value. It's used for layout organization only.
+
+## Usage Example
+
+```python
+from preswald import collapsible, slider, text
+
+# Create a collapsible section for advanced filters
+collapsible("Advanced Filters", open=False)
+
+# All components below will be nested in the collapsible container
+text("Adjust the parameters below to filter the data.")
+slider("Sepal Width", min_val=0, max_val=10, default=5.5)
+slider("Sepal Length", min_val=0, max_val=10, default=4.5)
+
+# Create another section that's open by default
+collapsible("Main Visualizations")
+text("These are the primary visualizations for your data.")
+# Add more components here...
+```
+
+### Key Features
+
+1. **Organized Layout**: Group related components to create a cleaner, more structured interface.
+2. **Reduced Visual Clutter**: Hide optional or advanced controls that aren't needed immediately.
+3. **Improved User Experience**: Create step-by-step workflows or categorize UI elements by function.
+4. **Responsive Design**: Helps make dense dashboards more manageable on smaller screens.
+
+### Why Use `collapsible`?
+
+The `collapsible` component is essential for building complex applications with many UI elements. By organizing components into expandable/collapsible sections, you can create more intuitive interfaces that guide users through your data application.
+
+Enhance your layout with the `collapsible` component! 🔽 

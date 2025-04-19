@@ -1,24 +1,17 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import react from 'eslint-plugin-react'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import importPlugin from 'eslint-plugin-import'
-
+import js from '@eslint/js';
+import importPlugin from 'eslint-plugin-import';
+import react from 'eslint-plugin-react';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import globals from 'globals';
 
 export default [
   {
-    ignores: [
-      'dist',
-      'node_modules',
-      '*.config.js',
-    ]
+    ignores: ['dist', 'node_modules', '*.config.js'],
   },
   {
     files: ['**/*.{js,jsx}'],
-    extends: [
-      'prettier'
-    ],
+    extends: ['prettier'],
     languageOptions: {
       ecmaVersion: 2020,
       globals: {
@@ -51,48 +44,45 @@ export default [
       ...react.configs['jsx-runtime'].rules,
       ...reactHooks.configs.recommended.rules,
       'react/jsx-no-target-blank': 'off',
-      'react-refresh/only-export-components': [
-        'warn',
-        { allowConstantExport: true },
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      'no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
       ],
-      'no-unused-vars': ['error', {
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
-      }],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       // Disable ESLint's import ordering to let Prettier handle it
       'import/order': 'off',
       ...react.configs['jsx-runtime'].rules,
       ...reactHooks.configs.recommended.rules,
       'react/jsx-no-target-blank': 'off',
-      'react-refresh/only-export-components': [
-        'warn',
-        { allowConstantExport: true },
-      ],
-      'no-unused-vars': ['error', {
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
-      }],
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
-      'import/order': ['error', {
-        groups: [
-          'builtin',
-          'external',
-          'internal',
-          ['parent', 'sibling'],
-          'index',
-        ],
-        'newlines-between': 'always',
-        pathGroups: [
-          { pattern: '^react', group: 'external', position: 'before' },
-          { pattern: '^@/components/(.*)$', group: 'internal', position: 'before' },
-          { pattern: '^@/(.*)$', group: 'internal' },
-        ],
-        alphabetize: {
-          order: 'asc',
-          caseInsensitive: true,
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      'no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
         },
-      }],
+      ],
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'import/order': [
+        'error',
+        {
+          groups: ['builtin', 'external', 'internal', ['parent', 'sibling'], 'index'],
+          'newlines-between': 'always',
+          pathGroups: [
+            { pattern: '^react', group: 'external', position: 'before' },
+            { pattern: '^@/components/(.*)$', group: 'internal', position: 'before' },
+            { pattern: '^@/(.*)$', group: 'internal' },
+          ],
+          alphabetize: {
+            order: 'asc',
+            caseInsensitive: true,
+          },
+        },
+      ],
     },
   },
-]
+];
