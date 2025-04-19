@@ -96,6 +96,10 @@ Here’s a quick summary of the contributing workflow:
    ```
 3. **Make your changes** and follow the [Style Guide](#style-guide).
 4. **Test your changes** thoroughly.
+5. **Run unit tests**
+   ```bash
+   pytest
+   ```
 5. **Push your branch** to your fork:
    ```bash
    git push origin feature/your-feature-name
