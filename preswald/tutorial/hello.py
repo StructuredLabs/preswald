@@ -10,6 +10,7 @@ from preswald import (
     chat,
     checkbox,
     get_df,
+    iframe,
     image,
     json_viewer,
     matplotlib,
@@ -450,10 +451,14 @@ def sidebar_demo():
     text("## 14. Showing sidebar to your app with sidebar()")
     sidebar(defaultopen=True)
 
+@workflow.atom()
+def iframe_demo():
+    text("## 15. Showing iframe in your app with iframe()")
+    iframe("https://www.youtube.com/embed/yFRgPFMIMvA")
 
 @workflow.atom()
 def playground_demo():
-    text("## 15. Interacting with SQL queries using `playground()` component")
+    text("## 16. Interacting with SQL queries using `playground()` component")
     text(
         "The `playground` function provides a dynamic interface for querying connected data sources and visualizing results directly."
     )
