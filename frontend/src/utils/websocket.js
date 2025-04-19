@@ -163,6 +163,14 @@ class WebSocketClient {
     }
   }
 
+  send(message) {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send(JSON.stringify(message));
+    } else {
+      console.error('[WebSocket] Cannot send message, socket is not open');
+    }
+  }
+
   _handleReconnect() {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       console.log('[WebSocket] Max reconnection attempts reached');
@@ -260,6 +268,14 @@ class PostMessageClient {
     window.removeEventListener('message', this._handleMessage.bind(this));
     this.isConnected = false;
     this._notifySubscribers({ type: 'connection_status', connected: false });
+  }
+
+  send(message) {
+    if (window.parent) {
+      window.parent.postMessage(message, '*');
+    } else {
+      console.warn('[PostMessage] No parent window to send message');
+    }
   }
 
   _handleMessage(event) {

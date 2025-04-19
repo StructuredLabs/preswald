@@ -18,7 +18,7 @@ from preswald.engine.service import PreswaldService
 logger = logging.getLogger(__name__)
 
 
-def create_app(script_path: str | None = None) -> FastAPI:
+def create_app(script_path: Optional[str] = None, mode: str = "default") -> FastAPI:
     """Create and configure the FastAPI application"""
     app = FastAPI()
     service = PreswaldService.initialize(script_path)
@@ -31,6 +31,10 @@ def create_app(script_path: str | None = None) -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # Set the mode on both the service and FastAPI state
+    service.mode = mode
+    app.state.mode = mode
 
     # Configure static files
     service.branding_manager = _setup_static_files(app)
@@ -112,9 +116,10 @@ def _register_routes(app: FastAPI):
     _register_static_routes(app)  # order matters for static routes
 
 
-def start_server(script: str | None = None, port: int = 8501):
+def start_server(mode: str = "default", script: Optional[str] = None, port: int = 8501):
     """Start the FastAPI server"""
-    app = create_app(script)
+
+    app = create_app(script, mode)
 
     config = uvicorn.Config(app, host="0.0.0.0", port=port, loop="asyncio")
     server = uvicorn.Server(config)

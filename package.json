@@ -6,8 +6,11 @@
     "@ag-grid-community/client-side-row-model": "^32.3.4",
     "@ag-grid-community/core": "^32.3.4",
     "@ag-grid-enterprise/all-modules": "^27.3.0",
-    "@monaco-editor/react": "^4.7.0",
+    "@codemirror/lang-python": "^6.1.7",
+    "@codemirror/theme-one-dark": "^6.1.2",
+    "@uiw/react-codemirror": "^4.23.10",
     "ag-grid-react": "^32.3.4",
-    "highlight.js": "^11.11.1"
+    "react-beautiful-dnd": "^13.1.1",
+    "uuid": "^11.1.0"
   }
 }
