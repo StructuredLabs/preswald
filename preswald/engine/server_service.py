@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import WebSocket, WebSocketDisconnect
 
@@ -37,7 +37,7 @@ class ServerPreswaldService(BasePreswaldService):
         self.branding_manager = None  # set during server creation
 
         # Initialize session tracking
-        self.websocket_connections: Dict[str, WebSocket] = {}
+        self.websocket_connections: dict[str, WebSocket] = {}
         self.script_runners: Dict[str, ScriptRunner] = {}
 
         # Initialize service state

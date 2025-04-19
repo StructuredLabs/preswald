@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "preswald"
-version = "0.1.51"
+version = "0.1.52"
 description = "A lightweight data workflow SDK"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -32,7 +32,7 @@ dependencies = [
     "uvicorn>=0.15.0,<1.0.0; platform_system != 'Emscripten'",
     "websockets>=10.0,<11.0; platform_system != 'Emscripten'",
     # Native code dependencies
-    "duckdb>=1.1.2; platform_system != 'Emscripten'",
+    "duckdb>=1.1.2",
     "scipy>=1.15.2; platform_system != 'Emscripten'",
 ]
 
