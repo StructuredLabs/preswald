@@ -8,6 +8,8 @@
     "@ag-grid-enterprise/all-modules": "^27.3.0",
     "@monaco-editor/react": "^4.7.0",
     "ag-grid-react": "^32.3.4",
-    "highlight.js": "^11.11.1"
+    "highlight.js": "^11.11.1",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
   }
 }
