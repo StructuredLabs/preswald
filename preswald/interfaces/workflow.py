@@ -353,7 +353,7 @@ class Workflow:
             name for name, atom in self.atoms.items() if not atom.dependencies
         ]
 
-        logger.degug(f"[workflow] Executing relevant atoms: {top_level_atoms}")
+        logger.debug(f"[workflow] Executing relevant atoms: {top_level_atoms}")
 
         for atom_name in top_level_atoms:
             try:
