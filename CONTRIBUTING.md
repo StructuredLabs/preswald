@@ -106,7 +106,7 @@ Here’s a quick summary of the contributing workflow:
 ## Working with Forks & Keeping Your Branches in Sync
 
 When your forked repo gets out of sync with upstream (StructuredLabs/preswald), you’ll want to rebase your feature branch onto the latest upstream main to keep your commit history clean and linear. This avoids unnecessary merge commits that can clutter PR reviews. (If you haven’t already, add the upstream remote:
-`git remote add upstream https://github.com/StructuredLabs/preswald.git`)
+`git remote add upstream git@github.com:StructuredLabs/preswald.git`)
 
 Here’s a great guide on syncing forks:
 https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork
