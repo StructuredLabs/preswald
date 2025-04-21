@@ -270,15 +270,11 @@ class ScriptRunner:
                     logger.debug("[ScriptRunner] Script compiled")
                     exec(code, self._script_globals)
                     logger.debug("[ScriptRunner] Script executed")
+
                     wrap_auto_atoms = builtins.sl_wrap_auto_atoms
                     wrap_auto_atoms(self._script_globals)
-
-                    # TODO: This is a temporary workaround. We must remove this
-                    # once AST re-writing is in place
-                    main = self._script_globals.get("main")
-                    if callable(main):
-                        logger.info("[ScriptRunner] Calling main() after auto-wrapping")
-                        main()
+                    workflow = self._service.get_workflow()
+                    workflow.execute_relevant_atoms()
 
                     # Change back to original working dir
                     os.chdir(current_working_dir)

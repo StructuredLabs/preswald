@@ -343,6 +343,27 @@ class Workflow:
         finally:
             self._is_rerun = False  # reset after execution
 
+    def execute_relevant_atoms(self):
+        """
+        Execute top-level atoms (atoms with no dependencies).
+        This mimics natural script execution by triggering leaf atoms,
+        allowing dependencies to propagate automatically.
+        """
+        top_level_atoms = [
+            name for name, atom in self.atoms.items() if not atom.dependencies
+        ]
+
+        logger.degug(f"[workflow] Executing relevant atoms: {top_level_atoms}")
+
+        for atom_name in top_level_atoms:
+            try:
+                logger.debug(f"[workflow] Triggering: {atom_name}")
+                atom = self.atoms[atom_name]
+                result = self._execute_atom(atom)
+                self.context.set_result(atom_name, result)
+            except Exception as e:
+                logger.warning(f"[workflow] Failed to execute {atom_name}: {e!s}", exc_info=True)
+
     def get_component_producer(self, component_id: str) -> str | None:
         """Retrieve the name of the atom that last produced the component."""
         return self._component_producers.get(component_id)

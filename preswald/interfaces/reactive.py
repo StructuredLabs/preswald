@@ -37,10 +37,6 @@ def reactive(func=None, *, workflow=None):
         logger.debug(f"[reactive] using workflow id: {id(wf)}")
         atom_name = func.__name__
 
-        if not hasattr(wf, "_auto_atom_registry"):
-            wf._auto_atom_registry = {}
-            wf._registered_reactive_atoms = []
-
         registry = wf._auto_atom_registry
 
         if atom_name not in registry or not hasattr(registry[atom_name], "_fresh"):
@@ -79,42 +75,63 @@ def reactive(func=None, *, workflow=None):
 
             wrapped_body.__name__ = atom_name
             registered_func = wf.atom()(wrapped_body)
+
+            # TEMPORARY: Used to mark this atom as freshly registered to avoid double-wrapping.
+            # Can likely be removed when atom registration is more deterministic (e.g., via context manager).
             registered_func._fresh = True
+
             registry[atom_name] = registered_func
 
-        return registry[atom_name]()
+        return registry[atom_name]
 
     return wrapper
 
 def get_registered_reactive_atoms(workflow=None):
     from preswald import get_workflow
     wf = workflow or get_workflow()
-    return getattr(wf, "_registered_reactive_atoms", [])
+    return wf._registered_reactive_atoms
 
 def wrap_auto_atoms(globals_dict, workflow=None):
     from preswald import get_workflow
     wf = workflow or get_workflow()
 
-    if not hasattr(wf, "_auto_atom_registry"):
-        wf._auto_atom_registry = {}
-        wf._registered_reactive_atoms = []
-
     registry = wf._auto_atom_registry
     builtin_names = get_builtin_components()
+
+    EXCLUDED_NAMES = {"wrap_auto_atoms", "reactive"}
 
     for name, val in globals_dict.items():
         if (
             isinstance(val, FunctionType)
             and name not in builtin_names
             and name not in registry
+            and name not in EXCLUDED_NAMES
         ):
+            # TEMPORARY: Skip auto-wrapping any function that requires positional arguments.
+            # This avoids accidentally breaking user-defined functions that expect input.
+            # Once we support `with reactive_block():` for opt-in reactivity, this check can be removed.
+            # The context manager is itself a stepping stone toward full callsite-level precision via AST transformation.
+            sig = inspect.signature(val)
+            has_required_params = any(
+                param.default is inspect.Parameter.empty and
+                param.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
+                for param in sig.parameters.values()
+            )
+            if has_required_params:
+                continue
+
             logger.debug(f"[AUTO-ATOM] Auto-wrapping {name} at module scope")
-            globals_dict[name] = reactive(val, workflow=wf)
+            wrapped = reactive(val, workflow=wf)
+            result = wrapped()
+            globals_dict[name] = result
 
     # reregister atoms explicitly now that all globals are wrapped
-    for name in registry:
-        registry[name]()
+    for name, wrapped in registry.items():
+        wf.atom()(wrapped)
 
-# patch builtins so users don't need to import the decorator or wrap helper
+# TEMPORARY: Patch `builtins` so users don't need to import `reactive` or `wrap_auto_atoms` manually.
+# This will be removed once we introduce `with reactive_scope():`, which gives users explicit control
+# over which code blocks are reactive. That approach is safer and avoids potential atom name collisions
+# across concurrently loaded scripts. It also aligns better with our long-term AST transformation plan.
 builtins.sl_reactive = reactive
 builtins.sl_wrap_auto_atoms = wrap_auto_atoms
