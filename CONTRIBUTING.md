@@ -7,13 +7,14 @@ Thank you for your interest in contributing to **Preswald**! This document outli
 1. [Project Structure](#project-structure)
 2. [Setup Guide](#setup-guide)
 3. [Development Workflow](#development-workflow)
-4. [Style Guide](#style-guide)
-5. [Code Quality](#code-quality)
-6. [Claiming an Issue](#claiming-an-issue)
-7. [Pull Request Guidelines](#pull-request-guidelines)
-8. [Issue Reporting Guidelines](#issue-reporting-guidelines)
-9. [Community Support](#community-support)
-10. [Acknowledgments](#acknowledgments)
+4. [Working with Forks & Keeping Your Branches in Sync](#working-with-forks--keeping-your-branches-in-sync)
+5. [Style Guide](#style-guide)
+6. [Code Quality](#code-quality)
+7. [Claiming an Issue](#claiming-an-issue)
+8. [Pull Request Guidelines](#pull-request-guidelines)
+9. [Issue Reporting Guidelines](#issue-reporting-guidelines)
+10. [Community Support](#community-support)
+11. [Acknowledgments](#acknowledgments)
 
 ## Project Structure
 
@@ -102,6 +103,17 @@ Here’s a quick summary of the contributing workflow:
    ```
 6. **Open a Pull Request** on the main repository.
 
+## Working with Forks & Keeping Your Branches in Sync
+
+When your forked repo gets out of sync with upstream (StructuredLabs/preswald), you’ll want to rebase your feature branch onto the latest upstream main to keep your commit history clean and linear. This avoids unnecessary merge commits that can clutter PR reviews. (If you haven’t already, add the upstream remote:
+`git remote add upstream https://github.com/StructuredLabs/preswald.git`)
+
+Here’s a great guide on syncing forks:
+https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork
+
+And here’s a solid intro to Git rebase:
+https://www.atlassian.com/git/tutorials/rewriting-history/git-rebase
+
 ## Style Guide
 
 Follow these style guidelines to maintain consistency:
@@ -158,7 +170,7 @@ These configurations ensure your code remains consistent with our standards when
 
 ## Claiming an Issue
 
-Issues are assigned and reviewed on a first come first serve basis. When you begin work on an issue, ensure you leave a comment acknowledging that you have done so such that other users who may be interested in the issue are aware of your work. 
+Issues are assigned and reviewed on a first come first serve basis. When you begin work on an issue, ensure you leave a comment acknowledging that you have done so such that other users who may be interested in the issue are aware of your work.
 
 ## Pull Request Guidelines
 
@@ -224,7 +236,7 @@ If applicable, add screenshots to help explain the issue.
 If you have questions or need help:
 
 - Email us at **[founders@structuredlabs.com](mailto:founders@structuredlabs.com)**.
-- Join the **Structured Users Slack** for discussions and support:  
+- Join the **Structured Users Slack** for discussions and support:
   [Structured Users Slack Invite](https://structured-users.slack.com/join/shared_invite/zt-265ong01f-UHP6BP3FzvOmMQDIKty_JQ#/shared-invite/email).
 
 ## Acknowledgments
