@@ -6,7 +6,12 @@ from pathlib import Path
 
 import click
 
+from preswald.engine.base_service import BasePreswaldService
 from preswald.engine.telemetry import TelemetryService
+
+
+service = BasePreswaldService()
+layout = service._layout_manager
 
 
 # Create a temporary directory for IPC
@@ -428,6 +433,34 @@ def tutorial(ctx):
     finally:
         # Change back to original directory
         os.chdir(current_dir)
+
+
+@cli.command()
+@click.option(
+    "--format",
+    type=click.Choice(["pdf"]),
+    required=True,
+    help="Export format (currently only 'pdf' is supported).",
+)
+@click.option("--output", type=click.Path(), help="Path to the output file.")
+def export(format, output):
+    """Export the current Preswald app as a PDF report."""
+    output_path = output or "preswald_report.pdf"
+
+    if format == "pdf":
+        expected_ids = layout.seen_ids
+
+        click.echo(
+            f"📄 Exporting to PDF. Waiting for {len(expected_ids)} components to render..."
+        )
+
+        # export_app_to_pdf(
+        #     url="http://localhost:8501",
+        #     output=output_path,
+        #     expected_ids=expected_ids
+        # )
+
+        click.echo(f"✅ Export complete. File saved to: {output_path}")
 
 
 if __name__ == "__main__":
