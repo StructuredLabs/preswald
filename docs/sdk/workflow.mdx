@@ -129,6 +129,61 @@ print(results)
 
 ---
 
+### Reactive Runtime: Dependency-Aware Selective Execution
+
+Preswald’s Workflow engine uses a **reactive runtime** that selectively reruns only the atoms affected by state changes — skipping any computation whose inputs haven’t changed. This improves performance and ensures fast, responsive apps.
+
+The dependency graph that powers this system can be built in two ways:
+
+---
+
+#### 1. Manual dependency declaration
+
+You can explicitly declare dependencies using the `dependencies` argument:
+
+```python
+@workflow.atom()
+def task_a():
+    return text("A")
+
+@workflow.atom(dependencies=['task_a'])
+def task_b(task_a):
+    return text("B")
+
+workflow.execute()
+```
+
+In this example:
+- `task_b` depends on `task_a` even though it doesn't use its output.
+- This ensures that `task_a` always runs before `task_b`.
+
+Manual dependencies are useful when:
+- You need explicit control of execution order
+- Atoms produce side effects or state changes rather than return values
+- Dependencies cannot be inferred from function parameters
+
+#### 2. Automatic dependency inference
+If an atom accepts another atom's name as a parameter, the dependency is inferred automatically:
+
+```python
+@workflow.atom()
+def select_value():
+    return slider("Pick a number", min_val=0, max_val=10, default=1)
+
+@workflow.atom()
+def show_value(select_value):
+    return text(f"You picked: {select_value}")
+
+workflow.execute()
+```
+In this example, `show_value` automatically depends on `select_value`.
+
+---
+
+No matter how you define dependencies, the reactive runtime ensures that only atoms whose inputs have changed and their downstream dependents are recomputed.
+
+---
+
 ## Why Use `Workflow`?
 
 - **Efficiency**: Avoids redundant computation with caching.
