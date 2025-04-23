@@ -1,9 +1,13 @@
-import preswald
+from preswald import text, plotly, connect, get_df, table
+import pandas as pd
+import plotly.express as px
 
-def main():
-    preswald.text("Hello, World!")
-    preswald.text("This is a template for your Preswald app.")
-    preswald.text("Edit this file to create your app.")
+text("# Visualize Survey Results")
+text("Create interactive visualizations for survey data with charts and insights.")
 
-if __name__ == "__main__":
-    main()
+# Load the CSV
+connect()
+df = get_df('sample_csv')
+
+# Show the data
+table(df)
