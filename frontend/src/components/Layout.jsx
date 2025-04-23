@@ -1,3 +1,6 @@
+/* eslint-disable react/prop-types */
+/* eslint-disable import/order */
+/* eslint-disable no-unused-vars */
 'use client';
 
 import React, { useState } from 'react';
