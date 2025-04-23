@@ -1,25 +1,50 @@
-import logging
 import hashlib
 import inspect
+import logging
 import os
 import random
 import re
 import sys
-from importlib.resources import files
-from typing import Optional
 from functools import wraps
+from pathlib import Path
+
+import toml
+
 from preswald.engine.service import PreswaldService
 from preswald.interfaces.component_return import ComponentReturn
 
-import toml
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
-def read_template(template_name):
-    """Read a template file from the package."""
-    template_path = files("preswald") / "templates" / f"{template_name}.template"
-    return template_path.read_text()
+
+def read_template(template_name, template_id=None):
+    """Read a template file from the package.
+
+    Args:
+        template_name: Name of the template file without .template extension
+        template_id: Optional template ID (e.g. 'executive-summary'). If not provided, uses 'default'
+    """
+    base_path = Path(__file__).parent / "templates"
+    content = ""
+
+    # First read from common directory
+    common_path = base_path / "common" / f"{template_name}.template"
+    if common_path.exists():
+        content += common_path.read_text()
+
+    # Then read from either template-specific or default directory
+    template_dir = template_id if template_id else "default"
+    template_path = base_path / template_dir / f"{template_name}.template"
+    if template_path.exists():
+        content += template_path.read_text()
+
+    if not content:
+        raise FileNotFoundError(
+            f"Template {template_name} not found in common or {template_dir} directory"
+        )
+
+    return content
 
 
 def read_port_from_config(config_path: str, port: int):
@@ -118,7 +143,8 @@ def generate_slug(base_name: str) -> str:
 
     return slug
 
-def generate_stable_id(prefix: str = "component", identifier: Optional[str] = None) -> str:
+
+def generate_stable_id(prefix: str = "component", identifier: str | None = None) -> str:
     """
     Generate a stable, deterministic component ID using either:
     - a user-supplied identifier string, or
@@ -137,7 +163,7 @@ def generate_stable_id(prefix: str = "component", identifier: Optional[str] = No
         str: A stable ID like "text-abc123ef"
     """
 
-    PRESWALD_SRC_DIR = os.path.abspath(os.path.join(__file__, ".."))
+    preswald_src_dir = os.path.abspath(os.path.join(__file__, ".."))
 
     def get_callsite_id():
         frame = inspect.currentframe()
@@ -145,17 +171,21 @@ def generate_stable_id(prefix: str = "component", identifier: Optional[str] = No
             info = inspect.getframeinfo(frame)
             filepath = os.path.abspath(info.filename)
 
-            in_preswald_src = filepath.startswith(PRESWALD_SRC_DIR)
+            in_preswald_src = filepath.startswith(preswald_src_dir)
             in_venv = ".venv" in filepath or "site-packages" in filepath
             in_stdlib = filepath.startswith(sys.base_prefix)
 
             if not (in_preswald_src or in_venv or in_stdlib):
-                logger.info(f"[generate_stable_id] Callsite used: {filepath}:{info.lineno}")
+                logger.info(
+                    f"[generate_stable_id] Callsite used: {filepath}:{info.lineno}"
+                )
                 return f"{filepath}:{info.lineno}"
 
             frame = frame.f_back
 
-        logger.warning("[generate_stable_id] Could not find valid callsite, falling back")
+        logger.warning(
+            "[generate_stable_id] Could not find valid callsite, falling back"
+        )
         return "unknown:0"
 
     if identifier:
@@ -186,13 +216,16 @@ def with_render_tracking(component_type: str):
     Returns:
         A wrapped function that performs ID assignment and render tracking.
     """
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
             service = PreswaldService.get_instance()
 
             # only generate ID if not explicitly passed
-            component_id = kwargs.get("component_id") or generate_stable_id(component_type)
+            component_id = kwargs.get("component_id") or generate_stable_id(
+                component_type
+            )
             kwargs["component_id"] = component_id
 
             result = func(*args, **kwargs)
@@ -204,17 +237,25 @@ def with_render_tracking(component_type: str):
             else:
                 component = getattr(result, "_preswald_component", None)
                 if not component:
-                    logger.warning(f"[{component_type}] No component metadata found for tracking.")
+                    logger.warning(
+                        f"[{component_type}] No component metadata found for tracking."
+                    )
                     return result
-                return_value = result.value if isinstance(result, ComponentReturn) else result
+                return_value = (
+                    result.value if isinstance(result, ComponentReturn) else result
+                )
 
             with service.active_atom(service._workflow._current_atom):
                 if service.should_render(component_id, component):
                     logger.debug(f"[{component_type}] Created component: {component}")
                     service.append_component(component)
                 else:
-                    logger.debug(f"[{component_type}] No changes detected. Skipping append for {component_id}")
+                    logger.debug(
+                        f"[{component_type}] No changes detected. Skipping append for {component_id}"
+                    )
 
             return return_value
+
         return wrapper
+
     return decorator

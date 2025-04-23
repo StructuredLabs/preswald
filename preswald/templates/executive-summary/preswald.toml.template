@@ -1,0 +1,22 @@
+[project]
+name = "Executive Summary Dashboard"
+description = "Track company-wide KPIs, revenue, burn rate, headcount, and OKR progress in one comprehensive view."
+entrypoint = "hello.py"
+slug = "preswald-project"
+
+[app]
+theme = "light"
+primary_color = "#1E88E5"
+secondary_color = "#FFC107"
+font = "sans-serif"
+
+[logging]
+level = "INFO"
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+[server]
+port = 8501
+host = "0.0.0.0"
+enable_cors = true
+enable_xss_protection = true
+enable_content_security_policy = true 
