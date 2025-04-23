@@ -85,3 +85,20 @@
 .modebar-container {
   display: none !important;
 }
+
+/* dataframe */
+.notebook-html-output table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.notebook-html-output th,
+.notebook-html-output td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+.notebook-html-output th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
