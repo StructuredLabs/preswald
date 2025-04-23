@@ -1,0 +1,20 @@
+---
+title: "Data Sources"
+icon: "database"
+description: "List of all built‑in data sources, their modes, and required configuration fields."
+---
+
+## Data Source Compatibility Matrix
+
+| Data Source                      | Modes Supported        | Required Fields                                 |
+|----------------------------------|------------------------|-------------------------------------------------|
+| **CSV**                          | File                   | path                                            |
+| **JSON**                         | File                   | path, record_path (opt), flatten (opt)          |
+| **Parquet**                      | File                   | path, columns (opt)                             |
+| **PostgreSQL**                   | Database               | host, port, dbname, user (—password in secrets) |
+| **Clickhouse**                   | Database               | host, port, database, user (—password in secrets) |
+| **API**                          | HTTP                   | url, (method, headers, params, auth, pagination) |
+| **Firebase (Firestore)**         | Firestore              | credentials_path, project_id, collection, mode  |
+| **Firebase (Realtime Database)** | Realtime Database      | credentials_path, project_id, path, mode        |
+
+---
