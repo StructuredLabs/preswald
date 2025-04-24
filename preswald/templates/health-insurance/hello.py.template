@@ -1,0 +1,148 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Health Insurance Comparison Tool")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard offers a side-by-side summary of available health insurance plans. 
+It includes key comparisons across premiums, deductibles, out-of-pocket maximums, and provider networks, 
+enabling employees or individuals to make informed coverage decisions during open enrollment or life events.
+"""
+    )
+
+@workflow.atom()
+def plan_overview():
+    text("## Plan Overview")
+    text(
+        """
+This year’s benefits package includes the following plan options:
+
+- **HMO Basic**: Lower monthly premiums, requires in-network referrals.
+- **PPO Standard**: Flexible provider access with moderate costs.
+- **High Deductible Health Plan (HDHP)**: Paired with HSA, ideal for low-utilization individuals.
+
+Each plan is designed to serve different needs and risk tolerances.
+"""
+    )
+
+@workflow.atom()
+def cost_comparison():
+    text("## Monthly Cost Comparison")
+    text(
+        """
+### Employee-Only Coverage:
+
+| Plan        | Premium | Deductible | OOP Max |
+|-------------|---------|------------|---------|
+| HMO Basic   | $210    | $1,000     | $4,000  |
+| PPO Standard| $275    | $750       | $3,500  |
+| HDHP + HSA  | $165    | $2,800     | $5,500  |
+
+Note: Premiums may vary based on dependents, tobacco status, or geographic location.
+"""
+    )
+
+@workflow.atom()
+def network_access():
+    text("## Provider Network & Access")
+    text(
+        """
+- **HMO Basic**: Requires PCP referrals, in-network only. Best for those with consistent provider needs.
+- **PPO Standard**: No referral needed; nationwide in- and out-of-network coverage.
+- **HDHP + HSA**: Uses same PPO network but incentivizes cost-aware decisions.
+
+Consider provider access when evaluating convenience vs. cost.
+"""
+    )
+
+@workflow.atom()
+def usage_scenarios():
+    text("## Cost Scenarios by Usage Level")
+    text(
+        """
+To better understand plan impact, here’s a breakdown for three sample profiles:
+
+| Profile          | Plan        | Total Est. Cost (Annual) | Notes                            |
+|------------------|-------------|---------------------------|----------------------------------|
+| Healthy, Low Use | HDHP + HSA  | ~$2,180                   | Lowest premiums, minimal visits |
+| Family, Moderate | PPO Standard| ~$6,140                   | Predictable care, broader access|
+| Chronic Care     | HMO Basic   | ~$7,800                   | Lower OOP max, limited flexibility|
+
+Scenarios include premiums + estimated care costs + average prescriptions.
+"""
+    )
+
+@workflow.atom()
+def special_features():
+    text("## Special Features & Benefits")
+    text(
+        """
+Each plan also includes:
+
+- **Telemedicine Access** (all plans): $0 or reduced copay  
+- **Preventive Care**: Covered 100% in-network  
+- **Mental Health Services**: Parity coverage with medical  
+- **Prescription Tiers**: Generic, Preferred, Specialty with negotiated rates  
+- **HSA Eligibility**: Only with HDHP, allows tax-free medical savings
+
+Use these perks to maximize coverage value beyond just cost.
+"""
+    )
+
+@workflow.atom()
+def hsa_summary():
+    text("## Health Savings Account (HSA) Overview")
+    text(
+        """
+### Available only with HDHP:
+
+- **2025 Contribution Limit**: $4,150 (individual), $8,300 (family)
+- **Employer Match**: Up to $500 annually
+- **Tax Advantages**:
+  - Pre-tax contributions
+  - Tax-free withdrawals for qualified expenses
+  - Rollover and investment options
+
+HSAs offer long-term benefits, especially for high-income earners or low utilizers.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Choosing the Right Plan")
+    text(
+        """
+### Based on common profiles:
+
+- **Budget-Conscious Individual**: HDHP + HSA  
+- **Families with Routine Care**: PPO Standard  
+- **Chronic Care Needs or Referrals OK**: HMO Basic
+
+Always consider:
+- Anticipated usage (e.g. planned procedures, dependents)
+- Prescription needs
+- Preferred providers
+- Risk tolerance for large unexpected costs
+"""
+    )
+
+@workflow.atom()
+def notes_footer():
+    text("## Notes")
+    text(
+        """
+- Plan data reflects offerings for the 2025 benefits year.
+- Estimates do not constitute legal or financial advice.
+- For detailed plan documents, contact HR or the benefits administrator.
+
+Comparison tools are a guide—always verify details with your provider or plan brochure.
+"""
+    )
+
+workflow.execute()

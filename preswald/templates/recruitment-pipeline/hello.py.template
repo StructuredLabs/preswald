@@ -1,0 +1,162 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Recruitment Pipeline Dashboard")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard tracks the health of the hiring pipeline, including candidate volume, 
+funnel conversion rates, interview outcomes, and time-to-fill metrics. Use it to monitor progress 
+against hiring goals, identify bottlenecks, and support data-driven talent acquisition.
+"""
+    )
+
+@workflow.atom()
+def pipeline_summary():
+    text("## Pipeline Summary")
+    text(
+        """
+### Current Open Roles: 14  
+- **Total Candidates in Pipeline**: 327  
+- **Interviews Scheduled (This Week)**: 42  
+- **Offers Extended (MTD)**: 9  
+- **Acceptances**: 6  
+- **Hiring Goal (Q2)**: 38 hires  
+- **Progress**: 21 hires complete (55.3%)
+
+The team is tracking slightly ahead of Q2 hiring plan with increased sourcing velocity in Engineering.
+"""
+    )
+
+@workflow.atom()
+def stage_conversion_rates():
+    text("## Stage Conversion Rates")
+    text(
+        """
+| Stage               | Conversion Rate | Avg. Time in Stage |
+|---------------------|------------------|----------------------|
+| Application Review  | 32.4%            | 2.1 days             |
+| Recruiter Screen    | 61.7%            | 1.8 days             |
+| Hiring Manager Call | 45.2%            | 2.5 days             |
+| Onsite Interview    | 28.6%            | 4.7 days             |
+| Offer               | 81.8%            | 1.1 days             |
+
+Biggest drop-off remains between hiring manager and onsite stages. Onsite scheduling delays also increasing cycle time.
+"""
+    )
+
+@workflow.atom()
+def time_to_fill():
+    text("## Time-to-Fill Metrics")
+    text(
+        """
+### Median Time to Fill:
+
+- **Engineering Roles**: 31 days  
+- **Design Roles**: 27 days  
+- **Go-to-Market Roles**: 22 days  
+- **G&A Roles**: 19 days  
+- **Company-Wide Average**: 26.3 days
+
+Engineering hiring cycles remain longest due to candidate competition and multi-stage assessments.
+"""
+    )
+
+@workflow.atom()
+def candidate_sources():
+    text("## Candidate Source Breakdown")
+    text(
+        """
+| Source               | Candidates | % of Total | Hires |
+|----------------------|------------|-------------|-------|
+| LinkedIn             | 128        | 39.1%       | 9     |
+| Employee Referrals   | 76         | 23.2%       | 7     |
+| Careers Site         | 49         | 15.0%       | 2     |
+| Agency Submissions   | 38         | 11.6%       | 2     |
+| University Outreach  | 36         | 11.0%       | 1     |
+
+Referrals continue to outperform in conversion and speed. LinkedIn remains the top volume source.
+"""
+    )
+
+@workflow.atom()
+def interview_feedback():
+    text("## Interview Feedback Overview")
+    text(
+        """
+| Rating              | % of Interviews | Avg. Candidate Score |
+|---------------------|------------------|------------------------|
+| Strong Yes          | 18.6%            | 4.8/5                  |
+| Yes                 | 37.2%            | 4.1/5                  |
+| Mixed               | 28.5%            | 3.5/5                  |
+| No                  | 15.7%            | 2.6/5                  |
+
+Interviewers continue to cite culture alignment and communication as top success signals. Mixed feedback correlates with 61% rejection rate.
+"""
+    )
+
+@workflow.atom()
+def diversity_metrics():
+    text("## Diversity Pipeline Snapshot")
+    text(
+        """
+| Category                  | % of Total Pipeline |
+|---------------------------|----------------------|
+| Women (All Roles)         | 41%                  |
+| URM (Underrepresented)    | 26%                  |
+| Nontraditional Background | 14%                  |
+| First-Time Tech Industry  | 11%                  |
+
+Diversity goals are being actively monitored. Referral sourcing now includes incentive program for underrepresented talent.
+"""
+    )
+
+@workflow.atom()
+def open_roles_watchlist():
+    text("## Watchlist: Aging Roles")
+    text(
+        """
+| Role                      | Days Open | Interviews Scheduled | Notes                       |
+|---------------------------|-----------|------------------------|-----------------------------|
+| Staff Backend Engineer    | 53        | 1                      | Low response rate to outreach |
+| Lead Product Designer     | 47        | 2                      | Expanded to remote candidates |
+| Senior FP&A Analyst       | 45        | 0                      | JD refresh pending           |
+
+Recruiter syncs scheduled to re-strategize pipeline building for high-risk aging roles.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Strategic Hiring Recommendations")
+    text(
+        """
+1. **Add recruiter support to engineering** roles with longest time-to-fill  
+2. **Shorten post-onsite decision window** to improve candidate close rate  
+3. **Double down on referral outreach** for design and product roles  
+4. **Create fast-track program for top performers** in hiring manager screen  
+5. **Continue sourcing from bootcamps** and nontraditional programs for early-career hiring
+
+Hiring ops to track progress weekly and report updated pipeline forecasts each Monday.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data covers April 1–22, 2025  
+- Source systems: Greenhouse, LinkedIn Recruiter, internal scorecard DB  
+- Pipeline stats exclude withdrawn candidates and contractor roles
+
+Next full pipeline review scheduled for May 1, 2025.
+"""
+    )
+
+workflow.execute()

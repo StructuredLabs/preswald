@@ -1,0 +1,145 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Quality Assurance Dashboard")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard tracks quality assurance KPIs including test coverage, defect trends, 
+release readiness, and QA velocity. Use it to monitor engineering quality, identify regressions early, 
+and ensure test processes scale with product growth.
+"""
+    )
+
+@workflow.atom()
+def test_coverage_summary():
+    text("## Test Coverage Summary")
+    text(
+        """
+### April 2025 Snapshot:
+
+- **Unit Test Coverage**: 81.3%  
+- **Integration Test Coverage**: 64.7%  
+- **E2E Test Coverage**: 39.8%  
+- **Total Assertions Run (CI)**: 1.92M  
+- **Flaky Test Failures**: 3.2% of total runs
+
+Coverage trending up, though E2E tests are bottlenecked by environment reliability.
+"""
+    )
+
+@workflow.atom()
+def bug_metrics():
+    text("## Bug Metrics Overview")
+    text(
+        """
+### Reported Bugs (April 1–22, 2025):
+
+| Severity     | Open | Resolved | Avg. Resolution Time |
+|--------------|------|----------|-----------------------|
+| Critical     | 6    | 11       | 1.6 days              |
+| Major        | 18   | 27       | 2.8 days              |
+| Minor        | 31   | 39       | 4.2 days              |
+| Cosmetic     | 9    | 12       | 5.3 days              |
+
+Current open bug backlog: 64  
+Resolution SLA met on 91% of critical issues.
+"""
+    )
+
+@workflow.atom()
+def regression_trends():
+    text("## Regression Tracking")
+    text(
+        """
+- **Bugs Reopened (April)**: 12  
+- **Production Regressions**: 4 (▲ 1 from last month)  
+- **Top Regression Areas**: Form validation, user roles, export engine  
+- **Avg. Time to Detection (Prod)**: 2.1 days
+
+Increased test depth in permissions suite underway to reduce role-based regressions.
+"""
+    )
+
+@workflow.atom()
+def qa_velocity():
+    text("## QA Team Velocity")
+    text(
+        """
+| Metric                     | April (MTD) | March |
+|----------------------------|-------------|--------|
+| Test Cases Authored        | 182         | 194    |
+| Test Executions (Manual)   | 1,160       | 1,320  |
+| Test Executions (Automated)| 51,400      | 48,950 |
+| Test Cycles Completed      | 8           | 9      |
+
+Velocity stable; shift-left adoption improving early cycle test coverage.
+"""
+    )
+
+@workflow.atom()
+def release_readiness():
+    text("## Release Readiness Summary")
+    text(
+        """
+### v2.14.0 Release Gate (Target: May 3):
+
+- **Test Pass Rate**: 96.4%  
+- **Blocking Bugs**: 2 open (1 critical, 1 major)  
+- **Known Issues Documented**: 7  
+- **Release Checklist Completion**: 88%
+
+Final regression sweep scheduled for May 1. Blockers under active triage with dev teams.
+"""
+    )
+
+@workflow.atom()
+def test_environment_status():
+    text("## Test Environment Health")
+    text(
+        """
+- **Uptime (QA Env)**: 99.2% (MTD)  
+- **CI/CD Deploy Success Rate**: 92.5%  
+- **Avg. Build Duration**: 11m 47s  
+- **E2E Failures due to Infra**: 26% (of failed tests)  
+- **Live Test Demos Blocked**: 3 (due to env config drift)
+
+Work underway to migrate to isolated ephemeral test environments per CI branch.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## QA Recommendations")
+    text(
+        """
+1. **Prioritize flaky test audit**—target reduction from 3.2% to <2%  
+2. **Shift additional regression tests left** into pull request validation  
+3. **Close test gap on export and permissions modules**  
+4. **Auto-create JIRA issues from test suite failures** for faster triage  
+5. **Continue migrating to ephemeral CI environments** to reduce infra noise
+
+Focus remains on scalability of QA processes as release velocity increases.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Metrics cover April 1–22, 2025  
+- Data sources: Jira, TestRail, Playwright, CircleCI, Datadog  
+- Definitions: Critical = Sev 1, Major = Sev 2, etc.  
+- Next update scheduled: May 5, 2025
+
+For QA dashboards per team or feature area, contact qa-insights@company.com.
+"""
+    )
+
+workflow.execute()

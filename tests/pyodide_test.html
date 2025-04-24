@@ -37,32 +37,34 @@
         // await pyodide.runPythonAsync(`
         //   import micropip
         //   await micropip.install("preswald")
-          
+
         //   # Try importing your modules
         //   import preswald
         //   print("Successfully imported preswald")
-          
+
         //   # Test specific modules/functionality
         //   # import preswald.submodule
         //   # print(preswald.__version__)
         // `);
-        
+
         // Alternative 2: If not published, you can load from wheel
         // First, build your wheel: python -m build --wheel
         // Then serve it locally and load it:
         await pyodide.runPythonAsync(`
           import micropip
-          await micropip.install("http://localhost:8000/preswald-0.1.38-py3-none-any.whl")
+          await micropip.install("http://localhost:8000/dist/preswald-0.1.51-py3-none-any.whl");
           import preswald
           print("Successfully imported from wheel")
-        `);
-        
+          from preswald.engine.service import PreswaldService
+          PreswaldService.initialize()
+    `);
+
         appendOutput("All tests completed!");
       } catch (error) {
         appendOutput("ERROR: " + error);
       }
     }
-    
+
     main();
   </script>
 </body>

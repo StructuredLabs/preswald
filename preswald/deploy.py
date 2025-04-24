@@ -6,24 +6,21 @@ import re
 import shutil
 import subprocess
 import zipfile
+from collections.abc import Generator
 from datetime import datetime
-from importlib.metadata import version
 from pathlib import Path
-from typing import Generator, Optional, Union  
+
+from typing import Optional, Union  
+
 
 
 import requests
 import toml
 
-from preswald.utils import get_project_slug, read_template
+from preswald.utils import get_project_slug
 
 
 logger = logging.getLogger(__name__)
-
-# Default Structured Cloud service URL
-# STRUCTURED_CLOUD_SERVICE_URL = os.getenv('STRUCTURED_CLOUD_SERVICE_URL', 'http://127.0.0.1:8080')
-STRUCTURED_CLOUD_SERVICE_URL = "https://deployer.preswald.com"
-
 
 def get_deploy_dir(script_path: str) -> Path:
     """
@@ -240,126 +237,6 @@ def deploy_to_cloud_run(deploy_dir: Path, container_name: str, port: int = 8501)
         raise Exception(f"Deployment failed: {e!s}") from e
 
 
-def deploy_to_prod(  # noqa: C901
-    script_path: str,
-    port: int = 8501,
-    github_username: Optional[str] = None,
-    api_key: Optional[str] = None,
-) -> Generator[dict, None, None]:
-    """
-    Deploy a Preswald app to production via Structured Cloud service.
-
-    Args:
-        script_path: Path to the Preswald application script
-        port: Port number for the deployment
-        github_username: Optional GitHub username provided via CLI
-        api_key: Optional Structured Cloud API key provided via CLI
-
-    Returns:
-        Generator yielding deployment status updates
-    """
-    script_path = os.path.abspath(script_path)
-    script_dir = Path(script_path).parent
-    config_path = script_dir / "preswald.toml"
-    env_file = script_dir / ".env.structured"
-
-    # Get project slug from preswald.toml
-    try:
-        project_slug = get_project_slug(config_path)
-    except Exception as e:
-        yield {
-            "status": "error",
-            "message": f"Failed to get project slug: {e!s}",
-            "timestamp": datetime.now().isoformat(),
-        }
-        raise Exception(f"Failed to get project slug: {e!s}") from e
-
-    if not env_file.exists():
-        # Use provided credentials or get from user input
-        if not github_username:
-            github_username = input("Enter your GitHub username: ")
-        if not api_key:
-            structured_cloud_api_key = input("Enter your Structured Cloud API key: ")
-        else:
-            structured_cloud_api_key = api_key
-
-        # Create and populate .env.structured file
-        with open(env_file, "w") as f:
-            f.write(f"GITHUB_USERNAME={github_username}\n")
-            f.write(f"STRUCTURED_CLOUD_API_KEY={structured_cloud_api_key}\n")
-    else:
-        # Read credentials from existing env file if not provided via CLI
-        credentials = {}
-        with open(env_file) as f:
-            for line in f:
-                key, value = line.strip().split("=")
-                credentials[key] = value
-
-        github_username = github_username or credentials["GITHUB_USERNAME"]
-        structured_cloud_api_key = api_key or credentials["STRUCTURED_CLOUD_API_KEY"]
-
-    # Create a temporary zip file
-    zip_buffer = io.BytesIO()
-    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-        # Walk through the script directory and add all files
-        for root, _, files in os.walk(script_dir):
-            for file in files:
-                # Skip .preswald_deploy directory
-                if ".preswald_deploy" in root:
-                    continue
-
-                file_path = os.path.join(root, file)
-                arc_name = os.path.relpath(file_path, script_dir)
-                zip_file.write(file_path, arc_name)
-
-    # Prepare the zip file for sending
-    zip_buffer.seek(0)
-    files = {"deployment": ("app.zip", zip_buffer, "application/zip")}
-
-    try:
-        git_repo_name = (
-            subprocess.check_output(
-                ["git", "config", "--get", "remote.origin.url"], cwd=script_dir
-            )
-            .decode("utf-8")
-            .strip()
-        )
-
-        git_repo_name = git_repo_name.split("/")[-1].replace(".git", "")
-    except subprocess.CalledProcessError:
-        git_repo_name = os.path.basename(script_dir)
-
-    try:
-        response = requests.post(
-            f"{STRUCTURED_CLOUD_SERVICE_URL}/deploy",
-            files=files,
-            data={
-                "github_username": github_username,
-                "structured_cloud_api_key": structured_cloud_api_key,
-                "project_slug": project_slug,
-                "git_repo_name": git_repo_name,
-            },
-            stream=True,
-        )
-        response.raise_for_status()
-
-        # Process SSE stream
-        for line in response.iter_lines():
-            if line:
-                # SSE lines start with "data: "
-                if line.startswith(b"data: "):
-                    data = json.loads(line[6:].decode("utf-8"))
-                    yield data
-
-    except requests.RequestException as e:
-        yield {
-            "status": "error",
-            "message": f"Deployment failed: {e!s}",
-            "timestamp": datetime.now().isoformat(),
-        }
-        raise Exception(f"Production deployment failed: {e!s}") from e
-
-
 def check_gcloud_auth_for_gcr() -> bool:
     try:
         result = subprocess.run(
@@ -434,7 +311,7 @@ def deploy_to_gcp(script_path: str, port: int = 8501) -> str:  # noqa: C901
             elif item.is_dir():
                 shutil.rmtree(item)
 
-        dockerfile_content = """FROM structuredlabs/preswald-base:latest
+        dockerfile_content = """FROM structuredlabs/preswald:latest
 COPY . /app/project
 """
         with open(deploy_dir / "Dockerfile", "w") as f:
@@ -572,13 +449,13 @@ COPY . /app/project
 
 def find_available_port(start_port: int = 8501) -> int:
     import socket
-    
+
     port = start_port
     while True:
         try:
             # Try to bind to the port
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.bind(('', port))
+                s.bind(("", port))
                 return port
         except OSError:
             port += 1
@@ -588,18 +465,18 @@ def deploy_to_local(script_path: str, start_port: int = 8501) -> str:
     script_path = os.path.abspath(script_path)
     script_dir = Path(script_path).parent
     container_name = get_container_name(script_path)
-    
+
     try:
         # Find an available port
         port = find_available_port(start_port)
         print(f"\nUsing port: {port}")
-        
+
         # Stop any existing container
         print("Stopping existing deployment (if any)...")
         stop_existing_container(container_name)
-        
+
         # Start the container with the prebuilt base image
-        print(f"Starting container with prebuilt base image...")
+        print("Starting container with prebuilt base image...")
         subprocess.run(
             [
                 "docker",
@@ -611,13 +488,13 @@ def deploy_to_local(script_path: str, start_port: int = 8501) -> str:
                 f"{port}:{start_port}",
                 "-v",
                 f"{script_dir}:/app/project",
-                "structuredlabs/preswald-base:latest"
+                "structuredlabs/preswald:latest",
             ],
             check=True,
         )
-        
+
         return f"http://localhost:{port}"
-        
+
     except subprocess.CalledProcessError as e:
         raise Exception(f"Docker operation failed: {e!s}") from e
     except FileNotFoundError as e:
@@ -629,34 +506,26 @@ def deploy_to_local(script_path: str, start_port: int = 8501) -> str:
         raise Exception(f"Local deployment failed: {e!s}") from e
 
 
-def deploy(  # noqa: C901
+def deploy(
     script_path: str,
     target: str = "local",
     port: int = 8501,
     github_username: Optional[str] = None,
     api_key: Optional[str] = None,
-
 ) -> Union[str, Generator[dict, None, None]]:
-
-) -> Union[str , Generator[dict, None, None]]:
-
     """
     Deploy a Preswald app.
 
     Args:
         script_path: Path to the Preswald application script
-        target: Deployment target ("local", "gcp", "aws", or "prod")
+        target: Deployment target ("local", "gcp", "aws")
         port: Port number for the deployment
-        github_username: Optional GitHub username for structured deployment
-        api_key: Optional Structured Cloud API key for structured deployment
 
     Returns:
         str | Generator: URL where the application can be accessed for local/cloud deployments,
                         or a Generator yielding deployment status for production deployments
     """
-    if target == "structured":
-        return deploy_to_prod(script_path, port, github_username, api_key)
-    elif target == "gcp":
+    if target == "gcp":
         return deploy_to_gcp(script_path, port)
     elif target == "local":
         return deploy_to_local(script_path, port)
@@ -675,103 +544,6 @@ def stop_local_deployment(script_dir: str) -> None:
         raise Exception(f"No deployment configuration found: {e}") from e
     except Exception as e:
         raise Exception(f"Failed to stop local deployment: {e}") from e
-
-def stop_structured_deployment(script_dir: str) -> dict:
-    """
-    Stop a Preswald app deployed to Structured Cloud service.
-
-    Args:
-        script_path: Path to the Preswald application script
-
-    Returns:
-        dict: Status of the stop operation
-    """
-    config_path = Path(script_dir) / "preswald.toml"
-    env_file = Path(script_dir) / ".env.structured"
-
-    # Get project slug from preswald.toml
-    try:
-        project_slug = get_project_slug(config_path)
-    except Exception as e:
-        raise Exception(f"Failed to get project slug: {e!s}") from e
-
-    if not env_file.exists():
-        raise Exception("No deployment found. The .env.structured file is missing.")
-
-    # Read credentials from existing env file
-    credentials = {}
-    with open(env_file) as f:
-        for line in f:
-            key, value = line.strip().split("=")
-            credentials[key] = value
-
-    github_username = credentials["GITHUB_USERNAME"]
-    structured_cloud_api_key = credentials["STRUCTURED_CLOUD_API_KEY"]
-
-    try:
-        response = requests.post(
-            f"{STRUCTURED_CLOUD_SERVICE_URL}/stop",
-            json={
-                "github_username": github_username,
-                "structured_cloud_api_key": structured_cloud_api_key,
-                "project_slug": project_slug,
-            },
-        )
-        response.raise_for_status()
-        return response.json()
-
-    except requests.RequestException as e:
-        raise Exception(f"Failed to stop production deployment: {e!s}") from e
-
-
-def get_structured_deployments(script_path: str) -> dict:
-    """
-    Get deployments from Structured Cloud service.
-
-    Args:
-        script_path: Path to the Preswald application script
-
-    Returns:
-        dict: Deployment information including user, organization, and deployments list
-    """
-    script_dir = Path(script_path).parent
-    config_path = script_dir / "preswald.toml"
-    env_file = script_dir / ".env.structured"
-
-    # Get project slug from preswald.toml
-    try:
-        project_slug = get_project_slug(config_path)
-    except Exception as e:
-        raise Exception(f"Failed to get project slug: {e!s}") from e
-
-    if not env_file.exists():
-        raise Exception("No deployment found. The .env.structured file is missing.")
-
-    # Read credentials from existing env file
-    credentials = {}
-    with open(env_file) as f:
-        for line in f:
-            key, value = line.strip().split("=")
-            credentials[key] = value
-
-    github_username = credentials["GITHUB_USERNAME"]
-    structured_cloud_api_key = credentials["STRUCTURED_CLOUD_API_KEY"]
-
-    try:
-        response = requests.post(
-            f"{STRUCTURED_CLOUD_SERVICE_URL}/deployments",
-            json={
-                "github_username": github_username,
-                "structured_cloud_api_key": structured_cloud_api_key,
-                "project_slug": project_slug,
-            },
-        )
-        response.raise_for_status()
-        return response.json()
-
-    except requests.RequestException as e:
-        raise Exception(f"Failed to fetch deployments: {e!s}") from e
-
 
 def cleanup_gcp_deployment(script_dir: str):  # noqa: C901
     def log_status(status, message):

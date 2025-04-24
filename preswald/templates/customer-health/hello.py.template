@@ -1,0 +1,146 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Customer Health Dashboard")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This report provides a real-time snapshot of customer health across your account base. 
+It aggregates behavioral, support, and satisfaction data to help identify accounts at risk, 
+celebrate strong performers, and guide proactive customer success efforts.
+"""
+    )
+
+@workflow.atom()
+def health_overview():
+    text("## Customer Health Overview")
+    text(
+        """
+### Overall Health Score Distribution (All Accounts):
+
+- **Healthy** (score ≥ 80): 63%
+- **At Risk** (score 60–79): 25%
+- **Critical** (score < 60): 12%
+
+The health score is a composite metric derived from product usage, NPS, support history, 
+and billing behavior. It updates daily to reflect recent activity.
+"""
+    )
+
+@workflow.atom()
+def product_engagement():
+    text("## Product Engagement")
+    text(
+        """
+Usage frequency is a key indicator of account health. For the current period:
+
+- **Avg. Weekly Logins per User**: 4.2
+- **Active Users (Last 7 Days)**: 6,814
+- **Power Users (10+ sessions/week)**: 22.4%
+- **Inactivity Spike**: 7.1% of accounts dropped below baseline usage
+
+Accounts with declining engagement for 2+ weeks are flagged for CSM review.
+"""
+    )
+
+@workflow.atom()
+def support_metrics():
+    text("## Support Interaction Trends")
+    text(
+        """
+Support volume and resolution quality influence retention and satisfaction.
+
+- **Tickets Opened (30 Days)**: 812
+- **Avg. First Response Time**: 2h 15m
+- **Satisfaction Score (CSAT)**: 89.4%
+- **Accounts with ≥ 3 Open Tickets**: 104
+
+Multiple unresolved tickets or poor ratings may indicate implementation issues or friction with key workflows.
+"""
+    )
+
+@workflow.atom()
+def satisfaction_indicators():
+    text("## Customer Satisfaction & NPS")
+    text(
+        """
+Results from the most recent survey cycle:
+
+- **NPS (Net Promoter Score)**: +36
+- **NPS Promoters** (9–10): 52%
+- **NPS Detractors** (0–6): 16%
+- **Survey Response Rate**: 38%
+
+Detractor follow-ups are scheduled for this week. Promoters may be strong candidates for referrals or testimonials.
+"""
+    )
+
+@workflow.atom()
+def health_by_segment():
+    text("## Health Score by Segment")
+    text(
+        """
+| Segment        | Avg. Health Score | % Healthy |
+|----------------|-------------------|-----------|
+| SMB            | 73.4              | 59%       |
+| Mid-Market     | 80.1              | 68%       |
+| Enterprise     | 85.2              | 74%       |
+
+Health improves with account maturity. SMBs may need closer onboarding and proactive check-ins.
+"""
+    )
+
+@workflow.atom()
+def high_risk_accounts():
+    text("## High-Risk Accounts")
+    text(
+        """
+Accounts with a health score below 60:
+
+| Account Name      | Industry   | Score | Notes                        |
+|-------------------|------------|-------|------------------------------|
+| Raynex Solutions  | Logistics  | 52    | Low usage, open billing case |
+| Novex Media       | Marketing  | 48    | No logins in 3 weeks         |
+| Ferra Health      | Healthcare | 55    | CSAT below 60%               |
+
+These accounts require immediate CSM attention. Risk interventions are underway.
+"""
+    )
+
+@workflow.atom()
+def customer_success_actions():
+    text("## Recommended Success Actions")
+    text(
+        """
+To strengthen customer relationships and reduce churn risk:
+
+1. **Re-onboard inactive teams** with targeted training and feature refreshers.
+2. **Escalate support delays** for critical accounts.
+3. **Offer feature discovery calls** to accounts using <30% of licensed features.
+4. **Create advocacy loops** with NPS promoters via referral programs and case studies.
+5. **Auto-trigger alerts** when health score drops ≥15 points week-over-week.
+
+Tracking these efforts improves long-term retention and LTV.
+"""
+    )
+
+@workflow.atom()
+def report_footer():
+    text("## Notes")
+    text(
+        """
+- Health scores are recalculated nightly.
+- Inputs include usage events, Zendesk tickets, NPS responses, and invoice records.
+- This dashboard reflects account data as of April 23, 2025.
+- Risk thresholds are configurable by account tier and lifecycle stage.
+
+For custom views or alert rules, contact the Customer Success Analytics team.
+"""
+    )
+
+workflow.execute()

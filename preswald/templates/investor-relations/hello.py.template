@@ -1,0 +1,147 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Investor Relations Dashboard")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard provides a centralized view for managing investor relations. 
+It includes key financial and operational metrics, shareholder updates, recent communications, and 
+upcoming investor meeting materials—designed to support transparency and trust with your investor community.
+"""
+    )
+
+@workflow.atom()
+def performance_highlights():
+    text("## Company Performance Highlights")
+    text(
+        """
+### Q1 2025 Summary:
+
+- **Revenue**: $13.2M (▲ 18% YoY)  
+- **Gross Margin**: 72.4%  
+- **EBITDA**: $2.6M  
+- **Customer Count**: 1,425 active accounts  
+- **Net Retention Rate**: 111%  
+- **Cash on Hand**: $21.8M
+
+Performance metrics reflect healthy growth and improving unit economics.
+"""
+    )
+
+@workflow.atom()
+def shareholder_updates():
+    text("## Recent Shareholder Communications")
+    text(
+        """
+| Date       | Type                 | Summary                                     |
+|------------|----------------------|---------------------------------------------|
+| 2025-04-10 | Quarterly Letter     | Highlighted strong Q1 growth and roadmap    |
+| 2025-03-18 | Product Brief        | Announced new AI features in analytics suite|
+| 2025-02-12 | Hiring Update        | Shared key executive hires in engineering   |
+
+All communications are archived in the investor portal and distributed via secure mailing lists.
+"""
+    )
+
+@workflow.atom()
+def ownership_breakdown():
+    text("## Current Ownership Breakdown")
+    text(
+        """
+| Stakeholder Group  | Ownership % | Notes                          |
+|---------------------|-------------|--------------------------------|
+| Founders & Exec Team| 38%         | Includes unvested equity       |
+| Institutional VCs   | 42%         | Across Series A–C rounds       |
+| Angel Investors     | 6%          | Early-stage participants       |
+| Employee Pool       | 9%          | Includes 2025 option refresh   |
+| Other Shareholders  | 5%          | Secondary transactions & SPVs |
+
+Cap table summaries are updated quarterly and available upon request.
+"""
+    )
+
+@workflow.atom()
+def upcoming_meetings():
+    text("## Upcoming Investor Meetings")
+    text(
+        """
+### Next Scheduled Touchpoints:
+
+- **Quarterly Board Meeting**: May 7, 2025 @ 9:00am PT  
+- **Investor AMA Webinar**: May 21, 2025 @ 11:00am PT  
+- **Q2 Financial Update Call**: July 10, 2025 @ 8:30am PT
+
+Decks, financials, and prepared remarks will be shared in advance via the data room.
+"""
+    )
+
+@workflow.atom()
+def investor_materials():
+    text("## Key Materials Archive")
+    text(
+        """
+Materials available for current investors:
+
+- Q1 2025 Financials (PDF, Excel)  
+- Board Meeting Decks (past 4 quarters)  
+- Product Roadmap Summary  
+- Cap Table Snapshot  
+- Updated Bylaws & Governance Docs  
+- Recorded Q&A Sessions
+
+Access requires investor credentials and compliance with NDA terms.
+"""
+    )
+
+@workflow.atom()
+def faq_section():
+    text("## Frequently Asked Questions")
+    text(
+        """
+**Q: When is the next liquidity event expected?**  
+A: While no formal timeline is set, we are targeting late 2026 for a strategic transaction or secondary offering.
+
+**Q: How can I update my contact info or access the investor portal?**  
+A: Email ir@company.com or use the secure form in the portal dashboard.
+
+**Q: Are SAFEs or convertible notes still open?**  
+A: No—our last round closed in November 2024. Future allocations will be reviewed case-by-case.
+"""
+    )
+
+@workflow.atom()
+def contact_info():
+    text("## Contact Information")
+    text(
+        """
+For all investor-related inquiries, please reach out to:
+
+**Investor Relations Contact**: Taylor Morgan  
+**Email**: ir@company.com  
+**Phone**: +1 (555) 987-6543  
+**Portal**: [investors.company.com](https://investors.company.com)
+
+We aim to respond to all inquiries within 1 business day.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- This dashboard was last updated on April 23, 2025.  
+- All financial data is unaudited and subject to quarterly review.  
+- Documents are maintained under SOC 2–compliant systems.
+
+Please confirm access rights before distributing materials externally.
+"""
+    )
+
+workflow.execute()

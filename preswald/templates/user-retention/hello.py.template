@@ -1,0 +1,125 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# User Retention Cohorts")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard analyzes user retention by cohort, highlighting activation patterns, 
+long-term engagement, and drop-off trends. Use cohort insights to assess product-market fit, 
+refine onboarding, and improve lifecycle engagement strategies.
+"""
+    )
+
+@workflow.atom()
+def cohort_summary():
+    text("## Cohort Overview")
+    text(
+        """
+### April 2025 Summary:
+
+- **Cohorts Analyzed**: 6 (Jan–Jun signup months)  
+- **Avg. Week 1 Retention**: 41.2%  
+- **Avg. Week 4 Retention**: 17.9%  
+- **Avg. 3-Month Retention**: 11.3%  
+- **Best-Performing Cohort**: March 2025 (W1: 48.9%, W4: 23.4%)
+
+Retention curves improving following Q1 onboarding optimizations.
+"""
+    )
+
+@workflow.atom()
+def retention_by_signup_month():
+    text("## Retention by Signup Month")
+    text(
+        """
+| Signup Month | Week 1 | Week 2 | Week 4 | Week 8 | Week 12 |
+|---------------|--------|--------|--------|--------|---------|
+| Jan 2025      | 38.2%  | 27.3%  | 15.0%  | 11.2%  | 9.3%    |
+| Feb 2025      | 40.6%  | 29.4%  | 18.7%  | 13.4%  | 10.1%   |
+| Mar 2025      | 48.9%  | 36.1%  | 23.4%  | 15.6%  | 12.4%   |
+| Apr 2025*     | 44.5%  | 33.2%  | —      | —      | —       |
+
+(*) Data incomplete for long-term view. March cohort showing strongest early retention.
+"""
+    )
+
+@workflow.atom()
+def cohort_retention_curves():
+    text("## Cohort Retention Curves (Jan–Mar)")
+    text(
+        """
+- **Week 1 Drop-Off (Avg)**: 58.8%  
+- **Week 2 to Week 4 Decline**: 38.1%  
+- **Flatline begins**: ~Week 9  
+- **Top cohort retention at Week 12**: Mar 2025 (12.4%)
+
+Most cohorts plateau after 2 months. Behavior-driven lifecycle nudges start in Week 5.
+"""
+    )
+
+@workflow.atom()
+def activation_insights():
+    text("## Activation Impact on Retention")
+    text(
+        """
+| Activation Milestone      | Retention @ Week 4 | % of Cohort Achieved |
+|---------------------------|---------------------|------------------------|
+| Created First Workflow    | 29.1%               | 61%                   |
+| Invited Team Member       | 34.6%               | 47%                   |
+| Installed Integration     | 38.7%               | 24%                   |
+
+Users completing 2+ milestones in first 3 days are 2.5x more likely to return in Week 4.
+"""
+    )
+
+@workflow.atom()
+def retention_by_segment():
+    text("## Retention by Segment")
+    text(
+        """
+| Segment         | Week 4 Retention | Week 12 Retention | Notes                        |
+|------------------|------------------|--------------------|-------------------------------|
+| Free Tier        | 11.4%            | 5.7%               | Strong Week 1 drop-off       |
+| SMB (Paid)       | 25.2%            | 13.3%              | High engagement in early weeks|
+| Mid-Market       | 31.6%            | 18.2%              | Best long-term retention     |
+| Enterprise       | 23.8%            | 15.6%              | Influenced by onboarding delays|
+
+Mid-market users show the most stable return patterns beyond 4 weeks.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Strategic Recommendations")
+    text(
+        """
+1. Expand in-app onboarding flow to emphasize milestone actions  
+2. Increase Week 2 engagement with role-specific success content  
+3. Trigger lifecycle emails based on milestone achievement status  
+4. Offer onboarding assistance to Enterprise users in first 7 days  
+5. Introduce product usage gamification in Free tier to extend Week 2 retention
+
+Cohort-based triggers to be integrated into the May lifecycle automation plan.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data based on user events logged Jan–Apr 2025  
+- Retention = % of original cohort active in given week  
+- Source platforms: Segment, Amplitude, Intercom
+
+Next cohort update scheduled: May 10, 2025
+"""
+    )
+
+workflow.execute()

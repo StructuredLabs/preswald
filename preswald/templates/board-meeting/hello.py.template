@@ -1,0 +1,105 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro():
+    text("# Board Meeting Report")
+    text("**Company:** NimbusFlow, Inc.  \n**Prepared for:** Board of Directors  \n**Purpose:** Quarterly update covering financial results, strategic milestones, customer growth, and operational highlights for Q1.")
+
+@workflow.atom()
+def executive_summary():
+    text("## Executive Summary")
+    text("""
+NimbusFlow, a SaaS platform for automating approval workflows, saw accelerated adoption in Q1, particularly among mid-market and international accounts. With revenue growing faster than expected and churn reaching an all-time low, we enter Q2 with strong momentum.
+""")
+
+@workflow.atom()
+def financial_results():
+    text("## Financial Results")
+    text("""
+- **MRR:** $720K (Q/Q +22%)
+- **ARR:** $8.64M
+- **Gross Margin:** 78%
+- **Operating Expenses:** $1.9M
+- **Cash Position:** $11.2M
+- **Runway:** 18+ months at current burn
+
+We exceeded our MRR forecast by 7% and maintained healthy margins despite increased R&D spending.
+""")
+
+@workflow.atom()
+def strategic_initiatives():
+    text("## Strategic Initiatives")
+    text("""
+Key strategic workstreams advanced this quarter:
+
+- **Workflow Templates Library** – Launched with 40+ plug-and-play use cases.
+- **AI Suggest** – Beta feature that recommends approval paths based on historical patterns.
+- **Data Residency Controls** – Early access enabled for select EU customers ahead of full GDPR compliance rollout in Q2.
+""")
+
+@workflow.atom()
+def product_updates():
+    text("## Product Updates")
+    text("""
+- **New Integrations:** Slack, HubSpot, and Azure AD added to the integration hub.
+- **Admin Console Redesign:** Modern UI with role-based access control and audit logs.
+- **Mobile Enhancements:** Push notifications and offline mode now live for iOS and Android.
+
+Customer feedback on the new features has been positive, especially in high-volume ops teams.
+""")
+
+@workflow.atom()
+def customer_growth():
+    text("## Customer Growth")
+    text("""
+- **New Customers:** 89 logos added in Q1, including FinchBank, CoastalRX, and Alignly.
+- **Churn:** 2.3% (vs. 3.1% last quarter)
+- **Expansion Revenue:** $370K from seat and usage-based upgrades
+
+The SMB segment remains our highest-volume engine, while enterprise accounts drove most upsell revenue.
+""")
+
+@workflow.atom()
+def hiring_and_team():
+    text("## Team & Hiring")
+    text("""
+We added 14 new employees this quarter across:
+
+- **Engineering (7)** – Platform, security, and mobile
+- **Customer Success (3)** – US and EMEA
+- **Go-To-Market (4)** – AE, BDR, and content
+
+Time-to-productivity for new hires is down 20% thanks to an improved onboarding track.
+""")
+
+@workflow.atom()
+def operational_risks():
+    text("## Operational Risks")
+    text("""
+- **Load Spikes in EU Datacenter:** Mitigated by migrating shared tenants to scalable node pools.
+- **Onboarding Drop-off (SMB):** New cohort analysis revealed a sharp decline in activation by day 7. CX is investigating.
+- **Talent Competition:** Backend hiring in SF and NY is slower than forecast. Exploring remote-first roles in LATAM and Canada.
+""")
+
+@workflow.atom()
+def q2_roadmap():
+    text("## Q2 Roadmap Priorities")
+    text("""
+- **General Availability: AI Suggest**
+- **SOC 2 Type II Audit Completion**
+- **Self-Serve Billing & Plan Management**
+- **Partnership Launch with Zenith HRIS**
+
+These efforts align with our goals around automation, compliance, and monetization flexibility.
+""")
+
+@workflow.atom()
+def closing_notes():
+    text("## Closing Remarks")
+    text("""
+NimbusFlow is entering Q2 with clear direction, strong team execution, and continued market pull. As we build on our product and customer base, our focus will remain on scalability, security, and delivering fast value to every team that runs on Nimbus.
+""")
+
+workflow.execute()

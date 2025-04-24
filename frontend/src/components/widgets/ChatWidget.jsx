@@ -1,6 +1,6 @@
 'use client';
 
-import { Bot, Loader2, Send, User } from 'lucide-react';
+import { Bot, Loader2, Send, Settings, User } from 'lucide-react';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -19,19 +19,16 @@ const ChatWidget = ({
   className,
 }) => {
   const messages = useMemo(() => value?.messages || [], [value?.messages]);
-  const label = 'Chat Assistant';
   const placeholder = 'Type your message here...';
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
 
   const [inputValue, setInputValue] = useState('');
-  const [showApiInput, setShowApiInput] = useState(() => {
-    // Check if API key exists in sessionStorage on component mount
-    return !sessionStorage.getItem('openai_api_key');
-  });
+  const [showSettings, setShowSettings] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const hasApiKey = useMemo(() => !!sessionStorage.getItem('openai_api_key'), []);
 
   // Add this state to store the processed context
   const [sourceContext, setSourceContext] = useState(null);
@@ -169,48 +166,94 @@ const ChatWidget = ({
   const handleApiKeySubmit = (e) => {
     e.preventDefault();
     if (apiKey.trim()) {
-      setShowApiInput(false);
       sessionStorage.setItem('openai_api_key', apiKey.trim());
+      setShowSettings(false);
+      window.location.reload(); // Refresh to update hasApiKey state
     }
   };
 
   return (
-    <Card className={cn(`flex flex-col rounded-md shadow-md h-[600px] w-full`, className)}>
-      {showApiInput ? (
-        <div className="p-4 border-b">
-          <form onSubmit={handleApiKeySubmit} className="space-y-4">
-            <div className="space-y-2">
-              <h3 className="font-semibold">Enter your OpenAI API Key</h3>
-              <Input
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="sk-..."
-                className="flex-1"
-              />
-            </div>
-            <Button type="submit" disabled={!apiKey.trim()}>
-              Save API Key
-            </Button>
-          </form>
+    <Card
+      className={cn(
+        'flex flex-col w-full border border-border/60 rounded-lg bg-background overflow-hidden',
+        'h-[100dvh] sm:h-[600px]',
+        className
+      )}
+    >
+      <div className="flex items-center justify-between px-3 sm:px-4 h-12 border-b">
+        <div className="flex items-center gap-2">
+          <span
+            className={cn(
+              'h-2 w-2 rounded-full animate-pulse',
+              hasApiKey ? 'bg-emerald-500' : 'bg-amber-500'
+            )}
+          />
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            {hasApiKey ? 'Online' : 'API Key Required'}
+          </p>
         </div>
-      ) : (
-        <>
-          <div className="flex items-center justify-between p-4 border-b">
-            <div className="flex items-center space-x-2">
-              <div>
-                <h3 className="font-semibold">{label}</h3>
-                <p className="text-sm text-green-500 flex items-center gap-1">
-                  <span className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></span>
-                  Online
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 rounded-full"
+          onClick={() => setShowSettings(!showSettings)}
+        >
+          <Settings className="h-4 w-4 text-muted-foreground" />
+        </Button>
+      </div>
+
+      {showSettings && (
+        <div className="border-b bg-muted/40">
+          <div className="px-3 sm:px-4 py-3">
+            <form onSubmit={handleApiKeySubmit} className="space-y-3">
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium">OpenAI API Key</h3>
+                <Input
+                  type="password"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  placeholder="sk-..."
+                  className="flex-1 transition-colors text-sm h-8"
+                />
+                <p className="text-xs text-muted-foreground/80">
+                  Your API key will be stored in your browser's session storage.
                 </p>
               </div>
-            </div>
+              <div className="flex justify-end">
+                <Button type="submit" disabled={!apiKey.trim()} size="sm" className="h-8">
+                  Save Key
+                </Button>
+              </div>
+            </form>
           </div>
-          <div className="flex-1 overflow-y-auto p-4" ref={chatContainerRef}>
-            <div className="space-y-4">
-              <div className="text-xs text-gray-500">Messages count: {messages.length}</div>
+        </div>
+      )}
 
+      <div
+        className="flex-1 overflow-y-auto px-3 sm:px-4 py-4 scroll-smooth"
+        ref={chatContainerRef}
+      >
+        <div className="space-y-4">
+          {!hasApiKey && !showSettings ? (
+            <div className="flex flex-col items-center justify-center h-full text-center space-y-3">
+              <Bot className="h-10 w-10 text-muted-foreground/30" />
+              <div className="space-y-1">
+                <h3 className="text-sm font-medium text-muted-foreground">API Key Required</h3>
+                <p className="text-xs text-muted-foreground/70">
+                  Please set your OpenAI API key to start chatting
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowSettings(true)}
+                  className="mt-2 h-8"
+                >
+                  Open Settings
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <>
               {messages.map((message, index) => (
                 <div
                   key={index}
@@ -221,27 +264,27 @@ const ChatWidget = ({
                 >
                   <div
                     className={cn(
-                      'flex items-end space-x-2 max-w-[80%]',
-                      message.role === 'user' && 'flex-row-reverse space-x-reverse ml-auto'
+                      'flex items-end gap-2 max-w-[85%] sm:max-w-[75%]',
+                      message.role === 'user' && 'flex-row-reverse'
                     )}
                   >
                     {message.role === 'user' ? (
-                      <User className="h-6 w-6 flex-shrink-0" />
+                      <User className="h-5 w-5 flex-shrink-0 text-muted-foreground/50" />
                     ) : (
-                      <Bot className="h-6 w-6 flex-shrink-0" />
+                      <Bot className="h-5 w-5 flex-shrink-0 text-muted-foreground/50" />
                     )}
                     <div
                       className={cn(
-                        'rounded-lg p-4 shadow-sm break-words min-w-[60px] max-w-full',
+                        'rounded-2xl px-3 py-2 text-sm ring-1 ring-inset break-words',
                         message.role === 'user'
-                          ? 'bg-primary text-primary-foreground rounded-tr-none'
-                          : 'bg-secondary text-secondary-foreground rounded-tl-none'
+                          ? 'bg-primary text-primary-foreground ring-primary/10 rounded-tr-sm'
+                          : 'bg-muted/50 text-foreground ring-border/50 rounded-tl-sm'
                       )}
                     >
-                      <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+                      <p className="whitespace-pre-wrap break-words leading-relaxed">
                         {message.content}
                       </p>
-                      <span className="text-xs opacity-70 mt-2 block">
+                      <span className="text-[0.65rem] opacity-50 mt-1 block">
                         {formatTimestamp(message.timestamp)}
                       </span>
                     </div>
@@ -249,41 +292,47 @@ const ChatWidget = ({
                 </div>
               ))}
               {isLoading && (
-                <div className="flex items-center space-x-2 text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>AI is typing...</span>
+                <div className="flex items-center gap-2 text-muted-foreground/70">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <span className="text-xs">AI is typing...</span>
                 </div>
               )}
-            </div>
-          </div>
-          {error && (
-            <div className="bg-destructive/15 text-destructive text-sm p-3 mx-4 mb-2 rounded">
-              Error: {error}
-            </div>
+            </>
           )}
-          <form onSubmit={handleSubmit} className="p-4 border-t">
-            <div className="flex items-center gap-2">
-              <Input
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder={placeholder}
-                className="flex-1 rounded-lg border-2 border-gray-200 px-4 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
-                autoComplete="off"
-                spellCheck="true"
-                maxLength={1000}
-              />
-              <Button
-                type="submit"
-                size="icon"
-                className="bg-primary p-3 hover:bg-primary/90 transition-transform duration-200 rounded-md shadow-sm hover:scale-110"
-                disabled={!inputValue.trim() || isLoading}
-              >
-                <Send className="h-5 w-5 text-primary-foreground" />
-              </Button>
-            </div>
-          </form>
-        </>
+        </div>
+      </div>
+
+      {error && (
+        <div className="mx-3 sm:mx-4 mb-3 p-2 text-xs text-destructive bg-destructive/5 rounded-md border border-destructive/10">
+          {error}
+        </div>
       )}
+
+      <form onSubmit={handleSubmit} className="p-3 sm:p-4 border-t bg-muted/40">
+        <div className="flex items-center gap-2">
+          <Input
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder={hasApiKey ? placeholder : 'Please set API key first...'}
+            className="flex-1 transition-colors text-sm h-8 bg-background"
+            autoComplete="off"
+            spellCheck="true"
+            maxLength={1000}
+            disabled={!hasApiKey}
+          />
+          <Button
+            type="submit"
+            size="icon"
+            className={cn(
+              'h-8 w-8 rounded-md bg-primary text-primary-foreground transition-colors inline-flex items-center justify-center',
+              !hasApiKey && 'opacity-50'
+            )}
+            disabled={!inputValue.trim() || isLoading || !hasApiKey}
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
+      </form>
     </Card>
   );
 };

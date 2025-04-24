@@ -1,0 +1,147 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# User Feedback Analysis")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard analyzes user feedback collected from surveys, in-app messages, and support interactions. 
+It categorizes comments by topic and sentiment, tracks trending themes, and surfaces actionable insights 
+to inform product, support, and customer success teams.
+"""
+    )
+
+@workflow.atom()
+def feedback_overview():
+    text("## Feedback Volume Overview")
+    text(
+        """
+### April 1–22, 2025:
+
+- **Total Comments Analyzed**: 1,804  
+- **Feedback Sources**:
+  - In-App: 934 (51.8%)
+  - CSAT Survey: 529 (29.3%)
+  - Support Tickets: 341 (18.9%)
+- **Avg. Comment Length**: 36 words  
+- **Language Split**: 94% English, 6% Other
+
+Volume stable month-over-month. In-app prompts remain most active channel for unsolicited feedback.
+"""
+    )
+
+@workflow.atom()
+def sentiment_breakdown():
+    text("## Sentiment Analysis")
+    text(
+        """
+| Sentiment   | Count | % of Total | Change MoM |
+|-------------|--------|-------------|-------------|
+| Positive    | 1,092  | 60.5%       | ▲ +3.1 pts  |
+| Neutral     | 441    | 24.4%       | ▼ -1.2 pts  |
+| Negative    | 271    | 15.0%       | ▼ -1.9 pts  |
+
+Top themes driving positive sentiment include ease of use, support experience, and recent performance improvements.
+"""
+    )
+
+@workflow.atom()
+def top_themes():
+    text("## Top Feedback Themes")
+    text(
+        """
+| Theme               | Mentions | Positive % | Negative % | Trend     |
+|---------------------|----------|-------------|-------------|------------|
+| Usability           | 346      | 81%         | 7%          | ▲ Growing |
+| Integrations        | 214      | 63%         | 19%         | ▲ Growing |
+| Pricing             | 183      | 42%         | 36%         | ▼ Declining |
+| Dashboard Speed     | 171      | 53%         | 28%         | ▲ Growing |
+| Onboarding          | 152      | 76%         | 9%          | — Steady   |
+
+New issues emerging around integrations and dashboard performance under load.
+"""
+    )
+
+@workflow.atom()
+def trending_phrases():
+    text("## Trending Keywords & Phrases")
+    text(
+        """
+Top new/repeating phrases in user comments:
+
+- “faster than before” (↑ 41 uses)  
+- “can’t connect to Slack” (↑ 32 uses)  
+- “love the new flow” (↑ 27 uses)  
+- “missing webhook support” (↑ 25 uses)  
+- “charts take too long to load” (↑ 21 uses)
+
+Phrase tagging powered by keyword clustering + frequency analysis on free-text feedback.
+"""
+    )
+
+@workflow.atom()
+def segment_analysis():
+    text("## Segment-Based Feedback Insights")
+    text(
+        """
+| Segment        | Positive Sentiment | Most Mentioned Theme      |
+|----------------|---------------------|----------------------------|
+| Free Tier      | 54.1%               | Pricing                    |
+| SMB            | 61.7%               | Usability                  |
+| Mid-Market     | 65.4%               | Integrations               |
+| Enterprise     | 68.8%               | Dashboard Performance      |
+
+Free-tier users express value appreciation but show cost sensitivity and support frustration.
+"""
+    )
+
+@workflow.atom()
+def feedback_to_action():
+    text("## From Feedback to Action")
+    text(
+        """
+| Theme            | Action Item                             | Status        |
+|------------------|------------------------------------------|---------------|
+| Integrations     | Launch Slack + Notion connectors         | In Progress   |
+| Dashboard Speed  | Refactor chart rendering service         | Planned Q2    |
+| Pricing          | Add annual discount toggle to pricing UI | Completed     |
+| Onboarding       | Expand walkthroughs with video embeds    | Completed     |
+
+Action tracking updated weekly in Voice of Customer review board.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Recommendations")
+    text(
+        """
+1. Prioritize engineering work on chart performance for high-load users  
+2. Finalize and release new integration settings UI by mid-May  
+3. Segment pricing messaging by plan tier to reduce confusion for free users  
+4. Set up feedback tagging automation in Intercom for new product rollouts  
+5. Add feedback-driven roadmap status page to reduce duplicate support tickets
+
+Initiatives aimed at increasing transparency and response to user needs.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Sentiment and topic tagging powered by in-house NLP classifier  
+- Data includes all feedback between April 1–22, 2025  
+- Updates integrated with Productboard, Intercom, and Jira  
+
+Next feedback analysis cycle: May 6, 2025
+"""
+    )
+
+workflow.execute()

@@ -3,6 +3,7 @@ import React from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import DynamicComponents from '../DynamicComponents';
+import LoadingState from '../LoadingState';
 
 const Dashboard = ({ components, error, handleComponentUpdate }) => {
   console.log('[Dashboard] Rendering with:', { components, error });
@@ -25,12 +26,10 @@ const Dashboard = ({ components, error, handleComponentUpdate }) => {
     if (!isValidComponents) {
       return (
         <div className="dashboard-loading-container">
-          <div className="dashboard-loading-content">
-            <div className="dashboard-loading-spinner"></div>
-            <p className="dashboard-loading-text">
-              {!components ? 'Loading components...' : 'Invalid components data'}
-            </p>
-          </div>
+          <LoadingState
+            isConnected={true}
+            customText={!components ? 'Loading components' : 'Invalid components data'}
+          />
         </div>
       );
     }

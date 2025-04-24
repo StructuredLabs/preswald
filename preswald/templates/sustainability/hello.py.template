@@ -1,0 +1,128 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Sustainability Metrics Dashboard")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard provides a comprehensive view of key sustainability metrics. 
+Track carbon emissions, energy use, waste reduction, and progress toward environmental goals 
+to support ESG reporting and data-driven sustainability planning.
+"""
+    )
+
+@workflow.atom()
+def carbon_footprint():
+    text("## Carbon Footprint")
+    text(
+        """
+### Q1 2025 Summary:
+
+- **Total CO₂e Emissions**: 1,426 metric tons  
+- **Scope 1** (Direct emissions): 364 tCO₂e  
+- **Scope 2** (Energy use): 622 tCO₂e  
+- **Scope 3** (Travel, suppliers, etc.): 440 tCO₂e  
+- **Emission Intensity**: 1.92 tCO₂e per employee
+
+Down 6.7% from Q4 2024 due to reduction in on-site operations and offset purchases.
+"""
+    )
+
+@workflow.atom()
+def energy_consumption():
+    text("## Energy Consumption")
+    text(
+        """
+| Source         | Consumption | % Change QoQ | Renewable % |
+|----------------|-------------|---------------|--------------|
+| Electricity    | 1.34 GWh    | ▼ 4.2%        | 62%          |
+| Natural Gas    | 86,400 m³   | ▼ 1.8%        | 0%           |
+| District Heat  | 72,000 kWh  | ▲ 3.1%        | 100%         |
+
+Renewable mix improved due to switch in utility contract for HQ building.
+"""
+    )
+
+@workflow.atom()
+def waste_management():
+    text("## Waste & Recycling Metrics")
+    text(
+        """
+### Jan–Mar 2025 Totals:
+
+- **Total Waste Generated**: 54.2 metric tons  
+- **Recycled Waste**: 32.6 tons (60.2%)  
+- **Landfill Waste**: 18.4 tons (33.9%)  
+- **Composted**: 3.2 tons (5.9%)
+
+Recycling and composting rates continue to improve following office audit in February.
+"""
+    )
+
+@workflow.atom()
+def travel_emissions():
+    text("## Business Travel Emissions")
+    text(
+        """
+| Mode of Travel | Trips Logged | Emissions (tCO₂e) | % of Travel Emissions |
+|----------------|--------------|--------------------|------------------------|
+| Air Travel     | 218          | 294.3              | 66.9%                  |
+| Rail           | 102          | 18.1               | 4.1%                   |
+| Car Rental     | 78           | 31.6               | 7.2%                   |
+| Ride Share     | 414          | 96.0               | 21.8%                  |
+
+Air travel remains the largest contributor; 3 regional events moved to virtual in April.
+"""
+    )
+
+@workflow.atom()
+def sustainability_goals():
+    text("## Sustainability Goal Progress")
+    text(
+        """
+| Goal                             | Target Year | Status     | Current Progress |
+|----------------------------------|-------------|------------|------------------|
+| Carbon Neutrality (Ops)         | 2026        | On Track   | 76%              |
+| 80% Renewable Energy Use        | 2025        | Ahead      | 81.6%            |
+| Zero Landfill Waste (Offices)   | 2027        | On Track   | 60.2% diverted   |
+| Supplier Emissions Reporting    | 2025        | In Progress| 48% compliant    |
+
+Carbon offsets applied for Q1 via third-party verified projects (Wind & Reforestation).
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Recommendations")
+    text(
+        """
+1. Expand renewable procurement to secondary sites and leased locations  
+2. Automate supplier emissions data collection via ESG questionnaires  
+3. Launch green travel policy to reduce air mileage for short-haul trips  
+4. Add composting infrastructure to 2 remaining office locations  
+5. Publish quarterly sustainability update for external stakeholders
+
+Each initiative supports our long-term ESG roadmap and CDP reporting requirements.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Metrics reflect Jan 1 – Mar 31, 2025  
+- Emissions calculated using GHG Protocol methodologies and DEFRA factors  
+- Energy and waste data sourced from utility bills and vendor invoices  
+- Travel emissions tracked via Concur and HR system logs
+
+Next sustainability review scheduled: July 2025
+"""
+    )
+
+workflow.execute()

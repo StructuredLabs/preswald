@@ -1,0 +1,108 @@
+Component,Total Lines,Covered Lines,Coverage %,Last Updated
+Authentication,500,450,90,2021-09-15
+User Management,750,680,91,2021-09-16
+Product Catalog,1200,1050,87.5,2021-09-17
+Shopping Cart,900,820,91.1,2021-09-18
+Checkout Process,600,540,90,2021-09-19
+Payment Gateway,300,260,86.7,2021-09-20
+Order Processing,400,380,95,2021-09-21
+Customer Support,550,480,87.3,2021-09-22
+Reporting Module,800,720,90,2021-09-23
+Settings Management,350,320,91.4,2021-09-24
+Inventory Management,1000,920,92,2021-09-25
+Search Functionality,700,640,91.4,2021-09-26
+Analytics Dashboard,450,410,91.1,2021-09-27
+Notification System,250,220,88,2021-09-28
+Feedback Module,600,560,93.3,2021-09-29
+Localization Support,350,310,88.6,2021-09-30
+Performance Optimization,200,180,90,2021-10-01
+Bug Tracking System,400,360,90,2021-10-02
+Integration API,800,720,90,2021-10-03
+User Permissions,550,500,90.9,2021-10-04
+Data Backup,300,270,90,2021-10-05
+Audit Trail,450,400,88.9,2021-10-06
+System Logs,250,230,92,2021-10-07
+Email Notifications,700,650,92.9,2021-10-08
+User Roles,450,410,91.1,2021-10-09
+Error Handling,350,320,91.4,2021-10-10
+Mobile Responsiveness,600,540,90,2021-10-11
+Cross-Browser Compatibility,400,360,90,2021-10-12
+API Rate Limiting,250,230,92,2021-10-13
+Security Patching,800,720,90,2021-10-14
+Feature Toggling,550,500,90.9,2021-10-15
+Data Encryption,300,270,90,2021-10-16
+Session Management,450,400,88.9,2021-10-17
+UI Styling,250,230,92,2021-10-18
+Code Refactoring,700,650,92.9,2021-10-19
+Automated Testing,450,410,91.1,2021-10-20
+Code Review,350,320,91.4,2021-10-21
+Documentation,600,540,90,2021-10-22
+Version Control,400,360,90,2021-10-23
+Continuous Integration,250,230,92,2021-10-24
+Deployment Automation,800,720,90,2021-10-25
+Load Testing,550,500,90.9,2021-10-26
+Performance Monitoring,300,270,90,2021-10-27
+Scalability Testing,450,400,88.9,2021-10-28
+Database Optimization,250,230,92,2021-10-29
+Error Reporting,700,650,92.9,2021-10-30
+User Interface Testing,450,410,91.1,2021-10-31
+Usability Testing,350,320,91.4,2021-11-01
+Accessibility Testing,600,540,90,2021-11-02
+Regression Testing,400,360,90,2021-11-03
+API Testing,250,230,92,2021-11-04
+Security Testing,800,720,90,2021-11-05
+Performance Testing,550,500,90.9,2021-11-06
+Integration Testing,300,270,90,2021-11-07
+Functional Testing,450,400,88.9,2021-11-08
+End-to-End Testing,250,230,92,2021-11-09
+Smoke Testing,700,650,92.9,2021-11-10
+Acceptance Testing,450,410,91.1,2021-11-11
+Black Box Testing,350,320,91.4,2021-11-12
+White Box Testing,600,540,90,2021-11-13
+Gray Box Testing,400,360,90,2021-11-14
+Manual Testing,250,230,92,2021-11-15
+Automated Testing,800,720,90,2021-11-16
+Exploratory Testing,550,500,90.9,2021-11-17
+Static Testing,300,270,90,2021-11-18
+Dynamic Testing,450,400,88.9,2021-11-19
+Penetration Testing,250,230,92,2021-11-20
+Vulnerability Assessment,700,650,92.9,2021-11-21
+Compliance Testing,450,410,91.1,2021-11-22
+Usability Testing,350,320,91.4,2021-11-23
+Stress Testing,600,540,90,2021-11-24
+Compatibility Testing,400,360,90,2021-11-25
+Conformance Testing,250,230,92,2021-11-26
+Localization Testing,800,720,90,2021-11-27
+Globalization Testing,550,500,90.9,2021-11-28
+Regression Testing,300,270,90,2021-11-29
+API Testing,450,400,88.9,2021-11-30
+Security Testing,250,230,92,2021-12-01
+Performance Testing,700,650,92.9,2021-12-02
+Integration Testing,450,410,91.1,2021-12-03
+Functional Testing,350,320,91.4,2021-12-04
+End-to-End Testing,600,540,90,2021-12-05
+Smoke Testing,400,360,90,2021-12-06
+Acceptance Testing,250,230,92,2021-12-07
+Black Box Testing,800,720,90,2021-12-08
+White Box Testing,550,500,90.9,2021-12-09
+Gray Box Testing,300,270,90,2021-12-10
+Manual Testing,450,400,88.9,2021-12-11
+Automated Testing,250,230,92,2021-12-12
+Exploratory Testing,700,650,92.9,2021-12-13
+Static Testing,450,410,91.1,2021-12-14
+Dynamic Testing,350,320,91.4,2021-12-15
+Penetration Testing,600,540,90,2021-12-16
+Vulnerability Assessment,400,360,90,2021-12-17
+Compliance Testing,250,230,92,2021-12-18
+Usability Testing,800,720,90,2021-12-19
+Stress Testing,550,500,90.9,2021-12-20
+Compatibility Testing,300,270,90,2021-12-21
+Conformance Testing,450,400,88.9,2021-12-22
+Localization Testing,250,230,92,2021-12-23
+Globalization Testing,700,650,92.9,2021-12-24
+Regression Testing,450,410,91.1,2021-12-25
+API Testing,350,320,91.4,2021-12-26
+Security Testing,600,540,90,2021-12-27
+Performance Testing,400,360,90,2021-12-28
+Integration Testing,250,230,92,2021-12-29
+Functional Testing,800,720,90,2021-12-30

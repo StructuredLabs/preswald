@@ -1,8 +1,9 @@
+import json
 import logging
 import os
 import uuid
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any
 
 import duckdb
 import pandas as pd
@@ -14,6 +15,42 @@ from requests.auth import HTTPBasicAuth
 logger = logging.getLogger(__name__)
 
 
+def load_json_source(config: dict[str, Any]) -> pd.DataFrame:
+    path = config["path"]
+    record_path = config.get("record_path")
+    flatten = config.get("flatten", True)
+
+    # Open and load the JSON file
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Malformed JSON in file '{path}': {e}") from e
+    except Exception as e:
+        raise ValueError(f"Error reading JSON file '{path}': {e}") from e
+
+    # Apply record_path if provided
+    if record_path:
+        try:
+            data = data[record_path]
+        except (KeyError, TypeError) as e:
+            raise ValueError(
+                f"Invalid record_path '{record_path}' for JSON file '{path}': {e}"
+            ) from e
+
+    # Normalize or convert data if "flatten"
+    try:
+        if flatten:
+            return pd.json_normalize(data, sep=".")
+        else:
+            return pd.DataFrame(data)
+    except Exception as e:
+        raise ValueError(
+            f"Error converting JSON data from file '{path}' to DataFrame: {e}"
+        ) from e
+
+
+# Database Configs ############################################################
 @dataclass
 class ClickhouseConfig:
     """Configuration for Clickhouse connection"""
@@ -36,23 +73,39 @@ class PostgresConfig:
     password: str
 
 
+# File Configs ################################################################
 @dataclass
 class CSVConfig:
     path: str
 
 
 @dataclass
+class JSONConfig:
+    path: str
+    record_path: str | None = None
+    flatten: bool = True
+
+
+@dataclass
+class ParquetConfig:
+    path: str
+    columns: list[str] | None
+
+
+# API Configs #################################################################
+@dataclass
 class APIConfig:
     """Configuration for API connection"""
 
     url: str  #  URL of the API
     method: str = "GET"  # HTTP method (GET, POST, etc.)
-    headers: Optional[Dict[str, str]] = None
-    params: Optional[Dict[str, Any]] = None  # Query parameters
-    auth: Optional[Dict[str, str]] = None  # Authentication (API key, Bearer token)
-    pagination: Optional[Dict[str, Any]] = None
+    headers: dict[str, str] | None = None
+    params: dict[str, Any] | None = None  # Query parameters
+    auth: dict[str, str] | None = None  # Authentication (API key, Bearer token)
+    pagination: dict[str, Any] | None = None
 
 
+# S3 Configs ##################################################################
 @dataclass
 class S3CSVConfig:
     s3_endpoint: str
@@ -128,7 +181,14 @@ class CSVSource(DataSource):
         self._table_name = f"csv_{name}_{uuid.uuid4().hex[:8]}"
         self._duckdb.execute(f"""
             CREATE TABLE {self._table_name} AS
-            SELECT * FROM read_csv_auto('{self.path}')
+            SELECT * FROM read_csv_auto('{self.path}',
+                header=true,
+                auto_detect=true,
+                ignore_errors=true,
+                normalize_names=true,
+                sample_size=-1,
+                all_varchar=true
+            )
         """)
 
     def query(self, sql: str) -> pd.DataFrame:
@@ -138,6 +198,22 @@ class CSVSource(DataSource):
 
     def to_df(self) -> pd.DataFrame:
         """Get entire CSV as a DataFrame"""
+        return self._duckdb.execute(f"SELECT * FROM {self._table_name}").df()
+
+
+class JSONSource(DataSource):
+    def __init__(
+        self, name: str, config: JSONConfig, duckdb_conn: duckdb.DuckDBPyConnection
+    ):
+        super().__init__(name, duckdb_conn)
+        load_json_source(config.__dict__)
+        self._table_name = f"json_{name}_{uuid.uuid4().hex[:8]}"
+        self._duckdb.execute(f"CREATE TABLE {self._table_name} AS SELECT * FROM df")
+
+    def query(self, sql: str) -> pd.DataFrame:
+        return self._duckdb.execute(sql.replace(self.name, self._table_name)).df()
+
+    def to_df(self) -> pd.DataFrame:
         return self._duckdb.execute(f"SELECT * FROM {self._table_name}").df()
 
 
@@ -307,26 +383,104 @@ class APISource(DataSource):
         return self._duckdb.execute(f"SELECT * FROM {self._table_name}").df()
 
 
+class ParquetSource(DataSource):
+    def __init__(
+        self, name: str, config: ParquetConfig, duckdb_conn: duckdb.DuckDBPyConnection
+    ):
+        super().__init__(name, duckdb_conn)
+        self.path = config.path
+        self.columns = config.columns
+        self._table_name = f"parquet_{name}_{uuid.uuid4().hex[:8]}"
+
+        try:
+            # Load Parquet using DuckDB
+            if self.columns:
+                column_str = ", ".join(f'"{col}"' for col in self.columns)
+                self._duckdb.execute(f"""
+                    CREATE TABLE {self._table_name} AS
+                    SELECT {column_str}
+                    FROM read_parquet('{self.path}')
+                """)
+            else:
+                self._duckdb.execute(f"""
+                    CREATE TABLE {self._table_name} AS
+                    SELECT * FROM read_parquet('{self.path}')
+                """)
+        except Exception as e:
+            raise Exception(
+                f"Failed to load parquet file '{self.path}' using DuckDB: {e!s}"
+            ) from e
+
+    def query(self, sql: str) -> pd.DataFrame:
+        query = sql.replace(self.name, self._table_name)
+        return self._duckdb.execute(query).df()
+
+    def to_df(self) -> pd.DataFrame:
+        return self._duckdb.execute(f"SELECT * FROM {self._table_name}").df()
+
+
 class DataManager:
-    def __init__(self, preswald_path: str, secrets_path: Optional[str] = None):
+    def __init__(self, preswald_path: str, secrets_path: str | None = None):
         self.preswald_path = preswald_path
         self.secrets_path = secrets_path
-        self.sources: Dict[str, DataSource] = {}
+        self.sources: dict[str, DataSource] = {}
+        self.sources_cache: dict[str, dict] = {}  # Cache of source configurations
         self.duckdb_conn = duckdb.connect(":memory:")
 
-    def connect(self):
+    def connect(self):  # noqa: C901
         """Initialize all data sources from config"""
+        # Useful debugging query - Log final DuckDB state
+        # tables_df = self.duckdb_conn.execute("""
+        #     SELECT
+        #         table_name,
+        #         column_count,
+        #         estimated_size as size_b
+        #     FROM duckdb_tables()
+        # """).df()
+
+        # logger.info(f"Current DuckDB state - {len(tables_df)} tables:")
+        # for _, row in tables_df.iterrows():
+        #     logger.info(
+        #         f"Table: {row['table_name']}, Columns: {row['column_count']}, Estimated Size: {row['size_b']:.2f}B"
+        #     )
+
         config = self._load_sources()
+        sources_to_remove = set(self.sources.keys()) - set(config.keys())
+
+        # Remove sources that no longer exist in config
+        for name in sources_to_remove:
+            if name in self.sources:
+                self._drop_source_table(self.sources[name])
+            del self.sources[name]
+            del self.sources_cache[name]
+
+        # Only process sources that are new or have changed
         for name, source_config in config.items():
             if "type" not in source_config:
                 continue
 
+            if not self._has_source_changed(name, source_config):
+                logger.debug(f"Skipping unchanged source: {name}")
+                continue
+
+            if name in self.sources:
+                self._drop_source_table(self.sources[name])
+
             source_type = source_config["type"]
+            logger.info(f"Initializing/updating source: {name} ({source_type})")
 
             try:
                 if source_type == "csv":
                     cfg = CSVConfig(path=source_config["path"])
                     self.sources[name] = CSVSource(name, cfg, self.duckdb_conn)
+
+                elif source_type == "json":
+                    cfg = JSONConfig(
+                        path=source_config["path"],
+                        record_path=source_config.get("record_path"),
+                        flatten=source_config.get("flatten", True),
+                    )
+                    self.sources[name] = JSONSource(name, cfg, self.duckdb_conn)
 
                 elif source_type == "postgres":
                     cfg = PostgresConfig(
@@ -373,6 +527,16 @@ class DataManager:
                     )
                     self.sources[name] = S3CSVSource(name, cfg, self.duckdb_conn)
 
+                elif source_type == "parquet":
+                    cfg = ParquetConfig(
+                        path=source_config["path"],
+                        columns=source_config.get("columns"),
+                    )
+                    self.sources[name] = ParquetSource(name, cfg, self.duckdb_conn)
+
+                # Cache the config after successful initialization
+                self.sources_cache[name] = source_config
+
             except Exception as e:
                 logger.error(f"Error initializing {source_type} source '{name}': {e}")
                 continue
@@ -384,9 +548,7 @@ class DataManager:
             raise ValueError(f"Unknown source: {source_name}")
         return self.sources[source_name].query(sql)
 
-    def get_df(
-        self, source_name: str, table_name: Optional[str] = None
-    ) -> pd.DataFrame:
+    def get_df(self, source_name: str, table_name: str | None = None) -> pd.DataFrame:
         """Get entire source as DataFrame"""
         if source_name not in self.sources:
             raise ValueError(f"Unknown source: {source_name}")
@@ -398,7 +560,21 @@ class DataManager:
             return source.to_df(table_name)
         return source.to_df()
 
-    def _load_sources(self) -> Dict[str, Any]:
+    def _has_source_changed(self, name: str, config: dict) -> bool:
+        """Check if a source's configuration has changed"""
+        if name not in self.sources_cache:
+            return True
+        return self.sources_cache[name] != config
+
+    def _drop_source_table(self, source: DataSource) -> None:
+        """Drop the DuckDB table for a source if it exists"""
+        if isinstance(
+            source, CSVSource | JSONSource | S3CSVSource | APISource | ParquetSource
+        ):
+            logger.info(f"Dropping table {source._table_name}")
+            self.duckdb_conn.execute(f"DROP TABLE IF EXISTS {source._table_name}")
+
+    def _load_sources(self) -> dict[str, Any]:
         """Load data sources from preswald config and secrets files."""
         try:
             if not os.path.exists(self.preswald_path):

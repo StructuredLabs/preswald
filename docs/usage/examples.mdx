@@ -20,10 +20,20 @@ text("# Hello, World!")
 Connect to a CSV file and display the data using Preswald's viewer:
 
 ```python
-from preswald import connect, get_df, view
+from preswald import connect, get_df, table
 
 connect() # reads preswald.toml
 data = get_df("example_data")
+table(data)
+```
+
+Connect to a JSON file and display the data using Preswald's viewer:
+
+```python
+from preswald import connect, get_df, view
+
+connect() # reads preswald.toml
+data = get_df("user_event")
 view(data)
 ```
 
@@ -34,12 +44,12 @@ view(data)
 Create an interactive dashboard where users can control how many rows of data to display:
 
 ```python
-from preswald import text, slider, view
+from preswald import text, slider, table
 
 text("# Interactive Dashboard")
 
 rows = slider("Rows to Display", min_val=5, max_val=50, default=10)
-view(data, limit=rows)
+table(data, limit=rows)
 ```
 
 ---

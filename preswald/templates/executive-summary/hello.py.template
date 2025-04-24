@@ -1,0 +1,153 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Executive Summary Dashboard")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard provides a high-level overview of key company metrics. It combines financial data, 
+operational KPIs, headcount updates, and OKR progress into a single view to support leadership alignment 
+and strategic decision-making.
+"""
+    )
+
+@workflow.atom()
+def kpi_snapshot():
+    text("## Key Performance Indicators (KPIs)")
+    text(
+        """
+### Core Metrics (as of April 2025):
+
+- **Monthly Recurring Revenue (MRR)**: $4.27M
+- **Gross Margin**: 71.8%
+- **Customer Churn (Trailing 30 Days)**: 4.6%
+- **Active Customers**: 1,384
+- **NPS Score**: +41
+
+These metrics provide a quick pulse on customer health, growth momentum, and overall business performance.
+"""
+    )
+
+@workflow.atom()
+def revenue_burn_overview():
+    text("## Revenue and Burn Rate")
+    text(
+        """
+### Financial Performance:
+
+- **Total Revenue (Q1 2025)**: $12.9M
+- **Operating Expenses**: $10.2M
+- **Net Burn (Monthly)**: $680K
+- **Runway Remaining**: 14.6 months
+
+Financial stability is on track, though additional spend forecasting is required to accommodate new hires and marketing expansion.
+"""
+    )
+
+@workflow.atom()
+def headcount_trends():
+    text("## Headcount & Hiring Activity")
+    text(
+        """
+| Department        | Current Headcount | Open Roles | YTD Growth |
+|-------------------|-------------------|------------|------------|
+| Engineering       | 82                | 6          | +12%       |
+| Sales & Marketing | 54                | 4          | +9%        |
+| Customer Success  | 26                | 2          | +7%        |
+| G&A               | 18                | 1          | +5%        |
+
+Total employees: 180  
+Net headcount change since January: ▲ +15
+"""
+    )
+
+@workflow.atom()
+def okr_progress():
+    text("## OKR Progress Snapshot")
+    text(
+        """
+### Company Objectives – Q2 2025:
+
+1. **Launch Self-Serve Product Tier**  
+   _Progress_: 82% complete  
+   _Target_: Public beta by May 15
+
+2. **Expand EMEA Revenue by 30%**  
+   _Progress_: 21% complete  
+   _Target_: $1.3M EMEA revenue by end of quarter
+
+3. **Improve Core Platform Stability**  
+   _Progress_: 65% complete  
+   _Metric_: <1% crash rate on mobile by quarter end
+
+Real-time updates to OKRs help teams course-correct throughout the quarter.
+"""
+    )
+
+@workflow.atom()
+def customer_metrics():
+    text("## Customer Metrics")
+    text(
+        """
+### User & Account Insights:
+
+- **Avg. Revenue per Account (ARPA)**: $3,084  
+- **Customer Satisfaction (CSAT)**: 91.6%  
+- **Weekly Active Users (WAU)**: 17,430  
+- **Enterprise Accounts**: 128 (up from 114 last quarter)
+
+Customer expansion efforts are contributing to revenue growth and deeper account penetration.
+"""
+    )
+
+@workflow.atom()
+def strategic_risks():
+    text("## Strategic Risks & Flags")
+    text(
+        """
+### Items Needing Attention:
+
+- **Infrastructure latency spikes** observed in APAC (average response time up 28% MoM)
+- **Two key enterprise renewals pending** decision in the next 3 weeks (~$420K ARR impact)
+- **Hiring lag** in Engineering may delay roadmap deliverables
+
+These issues have been escalated and mitigation plans are underway.
+"""
+    )
+
+@workflow.atom()
+def board_readout_preparation():
+    text("## Board Readout Preparation")
+    text(
+        """
+This dashboard supports board and investor updates by summarizing:
+
+- Financial performance vs. plan
+- Progress against strategic OKRs
+- Hiring outcomes and budget utilization
+- Customer engagement and retention trends
+
+For board meeting use, this should be supplemented with appendices covering departmental metrics and detailed forecasts.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- All figures reflect data updated as of April 23, 2025.
+- Financials sourced from ERP and FP&A dashboards.
+- Customer metrics drawn from CRM, support, and analytics platforms.
+- Hiring data synced with HRIS.
+
+For questions or additional data cuts, contact the Strategy & Ops team.
+"""
+    )
+
+workflow.execute()

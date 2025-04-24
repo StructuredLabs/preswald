@@ -5,31 +5,31 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 const ButtonWidget = ({
-  label,
+  children,
   onClick,
+  isLoading,
+  disabled,
   variant = 'default',
   size = 'default',
   className,
-  disabled = false,
-  loading = false,
   ...props
 }) => {
   return (
     <Button
       variant={variant}
       size={size}
-      onClick={onClick || (() => alert('Button clicked!'))}
-      className={cn('button-container', loading && 'button-disabled', className)}
-      disabled={disabled || loading}
+      onClick={onClick}
+      disabled={disabled || isLoading}
+      className={cn('font-medium', isLoading && 'opacity-50 cursor-not-allowed', className)}
       {...props}
     >
-      {loading ? (
-        <div className="button-loading">
-          <div className="button-spinner" />
-          <span>{label}</span>
+      {isLoading ? (
+        <div className="flex items-center gap-2">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          {children}
         </div>
       ) : (
-        <span>{label}</span>
+        children
       )}
     </Button>
   );
