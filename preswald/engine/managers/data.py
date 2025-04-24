@@ -185,7 +185,7 @@ class CSVSource(DataSource):
                 header=true,
                 auto_detect=true,
                 ignore_errors=true,
-                normalize_names=true,
+                normalize_names=false,
                 sample_size=-1,
                 all_varchar=true
             )
