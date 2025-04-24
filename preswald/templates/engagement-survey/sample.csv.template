@@ -1,0 +1,176 @@
+Question,Response,Department,Score,Trend
+How satisfied are you with your current role?,Satisfied,Marketing,4,Positive
+Do you feel your work is valued by your team?,Agree,Finance,3,Stable
+Are you able to maintain a healthy work-life balance?,Strongly Disagree,HR,1,Negative
+How would you rate your overall job satisfaction?,Neutral,Operations,2,Declining
+Do you feel there are opportunities for growth within the company?,Agree,Marketing,3,Stable
+Are you satisfied with the communication within your department?,Disagree,Finance,2,Declining
+Do you feel recognized for your hard work?,Strongly Agree,HR,5,Positive
+How would you rate the company culture?,Satisfied,Operations,4,Stable
+Are you satisfied with the benefits provided by the company?,Neutral,Marketing,2,Declining
+Do you feel your opinions are valued by your manager?,Agree,Finance,3,Stable
+How would you rate the level of collaboration within your team?,Disagree,HR,2,Declining
+Do you feel motivated to perform your best at work?,Strongly Agree,Operations,5,Positive
+Are you satisfied with the training and development opportunities offered?,Neutral,Marketing,3,Stable
+How would you rate the level of transparency within the company?,Agree,Finance,4,Positive
+Do you feel there is a sense of belonging in your team?,Disagree,HR,2,Declining
+How satisfied are you with the performance feedback you receive?,Satisfied,Operations,4,Stable
+Do you feel empowered to make decisions in your role?,Agree,Marketing,3,Stable
+How would you rate the level of diversity and inclusion in the workplace?,Neutral,Finance,2,Declining
+Are you satisfied with the workload and expectations set for you?,Strongly Disagree,HR,1,Negative
+How would you rate the level of recognition for achievements at work?,Agree,Operations,3,Stable
+Do you feel there is open and honest communication from leadership?,Disagree,Marketing,2,Declining
+How satisfied are you with the overall leadership within the company?,Satisfied,Finance,4,Positive
+Do you feel your career goals align with the company's vision?,Agree,HR,3,Stable
+How would you rate the level of support from your manager?,Neutral,Operations,2,Declining
+Are you satisfied with the resources provided to perform your job effectively?,Strongly Agree,Marketing,5,Positive
+How would you rate the level of innovation encouraged in the workplace?,Agree,Finance,4,Positive
+Do you feel your job is secure within the company?,Disagree,HR,2,Declining
+How satisfied are you with the work environment?,Satisfied,Operations,4,Stable
+Do you feel there is a sense of camaraderie within your team?,Agree,Marketing,3,Stable
+How would you rate the level of flexibility in your work schedule?,Neutral,Finance,2,Declining
+Are you satisfied with the recognition of work-life balance by the company?,Strongly Disagree,HR,1,Negative
+How would you rate the level of employee engagement within the company?,Agree,Operations,3,Stable
+Do you feel your contributions are appreciated by your colleagues?,Disagree,Marketing,2,Declining
+How satisfied are you with the feedback mechanisms in place?,Satisfied,Finance,4,Positive
+Do you feel comfortable providing feedback to your superiors?,Agree,HR,3,Stable
+How would you rate the level of teamwork within your department?,Neutral,Operations,2,Declining
+Are you satisfied with the opportunities for social interactions at work?,Strongly Agree,Marketing,5,Positive
+How would you rate the level of job security within the company?,Agree,Finance,4,Positive
+Do you feel your work is aligned with the company's values?,Disagree,HR,2,Declining
+How satisfied are you with the company's performance evaluation process?,Satisfied,Operations,4,Stable
+Do you feel there is room for professional growth within the company?,Agree,Marketing,3,Stable
+How would you rate the level of mentorship and guidance available?,Neutral,Finance,2,Declining
+Are you satisfied with the recognition of diversity and inclusion efforts?,Strongly Disagree,HR,1,Negative
+How would you rate the level of communication between different departments?,Agree,Operations,3,Stable
+Do you feel there is a sense of belonging in the overall company culture?,Disagree,Marketing,2,Declining
+How satisfied are you with the performance appraisal process?,Satisfied,Finance,4,Positive
+Do you feel your manager supports your career development?,Agree,HR,3,Stable
+How would you rate the level of autonomy in your role?,Neutral,Operations,2,Declining
+Are you satisfied with the company's efforts towards sustainability and social responsibility?,Strongly Agree,Marketing,5,Positive
+How would you rate the level of trust in leadership?,Agree,Finance,4,Positive
+Do you feel your role is well-defined and understood within the team?,Disagree,HR,2,Declining
+How satisfied are you with the company's performance management system?,Satisfied,Operations,4,Stable
+Do you feel there are opportunities for career advancement within the company?,Agree,Marketing,3,Stable
+How would you rate the level of work-life balance provided by the company?,Neutral,Finance,2,Declining
+Are you satisfied with the recognition of employee achievements by the company?,Strongly Disagree,HR,1,Negative
+How would you rate the level of employee morale within the company?,Agree,Operations,3,Stable
+Do you feel your workload is manageable and reasonable?,Disagree,Marketing,2,Declining
+How satisfied are you with the company's performance against competitors?,Satisfied,Finance,4,Positive
+Do you feel your manager values your opinions and suggestions?,Agree,HR,3,Stable
+How would you rate the level of training and development opportunities available?,Neutral,Operations,2,Declining
+Are you satisfied with the company's commitment to diversity and inclusion?,Strongly Agree,Marketing,5,Positive
+How would you rate the level of communication between leadership and employees?,Agree,Finance,4,Positive
+Do you feel there is a sense of unity and teamwork in the company?,Disagree,HR,2,Declining
+How satisfied are you with the company's recognition and rewards programs?,Satisfied,Operations,4,Stable
+Do you feel your role contributes meaningfully to the company's goals?,Agree,Marketing,3,Stable
+How would you rate the level of support for work-life balance initiatives?,Neutral,Finance,2,Declining
+Are you satisfied with the company's approach to performance feedback?,Strongly Disagree,HR,1,Negative
+How would you rate the level of employee engagement initiatives in place?,Agree,Operations,3,Stable
+Do you feel your colleagues are supportive and collaborative?,Disagree,Marketing,2,Declining
+How satisfied are you with the company's approach to employee well-being?,Satisfied,Finance,4,Positive
+Do you feel your manager provides constructive feedback for your growth?,Agree,HR,3,Stable
+How would you rate the level of flexibility in decision-making at work?,Neutral,Operations,2,Declining
+Are you satisfied with the company's efforts towards environmental sustainability?,Strongly Agree,Marketing,5,Positive
+How would you rate the level of trust among team members?,Agree,Finance,4,Positive
+Do you feel your role is recognized and appreciated within the team?,Disagree,HR,2,Declining
+How satisfied are you with the company's approach to talent development?,Satisfied,Operations,4,Stable
+Do you feel there are opportunities for skill development within the company?,Agree,Marketing,3,Stable
+How would you rate the level of mentorship available for career growth?,Neutral,Finance,2,Declining
+Are you satisfied with the company's efforts towards diversity and inclusion?,Strongly Disagree,HR,1,Negative
+How would you rate the level of interdepartmental collaboration?,Agree,Operations,3,Stable
+Do you feel there is a sense of community and belonging at work?,Disagree,Marketing,2,Declining
+How satisfied are you with the company's approach to performance management?,Satisfied,Finance,4,Positive
+Do you feel your manager advocates for your professional development?,Agree,HR,3,Stable
+How would you rate the level of decision-making empowerment at work?,Neutral,Operations,2,Declining
+Are you satisfied with the company's initiatives for work-life balance?,Strongly Agree,Marketing,5,Positive
+How would you rate the level of trust in the company's leadership?,Agree,Finance,4,Positive
+Do you feel your contributions are acknowledged and valued by the company?,Disagree,HR,2,Declining
+How satisfied are you with the company's approach to employee recognition?,Satisfied,Operations,4,Stable
+Do you feel your role aligns with the company's mission and values?,Agree,Marketing,3,Stable
+How would you rate the level of support for mental health and well-being?,Neutral,Finance,2,Declining
+Are you satisfied with the company's diversity and inclusion programs?,Strongly Disagree,HR,1,Negative
+How would you rate the level of communication between different teams?,Agree,Operations,3,Stable
+Do you feel there is a sense of inclusion and diversity in the workplace?,Disagree,Marketing,2,Declining
+How satisfied are you with the company's approach to employee feedback?,Satisfied,Finance,4,Positive
+Do you feel your manager provides opportunities for professional growth?,Agree,HR,3,Stable
+How would you rate the level of autonomy and decision-making authority?,Neutral,Operations,2,Declining
+Are you satisfied with the company's commitment to sustainability practices?,Strongly Agree,Marketing,5,Positive
+How would you rate the level of trust and transparency in the company?,Agree,Finance,4,Positive
+Do you feel your role is respected and valued within the company?,Disagree,HR,2,Declining
+How satisfied are you with the company's approach to talent retention?,Satisfied,Operations,4,Stable
+Do you feel there are opportunities for advancement and growth in your role?,Agree,Marketing,3,Stable
+How would you rate the level of mentorship and coaching provided?,Neutral,Finance,2,Declining
+Are you satisfied with the company's efforts towards diversity and inclusion initiatives?,Strongly Disagree,HR,1,Negative
+How would you rate the level of collaboration and teamwork across departments?,Agree,Operations,3,Stable
+Do you feel there is a sense of unity and cohesion in the company culture?,Disagree,Marketing,2,Declining
+How satisfied are you with the company's approach to performance evaluation?,Satisfied,Finance,4,Positive
+Do you feel your manager supports your career aspirations?,Agree,HR,3,Stable
+How would you rate the level of flexibility and work-life balance options?,Neutral,Operations,2,Declining
+Are you satisfied with the company's commitment to social responsibility?,Strongly Agree,Marketing,5,Positive
+How would you rate the level of trust and communication with leadership?,Agree,Finance,4,Positive
+Do you feel your role is clearly defined and understood by your peers?,Disagree,HR,2,Declining
+How satisfied are you with the company's recognition and rewards system?,Satisfied,Operations,4,Stable
+Do you feel your work contributes to the company's success?,Agree,Marketing,3,Stable
+How would you rate the level of support for maintaining work-life balance?,Neutral,Finance,2,Declining
+Are you satisfied with the company's approach to employee performance feedback?,Strongly Disagree,HR,1,Negative
+How would you rate the level of employee engagement and motivation?,Agree,Operations,3,Stable
+Do you feel your team members are supportive and collaborative?,Disagree,Marketing,2,Declining
+How satisfied are you with the company's initiatives for employee well-being?,Satisfied,Finance,4,Positive
+Do you feel your manager provides constructive feedback for your development?,Agree,HR,3,Stable
+How would you rate the level of decision-making autonomy in your role?,Neutral,Operations,2,Declining
+Are you satisfied with the company's sustainability and environmental efforts?,Strongly Agree,Marketing,5,Positive
+How would you rate the level of trust among colleagues?,Agree,Finance,4,Positive
+Do you feel your role is recognized and appreciated by your team members?,Disagree,HR,2,Declining
+How satisfied are you with the company's talent development programs?,Satisfied,Operations,4,Stable
+Do you feel there are opportunities for skill enhancement within your role?,Agree,Marketing,3,Stable
+How would you rate the level of mentorship and career guidance available?,Neutral,Finance,2,Declining
+Are you satisfied with the company's diversity and inclusion efforts?,Strongly Disagree,HR,1,Negative
+How would you rate the level of cross-functional communication?,Agree,Operations,3,Stable
+Do you feel there is a sense of community and belonging in the workplace?,Disagree,Marketing,2,Declining
+How satisfied are you with the company's performance management approach?,Satisfied,Finance,4,Positive
+Do you feel your manager advocates for your professional growth?,Agree,HR,3,Stable
+How would you rate the level of decision-making empowerment in your role?,Neutral,Operations,2,Declining
+Are you satisfied with the company's work-life balance initiatives?,Strongly Agree,Marketing,5,Positive
+How would you rate the level of trust in company leadership?,Agree,Finance,4,Positive
+Do you feel your contributions are acknowledged and valued by the organization?,Disagree,HR,2,Declining
+How satisfied are you with the company's employee recognition programs?,Satisfied,Operations,4,Stable
+Do you feel your role aligns with the company's values and goals?,Agree,Marketing,3,Stable
+How would you rate the level of mental health and well-being support?,Neutral,Finance,2,Declining
+Are you satisfied with the company's diversity and inclusion initiatives?,Strongly Disagree,HR,1,Negative
+How would you rate the level of communication between different teams and departments?,Agree,Operations,3,Stable
+Do you feel there is a sense of inclusion and diversity in the organizational culture?,Disagree,Marketing,2,Declining
+How satisfied are you with the company's approach to employee feedback and engagement?,Satisfied,Finance,4,Positive
+Do you feel your manager provides opportunities for your career development?,Agree,HR,3,Stable
+How would you rate the level of autonomy and decision-making authority in your role?,Neutral,Operations,2,Declining
+Are you satisfied with the company's commitment to sustainability and social responsibility?,Strongly Agree,Marketing,5,Positive
+How would you rate the level of trust and transparency in organizational leadership?,Agree,Finance,4,Positive
+Do you feel your role is respected and valued within the organization?,Disagree,HR,2,Declining
+How satisfied are you with the company's approach to talent retention and development?,Satisfied,Operations,4,Stable
+Do you feel there are opportunities for advancement and growth within your role and department?,Agree,Marketing,3,Stable
+How would you rate the level of mentorship and coaching provided for career growth?,Neutral,Finance,2,Declining
+Are you satisfied with the company's efforts towards diversity, equity, and inclusion initiatives?,Strongly Disagree,HR,1,Negative
+How would you rate the level of collaboration and teamwork across various teams and departments?,Agree,Operations,3,Stable
+Do you feel there is a sense of unity and cohesion in the organizational culture and values?,Disagree,Marketing,2,Declining
+How satisfied are you with the company's approach to performance evaluation and management?,Satisfied,Finance,4,Positive
+Do you feel your manager supports your career aspirations and growth?,Agree,HR,3,Stable
+How would you rate the level of flexibility and work-life balance options provided by the company?,Neutral,Operations,2,Declining
+Are you satisfied with the company's commitment to social responsibility and environmental sustainability?,Strongly Agree,Marketing,5,Positive
+How would you rate the level of trust and communication with senior leadership?,Agree,Finance,4,Positive
+Do you feel your contributions are acknowledged and valued by the organization and leadership?,Disagree,HR,2,Declining
+How satisfied are you with the company's recognition and rewards system for employee performance?,Satisfied,Operations,4,Stable
+Do you feel your work contributes to the company's success and mission?,Agree,Marketing,3,Stable
+How would you rate the level of support for maintaining work-life balance and employee well-being?,Neutral,Finance,2,Declining
+Are you satisfied with the company's approach to employee performance feedback and development?,Strongly Disagree,HR,1,Negative
+How would you rate the level of employee engagement and motivation initiatives?,Agree,Operations,3,Stable
+Do you feel your team members are supportive and collaborative towards common goals?,Disagree,Marketing,2,Declining
+How satisfied are you with the company's initiatives for employee well-being and mental health support?,Satisfied,Finance,4,Positive
+Do you feel your manager provides constructive feedback for your professional and personal growth?,Agree,HR,3,Stable
+How would you rate the level of decision-making autonomy in your role and responsibilities?,Neutral,Operations,2,Declining
+Are you satisfied with the company's sustainability and environmental efforts for a greener future?,Strongly Agree,Marketing,5,Positive
+How would you rate the level of trust and transparency in organizational leadership and communication?,Agree,Finance,4,Positive
+Do you feel your role is respected and valued within the organization and team?,Disagree,HR,2,Declining
+How satisfied are you with the company's approach to talent retention and development for future growth?,Satisfied,Operations,4,Stable
+Do you feel there are opportunities for advancement and growth within your role, team, and company?,Agree,Marketing,3,Stable
+How would you rate the level of mentorship and coaching provided for career growth and success?,Neutral,Finance,2,Declining
+Are you satisfied with the company's efforts towards diversity, equity, and

@@ -1,0 +1,100 @@
+from preswald import (
+    Workflow,
+    connect,
+    get_df,
+    table,
+    text,
+    plotly,
+    selectbox,
+    slider,
+    separator,
+)
+import plotly.express as px
+
+workflow = Workflow()
+
+# --- 1. Load data and fix types ---
+@workflow.atom()
+def load_data():
+    connect()
+    df = get_df("sample_csv")
+
+    # Coerce latency columns to float
+    df["P50"] = df["P50"].astype("float64")
+    df["P95"] = df["P95"].astype("float64")
+    df["P99"] = df["P99"].astype("float64")
+
+    return df
+
+# --- 2. Intro text ---
+@workflow.atom()
+def intro():
+    text("# 🚦 API Latency Explorer")
+    text("Explore P50, P95, and P99 latency across endpoints. Filter, chart, and inspect details.")
+
+# --- 3. Display table ---
+@workflow.atom(dependencies=["load_data"])
+def show_table(load_data):
+    text("## 📋 Full Dataset")
+    table(load_data)
+
+# --- 4. P99 threshold filter ---
+@workflow.atom(dependencies=["load_data"])
+def p99_filter(load_data):
+    text("## 🔍 Filter by P99 Latency")
+    threshold = slider("Maximum P99 (ms)", min_val=100, max_val=300, step=10, default=200)
+    filtered = load_data[load_data["P99"] <= threshold]
+
+    if filtered.shape[0] > 0:
+        table(filtered, title=f"Endpoints with P99 ≤ {threshold} ms")
+    else:
+        text("⚠️ No endpoints under selected threshold.")
+
+# --- 5. Plot percentiles ---
+@workflow.atom(dependencies=["load_data"])
+def plot_percentiles(load_data):
+    text("## 📊 Latency Breakdown (Grouped Bar Chart)")
+
+    melted = load_data.melt(
+        id_vars="Endpoint",
+        value_vars=["P50", "P95", "P99"],
+        var_name="Percentile",
+        value_name="Latency"
+    )
+
+    fig = px.bar(
+        melted,
+        x="Endpoint",
+        y="Latency",
+        color="Percentile",
+        barmode="group",
+        title="Latency by Endpoint",
+        labels={"Latency": "ms"}
+    )
+    fig.update_layout(xaxis_tickangle=-45)
+    plotly(fig)
+
+# --- 6. Per-endpoint breakdown ---
+@workflow.atom(dependencies=["load_data"])
+def endpoint_detail(load_data):
+    text("## 🧪 Inspect Specific Endpoint")
+    options = load_data["Endpoint"].tolist()
+    selected = selectbox("Choose Endpoint", options)
+
+    row = load_data[load_data["Endpoint"] == selected].iloc[0]
+    fig = px.bar(
+        x=["P50", "P95", "P99"],
+        y=[row["P50"], row["P95"], row["P99"]],
+        labels={"x": "Percentile", "y": "Latency (ms)"},
+        title=f"Latency Profile: {selected}"
+    )
+    plotly(fig)
+
+# --- 7. Footer ---
+@workflow.atom()
+def end_note():
+    separator()
+    text("✅ Dashboard complete. Use this to spot latency bottlenecks in your backend!")
+
+# --- Run ---
+workflow.execute()

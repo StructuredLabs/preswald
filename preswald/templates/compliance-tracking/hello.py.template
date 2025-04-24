@@ -1,0 +1,189 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Compliance Tracking Dashboard")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard provides a comprehensive overview of your organization's compliance landscape. 
+Powered by structured data from CSV files or internal sources, it helps teams monitor risk exposure, 
+manage regulatory obligations, and track task execution and audit readiness.
+"""
+    )
+
+@workflow.atom()
+def section_data_sources():
+    text("## Data Sources Used")
+    text(
+        """
+This app reads from multiple structured CSV files:
+
+- `compliance_status.csv`: Policy-level compliance records across departments.
+- `audit_schedule.csv`: A calendar of internal and external audits, with dates and owners.
+- `tasks.csv`: A log of all remediation, testing, documentation, and review tasks.
+- `incidents.csv`: Breach reports, root cause analyses, and mitigation steps.
+- `acknowledgments.csv`: Records of staff acknowledging policy documents or completing training.
+
+Ensure these sources are defined in your `preswald.toml` configuration under `[data]`.
+"""
+    )
+
+@workflow.atom()
+def section_overview_metrics():
+    text("## Executive Summary")
+    text(
+        """
+This section provides a snapshot of the current compliance posture across the organization:
+
+- **Total Controls Tracked**: Count of individual policies or rules being monitored
+- **% Compliant Controls**: Proportion marked as compliant in the latest review
+- **Open Remediation Tasks**: Number of uncompleted compliance-related tasks
+- **Upcoming Audits**: Count of audits scheduled in the next 60 days
+- **Outstanding Incidents**: Number of unresolved or under-investigation issues
+
+These metrics offer a top-level understanding of risk and compliance health.
+"""
+    )
+
+@workflow.atom()
+def section_detailed_audit_schedule():
+    text("## Detailed Audit Schedule")
+    text(
+        """
+This table pulls from `audit_schedule.csv` and includes:
+
+| Field | Description |
+|-------|-------------|
+| **Audit Name** | e.g., SOC 2 Type II, PCI DSS, GDPR Internal |
+| **Audit Type** | Internal / External |
+| **Start Date** | Scheduled kickoff |
+| **Pre-Audit Deadline** | Date by which evidence must be collected |
+| **Responsible Owner** | Person managing audit preparation |
+| **Status** | Not Started / In Progress / Submitted / Completed |
+
+Track progress against upcoming and ongoing audit activities to ensure teams are prepared.
+"""
+    )
+
+@workflow.atom()
+def section_active_tasks():
+    text("## Open Compliance Tasks")
+    text(
+        """
+Tasks pulled from `tasks.csv`, grouped by urgency and department:
+
+- **Assigned To**
+- **Task Type**: Documentation, Testing, Review, Remediation
+- **Due Date**
+- **Priority**
+- **Status**
+
+This section helps identify bottlenecks and overdue work that could impact audit readiness or regulatory deadlines.
+"""
+    )
+
+@workflow.atom()
+def section_incident_log():
+    text("## Compliance Incident Register")
+    text(
+        """
+Each entry from `incidents.csv` represents a breach, policy failure, or control gap:
+
+- **Incident ID**
+- **Reported Date**
+- **Severity Level**
+- **Root Cause Summary**
+- **Affected Department**
+- **Action Taken**
+- **Resolution Status**
+- **Days to Close**
+
+Use this to ensure that all incidents are reviewed and closed with proper documentation.
+"""
+    )
+
+@workflow.atom()
+def section_policy_acknowledgment():
+    text("## Policy Acknowledgment & Training")
+    text(
+        """
+From `acknowledgments.csv`, this section tracks staff engagement with required policies and training:
+
+- **Policy Name**
+- **Total Assigned Users**
+- **Completed Acknowledgments**
+- **Outstanding Users**
+- **Compliance Rate (%)**
+
+Highlight departments falling below target acknowledgment thresholds to trigger follow-up actions.
+"""
+    )
+
+@workflow.atom()
+def section_flagged_exceptions():
+    text("## Flags and Exceptions")
+    text(
+        """
+Highlight entries across data sources that may indicate risk or require action:
+
+- **Tasks Overdue > 30 days**
+- **Audits with No Owner Assigned**
+- **Incidents Missing Root Cause**
+- **Policies with < 60% Acknowledgment**
+- **Controls Without Evidence Documents**
+
+This list provides a real-time risk triage board for compliance leads.
+"""
+    )
+
+@workflow.atom()
+def section_trending_risks():
+    text("## Trending Risk Areas")
+    text(
+        """
+Based on cross-data pattern recognition, this section summarizes departments or topics with repeated issues:
+
+- Multiple overdue tasks in same control family
+- Recurring audit findings over past 3 cycles
+- Persistent gaps in training compliance
+- Frequently delayed document submissions
+
+Use this insight to inform quarterly compliance improvement plans.
+"""
+    )
+
+@workflow.atom()
+def section_refresh_note():
+    text("## Data Refresh Timestamp")
+    text(
+        """
+This dashboard reflects the most recent sync with source files as of:
+
+**`{{ data_refresh_timestamp }}`**
+
+To update figures, reload the data from your connected source (CSV, database, or data warehouse).
+"""
+    )
+
+@workflow.atom()
+def section_recommendations():
+    text("## Recommendations for Action")
+    text(
+        """
+Based on current insights, the compliance team should consider:
+
+- **Following up on unresolved incidents older than 30 days**
+- **Escalating tasks that are blocking audit submissions**
+- **Reviewing departments with low policy acknowledgment**
+- **Assigning owners for all upcoming audits**
+
+Proactive follow-through can prevent non-compliance and reduce organizational risk.
+"""
+    )
+
+workflow.execute()

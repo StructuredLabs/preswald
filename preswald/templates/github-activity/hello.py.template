@@ -1,0 +1,164 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# GitHub Activity Dashboard")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard presents a real-time summary of GitHub activity across your organization’s repositories. 
+It includes insights into commit history, pull request (PR) activity, and contributor metrics, 
+helping teams monitor development velocity, collaboration, and project health.
+"""
+    )
+
+@workflow.atom()
+def repo_overview():
+    text("## Repository Overview")
+    text(
+        """
+### Active Repositories Tracked: 27
+
+- **Most Active Repo (30 Days)**: `web-platform` – 312 commits
+- **Fastest Review Cycle**: `infra-tools` – Median PR review time: 4.6 hours
+- **New Repos Added This Quarter**: 3 (`ml-utils`, `ux-refresh`, `okta-proxy`)
+
+This snapshot helps prioritize where engineering resources are focused and identify active development surfaces.
+"""
+    )
+
+@workflow.atom()
+def commit_trends():
+    text("## Commit History")
+    text(
+        """
+### Weekly Commit Activity:
+
+- **Total Commits (Last 30 Days)**: 1,284
+- **Average Commits per Day**: 42.8
+- **Top Committers**:  
+  - `@a-chen`: 178 commits  
+  - `@rpatel`: 152 commits  
+  - `@lgomez`: 141 commits
+
+The trend shows strong momentum on feature branches ahead of the Q2 delivery milestone.
+"""
+    )
+
+@workflow.atom()
+def pr_activity():
+    text("## Pull Request Activity")
+    text(
+        """
+### PRs Merged in April 2025: 368
+
+- **Median Time to Merge**: 13.2 hours  
+- **Average Reviewers per PR**: 2.4  
+- **Merge Rate**: 86% of submitted PRs  
+- **Most Reviewed Repo**: `core-api` – Avg. 3.1 reviewers/PR
+
+This section reflects both team responsiveness and code review culture.
+"""
+    )
+
+@workflow.atom()
+def open_prs_summary():
+    text("## Open Pull Requests")
+    text(
+        """
+### Current Open PRs: 41
+
+- **Longest Open**: `refactor-auth-hook` – 19 days  
+- **Repos with Most Open PRs**:
+  - `design-system`: 9
+  - `api-gateway`: 6
+  - `mobile-client`: 5
+
+Flagging long-open PRs helps keep momentum and reduces merge conflicts.
+"""
+    )
+
+@workflow.atom()
+def contributor_activity():
+    text("## Contributor Breakdown")
+    text(
+        """
+### Contributors (Last 90 Days): 58
+
+| Contributor     | Commits | PRs Merged | Reviews |
+|-----------------|---------|------------|---------|
+| @a-chen         | 178     | 32         | 24      |
+| @lgomez         | 141     | 29         | 38      |
+| @rpatel         | 152     | 35         | 41      |
+
+Tracking contributions helps recognize high performers and ensure balanced workloads.
+"""
+    )
+
+@workflow.atom()
+def review_trends():
+    text("## Review Activity Trends")
+    text(
+        """
+Code review metrics offer insight into collaboration quality:
+
+- **Reviews Submitted (30 Days)**: 614  
+- **Avg. Time to First Review**: 3.7 hours  
+- **Review-to-Merge Ratio**: 1.67  
+- **Top Reviewer**: `@rpatel` – 41 reviews
+
+Timely feedback is linked to faster shipping and higher confidence in merges.
+"""
+    )
+
+@workflow.atom()
+def label_and_tag_usage():
+    text("## Labels & Tags")
+    text(
+        """
+### Common PR Labels:
+
+- `feature`: 146 uses
+- `bug`: 81 uses
+- `tech-debt`: 29 uses
+- `urgent`: 14 uses
+
+Standardizing labels improves triage efficiency and progress tracking.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Recommendations")
+    text(
+        """
+To further optimize GitHub workflows:
+
+1. **Set SLAs for open PR reviews** across core teams.
+2. **Encourage cleanup of stale branches** older than 30 days.
+3. **Adopt auto-labeling workflows** to ensure PR visibility.
+4. **Host monthly contributor retrospectives** to reflect on team velocity.
+5. **Promote balanced review distribution** to avoid burnout.
+
+Sustained GitHub hygiene supports faster delivery and better collaboration.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data reflects activity between March 24 – April 23, 2025.
+- Metrics sourced via GitHub GraphQL API and internal CI dashboards.
+- Review and contribution stats include bots unless otherwise filtered.
+
+For repo-specific detail or team-by-team breakdowns, contact Engineering Ops.
+"""
+    )
+
+workflow.execute()

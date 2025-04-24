@@ -1,0 +1,154 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Security Incident Response")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard provides a structured record of security incidents and response metrics. 
+It tracks incident volume, response timelines, resolution status, root cause data, and containment outcomes 
+to support security operations and compliance reporting.
+"""
+    )
+
+@workflow.atom()
+def incident_summary():
+    text("## Incident Summary – April 2025")
+    text(
+        """
+- **Total Incidents Logged**: 14  
+- **Confirmed Breaches**: 2  
+- **False Positives**: 3  
+- **Resolved**: 12  
+- **Open Investigations**: 2  
+- **Median Time to Detection (MTTD)**: 2.8 hours  
+- **Median Time to Containment (MTTC)**: 4.5 hours  
+- **Median Time to Resolution (MTTR)**: 9.2 hours
+
+Incident response timelines improved 18% over March. All SLAs met for critical severity cases.
+"""
+    )
+
+@workflow.atom()
+def incident_classification():
+    text("## Incident Classification")
+    text(
+        """
+| Type                    | Count | % of Total | Avg. MTTR |
+|-------------------------|-------|------------|-----------|
+| Phishing Attempt        | 5     | 35.7%      | 6.4 hrs   |
+| Unauthorized Access     | 3     | 21.4%      | 12.3 hrs  |
+| Malware Detection       | 2     | 14.3%      | 8.9 hrs   |
+| Misconfigured Services  | 3     | 21.4%      | 11.1 hrs  |
+| Insider Threats         | 1     | 7.1%       | 15.6 hrs  |
+
+Phishing remains the most frequent vector; unauthorized access incidents had highest MTTR.
+"""
+    )
+
+@workflow.atom()
+def response_timelines():
+    text("## Response Timelines")
+    text(
+        """
+### April SLA Compliance:
+
+- **Critical Incidents (SLA: 4h)** – 100% met (3/3)  
+- **High Severity (SLA: 8h)** – 83% met (5/6)  
+- **Medium Severity (SLA: 24h)** – 100% met (4/4)  
+- **Low Severity** – No SLA tracked
+
+### Overall Timeliness:
+
+- **Fastest MTTC**: 1.3 hours  
+- **Slowest MTTR**: 22.1 hours  
+- **Avg. Response Team Engagement Time**: 1.8 hours
+
+Improved Slack escalation routing contributed to faster response for phishing and malware cases.
+"""
+    )
+
+@workflow.atom()
+def resolution_status():
+    text("## Incident Resolution Status")
+    text(
+        """
+| Status         | Count | % of Incidents |
+|----------------|--------|----------------|
+| Fully Resolved | 9      | 64.3%          |
+| Resolved w/ Exceptions | 3 | 21.4%       |
+| Under Investigation | 2  | 14.3%         |
+
+Two unresolved cases involve third-party SaaS audit findings pending review.
+"""
+    )
+
+@workflow.atom()
+def root_cause_analysis():
+    text("## Root Cause Breakdown")
+    text(
+        """
+| Root Cause Category      | Count | % of Resolved Incidents |
+|--------------------------|--------|--------------------------|
+| User Error (Credential Sharing) | 3 | 25%                    |
+| Unpatched Vulnerability  | 2      | 16.7%                    |
+| Misconfiguration         | 3      | 25%                      |
+| Insider Access Misuse    | 1      | 8.3%                     |
+| Third-Party Exposure     | 3      | 25%                      |
+
+User behavior and external system integrations remain top contributors. 67% of misconfigurations were resolved via IaC updates.
+"""
+    )
+
+@workflow.atom()
+def containment_measures():
+    text("## Containment & Remediation Actions")
+    text(
+        """
+### Common Remediation Steps (April):
+
+- **Credential resets**: 5  
+- **Blocked IPs**: 4  
+- **Disabled compromised accounts**: 3  
+- **Patch deployments**: 2  
+- **Playbook revisions**: 1  
+- **User education (targeted)**: 2
+
+All actions were logged in Jira and appended to corresponding incident tickets for audit readiness.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Response Process Recommendations")
+    text(
+        """
+1. **Automate containment triggers** for credential-based anomalies  
+2. **Expand phishing simulations** for departments with repeat reports  
+3. **Improve alert fidelity** from third-party SaaS monitoring tools  
+4. **Establish faster vendor SLA** for third-party risk reviews  
+5. **Add explicit MTTC tracking in Jira workflows** for audit consistency
+
+Proposed enhancements will be discussed in the next incident response roundtable on May 2.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data reflects incidents logged between April 1–22, 2025  
+- MTTR = Mean Time to Resolution, MTTC = Containment, MTTD = Detection  
+- Sources: SOC2 logs, PagerDuty, Jira SecOps board, Snyk, Okta
+
+Next metrics refresh: May 6, 2025
+"""
+    )
+
+workflow.execute()

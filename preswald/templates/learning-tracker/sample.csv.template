@@ -1,0 +1,178 @@
+Employee, Course, Status, Completion Date, Certification
+John Doe,Data Analysis 101,Completed,2022-05-10,Certified
+Jane Smith,Project Management Fundamentals,In Progress,,Pending
+Michael Johnson,Python for Beginners,Not Started,,Pending
+Sarah Lee,Advanced Excel Techniques,Completed,2022-04-20,Certified
+David Brown,Introduction to Machine Learning,In Progress,,Pending
+Emily Wilson,Effective Communication Skills,Not Started,,Pending
+Robert Garcia,Financial Modeling Mastery,Completed,2022-03-15,Certified
+Amanda Martinez,Leadership Essentials,Not Started,,Pending
+Daniel Taylor,Java Programming Basics,In Progress,,Pending
+Laura Anderson,Time Management Strategies,Completed,2022-06-05,Certified
+Kevin Nguyen,Web Development Bootcamp,Not Started,,Pending
+Maria Rodriguez,Graphic Design Fundamentals,In Progress,,Pending
+Chris Thomas,Business Ethics and Compliance,Completed,2022-04-30,Certified
+Jessica Perez,Public Speaking Workshop,Not Started,,Pending
+Justin Lewis,SQL Crash Course,In Progress,,Pending
+Stephanie Scott,Introduction to Data Science,Completed,2022-05-25,Certified
+Mark Hall,Marketing Strategies for Success,Not Started,,Pending
+Rachel Adams,Effective Teamwork Training,In Progress,,Pending
+Eric Clark,Photoshop Essentials,Completed,2022-03-05,Certified
+Kimberly Baker,Conflict Resolution Techniques,Not Started,,Pending
+Patrick Carter,Customer Relationship Management,In Progress,,Pending
+Melissa Wright,Agile Project Management,Completed,2022-06-15,Certified
+Brandon Ward,Networking Fundamentals,Not Started,,Pending
+Lauren Torres,Virtual Presentation Skills,In Progress,,Pending
+Alexis Cook,Data Visualization Basics,Completed,2022-04-10,Certified
+Bryan Murphy,Financial Planning Fundamentals,Not Started,,Pending
+Megan Reed,Leadership Communication Strategies,In Progress,,Pending
+Jordan Rivera,JavaScript Essentials,Completed,2022-05-20,Certified
+Tiffany Perez,Effective Negotiation Techniques,Not Started,,Pending
+Adrian Hughes,Cloud Computing Fundamentals,In Progress,,Pending
+Samantha Evans,Time Management Mastery,Completed,2022-03-20,Certified
+Dylan Powell,UX Design Principles,Not Started,,Pending
+Courtney Long,Emotional Intelligence Training,In Progress,,Pending
+Corey Foster,Social Media Marketing Basics,Completed,2022-06-10,Certified
+Monica Bryant,Project Planning and Execution,Not Started,,Pending
+Jared Cox,Email Marketing Strategies,In Progress,,Pending
+Tara Brooks,Critical Thinking Skills Workshop,Completed,2022-04-05,Certified
+Alexa Sanchez,Python Data Analysis,Not Started,,Pending
+Steven Morris,Leadership Development Program,In Progress,,Pending
+Kayla Perry,Web Design Fundamentals,Completed,2022-05-15,Certified
+Cameron Ramirez,Effective Presentation Techniques,Not Started,,Pending
+Diana Reed,Business Writing Essentials,In Progress,,Pending
+Nathan Price,Advanced Statistics for Decision Making,Completed,2022-03-25,Certified
+Sabrina Hayes,IT Security Fundamentals,Not Started,,Pending
+Keith Diaz,Agile Team Management,In Progress,,Pending
+Crystal Watson,Public Relations Strategies,Completed,2022-06-20,Certified
+Carlos Sanders,Networking Essentials,Not Started,,Pending
+Breanna King,Creative Problem Solving Workshop,In Progress,,Pending
+Evan Hughes,Leadership and Influence Skills,Completed,2022-04-15,Certified
+Lindsey Brooks,Data Analytics Fundamentals,Not Started,,Pending
+Tyler Graham,Financial Risk Management,In Progress,,Pending
+Kristen Powell,Time Management for Productivity,Completed,2022-05-05,Certified
+Austin Butler,Content Marketing Strategies,Not Started,,Pending
+Hannah Nelson,Effective Feedback Techniques,In Progress,,Pending
+Gregory Stewart,Machine Learning Algorithms,Completed,2022-03-10,Certified
+Andrea Cox,Project Management Essentials,Not Started,,Pending
+Joel Morales,Excel VBA Programming,In Progress,,Pending
+Cassandra Stewart,Leadership Communication Skills,Completed,2022-06-25,Certified
+Frankie Alexander,Web Development Fundamentals,Not Started,,Pending
+Sierra Gardner,Design Thinking Workshop,In Progress,,Pending
+Erik Gray,IT Project Management Basics,Completed,2022-04-25,Certified
+Julia Riley,Professional Networking Strategies,Not Started,,Pending
+Oscar Welch,Effective Time Management Techniques,In Progress,,Pending
+Kaitlyn Hunt,Data Visualization for Business,Completed,2022-05-30,Certified
+Donovan Black,Financial Analysis Fundamentals,Not Started,,Pending
+Brianna Matthews,Conflict Management Skills,In Progress,,Pending
+Mario Foster,Digital Marketing Essentials,Completed,2022-03-30,Certified
+Lindsay Martin,Public Speaking Mastery,Not Started,,Pending
+Wesley Hayes,Advanced Excel Formulas,In Progress,,Pending
+Erin Burton,Leadership Development Workshop,Completed,2022-07-01,Certified
+Ronald Price,SQL Database Management,Not Started,,Pending
+Tara Wood,Innovation and Creativity Training,In Progress,,Pending
+Derek Freeman,Agile Product Development,Completed,2022-04-01,Certified
+Kelsey Kelley,Marketing Analytics Fundamentals,Not Started,,Pending
+Dominic Wells,Effective Conflict Resolution Strategies,In Progress,,Pending
+Paige Carter,Python Programming for Data Science,Completed,2022-06-01,Certified
+Trevor Powell,Leadership Strategies for Success,Not Started,,Pending
+Katie Warren,Effective Decision Making Techniques,In Progress,,Pending
+Bradley Coleman,Web Design Principles,Completed,2022-05-01,Certified
+Alyssa Baker,Business Process Improvement,Not Started,,Pending
+Dante Barker,Strategic Planning Workshop,In Progress,,Pending
+Melanie Dunn,Lean Six Sigma Fundamentals,Completed,2022-03-01,Certified
+Mason Myers,Effective Team Collaboration,Not Started,,Pending
+Claire Watts,Project Risk Management,In Progress,,Pending
+Simon Ray,Human Resource Management Basics,Completed,2022-07-05,Certified
+Ariel Fox,Social Media Engagement Strategies,Not Started,,Pending
+Randy Newman,Effective Communication in the Workplace,In Progress,,Pending
+Catherine Cole,Data Analysis and Interpretation,Completed,2022-04-02,Certified
+Julian Day,Financial Modeling for Investment Analysis,Not Started,,Pending
+Angelica Grant,Leadership Skills Development,In Progress,,Pending
+Owen Walsh,IT Infrastructure Essentials,Completed,2022-05-02,Certified
+Lucas Page,Content Creation Strategies,Not Started,,Pending
+Gina Foster,Emotional Intelligence in Leadership,In Progress,,Pending
+Isaac Hudson,Agile Project Management Fundamentals,Completed,2022-03-02,Certified
+Julia Wilkins,Web Development Frameworks,Not Started,,Pending
+Ethan Mason,Effective Problem Solving Techniques,In Progress,,Pending
+Sophia Cox,Data Visualization with Tableau,Completed,2022-07-10,Certified
+Landon Riley,Financial Planning and Analysis,Not Started,,Pending
+Amelia Howard,Negotiation Skills Workshop,In Progress,,Pending
+Dean Wells,Java Programming Advanced Concepts,Completed,2022-04-03,Certified
+Courtney Reed,Leadership and Team Management,Not Started,,Pending
+Jordan Boyd,Effective Conflict Resolution in Teams,In Progress,,Pending
+Kaylee Crawford,Marketing Strategies for Small Businesses,Completed,2022-05-03,Certified
+Jared Sanders,Strategic Leadership Training,Not Started,,Pending
+Tara Hayes,IT Security Best Practices,In Progress,,Pending
+Alex Peterson,Data Science for Beginners,Completed,2022-03-03,Certified
+Lauren Thomas,Effective Presentation Delivery,Not Started,,Pending
+Ryan Coleman,Project Management Fundamentals,In Progress,,Pending
+Michelle Cox,Effective Feedback and Recognition,Completed,2022-07-15,Certified
+Jeremy Willis,Web Development Best Practices,Not Started,,Pending
+Amanda Foster,Leadership Communication Strategies,In Progress,,Pending
+Derek Hart,Data Analysis Techniques,Completed,2022-04-04,Certified
+Samantha Hayes,Financial Risk Assessment,Not Started,,Pending
+Brett Larson,Agile Team Collaboration,In Progress,,Pending
+Kylie Richardson,Public Relations Essentials,Completed,2022-05-04,Certified
+Zachary Evans,Networking for Professionals,Not Started,,Pending
+Natalie Wells,Creative Thinking Workshop,In Progress,,Pending
+Elijah Price,IT Project Management Strategies,Completed,2022-03-04,Certified
+Allison Fisher,Effective Time Management Skills,Not Started,,Pending
+Trenton Brown,Data Visualization Techniques,In Progress,,Pending
+Haley Campbell,Leadership Development Program,Completed,2022-07-20,Certified
+Mackenzie Reed,Python Data Analysis and Visualization,Not Started,,Pending
+Dominique Graham,Financial Analysis and Reporting,In Progress,,Pending
+Jordan Perez,Digital Marketing Strategies,Completed,2022-04-05,Certified
+Morgan Wallace,Public Speaking Confidence Workshop,Not Started,,Pending
+Cameron Hayes,Effective Team Building Strategies,In Progress,,Pending
+Sydney Elliott,Machine Learning Fundamentals,Completed,2022-05-05,Certified
+Kyle Hart,Marketing Analytics and Insights,Not Started,,Pending
+Courtney Myers,Conflict Management in Organizations,In Progress,,Pending
+Dylan Warren,Leadership and Influence Workshop,Completed,2022-03-05,Certified
+Brooke Hayes,Excel VBA Programming Essentials,Not Started,,Pending
+Jesse Brooks,Emotional Intelligence Training,In Progress,,Pending
+Lindsay Patterson,Data Analytics for Business,Completed,2022-07-25,Certified
+Caleb Kelley,Financial Modeling and Valuation,Not Started,,Pending
+Savannah Myers,Agile Project Management Techniques,In Progress,,Pending
+Casey Hunt,Leadership Strategies for the Future,Completed,2022-04-06,Certified
+Jordan Brooks,Web Development Principles,Not Started,,Pending
+Alexis Daniels,Design Thinking for Innovation,In Progress,,Pending
+Bryce Hunt,IT Project Management Fundamentals,Completed,2022-05-06,Certified
+Courtney Reynolds,Professional Networking Skills,Not Started,,Pending
+Devon Wells,Effective Decision Making Strategies,In Progress,,Pending
+Dakota Coleman,Data Visualization and Interpretation,Completed,2022-03-06,Certified
+Skyler Hart,Financial Planning and Forecasting,Not Started,,Pending
+Morgan Wallace,Conflict Resolution Techniques,In Progress,,Pending
+Taylor Hunt,Digital Marketing Essentials,Completed,2022-07-30,Certified
+Cameron Myers,Public Speaking Mastery,Not Started,,Pending
+Sydney Patterson,Effective Team Management,In Progress,,Pending
+Kyle Warren,Machine Learning Algorithms,Completed,2022-04-07,Certified
+Courtney Hayes,Marketing Strategies for Growth,Not Started,,Pending
+Dylan Daniels,Effective Communication Strategies,In Progress,,Pending
+Brooke Hunt,Excel Data Analysis Techniques,Completed,2022-05-07,Certified
+Jesse Reynolds,Emotional Intelligence in Leadership,Not Started,,Pending
+Lindsay Wells,Data Analytics for Decision Making,In Progress,,Pending
+Caleb Coleman,Financial Modeling for Business,Completed,2022-03-07,Certified
+Savannah Hart,Agile Project Management Principles,Not Started,,Pending
+Casey Wallace,Leadership Development Workshop,In Progress,,Pending
+Jordan Hunt,Web Development Best Practices,Completed,2022-08-01,Certified
+Alexis Reynolds,Design Thinking Strategies,Not Started,,Pending
+Bryce Hayes,IT Project Management Essentials,In Progress,,Pending
+Courtney Daniels,Professional Networking Workshop,Completed,2022-04-08,Certified
+Devon Hunt,Effective Decision Making Skills,Not Started,,Pending
+Dakota Reynolds,Data Visualization Techniques,In Progress,,Pending
+Skyler Hayes,Financial Planning and Analysis,Completed,2022-05-08,Certified
+Morgan Daniels,Conflict Resolution Strategies,Not Started,,Pending
+Taylor Reynolds,Digital Marketing Strategies for Success,In Progress,,Pending
+Cameron Hunt,Public Speaking Skills Development,Completed,2022-03-08,Certified
+Sydney Wallace,Effective Team Collaboration Workshop,Not Started,,Pending
+Kyle Hayes,Machine Learning Fundamentals,In Progress,,Pending
+Courtney Daniels,Marketing Analytics and Insights,Completed,2022-08-05,Certified
+Dylan Hunt,Effective Communication Skills,Not Started,,Pending
+Brooke Reynolds,Excel Data Analysis and Visualization,In Progress,,Pending
+Jesse Hayes,Emotional Intelligence in Organizations,Completed,2022-04-09,Certified
+Lindsay Daniels,Data Analytics for Business Decision Making,Not Started,,Pending
+Caleb Hunt,Financial Modeling and Forecasting,In Progress,,Pending
+Savannah Reynolds,Agile Project Management Techniques,Completed,2022-05-09,Certified
+Casey Hayes,Leadership Strategies for Team Success,Not Started,,Pending
+Jordan Daniels,Web Development Principles and Practices,In Progress,,Pending

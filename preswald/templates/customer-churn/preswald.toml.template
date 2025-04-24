@@ -1,0 +1,20 @@
+[project]
+title = "Customer Churn Dashboard"
+version = "0.1.0"
+port = 8501
+entrypoint = "hello.py"
+slug = "customer-churn"
+
+[branding]
+name = "Customer Churn Dashboard"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#000000"
+
+[data.sample_csv]
+type = "csv"
+path = "data/sample.csv"
+
+[logging]
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

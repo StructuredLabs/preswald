@@ -11,7 +11,7 @@
       },
       {
         "id": "board-meeting",
-        "title": "Board Meeting Deck",
+        "title": "Board Meeting Report",
         "author": "Structured Labs",
         "description": "Present quarterly financials, strategic goals, key initiatives, and hiring plans to your board.",
         "preview": "board-meeting",
@@ -25,24 +25,6 @@
         "description": "Monitor cash burn, runway projections, and financial health metrics in real-time.",
         "preview": "burn-rate",
         "tags": ["Business", "Analytics", "Dashboard"],
-        "type": "Preswald"
-      },
-      {
-        "id": "engineering-design",
-        "title": "Engineering Design Doc",
-        "author": "Structured Labs",
-        "description": "Create comprehensive technical specifications with architecture diagrams and implementation details.",
-        "preview": "engineering-design",
-        "tags": ["Engineering", "Operations", "Documentation"],
-        "type": "Preswald"
-      },
-      {
-        "id": "release-notes",
-        "title": "Release Notes Composer",
-        "author": "Structured Labs",
-        "description": "Organize PRs and issues into structured release notes with changelog formatting.",
-        "preview": "release-notes",
-        "tags": ["Engineering", "Operations", "Documentation"],
         "type": "Preswald"
       },
       {
@@ -101,7 +83,7 @@
       },
       {
         "id": "incident-postmortem",
-        "title": "Incident Postmortem Report Generator",
+        "title": "Incident Postmortem Report",
         "author": "Structured Labs",
         "description": "Document incidents, root causes, and action items with a structured template.",
         "preview": "incident-postmortem",
@@ -118,39 +100,12 @@
         "type": "Preswald"
       },
       {
-        "id": "research-paper",
-        "title": "Research Paper",
-        "author": "Structured Labs",
-        "description": "Format academic papers with proper citations, figures, and references.",
-        "preview": "research-paper",
-        "tags": ["Research", "Documentation"],
-        "type": "Preswald"
-      },
-      {
-        "id": "white-paper",
-        "title": "Industry White Paper",
-        "author": "Structured Labs",
-        "description": "Create professional white papers with data visualization and industry insights.",
-        "preview": "white-paper",
-        "tags": ["Business", "Research", "Documentation"],
-        "type": "Preswald"
-      },
-      {
         "id": "user-retention",
         "title": "User Retention Cohorts",
         "author": "Structured Labs",
         "description": "Analyze user retention patterns with cohort analysis and visualization tools.",
         "preview": "user-retention",
         "tags": ["Sales", "Analytics", "Retention"],
-        "type": "Preswald"
-      },
-      {
-        "id": "customer-journey",
-        "title": "Customer Journey Mapping",
-        "author": "Structured Labs",
-        "description": "Visualize customer touchpoints and experiences across the product lifecycle.",
-        "preview": "customer-journey",
-        "tags": ["Sales", "Product", "Analytics"],
         "type": "Preswald"
       },
       {
@@ -190,75 +145,12 @@
         "type": "Preswald"
       },
       {
-        "id": "product-roadmap",
-        "title": "Interactive Roadmap",
-        "author": "Structured Labs",
-        "description": "Create dynamic product roadmaps with timelines, dependencies, and progress tracking.",
-        "preview": "product-roadmap",
-        "tags": ["Product", "Operations", "Planning"],
-        "type": "Preswald"
-      },
-      {
-        "id": "product-strategy",
-        "title": "Product Strategy Whitepaper",
-        "author": "Structured Labs",
-        "description": "Document product strategy with market analysis, competitive positioning, and roadmap.",
-        "preview": "product-strategy",
-        "tags": ["Product", "Business", "Documentation"],
-        "type": "Preswald"
-      },
-      {
-        "id": "resume-website",
-        "title": "Personal Resume Website",
-        "author": "Structured Labs",
-        "description": "Create a professional portfolio website with interactive sections and project showcases.",
-        "preview": "resume-website",
-        "tags": ["Personal", "Portfolio"],
-        "type": "Preswald"
-      },
-      {
-        "id": "performance-review",
-        "title": "Employee Performance Review",
-        "author": "Structured Labs",
-        "description": "Document performance reviews with goals, achievements, and development plans.",
-        "preview": "performance-review",
-        "tags": ["Personal", "HR", "Documentation"],
-        "type": "Preswald"
-      },
-      {
         "id": "survey-results",
         "title": "Visualize Survey Results",
         "author": "Structured Labs",
         "description": "Create interactive visualizations for survey data with charts and insights.",
         "preview": "survey-results",
         "tags": ["Analytics", "Visualization"],
-        "type": "Preswald"
-      },
-      {
-        "id": "math-concepts",
-        "title": "Visualize Math Concepts",
-        "author": "Structured Labs",
-        "description": "Create interactive mathematical visualizations and concept demonstrations.",
-        "preview": "math-concepts",
-        "tags": ["Research", "Analytics", "Visualization"],
-        "type": "Preswald"
-      },
-      {
-        "id": "release-checklist",
-        "title": "Release Readiness Checklist",
-        "author": "Structured Labs",
-        "description": "Track release requirements, testing status, and deployment criteria.",
-        "preview": "release-checklist",
-        "tags": ["Operations", "Engineering", "Release"],
-        "type": "Preswald"
-      },
-      {
-        "id": "product-requirements",
-        "title": "Interactive Product Requirement Docs",
-        "author": "Structured Labs",
-        "description": "Create dynamic product requirements with user stories and acceptance criteria.",
-        "preview": "product-requirements",
-        "tags": ["Product", "Operations", "Documentation"],
         "type": "Preswald"
       },
       {
@@ -277,24 +169,6 @@
         "description": "Monitor customer retention, churn rates, and risk factors in real-time.",
         "preview": "customer-churn",
         "tags": ["Sales", "Analytics", "Dashboard"],
-        "type": "Preswald"
-      },
-      {
-        "id": "case-study",
-        "title": "Interactive Case Study",
-        "author": "Structured Labs",
-        "description": "Create engaging case studies with interactive elements and data visualization.",
-        "preview": "case-study",
-        "tags": ["Research", "Analytics", "Visualization"],
-        "type": "Preswald"
-      },
-      {
-        "id": "bacteria-evolution",
-        "title": "Bacteria Evolution Simulation",
-        "author": "Structured Labs",
-        "description": "Visualize bacterial growth and evolution patterns with interactive simulations.",
-        "preview": "bacteria-evolution",
-        "tags": ["Research", "Science", "Visualization"],
         "type": "Preswald"
       },
       {
@@ -379,30 +253,12 @@
         "type": "Preswald"
       },
       {
-        "id": "competitive-benchmarking",
-        "title": "Competitive Benchmarking",
-        "author": "Structured Labs",
-        "description": "Compare competitor products, features, and market positioning with interactive analysis.",
-        "preview": "competitive-benchmarking",
-        "tags": ["Business", "Analytics"],
-        "type": "Preswald"
-      },
-      {
         "id": "social-media-analytics",
         "title": "Social Media Analytics Dashboard",
         "author": "Structured Labs",
         "description": "Track engagement, reach, and performance across all social media platforms in one view.",
         "preview": "social-media-analytics",
         "tags": ["Marketing", "Analytics", "Dashboard"],
-        "type": "Preswald"
-      },
-      {
-        "id": "content-calendar",
-        "title": "Content Calendar Planner",
-        "author": "Structured Labs",
-        "description": "Plan and schedule content across multiple channels with editorial calendar and analytics.",
-        "preview": "content-calendar",
-        "tags": ["Marketing", "Operations", "Planning"],
         "type": "Preswald"
       },
       {
@@ -424,15 +280,6 @@
         "type": "Preswald"
       },
       {
-        "id": "product-launch",
-        "title": "Product Launch Checklist",
-        "author": "Structured Labs",
-        "description": "Manage product launches with comprehensive checklists and milestone tracking.",
-        "preview": "product-launch",
-        "tags": ["Product", "Operations", "Planning"],
-        "type": "Preswald"
-      },
-      {
         "id": "user-feedback",
         "title": "User Feedback Analysis",
         "author": "Structured Labs",
@@ -451,39 +298,12 @@
         "type": "Preswald"
       },
       {
-        "id": "team-velocity",
-        "title": "Team Velocity Tracker",
-        "author": "Structured Labs",
-        "description": "Monitor sprint velocity, story points, and team performance metrics.",
-        "preview": "team-velocity",
-        "tags": ["Engineering", "Analytics", "Performance"],
-        "type": "Preswald"
-      },
-      {
-        "id": "code-review",
-        "title": "Code Review Dashboard",
-        "author": "Structured Labs",
-        "description": "Track code review metrics, PR turnaround times, and reviewer activity.",
-        "preview": "code-review",
-        "tags": ["Engineering", "Analytics", "Quality"],
-        "type": "Preswald"
-      },
-      {
         "id": "infrastructure-costs",
         "title": "Infrastructure Cost Analysis",
         "author": "Structured Labs",
         "description": "Analyze cloud infrastructure costs and optimize resource allocation.",
         "preview": "infrastructure-costs",
         "tags": ["Engineering", "Analytics", "Operations"],
-        "type": "Preswald"
-      },
-      {
-        "id": "support-analytics",
-        "title": "Customer Support Analytics",
-        "author": "Structured Labs",
-        "description": "Track support ticket metrics, response times, and customer satisfaction scores.",
-        "preview": "support-analytics",
-        "tags": ["Operations", "Analytics", "Customer"],
         "type": "Preswald"
       },
       {
@@ -595,24 +415,6 @@
         "type": "Preswald"
       },
       {
-        "id": "api-docs",
-        "title": "API Documentation Generator",
-        "author": "Structured Labs",
-        "description": "Create interactive API documentation with code samples and testing tools.",
-        "preview": "api-docs",
-        "tags": ["Engineering", "Documentation", "API"],
-        "type": "Preswald"
-      },
-      {
-        "id": "performance-review",
-        "title": "Performance Review Template",
-        "author": "Structured Labs",
-        "description": "Structure employee performance reviews with goals, achievements, and development plans.",
-        "preview": "performance-review",
-        "tags": ["HR", "Documentation", "Management"],
-        "type": "Preswald"
-      },
-      {
         "id": "customer-success",
         "title": "Customer Success Scorecard",
         "author": "Structured Labs",
@@ -631,15 +433,6 @@
         "type": "Preswald"
       },
       {
-        "id": "event-planning",
-        "title": "Event Planning Dashboard",
-        "author": "Structured Labs",
-        "description": "Manage event logistics, attendee tracking, and budget monitoring.",
-        "preview": "event-planning",
-        "tags": ["Operations", "Planning", "Events"],
-        "type": "Preswald"
-      },
-      {
         "id": "qa-dashboard",
         "title": "Quality Assurance Dashboard",
         "author": "Structured Labs",
@@ -655,24 +448,6 @@
         "description": "Track financial goals, investment performance, and retirement planning.",
         "preview": "financial-planning",
         "tags": ["Finance", "Analytics", "Personal"],
-        "type": "Preswald"
-      },
-      {
-        "id": "product-roadmap",
-        "title": "Product Roadmap Visualizer",
-        "author": "Structured Labs",
-        "description": "Create interactive product roadmaps with timeline tracking and dependency mapping.",
-        "preview": "product-roadmap",
-        "tags": ["Product", "Planning", "Visualization"],
-        "type": "Preswald"
-      },
-      {
-        "id": "okr-tracker",
-        "title": "Team OKR Tracker",
-        "author": "Structured Labs",
-        "description": "Monitor team objectives and key results with progress tracking and alignment metrics.",
-        "preview": "okr-tracker",
-        "tags": ["Operations", "Analytics", "Management"],
         "type": "Preswald"
       },
       {
@@ -712,39 +487,12 @@
         "type": "Preswald"
       },
       {
-        "id": "onboarding-tracker",
-        "title": "Employee Onboarding Tracker",
-        "author": "Structured Labs",
-        "description": "Manage new hire onboarding with task tracking and progress monitoring.",
-        "preview": "onboarding-tracker",
-        "tags": ["HR", "Operations", "Management"],
-        "type": "Preswald"
-      },
-      {
         "id": "sla-dashboard",
         "title": "Customer Support SLA Dashboard",
         "author": "Structured Labs",
         "description": "Monitor support ticket SLAs, response times, and resolution metrics.",
         "preview": "sla-dashboard",
         "tags": ["Operations", "Analytics", "Support"],
-        "type": "Preswald"
-      },
-      {
-        "id": "feature-requests",
-        "title": "Product Feature Request Tracker",
-        "author": "Structured Labs",
-        "description": "Track and prioritize feature requests with voting and impact analysis.",
-        "preview": "feature-requests",
-        "tags": ["Product", "Analytics", "Planning"],
-        "type": "Preswald"
-      },
-      {
-        "id": "team-retrospective",
-        "title": "Team Retrospective Dashboard",
-        "author": "Structured Labs",
-        "description": "Facilitate team retrospectives with action item tracking, sentiment analysis, and improvement metrics.",
-        "preview": "team-retrospective",
-        "tags": ["Engineering", "Operations", "Analytics"],
         "type": "Preswald"
       },
       {

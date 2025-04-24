@@ -38,7 +38,6 @@ def load_json_source(config: dict[str, Any]) -> pd.DataFrame:
                 f"Invalid record_path '{record_path}' for JSON file '{path}': {e}"
             ) from e
 
-
     # Normalize or convert data if "flatten"
     try:
         if flatten:
@@ -49,7 +48,6 @@ def load_json_source(config: dict[str, Any]) -> pd.DataFrame:
         raise ValueError(
             f"Error converting JSON data from file '{path}' to DataFrame: {e}"
         ) from e
-
 
 
 # Database Configs ############################################################
@@ -118,6 +116,7 @@ class S3CSVConfig:
     s3_use_ssl: bool = False
     s3_url_style: str = "path"
 
+
 class DataSource:
     """Base class for all data sources"""
 
@@ -182,7 +181,14 @@ class CSVSource(DataSource):
         self._table_name = f"csv_{name}_{uuid.uuid4().hex[:8]}"
         self._duckdb.execute(f"""
             CREATE TABLE {self._table_name} AS
-            SELECT * FROM read_csv_auto('{self.path}')
+            SELECT * FROM read_csv_auto('{self.path}',
+                header=true,
+                auto_detect=true,
+                ignore_errors=true,
+                normalize_names=true,
+                sample_size=-1,
+                all_varchar=true
+            )
         """)
 
     def query(self, sql: str) -> pd.DataFrame:

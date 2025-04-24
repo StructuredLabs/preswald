@@ -1,0 +1,144 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Incident Postmortem Report")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This report documents a recent incident in a structured format. It captures the timeline, impact, 
+root cause, contributing factors, and follow-up actions to support transparency and continuous improvement. 
+Use this template to align teams and prevent recurrence.
+"""
+    )
+
+@workflow.atom()
+def incident_summary():
+    text("## Summary")
+    text(
+        """
+**Incident Title**: API Outage – Token Expiry Handling  
+**Date & Time**: April 19, 2025, 10:42–11:25 UTC  
+**Reported By**: On-call SRE – @bnguyen  
+**Severity Level**: SEV-2  
+**Status**: Resolved
+
+A widespread API outage occurred due to unhandled token expiry logic in our authentication service. 
+Services relying on session tokens failed with 401 errors for 43 minutes.
+"""
+    )
+
+@workflow.atom()
+def impact():
+    text("## Impact")
+    text(
+        """
+- **User Impact**: 94% of authenticated API traffic failed during the incident window.  
+- **Customer Impact**: Login functionality was unavailable across web and mobile clients.  
+- **Revenue Impact**: $18,250 in estimated lost transactions.  
+- **Support Volume**: 119 support tickets and 4 major customer escalations.
+
+Critical user flows were inaccessible, resulting in immediate financial and reputational consequences.
+"""
+    )
+
+@workflow.atom()
+def timeline():
+    text("## Timeline")
+    text(
+        """
+| Time (UTC)   | Event Description                                 |
+|--------------|----------------------------------------------------|
+| 10:42        | Alerts triggered for 5xx errors on multiple APIs   |
+| 10:44        | Engineering triage initiated by on-call SRE        |
+| 10:49        | Token expiry failures traced to auth service       |
+| 11:05        | Temporary patch deployed, service recovery begins  |
+| 11:25        | All systems confirmed stable, incident closed      |
+| 12:00        | Initial review conducted with infra and backend    |
+
+Incident response followed standard on-call procedures with escalation at T+2 minutes.
+"""
+    )
+
+@workflow.atom()
+def root_cause():
+    text("## Root Cause Analysis")
+    text(
+        """
+### Root Cause:
+A recent code push introduced a regression in the session validation logic, allowing expired tokens to bypass 
+a fallback refresh mechanism. This led to immediate denial of all sessions past their expiry timestamp.
+
+### Contributing Factors:
+- Lack of automated tests around fallback token handling  
+- Recent deployment was not canaried in staging with real user tokens  
+- Monitoring alerts were based on latency, not authorization failure spikes
+
+The issue was latent and triggered only after a high volume of token expirations.
+"""
+    )
+
+@workflow.atom()
+def resolution_steps():
+    text("## Resolution & Recovery")
+    text(
+        """
+- Reverted the faulty auth handler to the previous known-good version  
+- Cleared all invalid sessions and reissued new tokens  
+- Added a temporary bypass for expired tokens pending refresh  
+- Ran manual health checks across critical API services post-fix
+
+Full functionality was restored within 43 minutes of incident onset.
+"""
+    )
+
+@workflow.atom()
+def action_items():
+    text("## Follow-Up Action Items")
+    text(
+        """
+### Short-Term (within 7 days):
+- [x] Add fallback token validation unit tests  
+- [x] Disable auto-deploy to production for the auth service  
+- [ ] Improve alerting on 401 error volume across services
+
+### Long-Term (within 30 days):
+- [ ] Implement real-user token replay in staging tests  
+- [ ] Expand regression test coverage for all auth flows  
+- [ ] Schedule quarterly postmortem reviews for recurring components
+
+Ownership and deadlines for these items are tracked in Jira under “Postmortem – APR-19.”
+"""
+    )
+
+@workflow.atom()
+def lessons_learned():
+    text("## Lessons Learned")
+    text(
+        """
+- Monitoring gaps allowed a critical error type to go undetected until user traffic failed.
+- Token expiry edge cases were insufficiently represented in test scenarios.
+- Faster escalation helped reduce downtime, but post-release testing failed to catch the issue.
+
+Greater attention to user state scenarios and regression test fidelity is required.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- This postmortem was conducted by the Platform Engineering and SRE teams.  
+- Contributors: @bnguyen, @rpatel, @ashleyz  
+- Reviewed and approved by: Director of Engineering – April 22, 2025
+
+For historical tracking, this report is archived in the incident index under `INC-2025-0419`.
+"""
+    )
+
+workflow.execute()

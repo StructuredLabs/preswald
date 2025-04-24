@@ -1,0 +1,184 @@
+Metric,Value,Target,Status,Trend
+Customer Acquisition Cost (CAC),35.60,40.00,On Track,Decreasing
+Customer Lifetime Value (CLV),210.50,220.00,On Track,Stable
+Average Revenue Per User (ARPU),25.70,27.00,On Track,Stable
+Churn Rate,0.03,0.04,On Track,Decreasing
+Gross Margin,0.68,0.70,On Track,Stable
+Customer Retention Rate,0.92,0.93,On Track,Stable
+Monthly Recurring Revenue (MRR),5300.00,5400.00,On Track,Stable
+Customer Acquisition Rate,0.05,0.06,On Track,Stable
+Customer Payback Period,5.20,5.00,Off Track,Increasing
+Average Order Value (AOV),45.80,47.00,On Track,Stable
+Units Sold,1250,1300,On Track,Stable
+Refund Rate,0.02,0.01,Off Track,Increasing
+Net Profit,3200.00,3300.00,On Track,Stable
+Conversion Rate,0.12,0.13,On Track,Stable
+LTV to CAC Ratio,5.92,6.00,On Track,Stable
+Cost of Goods Sold (COGS),0.32,0.30,Off Track,Decreasing
+Average Margin,0.45,0.46,On Track,Stable
+Active Users,3500,3600,On Track,Stable
+Marketing Spend,1800.00,1900.00,On Track,Stable
+Sales Commission,0.08,0.07,On Track,Decreasing
+Customer Satisfaction Score,4.5,4.6,On Track,Stable
+Repeat Purchase Rate,0.35,0.36,On Track,Stable
+Average Subscription Length (Months),6,6,On Track,Stable
+Inventory Turnover Rate,5,6,On Track,Stable
+Employee Productivity,120,125,On Track,Stable
+Website Conversion Rate,0.15,0.16,On Track,Stable
+Cost Per Lead,10.50,10.00,Off Track,Increasing
+Customer Support Response Time (Hours),2.4,2.5,On Track,Stable
+Social Media Engagement Rate,0.06,0.07,On Track,Stable
+Net Promoter Score (NPS),8.5,8.7,On Track,Stable
+Average Session Duration (Minutes),12,13,On Track,Stable
+Email Open Rate,0.25,0.26,On Track,Stable
+Return on Investment (ROI),0.18,0.19,On Track,Stable
+Lead to Customer Conversion Rate,0.08,0.09,On Track,Stable
+Cost Per Acquisition by Channel,25.00,26.00,On Track,Stable
+Employee Turnover Rate,0.1,0.11,On Track,Stable
+Customer Acquisition Funnel Drop-Off Rate,0.25,0.24,Off Track,Decreasing
+Average Response Time to Support Tickets (Hours),3.1,3.0,Off Track,Decreasing
+Marketing Qualified Leads (MQL),480,490,On Track,Stable
+Sales Qualified Leads (SQL),240,250,On Track,Stable
+Lead Velocity Rate,0.15,0.16,On Track,Stable
+Onboarding Completion Rate,0.80,0.81,On Track,Stable
+Monthly Active Users (MAU),4500,4600,On Track,Stable
+Customer Segmentation Accuracy Rate,0.92,0.91,Off Track,Decreasing
+Cost Per Conversion,30.00,31.00,On Track,Stable
+Employee Training Hours,15,16,On Track,Stable
+Cross-Sell Rate,0.12,0.13,On Track,Stable
+Up-Sell Rate,0.1,0.11,On Track,Stable
+Lead Response Time (Minutes),5,6,On Track,Stable
+Mobile App Retention Rate,0.45,0.46,On Track,Stable
+Average Time Spent on Platform (Hours),3.5,3.6,On Track,Stable
+Subscription Churn Rate,0.05,0.06,On Track,Stable
+Product Return Rate,0.03,0.04,On Track,Stable
+Cost Per Click (CPC),1.20,1.10,Off Track,Increasing
+Customer Service Quality Score,9.0,9.1,On Track,Stable
+Average Rating for Customer Reviews,4.7,4.8,On Track,Stable
+Sales Cycle Length (Days),30,29,Off Track,Decreasing
+Content Engagement Rate,0.08,0.09,On Track,Stable
+Customer Acquisition Channel Effectiveness Score,8.0,8.1,On Track,Stable
+Average Wait Time for Live Chat (Minutes),4,5,On Track,Stable
+Product Development Cycle Time (Weeks),3,2,Off Track,Decreasing
+Employee Satisfaction Score,8.7,8.8,On Track,Stable
+New Product Adoption Rate,0.15,0.16,On Track,Stable
+Cost of Customer Service Per User,5.60,5.50,Off Track,Increasing
+Average Customer Service Resolution Time (Hours),2.8,2.9,On Track,Stable
+Lead Nurturing Effectiveness Rate,0.25,0.24,Off Track,Decreasing
+Average Order Processing Time (Hours),1.5,1.4,Off Track,Decreasing
+Customer Feedback Response Rate,0.30,0.31,On Track,Stable
+Customer Segmentation Strategy Effectiveness Score,7.8,7.9,On Track,Stable
+Customer Acquisition Funnel Conversion Rate,0.10,0.11,On Track,Stable
+Net Revenue Growth Rate,0.08,0.09,On Track,Stable
+Cost Per Thousand Impressions (CPM),8.50,8.40,Off Track,Increasing
+Employee Training Satisfaction Rate,0.85,0.86,On Track,Stable
+Average Customer Onboarding Time (Days),7,6,Off Track,Decreasing
+Employee Turnover Cost,2500.00,2600.00,On Track,Stable
+Customer Referral Rate,0.05,0.06,On Track,Stable
+Conversion Rate from Free Trial to Paid,0.20,0.21,On Track,Stable
+Average Response Rate to Email Campaigns,0.18,0.19,On Track,Stable
+Cost Per Social Media Follower Acquisition,2.50,2.60,On Track,Stable
+Employee Efficiency Ratio,0.85,0.84,Off Track,Decreasing
+Average Time to Resolve Support Tickets (Hours),4.0,3.9,Off Track,Decreasing
+Customer Lifetime Value Growth Rate,0.06,0.07,On Track,Stable
+Sales Forecast Accuracy Rate,0.90,0.91,On Track,Stable
+Cost Per Contact,2.00,2.10,On Track,Stable
+Employee Development Training Hours,20,21,On Track,Stable
+Customer Acquisition Funnel Leakage Rate,0.20,0.21,On Track,Stable
+Average Customer Service Rating,4.6,4.7,On Track,Stable
+Sales Win Rate,0.30,0.31,On Track,Stable
+Average Handling Time for Customer Calls (Minutes),8,7,Off Track,Decreasing
+Customer Lifetime Value to CAC Ratio,6.00,6.10,On Track,Stable
+Cost Per Webinar Registration,5.50,5.40,Off Track,Increasing
+Employee Engagement Score,8.8,8.9,On Track,Stable
+Average Customer Feedback Survey Completion Rate,0.40,0.41,On Track,Stable
+Cost Per Email Subscriber,1.00,0.90,Off Track,Increasing
+Employee Turnover Rate by Department,0.12,0.13,On Track,Stable
+Customer Segmentation Precision Rate,0.85,0.86,On Track,Stable
+Average Order Fulfillment Time (Hours),2.2,2.1,Off Track,Decreasing
+Marketing Attribution Accuracy Rate,0.95,0.96,On Track,Stable
+Employee Performance Appraisal Completion Rate,0.75,0.76,On Track,Stable
+Average Customer Response Time on Social Media (Hours),1.2,1.1,Off Track,Decreasing
+Customer Support Ticket Resolution Rate,0.95,0.96,On Track,Stable
+Lead Scoring Accuracy Rate,0.80,0.81,On Track,Stable
+Customer Upsell Rate,0.15,0.16,On Track,Stable
+Cost Per Lead from Trade Shows,50.00,49.00,Off Track,Increasing
+Employee Training Effectiveness Score,8.5,8.6,On Track,Stable
+Customer Acquisition Cost Payback Period,4.50,4.40,Off Track,Increasing
+Average Customer Acquisition Time (Days),10,9,Off Track,Decreasing
+Sales Cycle Conversion Rate,0.25,0.26,On Track,Stable
+Average Response Time for Social Media Queries (Minutes),6,5,Off Track,Decreasing
+Customer Satisfaction Index,85,86,On Track,Stable
+Cost Per Customer Interaction,3.50,3.60,On Track,Stable
+Employee Productivity Growth Rate,0.05,0.06,On Track,Stable
+Average Time Between Repeat Purchases (Days),15,14,Off Track,Decreasing
+Customer Lifetime Value Prediction Accuracy Rate,0.90,0.91,On Track,Stable
+Cost Per Click-Through (CPC),1.30,1.20,Off Track,Increasing
+Employee Engagement Retention Rate,0.85,0.86,On Track,Stable
+Average Customer Service Call Resolution Time (Minutes),10,9,Off Track,Decreasing
+Customer Churn Prediction Accuracy Rate,0.85,0.86,On Track,Stable
+Sales Pipeline Velocity,0.20,0.21,On Track,Stable
+Average Time to Close a Sale (Days),20,19,Off Track,Decreasing
+Cost Per Lead from Content Marketing,15.00,14.00,Off Track,Increasing
+Employee Net Promoter Score,8.7,8.8,On Track,Stable
+Customer Advocacy Rate,0.25,0.26,On Track,Stable
+Conversion Rate from Demo Request to Sale,0.15,0.16,On Track,Stable
+Average Email Response Time (Hours),2.0,1.9,Off Track,Decreasing
+Customer Acquisition Funnel Efficiency Score,0.80,0.81,On Track,Stable
+Net Revenue Retention Rate,0.90,0.91,On Track,Stable
+Cost Per Lead from Webinars,25.00,24.00,Off Track,Increasing
+Employee Training Hours per Quarter,40,41,On Track,Stable
+Customer Service Quality Index,90,91,On Track,Stable
+Average Rating for Product Reviews,4.8,4.9,On Track,Stable
+Sales Conversion Rate,0.10,0.11,On Track,Stable
+Average Wait Time for Phone Support (Minutes),5,4,Off Track,Decreasing
+Product Adoption Rate,0.20,0.21,On Track,Stable
+Cost Per Customer Acquisition,40.00,41.00,On Track,Stable
+Employee Satisfaction Index,85,86,On Track,Stable
+New Customer Growth Rate,0.05,0.06,On Track,Stable
+Cost Per Lead from Referrals,5.00,4.90,Off Track,Increasing
+Employee Efficiency Improvement Rate,0.06,0.07,On Track,Stable
+Average Time to Resolve Billing Inquiries (Hours),3.5,3.4,Off Track,Decreasing
+Customer Lifetime Value to Cost Ratio,6.10,6.20,On Track,Stable
+Cost Per Click on Social Media,1.40,1.30,Off Track,Increasing
+Employee Engagement Survey Participation Rate,0.70,0.71,On Track,Stable
+Average Customer Onboarding Completion Time (Days),8,7,Off Track,Decreasing
+Customer Referral Program Effectiveness Rate,0.25,0.26,On Track,Stable
+Conversion Rate from Web Visitors to Leads,0.05,0.06,On Track,Stable
+Average Response Rate to Online Surveys,0.20,0.21,On Track,Stable
+Cost Per Lead from Search Engine Marketing (SEM),20.00,21.00,On Track,Stable
+Employee Training Satisfaction Index,85,86,On Track,Stable
+Customer Acquisition Cost Recovery Period,5.00,5.10,On Track,Stable
+Average Time to Close Customer Service Tickets (Hours),2.5,2.4,Off Track,Decreasing
+Employee Turnover Cost per Employee,2000.00,2100.00,On Track,Stable
+Customer Retention Rate Improvement Rate,0.03,0.04,On Track,Stable
+Sales Win Rate Growth Rate,0.04,0.05,On Track,Stable
+Average Handling Time for Technical Support Calls (Minutes),12,11,Off Track,Decreasing
+Customer Segmentation Refinement Rate,0.80,0.81,On Track,Stable
+Average Customer Inquiry Resolution Time (Hours),3.0,2.9,Off Track,Decreasing
+Marketing Attribution Modeling Accuracy Rate,0.92,0.93,On Track,Stable
+Employee Performance Appraisal Completion Percentage,70,71,On Track,Stable
+Average Customer Support Ticket Response Time (Hours),2.2,2.1,Off Track,Decreasing
+Customer Lifetime Value Growth Rate by Segment,0.07,0.08,On Track,Stable
+Sales Forecasting Accuracy Improvement Rate,0.03,0.04,On Track,Stable
+Cost Per Contact Point,3.00,3.10,On Track,Stable
+Employee Development Training Satisfaction Rate,0.80,0.81,On Track,Stable
+Customer Acquisition Funnel Conversion Efficiency Rate,0.75,0.76,On Track,Stable
+Net Revenue Growth Rate Acceleration,0.02,0.03,On Track,Stable
+Cost Per Thousand Impressions on Social Media (CPM),9.00,9.10,On Track,Stable
+Employee Training Effectiveness Improvement Rate,0.05,0.06,On Track,Stable
+Average Customer Onboarding Time Reduction Rate,0.02,0.03,On Track,Stable
+Employee Engagement Score Enhancement Rate,0.03,0.04,On Track,Stable
+Average Customer Feedback Survey Completion Rate Increase,0.01,0.02,On Track,Stable
+Cost Per Email Subscriber Acquisition Reduction Rate,0.01,0.02,On Track,Stable
+Employee Turnover Rate Decrease,0.01,0.02,On Track,Stable
+Customer Segmentation Precision Improvement Rate,0.03,0.04,On Track,Stable
+Average Order Fulfillment Time Reduction Rate,0.01,0.02,On Track,Stable
+Marketing Attribution Accuracy Enhancement Rate,0.02,0.03,On Track,Stable
+Employee Performance Appraisal Completion Enhancement Rate,0.05,0.06,On Track,Stable
+Sales Win Rate Growth Enhancement Rate,0.01,0.02,On Track,Stable
+Customer Segmentation Refinement Improvement Rate,0.02,0.03,On Track,Stable
+Marketing Attribution Modeling Accuracy Enhancement Rate,0.03,0.04,On Track,Stable
+Employee Development Training Satisfaction Enhancement Rate,0.01,0.02,On Track,Stable
+Customer Acquisition Funnel Conversion Efficiency Enhancement Rate,0.02,0.03,On Track,Stable
+Net Revenue Growth Rate Acceleration Enhancement Rate,0.01,0.02,On Track,Stable

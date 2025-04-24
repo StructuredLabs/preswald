@@ -1,0 +1,167 @@
+Candidate,Role,Stage,Status,Interview Date
+Alice Smith,Software Engineer,Phone Screen,Scheduled,2022-01-10
+Bob Johnson,Data Analyst,Initial Screening,Completed,2022-01-15
+Emma Brown,Product Manager,First Round Interview,Scheduled,2022-01-20
+Jack Davis,Marketing Specialist,Final Interview,Completed,2022-01-25
+Olivia Wilson,UX Designer,Technical Assessment,Scheduled,2022-02-01
+Sam Lee,Software Engineer,Technical Interview,Completed,2022-02-05
+Sophia Martin,Data Scientist,HR Interview,Scheduled,2022-02-10
+Noah Thompson,Project Manager,Offer Extended,Accepted,2022-02-15
+Ava White,UI Developer,Background Check,In Progress,2022-02-20
+Ethan Hall,Quality Assurance Engineer,On Hold,,2022-02-25
+Liam Garcia,Marketing Manager,Second Round Interview,Scheduled,2022-03-01
+Mia Martinez,Business Analyst,Phone Interview,Completed,2022-03-05
+Benjamin Scott,Software Developer,Reference Check,In Progress,2022-03-10
+Ella Rodriguez,UX Researcher,Final Decision,Pending,2022-03-15
+William Perez,Product Owner,Interview Feedback,Completed,2022-03-20
+Victoria Sanchez,Technical Recruiter,Offer Negotiation,Scheduled,2022-03-25
+James Morris,Data Engineer,Background Verification,In Progress,2022-04-01
+Isabella Rivera,Scrum Master,Onsite Interview,Scheduled,2022-04-05
+Michael Cooper,Content Writer,Skills Assessment,Completed,2022-04-10
+Emily Reed,Graphic Designer,Assessment Center,Scheduled,2022-04-15
+Daniel Ward,IT Support Specialist,Technical Test,Completed,2022-04-20
+Grace Brooks,HR Generalist,Panel Interview,Scheduled,2022-04-25
+Henry Long,Operations Manager,Final Review,In Progress,2022-05-01
+Natalie Evans,UI/UX Designer,Offer Approval,Pending,2022-05-05
+David Bell,Software Architect,Assessment Review,Completed,2022-05-10
+Zoe Wood,Data Analyst,Background Screening,In Progress,2022-05-15
+Christopher Ward,Marketing Coordinator,Phone Assessment,Scheduled,2022-05-20
+Sofia Mitchell,Product Designer,Portfolio Review,Completed,2022-05-25
+Dylan Murphy,Quality Assurance Analyst,Technical Interview,Scheduled,2022-06-01
+Allison Bailey,Recruitment Specialist,HR Round,Completed,2022-06-05
+Carter Foster,Technical Lead,Reference Verification,In Progress,2022-06-10
+Madison Gonzales,Operations Analyst,Offer Review,Pending,2022-06-15
+Luke Russell,Software Tester,Onsite Assessment,Completed,2022-06-20
+Lily Myers,Data Science Manager,Final Evaluation,Scheduled,2022-06-25
+Leo Leonard,Product Analyst,Compensation Discussion,In Progress,2022-07-01
+Madeline Fuller,UI Developer,Offer Documentation,Pending,2022-07-05
+Isaac Silva,Marketing Specialist,Background Check,Completed,2022-07-10
+Aubrey Fox,UX Designer,Phone Interview,Scheduled,2022-07-15
+Julian Price,Software Engineer,Technical Interview,Completed,2022-07-20
+Hazel Hayes,Data Scientist,HR Interview,In Progress,2022-07-25
+Brooklyn Brooks,Project Manager,Offer Extended,Pending,2022-08-01
+Owen Richards,UI Designer,Background Verification,Completed,2022-08-05
+Gabriella Ward,Product Manager,Second Round Interview,Scheduled,2022-08-10
+Parker Simmons,Software Developer,Reference Check,Completed,2022-08-15
+Ruby Wallace,UX Researcher,Final Decision,In Progress,2022-08-20
+Evan Cox,Product Owner,Interview Feedback,Pending,2022-08-25
+Eliza Hunter,Technical Recruiter,Offer Negotiation,Completed,2022-09-01
+Colton Roberts,Data Engineer,Background Screening,Scheduled,2022-09-05
+Avery Long,Scrum Master,Onsite Interview,Completed,2022-09-10
+Clara Foster,Content Writer,Skills Assessment,In Progress,2022-09-15
+Nolan Fisher,Graphic Designer,Assessment Center,Pending,2022-09-20
+Reagan Howard,IT Support Specialist,Technical Test,Completed,2022-09-25
+Sara Shaw,HR Generalist,Panel Interview,In Progress,2022-10-01
+Damian Tucker,Operations Manager,Final Review,Completed,2022-10-05
+Miranda Porter,UI/UX Designer,Offer Approval,Pending,2022-10-10
+Simon West,Software Architect,Assessment Review,Scheduled,2022-10-15
+Alexis Owens,Data Analyst,Background Screening,Completed,2022-10-20
+Jaden Fisher,Marketing Coordinator,Phone Assessment,In Progress,2022-10-25
+Leah Warren,Product Designer,Portfolio Review,Pending,2022-11-01
+Gavin Grant,Quality Assurance Analyst,Technical Interview,Completed,2022-11-05
+Chelsea Warren,Recruitment Specialist,HR Round,In Progress,2022-11-10
+Kyle Ryan,Technical Lead,Reference Verification,Pending,2022-11-15
+Samantha Bishop,Operations Analyst,Offer Review,Completed,2022-11-20
+Tristan Foster,Software Tester,Onsite Assessment,Pending,2022-11-25
+Rylee Montgomery,Data Science Manager,Final Evaluation,Completed,2022-12-01
+Kylie Marshall,Product Analyst,Compensation Discussion,In Progress,2022-12-05
+Cameron Hayes,UI Developer,Offer Documentation,Pending,2022-12-10
+Paige Gregory,Marketing Specialist,Background Check,Completed,2022-12-15
+Jordan Rose,UX Designer,Phone Interview,Pending,2022-12-20
+Brianna Watson,Software Engineer,Technical Interview,Completed,2022-12-25
+Cole Reed,Data Scientist,HR Interview,In Progress,2023-01-01
+Riley Harrison,Project Manager,Offer Extended,Pending,2023-01-05
+Peyton Tucker,UI Designer,Background Verification,Completed,2023-01-10
+Hayden Foster,Product Manager,Second Round Interview,Pending,2023-01-15
+Angel Harper,Software Developer,Reference Check,Completed,2023-01-20
+Jayden Hart,UX Researcher,Final Decision,In Progress,2023-01-25
+Morgan Gardner,Product Owner,Interview Feedback,Pending,2023-02-01
+Hayden Olson,Technical Recruiter,Offer Negotiation,Completed,2023-02-05
+Ariel Holmes,Data Engineer,Background Screening,In Progress,2023-02-10
+Dakota Daniels,Scrum Master,Onsite Interview,Pending,2023-02-15
+Taylor Nichols,Content Writer,Skills Assessment,Completed,2023-02-20
+Alexis Wallace,Graphic Designer,Assessment Center,In Progress,2023-02-25
+Mackenzie Robertson,IT Support Specialist,Technical Test,Pending,2023-03-01
+Payton Hunt,HR Generalist,Panel Interview,Completed,2023-03-05
+Skyler Williamson,Operations Manager,Final Review,In Progress,2023-03-10
+Rowan Gregory,UI/UX Designer,Offer Approval,Pending,2023-03-15
+Charlie Fisher,Software Architect,Assessment Review,Completed,2023-03-20
+Finley Hart,Data Analyst,Background Screening,In Progress,2023-03-25
+River Holmes,Marketing Coordinator,Phone Assessment,Pending,2023-04-01
+Emerson Watson,Product Designer,Portfolio Review,Completed,2023-04-05
+Elliot Daniels,Quality Assurance Analyst,Technical Interview,In Progress,2023-04-10
+Rowan Morrison,Recruitment Specialist,HR Round,Pending,2023-04-15
+Sawyer Edwards,Technical Lead,Reference Verification,Completed,2023-04-20
+Tanner Olson,Operations Analyst,Offer Review,In Progress,2023-04-25
+Elliott Williamson,Software Tester,Onsite Assessment,Pending,2023-05-01
+Emery Richards,Data Science Manager,Final Evaluation,Completed,2023-05-05
+Drew Williamson,Product Analyst,Compensation Discussion,In Progress,2023-05-10
+Logan Holmes,UI Developer,Offer Documentation,Pending,2023-05-15
+Cameron Harrison,Marketing Specialist,Background Check,Completed,2023-05-20
+Phoenix Morrison,UX Designer,Phone Interview,In Progress,2023-05-25
+Quinn Watson,Software Engineer,Technical Interview,Pending,2023-06-01
+Avery Daniels,Data Scientist,HR Interview,Completed,2023-06-05
+Rory Olson,Project Manager,Offer Extended,In Progress,2023-06-10
+Jules Morrison,UI Designer,Background Verification,Pending,2023-06-15
+Morgan Holmes,Product Manager,Second Round Interview,Completed,2023-06-20
+Reese Williamson,Software Developer,Reference Check,In Progress,2023-06-25
+Dakota Harrison,UX Researcher,Final Decision,Pending,2023-07-01
+Skylar Morrison,Product Owner,Interview Feedback,Completed,2023-07-05
+Taylor Olson,Technical Recruiter,Offer Negotiation,In Progress,2023-07-10
+Alexis Daniels,Data Engineer,Background Screening,Pending,2023-07-15
+Jordan Harrison,Scrum Master,Onsite Interview,Completed,2023-07-20
+Emerson Morrison,Content Writer,Skills Assessment,In Progress,2023-07-25
+Hayden Williamson,Graphic Designer,Assessment Center,Pending,2023-08-01
+Cameron Holmes,IT Support Specialist,Technical Test,Completed,2023-08-05
+Riley Olson,HR Generalist,Panel Interview,In Progress,2023-08-10
+Emery Morrison,Operations Manager,Final Review,Pending,2023-08-15
+Logan Williamson,UI/UX Designer,Offer Approval,Completed,2023-08-20
+Cameron Holmes,Software Architect,Assessment Review,In Progress,2023-08-25
+Phoenix Morrison,Data Analyst,Background Screening,Pending,2023-09-01
+Quinn Watson,Marketing Coordinator,Phone Assessment,Completed,2023-09-05
+Avery Daniels,Product Designer,Portfolio Review,In Progress,2023-09-10
+Rory Olson,Quality Assurance Analyst,Technical Interview,Pending,2023-09-15
+Jules Morrison,Recruitment Specialist,HR Round,Completed,2023-09-20
+Morgan Holmes,Technical Lead,Reference Verification,In Progress,2023-09-25
+Reese Williamson,Operations Analyst,Offer Review,Pending,2023-10-01
+Dakota Harrison,Software Tester,Onsite Assessment,Completed,2023-10-05
+Skylar Morrison,Data Science Manager,Final Evaluation,In Progress,2023-10-10
+Taylor Olson,Product Analyst,Compensation Discussion,Pending,2023-10-15
+Alexis Daniels,UI Developer,Offer Documentation,Completed,2023-10-20
+Jordan Harrison,Marketing Specialist,Background Check,In Progress,2023-10-25
+Emerson Morrison,UX Designer,Phone Interview,Pending,2023-11-01
+Hayden Williamson,Software Engineer,Technical Interview,Completed,2023-11-05
+Cameron Holmes,Data Scientist,HR Interview,In Progress,2023-11-10
+Riley Olson,Project Manager,Offer Extended,Pending,2023-11-15
+Emery Morrison,UI Designer,Background Verification,Completed,2023-11-20
+Logan Williamson,Product Manager,Second Round Interview,In Progress,2023-11-25
+Cameron Holmes,Software Developer,Reference Check,Pending,2023-12-01
+Phoenix Morrison,UX Researcher,Final Decision,Completed,2023-12-05
+Quinn Watson,Product Owner,Interview Feedback,In Progress,2023-12-10
+Avery Daniels,Technical Recruiter,Offer Negotiation,Pending,2023-12-15
+Rory Olson,Data Engineer,Background Screening,Completed,2023-12-20
+Jules Morrison,Scrum Master,Onsite Interview,In Progress,2023-12-25
+Morgan Holmes,Content Writer,Skills Assessment,Pending,2024-01-01
+Reese Williamson,Graphic Designer,Assessment Center,Completed,2024-01-05
+Dakota Harrison,IT Support Specialist,Technical Test,In Progress,2024-01-10
+Skylar Morrison,HR Generalist,Panel Interview,Pending,2024-01-15
+Taylor Olson,Operations Manager,Final Review,Completed,2024-01-20
+Alexis Daniels,UI/UX Designer,Offer Approval,In Progress,2024-01-25
+Jordan Harrison,Software Architect,Assessment Review,Pending,2024-02-01
+Emerson Morrison,Data Analyst,Background Screening,Completed,2024-02-05
+Hayden Williamson,Marketing Coordinator,Phone Assessment,In Progress,2024-02-10
+Cameron Holmes,Product Designer,Portfolio Review,Pending,2024-02-15
+Riley Olson,Quality Assurance Analyst,Technical Interview,Completed,2024-02-20
+Emery Morrison,Recruitment Specialist,HR Round,In Progress,2024-02-25
+Logan Williamson,Technical Lead,Reference Verification,Pending,2024-03-01
+Cameron Holmes,Operations Analyst,Offer Review,Completed,2024-03-05
+Phoenix Morrison,Software Tester,Onsite Assessment,In Progress,2024-03-10
+Quinn Watson,Data Science Manager,Final Evaluation,Pending,2024-03-15
+Avery Daniels,Product Analyst,Compensation Discussion,Completed,2024-03-20
+Rory Olson,UI Developer,Offer Documentation,In Progress,2024-03-25
+Jules Morrison,Marketing Specialist,Background Check,Pending,2024-04-01
+Morgan Holmes,UX Designer,Phone Interview,Completed,2024-04-05
+Reese Williamson,Software Engineer,Technical Interview,In Progress,2024-04-10
+Dakota Harrison,Data Scientist,HR Interview,Pending,2024-04-15
+Skylar Morrison,Project Manager,Offer Extended,Completed,2024-04-20
+Taylor Olson,UI Designer,Background Verification,In Progress,2024-04-25

@@ -1,0 +1,147 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Customer Churn Dashboard")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This report offers a detailed snapshot of your customer retention metrics. It highlights churn rates, 
+high-risk segments, and leading indicators of potential drop-off. Use this dashboard to identify trends, 
+target at-risk accounts, and improve your customer lifetime value.
+"""
+    )
+
+@workflow.atom()
+def retention_summary():
+    text("## Retention & Churn Overview")
+    text(
+        """
+As of this reporting period, your active customer base is showing the following trends:
+
+- **Current Active Customers**: 8,720
+- **Customers Lost This Month**: 476
+- **Monthly Churn Rate**: 5.2%
+- **12-Month Retention Rate**: 74.3%
+- **Median Customer Tenure**: 13.4 months
+
+These figures are calculated based on subscription cancellations and inactive usage signals.
+"""
+    )
+
+@workflow.atom()
+def churn_by_segment():
+    text("## Churn by Customer Segment")
+    text(
+        """
+Churn patterns vary significantly across segments:
+
+- **SMB (1–50 employees)**: 7.6% churn rate
+- **Mid-Market (51–500 employees)**: 4.3% churn rate
+- **Enterprise (500+ employees)**: 2.1% churn rate
+
+Retention tends to improve with account size. Segment-specific strategies may reduce loss in the SMB tier.
+"""
+    )
+
+@workflow.atom()
+def churn_by_region():
+    text("## Regional Churn Trends")
+    text(
+        """
+Churn by region for the current quarter:
+
+| Region       | Customers Lost | Churn Rate |
+|--------------|----------------|------------|
+| North America| 132            | 3.9%       |
+| EMEA         | 179            | 6.1%       |
+| APAC         | 165            | 7.4%       |
+
+APAC continues to show elevated churn levels, warranting investigation into support coverage and localization efforts.
+"""
+    )
+
+@workflow.atom()
+def risk_factors():
+    text("## Churn Risk Indicators")
+    text(
+        """
+Leading indicators for churn-prone accounts:
+
+- **Low Login Frequency** (avg. < 1 session/week)
+- **No Support Tickets Logged** in past 60 days
+- **Declining Usage Volume** over last 3 months
+- **Unengaged in Campaigns** (no opens/clicks in last 6 emails)
+
+Accounts matching 3+ of these signals show a 2.7x higher churn likelihood.
+"""
+    )
+
+@workflow.atom()
+def recent_churn_activity():
+    text("## Recent Churned Accounts")
+    text(
+        """
+Recent customer cancellations (last 30 days):
+
+| Company         | Plan      | Industry      | Tenure | Reason Given        |
+|-----------------|-----------|---------------|--------|----------------------|
+| Driftwave Inc.  | Premium   | Logistics     | 11 mo  | “Switched provider”  |
+| Cielo Systems   | Standard  | Healthcare    | 18 mo  | “Budget constraints” |
+| Axion Ventures | Enterprise| SaaS          | 22 mo  | “No longer needed”   |
+
+Exit feedback is collected during cancellation flows and through follow-up surveys.
+"""
+    )
+
+@workflow.atom()
+def forecast():
+    text("## Churn Forecast")
+    text(
+        """
+Based on historical patterns and current signals, projected churn over the next 90 days is:
+
+- **Expected Churned Customers**: 1,280
+- **Projected Rate**: 4.9%
+- **Worst Case (95% CI)**: 6.4%
+
+This forecast uses logistic regression on usage, support, billing, and engagement indicators.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Strategic Recommendations")
+    text(
+        """
+To improve retention and mitigate churn risk:
+
+1. **Launch proactive outreach** for SMB accounts with declining usage.
+2. **Re-engage dormant users** with personalized campaigns based on role and feature set.
+3. **Enhance support accessibility** in APAC with multilingual or extended-hour options.
+4. **Introduce win-back incentives** within 7 days of cancellation for high-LTV customers.
+5. **Monitor churn signals weekly**, not monthly, to enable faster intervention.
+
+Focusing efforts by segment and behavior can yield rapid improvements.
+"""
+    )
+
+@workflow.atom()
+def notes_footer():
+    text("## Notes")
+    text(
+        """
+- Data reflects customer records as of April 23, 2025.
+- Churn is defined as cancellation, downgrade to $0, or >45 days of inactivity.
+- Forecast models are retrained monthly on latest behavior signals.
+- Feedback sources include Zendesk, NPS surveys, and billing forms.
+
+For deeper drill-down or to request a cohort-specific view, contact the retention analytics team.
+"""
+    )
+
+workflow.execute()

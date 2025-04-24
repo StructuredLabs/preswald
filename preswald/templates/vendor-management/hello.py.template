@@ -1,0 +1,130 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Vendor Management Dashboard")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard provides a structured overview of vendor performance, contractual status, and relationship health. 
+Use it to manage renewals, evaluate risk, and optimize vendor value across procurement and operations.
+"""
+    )
+
+@workflow.atom()
+def vendor_summary():
+    text("## Vendor Portfolio Overview")
+    text(
+        """
+### As of April 2025:
+
+- **Total Active Vendors**: 86  
+- **Tier 1 Vendors (Strategic)**: 14  
+- **Tier 2 Vendors (Operational)**: 49  
+- **Tier 3 Vendors (Transactional)**: 23  
+- **Average Annual Spend**: $2.1M  
+- **Upcoming Renewals (Next 90 Days)**: 11
+
+Strategic vendors account for 71% of total contract value.
+"""
+    )
+
+@workflow.atom()
+def contract_tracking():
+    text("## Contract & Renewal Tracking")
+    text(
+        """
+| Vendor             | Renewal Date | Status     | Auto-Renew | Owner       |
+|--------------------|--------------|------------|-------------|-------------|
+| AWS                | 2025-06-30   | Active     | No          | IT Ops      |
+| Salesforce         | 2025-07-15   | In Review  | Yes         | RevOps      |
+| Slack              | 2025-05-22   | Pending    | No          | IT Ops      |
+| Zendesk            | 2025-08-01   | Active     | Yes         | Support     |
+| Figma              | 2025-05-10   | Pending    | No          | Design Lead |
+
+Slack and Figma renewals require review for license right-sizing and usage alignment.
+"""
+    )
+
+@workflow.atom()
+def performance_scores():
+    text("## Vendor Performance Scores")
+    text(
+        """
+| Vendor         | Service Score (1–5) | SLA Compliance | Issue Tickets (Q1) | Last Review |
+|----------------|---------------------|----------------|---------------------|--------------|
+| AWS            | 4.8                 | 99.97%         | 0                   | Jan 2025     |
+| Slack          | 4.2                 | 98.3%          | 2                   | Oct 2024     |
+| Figma          | 4.6                 | 100%           | 1                   | Feb 2025     |
+| Zendesk        | 4.1                 | 96.8%          | 4                   | Mar 2025     |
+| HubSpot        | 3.9                 | 94.5%          | 5                   | Sep 2024     |
+
+Vendors below a service score of 4.0 are flagged for quarterly performance reviews.
+"""
+    )
+
+@workflow.atom()
+def spend_analysis():
+    text("## Spend & Budget Alignment")
+    text(
+        """
+| Vendor          | FY24 Spend | FY25 Budget | Variance | % of Total IT Spend |
+|-----------------|------------|-------------|----------|----------------------|
+| AWS             | $713,200   | $750,000     | -$36,800 | 35%                  |
+| Salesforce      | $486,000   | $490,000     | -$4,000  | 24%                  |
+| Zendesk         | $164,700   | $180,000     | -$15,300 | 9%                   |
+| Figma           | $82,900    | $95,000      | -$12,100 | 4%                   |
+
+Spending is within tolerance for all strategic vendors, with opportunity to negotiate renewal discounts.
+"""
+    )
+
+@workflow.atom()
+def risk_analysis():
+    text("## Vendor Risk & Compliance")
+    text(
+        """
+| Vendor        | Risk Rating | Risk Type       | Mitigation Status |
+|---------------|-------------|------------------|--------------------|
+| Salesforce    | Medium      | Data residency   | Controls in place  |
+| HubSpot       | High        | Third-party API  | In remediation     |
+| Atlassian     | Low         | Uptime SLAs      | Not applicable     |
+| GCP           | Medium      | Geographic failover | Review in progress |
+
+HubSpot flagged for overuse of unapproved third-party integrations. Controls under legal and InfoSec review.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Recommendations")
+    text(
+        """
+1. Finalize renewal terms for Slack and Figma by May 1 to avoid lapse  
+2. Launch Q2 vendor scorecard process for all Tier 1 vendors  
+3. Expand vendor risk assessment to include subprocessor disclosures  
+4. Review contract auto-renew flags for Tier 3 vendors to control spend  
+5. Initiate sourcing RFPs for design tooling to compare Figma alternatives
+
+Action items tracked in Procurement Jira board under VM-2025 Q2 Epic.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data reflects vendor contracts, spend, and reviews through April 22, 2025  
+- Sources: NetSuite, Vendor Tracker, Legal Vault, GRC platform  
+- Tier definitions follow internal vendor management policy
+
+Next vendor portfolio review scheduled: July 2025
+"""
+    )
+
+workflow.execute()

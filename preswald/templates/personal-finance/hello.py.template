@@ -1,0 +1,173 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Personal Finance Dashboard")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard provides a centralized view of your personal finances. 
+Track expenses, monitor investments, and measure progress toward your financial goals—all in one place. 
+Use it to stay organized, reduce spending stress, and make confident money decisions.
+"""
+    )
+
+@workflow.atom()
+def account_summary():
+    text("## Account Summary")
+    text(
+        """
+### Current Balances:
+
+- **Checking**: $4,680  
+- **Savings**: $11,340  
+- **Credit Cards**: -$2,415  
+- **Brokerage**: $34,920  
+- **Retirement (401k/IRA)**: $76,800  
+- **Net Worth**: $125,325
+
+Balances updated daily via linked institutions.
+"""
+    )
+
+@workflow.atom()
+def expense_breakdown():
+    text("## Monthly Expense Breakdown")
+    text(
+        """
+### March 2025 Spending:
+
+| Category         | Amount   | % of Total |
+|------------------|----------|-------------|
+| Rent/Mortgage    | $1,750   | 28%         |
+| Groceries        | $620     | 10%         |
+| Dining Out       | $390     | 6%          |
+| Transportation   | $280     | 4%          |
+| Utilities        | $210     | 3%          |
+| Subscriptions    | $145     | 2%          |
+| Travel           | $1,150   | 18%         |
+| Other            | $1,130   | 18%         |
+
+Total Monthly Spend: **$5,675**  
+Budget variance: ▲ $375 over monthly target.
+"""
+    )
+
+@workflow.atom()
+def cash_flow_summary():
+    text("## Monthly Cash Flow")
+    text(
+        """
+### March 2025:
+
+- **Income**: $7,150  
+- **Expenses**: $5,675  
+- **Savings & Investments**: $1,050  
+- **Net Cash Flow**: **+$425**
+
+Cash flow remains positive. Surplus directed to brokerage auto-investments.
+"""
+    )
+
+@workflow.atom()
+def investment_performance():
+    text("## Investment Performance")
+    text(
+        """
+### Portfolio Overview:
+
+- **Brokerage**: $34,920 (YTD Return: +6.8%)  
+- **401(k)**: $58,200 (YTD Return: +5.3%)  
+- **IRA**: $18,600 (YTD Return: +5.7%)  
+- **Asset Allocation**:
+  - 64% Equity
+  - 22% Bonds
+  - 8% Alternatives
+  - 6% Cash
+
+Portfolios automatically rebalance quarterly to stay within allocation targets.
+"""
+    )
+
+@workflow.atom()
+def goal_tracking():
+    text("## Financial Goals Progress")
+    text(
+        """
+| Goal                      | Target     | Saved     | Progress |
+|---------------------------|------------|-----------|----------|
+| Emergency Fund            | $15,000    | $11,340   | 75.6%    |
+| Vacation Fund (Japan 2026)| $5,000     | $1,150    | 23.0%    |
+| Down Payment (2028)       | $40,000    | $6,820    | 17.0%    |
+
+Goals tracked automatically with savings transfers and goal-specific accounts.
+"""
+    )
+
+@workflow.atom()
+def debt_summary():
+    text("## Debt & Credit Summary")
+    text(
+        """
+| Account            | Balance  | APR   | Monthly Payment | Status       |
+|--------------------|----------|-------|------------------|--------------|
+| Credit Card #1     | $1,320   | 18.9% | $145             | AutoPay on   |
+| Credit Card #2     | $1,095   | 21.4% | $130             | AutoPay on   |
+| Student Loan       | $0       | N/A   | $0               | Paid Off 🎉  |
+
+Plan in place to pay off credit cards by August 2025 using fixed payoff schedule.
+"""
+    )
+
+@workflow.atom()
+def subscription_audit():
+    text("## Subscription Audit")
+    text(
+        """
+### Recurring Monthly Subscriptions:
+
+- Netflix: $15.99  
+- Spotify Duo: $12.99  
+- NYTimes: $5.00  
+- iCloud Storage: $2.99  
+- Adobe Creative Cloud: $20.99  
+- Zoom Pro: $14.99  
+
+Total: $72.95/month  
+Annualized: $875.40  
+Suggested action: Cancel Adobe if not used this quarter.
+"""
+    )
+
+@workflow.atom()
+def savings_tips():
+    text("## Smart Saving Suggestions")
+    text(
+        """
+- **Set a dining out cap** of $300/month to stay on track  
+- **Pause travel fund contributions** until emergency fund is 100% complete  
+- **Switch to annual billing** on Zoom and Spotify to save ~12%  
+- **Refinance high-APR credit card to lower-interest personal loan**
+
+These actions could free up $90–$140/month for faster goal progress.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data synced from Plaid, Fidelity, Amex, and Apple Card  
+- Last updated: April 23, 2025  
+- All balances rounded to nearest dollar for readability
+
+Review monthly for budgeting accountability and goal realignment.
+"""
+    )
+
+workflow.execute()

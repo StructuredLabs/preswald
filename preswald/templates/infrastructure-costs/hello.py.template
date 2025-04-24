@@ -1,0 +1,144 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Infrastructure Cost Analysis")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard provides a detailed analysis of cloud infrastructure spending. 
+It breaks down costs by service, environment, and region to help engineering and finance teams 
+optimize usage, identify anomalies, and inform budgeting decisions.
+"""
+    )
+
+@workflow.atom()
+def monthly_cost_overview():
+    text("## Monthly Cost Overview")
+    text(
+        """
+### Total Infrastructure Spend (March 2025): **$184,200**
+
+- **Compute**: $76,480  
+- **Storage**: $33,920  
+- **Network Traffic**: $22,610  
+- **Databases**: $28,410  
+- **Misc. Services**: $22,780
+
+This breakdown reflects charges across AWS, GCP, and Azure combined billing data.
+"""
+    )
+
+@workflow.atom()
+def cost_by_environment():
+    text("## Cost by Environment")
+    text(
+        """
+| Environment | March Spend | % of Total | Notes                          |
+|-------------|-------------|------------|--------------------------------|
+| Production  | $122,500    | 66.5%      | Sustained use, steady growth  |
+| Staging     | $32,100     | 17.4%      | Includes nightly test suites  |
+| Development | $17,300     | 9.4%       | Includes sandbox projects      |
+| CI/CD       | $12,300     | 6.7%       | Build runners, test runners   |
+
+Development and CI costs can often be reduced with better scheduling and auto-scaling.
+"""
+    )
+
+@workflow.atom()
+def cost_by_region():
+    text("## Cost by Region")
+    text(
+        """
+### Breakdown by Top 3 Regions:
+
+- **us-east-1**: $78,400 (42.6%)  
+- **us-west-2**: $56,230 (30.5%)  
+- **eu-central-1**: $27,880 (15.1%)
+
+Inter-region replication and network transfer account for a notable portion of total spend.
+"""
+    )
+
+@workflow.atom()
+def top_cost_drivers():
+    text("## Top Cost Drivers")
+    text(
+        """
+### Services with Highest Charges:
+
+1. **Amazon EC2 (Compute)** – $61,000  
+2. **Google BigQuery (Analytics)** – $23,500  
+3. **Azure Blob Storage** – $19,750  
+4. **AWS NAT Gateway** – $8,320  
+5. **EKS Cluster (Kubernetes)** – $7,600
+
+Optimization potential exists in compute scheduling, storage tiering, and data transfer patterns.
+"""
+    )
+
+@workflow.atom()
+def cost_anomalies():
+    text("## Anomaly Detection")
+    text(
+        """
+### Flagged in March:
+
+- **Unscheduled scaling of EC2 spot fleet** — $5,400 spike on March 11  
+- **High outbound data transfer from staging** — $3,200 above forecast  
+- **Underutilized database instance** — `pg-staging-02` at 9% CPU average
+
+Alerts were triggered and remediations initiated by the FinOps and SRE teams.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Cost Optimization Recommendations")
+    text(
+        """
+To reduce unnecessary cloud spend:
+
+1. **Enable auto-scaling and idle shutdown** in non-prod environments  
+2. **Use storage lifecycle policies** for cold and archival data  
+3. **Audit orphaned volumes and load balancers** monthly  
+4. **Apply committed use discounts (CUDs)** for predictable workloads  
+5. **Centralize logs and metrics** to reduce cross-region data transfer
+
+Actioning these items can yield an estimated 12–18% cost reduction per quarter.
+"""
+    )
+
+@workflow.atom()
+def forecasting_and_budgeting():
+    text("## Forecasting & Budget Tracking")
+    text(
+        """
+### Q2 2025 Projections:
+
+- **Estimated Spend**: $568,000  
+- **Budget Allocated**: $540,000  
+- **Variance**: +$28,000 (5.2%)
+
+Track costs weekly to stay within quarterly targets. Adjust forecasts in response to scale-up/down events or feature launches.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data sources include AWS Cost Explorer, GCP Billing Reports, and Azure Cost Management exports.  
+- All costs are normalized to USD and reported net of credits and discounts.  
+- Report generated April 23, 2025.
+
+For detailed service-by-service breakdowns or optimization reviews, contact the FinOps team.
+"""
+    )
+
+workflow.execute()

@@ -1,0 +1,75 @@
+Symbol,Name,Shares,Cost Basis,Current Price,Value,Change
+AAPL,Apple Inc.,50,125.75,148.26,7413,18.82
+GOOGL,Alphabet Inc.,30,2200.50,2350.75,70522.5,6.85
+MSFT,Microsoft Corporation,75,300.25,305.40,22905,4.83
+AMZN,Amazon.com Inc.,20,3200.75,3325.10,66502,3.89
+TSLA,Tesla Inc.,40,650.80,680.25,27210,4.51
+FB,Meta Platforms Inc.,60,250.30,265.40,15924,6.03
+JPM,JPMorgan Chase & Co.,90,150.45,155.20,13968,3.15
+V,Visa Inc.,55,210.60,225.75,12416.25,7.18
+NVDA,NVIDIA Corporation,25,550.40,570.30,14257.50,3.62
+PYPL,PayPal Holdings Inc.,35,180.75,190.25,6658.75,5.26
+DIS,Walt Disney Co.,70,120.35,125.50,8785,4.28
+NFLX,Netflix Inc.,45,380.90,390.75,17534.75,2.58
+BABA,Alibaba Group Holding Ltd.,50,200.25,210.50,10525,4.07
+UBER,Uber Technologies Inc.,65,45.60,47.20,3072,3.51
+IBM,International Business Machines Corp.,80,135.80,140.45,11236,3.43
+KO,The Coca-Cola Company,100,55.20,56.90,5690,3.07
+PEP,PepsiCo Inc.,85,145.40,150.25,12771.25,3.33
+INTC,Intel Corporation,40,50.75,52.30,2092,3.05
+CSCO,Cisco Systems Inc.,55,45.30,47.10,2589.75,3.97
+VZ,Verizon Communications Inc.,65,55.80,57.40,3731,2.87
+PG,Procter & Gamble Co.,75,135.20,139.80,10485,3.41
+WMT,Walmart Inc.,50,140.75,145.30,7265,3.24
+JNJ,Johnson & Johnson,45,150.90,155.60,7002,3.11
+HD,The Home Depot Inc.,60,310.60,325.75,19545,4.87
+UNH,UnitedHealth Group Inc.,30,420.25,435.10,13053,3.53
+MA,Mastercard Inc.,40,325.90,340.25,13610,4.40
+T,T-Mobile US Inc.,75,50.30,52.10,3907.5,3.57
+CMCSA,Comcast Corporation,65,55.90,57.60,3744,3.05
+ABT,Abbott Laboratories,40,125.80,130.10,5204,3.41
+NKE,Nike Inc.,50,140.25,145.80,7290,3.95
+MO,Altria Group Inc.,70,50.75,52.40,3668,3.25
+XOM,Exxon Mobil Corporation,55,45.60,47.20,2596,3.51
+MRK,Merck & Co. Inc.,45,155.30,160.20,7209,3.17
+CVX,Chevron Corporation,35,100.20,105.40,3699,4.13
+SNE,Sony Corporation,25,85.10,88.20,2205,3.64
+ORCL,Oracle Corporation,40,65.80,67.90,2716,3.19
+TWTR,Twitter Inc.,50,55.90,57.30,2865,2.51
+BAC,Bank of America Corp.,80,35.20,36.50,2920,3.69
+ADBE,Adobe Inc.,30,280.75,295.80,8874,5.36
+MCD,McDonald's Corporation,60,220.45,230.10,13806,4.38
+COST,Costco Wholesale Corporation,40,400.80,420.10,16804,4.81
+AAP,Advance Auto Parts Inc.,35,180.65,190.50,6675,5.44
+GOOG,Alphabet Inc.,25,2220.75,2330.40,58260,4.92
+MS,Medison Square Garden Entertainment Corp.,50,30.75,31.80,1590,3.41
+ATVI,Activision Blizzard Inc.,45,75.20,78.10,3514.5,3.85
+EA,Electronic Arts Inc.,40,125.90,130.25,5210,3.46
+SAP,SAP SE,35,120.75,125.90,4406.5,4.26
+CRM,Salesforce.com Inc.,30,250.40,262.30,7869,4.75
+DASH,DoorDash Inc.,35,150.20,156.80,5498,4.38
+ZM,Zoom Video Communications Inc.,40,280.35,293.50,11740,4.69
+NET,Cloudflare Inc.,25,95.60,100.20,2505,4.80
+SNOW,Snowflake Inc.,30,320.90,335.40,10062,4.51
+RBLX,Roblox Corporation,40,75.30,78.30,3132,4.07
+PTON,Peloton Interactive Inc.,45,55.70,57.10,2569.5,2.52
+SHOP,Shopify Inc.,20,1100.60,1150.25,23005,4.51
+TWLO,Twilio Inc.,25,275.80,288.10,7202.5,4.47
+LRCX,Lam Research Corporation,30,625.75,655.20,19656,4.69
+ZS,Zscaler Inc.,35,125.40,130.80,4584,4.29
+NOW,ServiceNow Inc.,40,500.30,525.20,21008,4.98
+DOCU,DocuSign Inc.,25,230.90,241.50,6037.5,4.59
+DDOG,Datadog Inc.,30,110.50,115.20,3456,4.24
+FSLY, Fastly Inc.,35,50.90,52.20,1827,2.56
+DDOG,Datadog Inc.,30,110.50,115.20,3456,4.24
+FSLY, Fastly Inc.,35,50.90,52.20,1827,2.56
+DDOG,Datadog Inc.,30,110.50,115.20,3456,4.24
+FSLY, Fastly Inc.,35,50.90,52.20,1827,2.56
+DDOG,Datadog Inc.,30,110.50,115.20,3456,4.24
+FSLY, Fastly Inc.,35,50.90,52.20,1827,2.56
+DDOG,Datadog Inc.,30,110.50,115.20,3456,4.24
+FSLY, Fastly Inc.,35,50.90,52.20,1827,2.56
+DDOG,Datadog Inc.,30,110.50,115.20,3456,4.24
+FSLY, Fastly Inc.,35,50.90,52.20,1827,2.56
+DDOG,Datadog Inc.,30,110.50,115.20,3456,4.24
+FSLY, Fastly Inc.,35,50.90,52.20,1827,2.56

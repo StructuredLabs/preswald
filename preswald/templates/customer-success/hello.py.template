@@ -1,0 +1,154 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Customer Success Scorecard")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This scorecard provides a consolidated view of customer success metrics across your active account portfolio. 
+It helps Customer Success Managers (CSMs) track health, engagement, product adoption, and satisfaction levels 
+to guide proactive outreach and strategic planning.
+"""
+    )
+
+@workflow.atom()
+def portfolio_summary():
+    text("## Portfolio Overview")
+    text(
+        """
+As of April 23, 2025, your portfolio includes:
+
+- **Total Managed Accounts**: 146
+- **Monthly Recurring Revenue (MRR)**: $1.94M
+- **Average Health Score**: 78.2
+- **Net Retention Rate**: 109%
+- **At-Risk Accounts (< 60 health)**: 19
+
+These figures are updated weekly and reflect your owned book of business.
+"""
+    )
+
+@workflow.atom()
+def engagement_metrics():
+    text("## Customer Engagement Metrics")
+    text(
+        """
+### Account Activity Overview:
+
+- **Weekly Logins (Avg.)**: 4.7 per user
+- **% of Accounts Active in Last 7 Days**: 86%
+- **Feature Usage Coverage**: 68% of available features used
+- **Engagement Drop-Offs**: 12 accounts inactive 14+ days
+
+Engagement scores are based on login frequency, feature interaction, and user activity depth.
+"""
+    )
+
+@workflow.atom()
+def adoption_trends():
+    text("## Product Adoption Trends")
+    text(
+        """
+Adoption metrics show how deeply accounts are using key product areas:
+
+| Feature Area         | Adoption Rate | Change (30d) |
+|----------------------|---------------|--------------|
+| Core Workflows       | 84%           | ▲ +6%        |
+| Automation Tools     | 57%           | ▲ +3%        |
+| Reporting & Insights | 48%           | ▼ -2%        |
+| Integrations         | 39%           | ▲ +4%        |
+
+Increasing adoption often correlates with higher retention and satisfaction.
+"""
+    )
+
+@workflow.atom()
+def satisfaction_snapshot():
+    text("## Customer Satisfaction & NPS")
+    text(
+        """
+### Survey Results (Last 90 Days):
+
+- **NPS Score**: +42
+- **CSAT Score (Support Tickets)**: 91.2%
+- **Feedback Submissions**: 682
+- **Top Feedback Themes**: UI navigation, feature discoverability, onboarding materials
+
+Promoters are being added to the advocacy list for referral and case study outreach.
+"""
+    )
+
+@workflow.atom()
+def high_and_low_performers():
+    text("## Health Score Extremes")
+    text(
+        """
+### Top 3 Accounts by Health Score:
+
+- **Belltower Analytics** – 96.3 — High engagement, strong product usage
+- **Corewave Systems** – 94.5 — Weekly product workshops adopted
+- **Zenmark Ventures** – 93.8 — NPS: 10, Full integration suite deployed
+
+### Lowest 3 Accounts by Health Score:
+
+- **Juno Freight** – 52.1 — Inactive 3 weeks, support tickets unresolved
+- **Talon Med** – 49.4 — Low adoption, CSAT at 58%
+- **Equinox Tech** – 46.8 — Account flagged for review last quarter
+
+Follow-up plans are in motion for at-risk accounts.
+"""
+    )
+
+@workflow.atom()
+def team_performance_summary():
+    text("## CSM Performance Summary")
+    text(
+        """
+Performance across assigned portfolios:
+
+| CSM Name     | Accounts | Avg. Health | Escalations | At-Risk (%) |
+|--------------|----------|-------------|-------------|-------------|
+| Jordan L.    | 48       | 81.5        | 2           | 10%         |
+| Priya N.     | 51       | 79.2        | 3           | 14%         |
+| Miguel S.    | 47       | 73.8        | 5           | 19%         |
+
+Weekly syncs are encouraged for CSMs managing >15% at-risk accounts.
+"""
+    )
+
+@workflow.atom()
+def strategic_actions():
+    text("## Strategic Action Plan")
+    text(
+        """
+Recommended next steps for improving customer outcomes:
+
+1. **Schedule QBRs** for top-tier accounts with declining health scores.
+2. **Launch onboarding refresh series** for new SMB customers.
+3. **Monitor feature activation** on newly released modules.
+4. **Escalate inactive accounts** with enterprise tier to CS leadership.
+5. **Re-engage promoters** with referral and upsell campaigns.
+
+These actions align with portfolio-level trends and current risk assessments.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Scorecard Notes")
+    text(
+        """
+- Health scores are computed using engagement, support, billing, and survey inputs.
+- Metrics in this scorecard reflect data current as of April 23, 2025.
+- Scores are normalized across account tiers and lifecycle stages.
+
+For detailed playbooks or account drill-downs, contact the Customer Success Ops team.
+"""
+    )
+
+workflow.execute()

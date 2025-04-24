@@ -1,0 +1,171 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# M&A Due Diligence Memo")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This report summarizes the due diligence process conducted for the acquisition of NovaOps Inc. 
+It includes a data-driven review of financial performance, customer metrics, product infrastructure, legal compliance, 
+and post-acquisition risk. All findings are quantified to support strategic decision-making.
+"""
+    )
+
+@workflow.atom()
+def target_profile():
+    text("## Target Profile")
+    text(
+        """
+**Company**: NovaOps Inc.  
+**Founded**: 2017  
+**HQ**: Boston, MA  
+**Headcount**: 94  
+**ARR (2024)**: $17.3M  
+**Annual Revenue (GAAP)**: $18.6M  
+**Gross Margin**: 68%  
+**Funding to Date**: $29M (Series B)  
+**Burn Rate**: $420K/month
+
+Operating in the workflow automation space with an expanding presence in mid-market SaaS. Valuation baseline under discussion: $82M pre-money.
+"""
+    )
+
+@workflow.atom()
+def financial_analysis():
+    text("## Financial Analysis")
+    text(
+        """
+### FY2024 Audited Financials (USD):
+
+- **Total Revenue**: $18.6M (▲ 27.3% YoY)  
+- **Cost of Revenue**: $5.95M  
+- **Gross Profit**: $12.65M  
+- **Gross Margin**: 68.0%  
+- **EBITDA**: $2.1M  
+- **Cash on Hand**: $4.3M  
+- **Total Liabilities**: $3.2M  
+- **Net Cash Position**: +$1.1M
+
+NovaOps is cash flow positive, with conservative debt and 14.2 months of runway at current spend rate.
+"""
+    )
+
+@workflow.atom()
+def customer_metrics():
+    text("## Customer & Revenue Metrics")
+    text(
+        """
+- **Total Customers**: 612  
+- **Top 10 Customers**: $5.9M ARR (34.1%)  
+- **Customer Concentration**: 1 client = 17% ARR  
+- **Net Revenue Retention (NRR)**: 116%  
+- **Gross Logo Retention**: 91.7%  
+- **ACV (Avg.)**: $28,270  
+- **Churn Rate**: 4.3% annually
+
+Customer base is mid-market heavy, with stable expansion trends and consistent upsell performance.
+"""
+    )
+
+@workflow.atom()
+def product_technology_review():
+    text("## Product & Technology")
+    text(
+        """
+- **Codebase**: 190K+ lines, modular microservice architecture  
+- **Core Stack**: Python (backend), React (frontend), Kubernetes (orchestration)  
+- **Platform Uptime (12m)**: 99.96%  
+- **R&D Spend (FY24)**: $3.35M (18% of revenue)  
+- **Security**: SOC 2 Type I achieved; Type II in audit window  
+- **Infra**: Hosted on AWS with regional failover, Postgres + Redis + Kafka stack
+
+Tech stack is mature and easily integratable. Minimal rework required to align with acquiring org’s platform.
+"""
+    )
+
+@workflow.atom()
+def legal_and_compliance():
+    text("## Legal & Compliance Overview")
+    text(
+        """
+- **Legal Entity**: Delaware C-Corp  
+- **IP Ownership**: Fully assigned; no co-developers or encumbrances  
+- **Contract Review**: 97% of revenue under standard master service agreement (MSA)  
+- **Data Privacy**: GDPR and CCPA compliant; zero fines or infractions  
+- **Pending Litigation**: None  
+- **Employee Agreements**: 100% signed with IP + non-compete clauses
+
+No material legal concerns identified. Compliance programs are documented and in good standing.
+"""
+    )
+
+@workflow.atom()
+def team_and_retention():
+    text("## Team & Retention Metrics")
+    text(
+        """
+- **Employees**: 94 total  
+- **Departments**: Engineering (38), Sales (22), Success (12), G&A (22)  
+- **12-Month Voluntary Attrition**: 8.5%  
+- **Leadership Tenure**: CEO – 7.5 years, CTO – 7.5 years, CFO – 2.1 years  
+- **Equity Participation**: 91% of team holds stock options  
+- **Glassdoor Score**: 4.6 (as of Q1 2025)
+
+Founding team committed to post-close integration. No key person dependencies.
+"""
+    )
+
+@workflow.atom()
+def integration_and_fit():
+    text("## Strategic Fit & Integration Outlook")
+    text(
+        """
+- **Go-to-Market Overlap**: 34 shared customers; opportunity to expand ACV by 22–27%  
+- **Product Synergies**: Workflow orchestration fills gap in current automation suite  
+- **Team Compatibility**: Strong values and culture alignment; hybrid/remote adaptable  
+- **Estimated Integration Time**: 90–120 days (Phased: infra → ops → go-to-market)  
+- **Cost Synergies Identified**: $1.1M in overlapping tools, vendors, and shared services
+
+Integration risk is low. Technical and organizational alignment scored 8.7/10 in internal review.
+"""
+    )
+
+@workflow.atom()
+def risk_summary():
+    text("## Risk Summary")
+    text(
+        """
+### Key Risk Areas:
+
+| Category           | Detail                                 | Mitigation Strategy               |
+|--------------------|----------------------------------------|-----------------------------------|
+| Customer Concentration | 17% ARR from one contract           | Renew early, add co-termination terms |
+| Security Certification | SOC 2 Type II in progress          | Escrow and milestone holdback     |
+| Geographic Limitations | <5% revenue outside North America   | Joint expansion plan for EMEA     |
+
+No existential risks. Standard commercial safeguards and holdbacks recommended in LOI.
+"""
+    )
+
+@workflow.atom()
+def summary_recommendation():
+    text("## Summary & Recommendation")
+    text(
+        """
+NovaOps is a financially healthy, product-aligned acquisition candidate with proven customer retention, 
+mature infrastructure, and low execution risk. Strategic value is high, especially for expanding mid-market workflow offerings.
+
+**Recommendation**: Proceed to definitive agreement and deal close, pending final legal and audit clearances.
+
+- Proposed Transaction Value: $82–88M  
+- Preferred Close Window: Q3 2025  
+- Due Diligence Lead: Finance & Corp Dev – Completed April 22, 2025
+"""
+    )
+
+workflow.execute()

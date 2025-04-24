@@ -1,0 +1,129 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Risk Assessment Matrix")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard provides a structured approach to identifying, evaluating, and tracking business risks. 
+It includes qualitative and quantitative assessments across probability, impact, and mitigation status, 
+helping teams prioritize responses and manage organizational exposure.
+"""
+    )
+
+@workflow.atom()
+def risk_overview():
+    text("## Current Risk Summary")
+    text(
+        """
+### Total Tracked Risks: 18  
+- **Critical (High Impact / High Probability)**: 3  
+- **Major (High Impact / Medium Probability)**: 5  
+- **Moderate (Medium Impact / Medium Probability)**: 7  
+- **Minor (Low Impact or Low Probability)**: 3  
+
+All critical risks have active mitigation plans. Weekly reviews held with legal, finance, and engineering.
+"""
+    )
+
+@workflow.atom()
+def risk_matrix():
+    text("## Risk Matrix")
+    text(
+        """
+| Risk ID | Description                        | Probability | Impact     | Risk Level  |
+|---------|------------------------------------|-------------|------------|-------------|
+| R-101   | Major customer churn               | High        | High       | Critical    |
+| R-104   | Regulatory non-compliance (GDPR)   | Medium      | High       | Major       |
+| R-109   | Delays in AI feature release       | High        | Medium     | Major       |
+| R-112   | Talent attrition (Engineering)     | Medium      | Medium     | Moderate    |
+| R-117   | Vendor contract lapse              | Low         | High       | Major       |
+| R-123   | Cloud service outage (AWS)         | Low         | High       | Major       |
+| R-126   | Marketing data breach              | Low         | Medium     | Moderate    |
+
+Probability and impact scores are updated monthly by the risk owners.
+"""
+    )
+
+@workflow.atom()
+def mitigation_plans():
+    text("## Mitigation Plans")
+    text(
+        """
+| Risk ID | Mitigation Strategy                                      | Owner         | Status      |
+|---------|-----------------------------------------------------------|---------------|-------------|
+| R-101   | Launch proactive renewal workflow, expand CS team        | Head of CS    | In Progress |
+| R-104   | Complete privacy audit, update data processing agreements| Legal Lead    | Complete    |
+| R-109   | Add resources to AI pod, implement sprint checkpoints     | Eng Director  | In Progress |
+| R-117   | Set vendor renewal alerts + secondary sourcing            | Ops Manager   | Not Started |
+| R-123   | Add regional failover and backup zones                    | SRE Manager   | In Progress |
+
+Mitigation status reviewed biweekly during compliance & ops check-in.
+"""
+    )
+
+@workflow.atom()
+def risk_trends():
+    text("## Risk Trends & Movement")
+    text(
+        """
+### Movement Since Last Review:
+
+- **↑ R-109** (AI feature delay) escalated from Moderate → Major  
+- **↓ R-104** (GDPR) de-escalated from Critical → Major after audit completion  
+- **New Risk Added**: R-131 (AI model bias in customer scoring)
+
+Overall risk posture is stable, with moderate exposure concentrated in tech delivery and data ops.
+"""
+    )
+
+@workflow.atom()
+def high_priority_risks():
+    text("## High-Priority Risk Watchlist")
+    text(
+        """
+| Risk ID | Area         | Notes                                            |
+|---------|--------------|--------------------------------------------------|
+| R-101   | Customer Success | Retention curve down QoQ; high-value account at risk |
+| R-109   | Product/Eng   | ML model timeline slipped 3 weeks               |
+| R-123   | Infrastructure| AWS uptime has dipped below SLA for 2 regions   |
+
+Flagged for cross-functional review and executive visibility.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Risk Management Recommendations")
+    text(
+        """
+1. **Complete vendor contract audits** before Q3 sourcing cycle  
+2. **Formalize AI ethics review process** for all ML-based features  
+3. **Improve churn detection signals** in CRM and usage dashboards  
+4. **Create backup SRE rotation** for regional failover scenarios  
+5. **Establish quarterly tabletop exercises** for legal/data scenarios
+
+These actions align with compliance, reliability, and customer success goals.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data reflects risk register as of April 22, 2025  
+- Impact and probability scored on 3-point qualitative scale  
+- Next formal review: May 15, 2025  
+- Source systems: GRC tracker, LegalOps board, Jira risk register
+
+For detailed risk maps or historical trend views, contact risk-ops@company.com.
+"""
+    )
+
+workflow.execute()

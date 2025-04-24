@@ -1,0 +1,73 @@
+Date,Category,Description,Amount,Type,Balance
+2022-01-01,Income,Salary,3000,Income,3000
+2022-01-05,Housing,Rent,-1000,Expense,2000
+2022-01-10,Transportation,Car insurance,-150,Expense,1850
+2022-01-15,Groceries,Supermarket,-200,Expense,1650
+2022-01-20,Utilities,Electricity bill,-100,Expense,1550
+2022-01-25,Healthcare,Doctor's appointment,-50,Expense,1500
+2022-02-01,Income,Side gig,500,Income,2000
+2022-02-05,Housing,Mortgage,-1200,Expense,800
+2022-02-10,Transportation,Gasoline,-80,Expense,720
+2022-02-15,Groceries,Farmers market,-150,Expense,570
+2022-02-20,Utilities,Internet bill,-70,Expense,500
+2022-02-25,Healthcare,Prescription drugs,-30,Expense,470
+2022-03-01,Income,Bonus,1000,Income,1470
+2022-03-05,Housing,Property tax,-300,Expense,1170
+2022-03-10,Transportation,Public transit pass,-50,Expense,1120
+2022-03-15,Groceries,Convenience store,-100,Expense,1020
+2022-03-20,Utilities,Water bill,-50,Expense,970
+2022-03-25,Healthcare,Dental checkup,-150,Expense,820
+2022-04-01,Income,Paycheck,2500,Income,3320
+2022-04-05,Housing,Home insurance,-200,Expense,3120
+2022-04-10,Transportation,Car maintenance,-120,Expense,3000
+2022-04-15,Groceries,Organic market,-180,Expense,2820
+2022-04-20,Utilities,Phone bill,-80,Expense,2740
+2022-04-25,Healthcare,Pharmacy,-50,Expense,2690
+2022-05-01,Income,Freelance work,800,Income,3490
+2022-05-05,Housing,Utilities bill,-250,Expense,3240
+2022-05-10,Transportation,Car payment,-300,Expense,2940
+2022-05-15,Groceries,Butcher shop,-120,Expense,2820
+2022-05-20,Utilities,Gas bill,-60,Expense,2760
+2022-05-25,Healthcare,Eye exam,-100,Expense,2660
+2022-06-01,Income,Salary,3000,Income,5660
+2022-06-05,Housing,Rent,-1000,Expense,4660
+2022-06-10,Transportation,Car insurance,-150,Expense,4510
+2022-06-15,Groceries,Supermarket,-200,Expense,4310
+2022-06-20,Utilities,Electricity bill,-100,Expense,4210
+2022-06-25,Healthcare,Doctor's appointment,-50,Expense,4160
+2022-07-01,Income,Side gig,500,Income,4660
+2022-07-05,Housing,Mortgage,-1200,Expense,3460
+2022-07-10,Transportation,Gasoline,-80,Expense,3380
+2022-07-15,Groceries,Farmers market,-150,Expense,3230
+2022-07-20,Utilities,Internet bill,-70,Expense,3160
+2022-07-25,Healthcare,Prescription drugs,-30,Expense,3130
+2022-08-01,Income,Bonus,1000,Income,4130
+2022-08-05,Housing,Property tax,-300,Expense,3830
+2022-08-10,Transportation,Public transit pass,-50,Expense,3780
+2022-08-15,Groceries,Convenience store,-100,Expense,3680
+2022-08-20,Utilities,Water bill,-50,Expense,3630
+2022-08-25,Healthcare,Dental checkup,-150,Expense,3480
+2022-09-01,Income,Paycheck,2500,Income,5980
+2022-09-05,Housing,Home insurance,-200,Expense,5780
+2022-09-10,Transportation,Car maintenance,-120,Expense,5660
+2022-09-15,Groceries,Organic market,-180,Expense,5480
+2022-09-20,Utilities,Phone bill,-80,Expense,5400
+2022-09-25,Healthcare,Pharmacy,-50,Expense,5350
+2022-10-01,Income,Freelance work,800,Income,6150
+2022-10-05,Housing,Utilities bill,-250,Expense,5900
+2022-10-10,Transportation,Car payment,-300,Expense,5600
+2022-10-15,Groceries,Butcher shop,-120,Expense,5480
+2022-10-20,Utilities,Gas bill,-60,Expense,5420
+2022-10-25,Healthcare,Eye exam,-100,Expense,5320
+2022-11-01,Income,Salary,3000,Income,8320
+2022-11-05,Housing,Rent,-1000,Expense,7320
+2022-11-10,Transportation,Car insurance,-150,Expense,7170
+2022-11-15,Groceries,Supermarket,-200,Expense,6970
+2022-11-20,Utilities,Electricity bill,-100,Expense,6870
+2022-11-25,Healthcare,Doctor's appointment,-50,Expense,6820
+2022-12-01,Income,Side gig,500,Income,7320
+2022-12-05,Housing,Mortgage,-1200,Expense,6120
+2022-12-10,Transportation,Gasoline,-80,Expense,6040
+2022-12-15,Groceries,Farmers market,-150,Expense,5890
+2022-12-20,Utilities,Internet bill,-70,Expense,5820
+2022-12-25,Healthcare,Prescription drugs,-30,Expense,5790
