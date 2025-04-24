@@ -223,6 +223,7 @@ class Workflow:
         dependencies: list[str] | None = None,
         retry_policy: RetryPolicy | None = None,
         force_recompute: bool = False,
+        name: str | None = None,
     ):
         """
         Decorator to create and register an atom in the workflow.
@@ -245,7 +246,7 @@ class Workflow:
             force_recompute: If True, this atom will always recompute on execution.
         """
         def decorator(func):
-            atom_name = func.__name__
+            atom_name = name or func.__name__
 
             if self._is_rerun and atom_name in self.atoms:
                 return func
@@ -500,7 +501,15 @@ class Workflow:
         while True:
             attempts += 1
             try:
-                result = atom.func(**dependency_values)
+                args = [
+                    dependency_values[dep]
+                    for dep in sorted(atom.dependencies)
+                    if dep in dependency_values
+                ]
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug(f'[_execute_atom_inner] calling atom.func with args {args}')
+                result = atom.func(*args)
+
                 end_time = time.time()
                 atom_result = AtomResult(
                     status=AtomStatus.COMPLETED,
@@ -510,6 +519,7 @@ class Workflow:
                     end_time=end_time,
                     input_hash=input_hash,
                 )
+
                 # Cache the successful result
                 self.cache.cache[atom.name] = atom_result
                 return atom_result

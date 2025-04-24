@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 import preswald.interfaces.reactive  # loads builtins.sl_wrap_auto_atoms
-
+from preswald.engine.transformers.reactive_runtime import transform_source
 
 logger = logging.getLogger(__name__)
 
@@ -51,9 +51,7 @@ class ScriptRunner:
         self._lock = threading.Lock()
         self._script_globals = {}
 
-        from .service import (
-            PreswaldService,  # deferred import to avoid cyclic dependency
-        )
+        from .service import PreswaldService # deferred import to avoid cyclic dependency
         self._service = PreswaldService.get_instance()
 
         logger.info(f"[ScriptRunner] Initialized with session_id: {session_id}")
@@ -266,15 +264,24 @@ class ScriptRunner:
                     # Execute script with script directory set as cwd
                     script_dir = os.path.dirname(os.path.realpath(self.script_path))
                     os.chdir(script_dir)
-                    code = compile(f.read(), self.script_path, "exec")
-                    logger.debug("[ScriptRunner] Script compiled")
+
+                    raw_code = f.read()
+                    tree, _ = transform_source(raw_code, filename=self.script_path)
+
+                    # import astpretty
+                    # logger.info("[AST DEBUG] Transformed AST:\n" + astpretty.pformat(tree, show_offsets=False))
+
+                    self._script_globals["workflow"] = self._service.get_workflow()
+
+                    code = compile(tree, self.script_path, "exec")
+                    logger.debug("[ScriptRunner] Script compiled with transformer")
                     exec(code, self._script_globals)
                     logger.debug("[ScriptRunner] Script executed")
 
-                    wrap_auto_atoms = builtins.sl_wrap_auto_atoms
-                    wrap_auto_atoms(self._script_globals)
-                    workflow = self._service.get_workflow()
-                    workflow.execute_relevant_atoms()
+                    # TODO: re-visit our globals pollution
+                    # We need to support multiple runners via webwald
+                    builtins.sl_wrap_auto_atoms(self._script_globals)
+                    self._service.get_workflow().execute_relevant_atoms()
 
                     # Change back to original working dir
                     os.chdir(current_working_dir)
