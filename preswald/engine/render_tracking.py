@@ -3,7 +3,7 @@ from functools import wraps
 
 from preswald.engine.service import PreswaldService
 from preswald.interfaces.component_return import ComponentReturn
-from preswald.utils import generate_stable_id
+from preswald.utils import generate_stable_id, generate_stable_atom_id_from_component_id
 
 
 logger = logging.getLogger(__name__)
@@ -32,7 +32,7 @@ def with_render_tracking(component_type: str):
         @wraps(func)
         def wrapper(*args, **kwargs):
             service = PreswaldService.get_instance()
-            component_id = kwargs.get("component_id") or generate_stable_id(component_type, callsite_hint=kwargs["callsite_hint"])
+            component_id = kwargs.get("component_id") or generate_stable_id(component_type, callsite_hint=kwargs.get("callsite_hint"))
             kwargs["component_id"] = component_id
 
             result = func(*args, **kwargs)
@@ -47,7 +47,9 @@ def with_render_tracking(component_type: str):
 
             return_value = result.value if isinstance(result, ComponentReturn) else result
 
-            with service.active_atom(service._workflow._current_atom):
+            # set the active atom context for correct DAG registration
+            atom_name = generate_stable_atom_id_from_component_id(component_id)
+            with service.active_atom(atom_name):
                 if service.should_render(component_id, component):
                     if logger.isEnabledFor(logging.DEBUG):
                         logger.debug(f"[{component_type}] Created component: {component}")
