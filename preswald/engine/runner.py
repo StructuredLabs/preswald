@@ -143,6 +143,12 @@ class ScriptRunner:
             }
 
             affected = self._service.get_affected_components(changed_atoms)
+
+            if not changed_atoms and not affected:
+                logger.warning("[ScriptRunner] No atoms affected — falling back to full script rerun")
+                await self.run_script()
+                return
+
             self._service.force_recompute(affected)
 
             # Execute workflow with selective recompute

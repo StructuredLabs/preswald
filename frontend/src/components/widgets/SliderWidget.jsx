@@ -1,3 +1,5 @@
+import { useDebouncedCallback } from 'use-debounce';
+
 import React from 'react';
 
 import { Label } from '@/components/ui/label';
@@ -16,10 +18,14 @@ const SliderWidget = ({
 }) => {
   const [localValue, setLocalValue] = React.useState(value);
 
+  const debouncedOnChange = useDebouncedCallback((value) => {
+    onChange?.(value);
+  }, 100);
+
   const handleChange = (e) => {
     const newValue = parseFloat(e.target.value);
     setLocalValue(newValue);
-    onChange?.(newValue);
+    debouncedOnChange(newValue);
   };
 
   React.useEffect(() => {

@@ -1,0 +1,145 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Social Media Analytics Dashboard")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard provides a unified view of your social media performance. 
+Track engagement, reach, follower growth, and content effectiveness across platforms 
+to inform strategy and optimize campaigns.
+"""
+    )
+
+@workflow.atom()
+def summary_metrics():
+    text("## Summary Metrics – April 1–22, 2025")
+    text(
+        """
+- **Total Impressions**: 2.14M  
+- **Total Engagements**: 187,230  
+- **Engagement Rate (Avg.)**: 8.75%  
+- **New Followers**: 9,620  
+- **Top Platform**: LinkedIn (42% of impressions)  
+- **Content Published**: 86 posts across 4 channels
+
+Impressions are up 12.3% month-over-month, driven by paid boosts and new video content.
+"""
+    )
+
+@workflow.atom()
+def platform_breakdown():
+    text("## Platform Performance Breakdown")
+    text(
+        """
+| Platform   | Impressions | Engagements | Engagement Rate | Follower Growth |
+|------------|-------------|-------------|------------------|------------------|
+| LinkedIn   | 895,400     | 79,120      | 8.84%            | +4,120           |
+| Instagram  | 534,200     | 51,460      | 9.63%            | +2,930           |
+| Twitter    | 413,800     | 34,710      | 8.39%            | +1,540           |
+| Facebook   | 298,100     | 21,940      | 7.36%            | +1,030           |
+
+Instagram delivered the highest engagement rate. LinkedIn remains the largest driver of impressions and reach.
+"""
+    )
+
+@workflow.atom()
+def top_posts():
+    text("## Top Performing Posts")
+    text(
+        """
+| Post Title                           | Platform  | Impressions | Engagements | Engagement Rate |
+|--------------------------------------|-----------|-------------|-------------|------------------|
+| “AI in Workflow Automation”          | LinkedIn  | 126,300     | 13,120      | 10.4%            |
+| “SaaS Trends 2025 (Carousel)”        | Instagram | 98,400      | 12,880      | 13.1%            |
+| “Behind the Scenes: Product Design”  | Twitter   | 57,900      | 5,110       | 8.8%             |
+| “Customer Spotlight – Apex Retail”  | Facebook  | 34,200      | 3,010       | 8.8%             |
+
+Carousel and storytelling formats continue to outperform static product posts.
+"""
+    )
+
+@workflow.atom()
+def content_type_performance():
+    text("## Content Type Performance")
+    text(
+        """
+| Content Type | Posts | Avg. Impressions | Avg. Engagement Rate |
+|---------------|-------|-------------------|------------------------|
+| Carousel      | 14    | 32,430            | 12.1%                 |
+| Video         | 21    | 27,860            | 10.7%                 |
+| Static Image  | 28    | 21,190            | 7.4%                  |
+| Poll          | 6     | 15,840            | 9.8%                  |
+| Link Share    | 17    | 13,220            | 5.9%                  |
+
+Carousels and videos are the most effective at generating interactions per view.
+"""
+    )
+
+@workflow.atom()
+def campaign_analysis():
+    text("## Campaign Analysis")
+    text(
+        """
+### “Automate Better” Campaign (April):
+
+- **Posts**: 12  
+- **Total Reach**: 482,000  
+- **Engagement Rate**: 10.2%  
+- **Landing Page CTR**: 3.6%  
+- **Leads Generated**: 214
+
+Cross-platform messaging consistency and clear CTAs contributed to campaign lift.
+"""
+    )
+
+@workflow.atom()
+def hashtag_performance():
+    text("## Hashtag Performance")
+    text(
+        """
+| Hashtag         | Uses | Total Engagement | Engagement per Post |
+|------------------|------|------------------|----------------------|
+| #workflowtips    | 17   | 11,320           | 665                  |
+| #buildinpublic   | 9    | 6,240            | 693                  |
+| #aiops           | 12   | 7,180            | 598                  |
+| #remotework      | 6    | 4,390            | 732                  |
+
+Emerging hashtags like #buildinpublic and #remotework show above-average engagement per use.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Optimization Recommendations")
+    text(
+        """
+1. **Increase use of carousel and video formats**, especially on LinkedIn and Instagram  
+2. **Double down on high-engagement hashtags** and retire low-performing ones  
+3. **Post during top-performing windows** (Tues–Thurs, 9–11am local time)  
+4. **Repurpose top posts as ad creatives** to extend reach via paid  
+5. **A/B test CTA placement** in captions for link shares to improve click-through
+
+Next content sprint strategy to integrate recommendations into May publishing calendar.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data from April 1–22, 2025  
+- Platforms monitored: LinkedIn, Instagram, Twitter, Facebook  
+- Sources: Sprout Social, native platform insights, UTM tracking
+
+Next dashboard refresh scheduled for May 3, 2025.
+"""
+    )
+
+workflow.execute()

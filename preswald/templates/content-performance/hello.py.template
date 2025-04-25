@@ -1,0 +1,157 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Content Performance Dashboard")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This report provides a comprehensive overview of content performance across your digital properties. 
+It highlights the most engaging content, conversion performance, and demographic insights to inform 
+your editorial strategy and improve ROI from content marketing efforts.
+"""
+    )
+
+@workflow.atom()
+def executive_summary():
+    text("## Executive Summary")
+    text(
+        """
+Content engagement continues to drive meaningful user interaction, with notable growth in time-on-page 
+and conversion rates for educational blog posts. This report identifies high-performing assets, 
+segments engagement by audience demographics, and pinpoints areas for optimization based on real usage data.
+
+**Key Highlights:**
+- Top-performing articles generated over 3,000 views each this month.
+- Conversion rates increased by 12.4% for video content.
+- Mobile engagement outpaces desktop by 18%, with strong growth in the 25–34 age group.
+"""
+    )
+
+@workflow.atom()
+def top_content_section():
+    text("## Top Performing Content")
+    text(
+        """
+The following pieces of content received the highest number of views and engagement during the reporting period:
+
+- **“How to Streamline Procurement Workflows”**  
+  _Views_: 3,457 | _Avg. Time on Page_: 4:23 | _Conversions_: 128
+
+- **“The Future of B2B Marketplaces”**  
+  _Views_: 3,102 | _Avg. Time on Page_: 3:51 | _Conversions_: 101
+
+- **“State of SaaS: 2025 Report”**  
+  _Views_: 2,987 | _Avg. Time on Page_: 5:02 | _Conversions_: 176
+
+These assets are strong candidates for distribution amplification, repurposing, or feature placement on your homepage.
+"""
+    )
+
+@workflow.atom()
+def conversion_insights_section():
+    text("## Conversion Insights")
+    text(
+        """
+Conversion data reveals how effectively content drives users to act. Key observations:
+
+- **Videos** had the highest conversion rate at **6.1%**, outperforming blog posts (4.3%) and whitepapers (3.2%).
+- **Downloadable guides** generated the most revenue-attributed conversions, especially from paid channels.
+- **CTAs placed above the fold** had a **25% higher click-through rate** than those at the end of articles.
+
+Top converting content:
+- “Remote Work Maturity Model” – 172 conversions (9.5%)
+- “Cloud Infrastructure Checklist” – 144 conversions (7.2%)
+"""
+    )
+
+@workflow.atom()
+def engagement_trends_section():
+    text("## Engagement Trends")
+    text(
+        """
+This section outlines audience behavior over time:
+
+- **Weekly engagement peaked on Wednesdays**, correlating with newsletter sends.
+- **Scroll depth on long-form articles improved by 14%**, indicating stronger retention.
+- **Bounce rates** decreased site-wide from 48% to 41%, with largest drop on mobile.
+
+Trend Tip: Consider publishing cornerstone content mid-week and optimizing mobile layouts further to capitalize on these patterns.
+"""
+    )
+
+@workflow.atom()
+def audience_demographics_section():
+    text("## Audience Demographics")
+    text(
+        """
+Demographic data provides context for who is engaging with your content:
+
+- **Age Groups**:
+  - 25–34: 42%
+  - 35–44: 28%
+  - 18–24: 14%
+- **Device Usage**:
+  - Mobile: 61%
+  - Desktop: 35%
+  - Tablet: 4%
+- **Top Locations**:
+  - United States, Canada, United Kingdom, India, Australia
+
+This data supports tailoring tone, format, and distribution methods to match your dominant user segments.
+"""
+    )
+
+@workflow.atom()
+def referral_performance_section():
+    text("## Referral Performance")
+    text(
+        """
+Content engagement by referral channel shows distinct trends:
+
+- **Organic Search**: Largest traffic source (45% of total views)
+- **Email Campaigns**: Highest conversion rate (6.8%)
+- **Social Media**: Strong engagement from LinkedIn, especially for B2B reports
+
+Recommendations:
+- Continue SEO optimization for evergreen posts
+- Reinvest in email-driven nurture sequences
+- Explore sponsored posts on LinkedIn for gated assets
+"""
+    )
+
+@workflow.atom()
+def recommendations_section():
+    text("## Strategic Recommendations")
+    text(
+        """
+Based on the data reviewed, we recommend the following next steps:
+
+1. **Double down on video and guide formats** that convert well.
+2. **Schedule feature placement** of high-performing blog posts on the homepage.
+3. **Refine mobile UX** and test shorter CTA copy above the fold.
+4. **Develop regional campaigns** for high-engagement geographies.
+5. **Repurpose top articles** into webinars or lead magnets for deeper funnel impact.
+
+These strategies are informed by real usage and will help drive continued growth in engagement and outcomes.
+"""
+    )
+
+@workflow.atom()
+def appendix_notes():
+    text("## Appendix: Notes on Data")
+    text(
+        """
+- This report uses anonymized web analytics data from the past 30 days.
+- Data includes sessions from organic, paid, direct, and email sources.
+- Conversion tracking includes form submissions, content downloads, and trials.
+
+If you need historical comparisons or deeper segmentation, please reach out to the analytics team.
+"""
+    )
+
+workflow.execute()

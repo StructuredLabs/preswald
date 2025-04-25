@@ -8,7 +8,7 @@ description: ""
 text(markdown_str: str, size: float = 1.0) -> str:
 ```
 
-The `text` function allows you to display formatted text or Markdown in your application. It’s perfect for creating titles, headers, paragraphs, and more using the power of Markdown syntax.
+The `text` function allows you to display formatted text or Markdown in your application. It’s perfect for creating titles, headers, paragraphs, and more using the power of Markdown syntax. It also allows you to display mathematical functions with latex syntax (via katex).
 
 ## Parameters
 
@@ -49,4 +49,8 @@ The `text` function supports the full range of Markdown syntax, including:
   print("Hello, world!")
   ```
   ````
+- **LaTeX**:
+  - Display an inline equation: `text("$E=mc^2$")`
+  - Display a block equation: `text("\n\n$$\\int_0^1 x^2 \\, dx = \\frac{1}{3}$$")`
+
 - And more!

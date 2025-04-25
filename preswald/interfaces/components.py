@@ -802,9 +802,24 @@ def sidebar(
 ) -> ComponentReturn:
     """Create a sidebar component."""
 
-    component = {"type": "sidebar", "id": component_id, "defaultopen": defaultopen}
+@with_render_tracking("sidebar")
+def sidebar(
+    defaultopen: bool = False,
+    component_id: str | None = None,
+    logo: str | None = None,
+    name: str | None = None,
+) -> ComponentReturn:
+    """Create a sidebar component with optional logo and name."""
+    component = {
+        "type": "sidebar",
+        "id": component_id,
+        "defaultopen": defaultopen,
+        "branding": {"logo": logo, "name": name},
+    }
 
-    logger.debug(f"[sidebar] ID={component_id}, defaultopen={defaultopen}")
+    logger.debug(
+        f"[sidebar] ID={component_id}, defaultopen={defaultopen}, logo={logo}, name={name}"
+    )
     return ComponentReturn(component, component)
 
 

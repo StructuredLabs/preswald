@@ -1,0 +1,145 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def dashboard_title():
+    text("# Burn Rate & Runway Dashboard")
+
+@workflow.atom()
+def dashboard_description():
+    text("""
+Monitor cash burn, runway projections, and financial health metrics in real-time. This dashboard is designed for startup founders, finance leads, and investors to assess how efficiently capital is being used and how long the company can operate before needing additional funding.
+""")
+
+@workflow.atom()
+def monthly_burn_overview():
+    text("## Monthly Burn Overview")
+    text("""
+This section summarizes your monthly cash outflows. Burn rate includes all operating costs such as payroll, cloud infrastructure, vendor payments, and rent. Monitoring it closely helps ensure alignment with your financial plan.
+
+**Key Indicators:**
+- Total cash out per month
+- Fixed vs. variable expenses
+- Month-over-month change in burn
+""")
+
+@workflow.atom()
+def runway_projection():
+    text("## Runway Projection")
+    text("""
+Runway is a calculation of how many months your startup can operate before running out of cash, based on your current burn rate.
+
+**Formula:**  
+Runway = Cash on Hand / Monthly Net Burn
+
+**Scenarios Modeled:**
+- Base Case (Current burn)
+- Conservative Case (+15% expenses)
+- Optimistic Case (-10% expenses)
+
+Use runway projections to plan fundraising timelines and reduce risk of unexpected cash shortfalls.
+""")
+
+@workflow.atom()
+def cash_position():
+    text("## Current Cash Position")
+    text("""
+Your cash position reflects the liquidity available to cover expenses, fund growth, or extend runway. This includes your operating account balance and any other immediately accessible reserves.
+
+**Metrics to Track:**
+- Total Cash Available
+- Restricted vs. Unrestricted Cash
+- Cash in Transit (pending deposits or invoices)
+""")
+
+@workflow.atom()
+def revenue_vs_burn_analysis():
+    text("## Revenue vs. Burn Analysis")
+    text("""
+This section compares incoming revenue (if any) to monthly cash burn, helping you assess sustainability and margin of safety.
+
+**Breakdown Includes:**
+- Monthly Recurring Revenue (MRR)
+- Revenue Growth Rate
+- Net Burn (Burn - Revenue)
+
+Use this to evaluate product-market fit, pricing strategy, or explore cost-cutting opportunities.
+""")
+
+@workflow.atom()
+def team_costs_breakdown():
+    text("## Team Costs Breakdown")
+    text("""
+Understand how much of your monthly burn is allocated to salaries, benefits, and contractors. This helps you evaluate team structure against growth stage and performance.
+
+**Breakdown Includes:**
+- Total Payroll
+- Engineering vs. Non-Tech Spend
+- Contractor % of Total Spend
+
+**Tip:** Review org chart quarterly to align team size with roadmap and capital plan.
+""")
+
+@workflow.atom()
+def spend_by_vendor():
+    text("## Spend by Vendor")
+    text("""
+Gain visibility into recurring vendor expenses like AWS, Google Workspace, SaaS tools, and legal services.
+
+**Top Vendors by Spend:**
+- Infrastructure
+- Communication/Collaboration Tools
+- Financial & Legal Services
+
+Helps you identify opportunities to renegotiate contracts, eliminate unused services, or consolidate tools.
+""")
+
+@workflow.atom()
+def fundraising_milestone_timeline():
+    text("## Fundraising Milestones & Timeline")
+    text("""
+This section outlines planned fundraising activities and links them to your financial milestones. Aligns runway targets with investor conversations, pitch deck preparation, and board reviews.
+
+**Track:**
+- Planned raise amount & timing
+- Lead investor pipeline
+- Pre-money valuation assumptions
+- Use of funds projections
+
+Prepare for diligence by keeping financial and operational data up-to-date.
+""")
+
+@workflow.atom()
+def financial_risks_and_mitigations():
+    text("## Financial Risks & Mitigation Strategies")
+    text("""
+Identify top financial risks and document your mitigation plan. Transparency here helps build trust with internal stakeholders and investors.
+
+**Examples:**
+- Risk: Unexpected increase in cloud costs  
+  Mitigation: Set autoscaling thresholds, audit usage monthly
+
+- Risk: Key client churn  
+  Mitigation: Diversify customer base, invest in account success
+
+- Risk: Delayed fundraising  
+  Mitigation: Establish line of credit, implement hiring freeze if needed
+""")
+
+@workflow.atom()
+def monthly_summary_and_actions():
+    text("## Monthly Summary & Recommended Actions")
+    text("""
+Conclude with a high-level summary of your financial health and suggested actions for the upcoming month.
+
+**Includes:**
+- Cash remaining
+- Estimated runway (in months)
+- Material changes in burn
+- Action Items (e.g., vendor audit, spend freeze on marketing)
+
+Review this summary during investor updates or executive team meetings.
+""")
+
+workflow.execute()

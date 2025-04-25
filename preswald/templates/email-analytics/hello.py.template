@@ -1,0 +1,160 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Email Marketing Analytics")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard summarizes the performance of your recent email marketing campaigns. 
+It includes detailed metrics on delivery, open rates, click-throughs, conversions, and unsubscribe behavior, 
+helping you evaluate campaign effectiveness and optimize future sends.
+"""
+    )
+
+@workflow.atom()
+def campaign_overview():
+    text("## Campaign Summary")
+    text(
+        """
+In the last 30 days, you’ve sent **14 campaigns** to a total of **126,500 recipients**.  
+Here’s a high-level view:
+
+- **Average Open Rate**: 38.7%
+- **Average Click-Through Rate (CTR)**: 12.4%
+- **Average Conversion Rate**: 4.1%
+- **Unsubscribe Rate**: 0.7%
+- **Bounce Rate**: 1.2%
+
+These figures help benchmark performance and identify areas for improvement.
+"""
+    )
+
+@workflow.atom()
+def top_performing_emails():
+    text("## Top Performing Campaigns")
+    text(
+        """
+Below are the top 3 campaigns from the past month based on conversion rate:
+
+1. **“Spring Feature Launch”**  
+   - Open Rate: 45.6%  
+   - CTR: 14.8%  
+   - Conversion Rate: 6.2%
+
+2. **“Q2 Webinars Invitation”**  
+   - Open Rate: 41.2%  
+   - CTR: 13.1%  
+   - Conversion Rate: 5.9%
+
+3. **“2025 Product Survey”**  
+   - Open Rate: 50.3%  
+   - CTR: 11.9%  
+   - Conversion Rate: 5.1%
+
+These results highlight subject line strength, clear CTAs, and value-driven content.
+"""
+    )
+
+@workflow.atom()
+def deliverability_metrics():
+    text("## Deliverability & List Quality")
+    text(
+        """
+Deliverability influences engagement and sender reputation:
+
+- **Total Delivered**: 124,870 (98.7%)
+- **Soft Bounces**: 780
+- **Hard Bounces**: 850
+- **Spam Complaints**: 22
+- **List Growth**: +3.6% (net new subscribers)
+
+High delivery and low complaint rates indicate strong list hygiene and sender credibility.
+"""
+    )
+
+@workflow.atom()
+def engagement_by_segment():
+    text("## Engagement by Segment")
+    text(
+        """
+Segment-based engagement insights:
+
+| Segment           | Open Rate | CTR   | Conversion Rate |
+|-------------------|-----------|-------|-----------------|
+| New Subscribers   | 52.1%     | 16.7% | 4.9%            |
+| Active Customers  | 47.4%     | 13.9% | 6.3%            |
+| Inactive Users    | 23.6%     | 6.1%  | 1.4%            |
+
+New and active segments show strong engagement, while inactive users may need reactivation workflows.
+"""
+    )
+
+@workflow.atom()
+def content_insights():
+    text("## Content Insights")
+    text(
+        """
+A/B test results and content themes:
+
+- **Subject Line Test (v1: “Unlock New Features” vs. v2: “Try Our New Tools”)**  
+  - v1 had 9% higher open rate
+
+- **Best Performing CTA**: “Watch the Demo” (7.8% CTR)
+- **Least Effective Format**: Long newsletters with multiple topics saw 24% lower click-throughs
+
+Concise messaging and clear CTAs continue to outperform longer content formats.
+"""
+    )
+
+@workflow.atom()
+def unsubscribe_trends():
+    text("## Unsubscribe & Complaint Trends")
+    text(
+        """
+Understanding disengagement helps preserve list quality:
+
+- **Top Unsubscribe Cause**: “Too many emails” (41%)
+- **Highest Unsubscribe Rate**: “Weekly Updates – April 10” (1.4%)
+- **Spam Flag Rate**: 0.02%
+- **Opt-Out Timing**: 60% of unsubscribes occur within 24h of delivery
+
+This suggests volume and timing may be more sensitive than content alone.
+"""
+    )
+
+@workflow.atom()
+def optimization_recommendations():
+    text("## Optimization Recommendations")
+    text(
+        """
+To improve future campaign performance:
+
+1. **Cap weekly send volume** per contact to reduce fatigue.
+2. **Personalize subject lines** based on user activity or segment.
+3. **Limit CTAs to one primary action** to focus attention.
+4. **Test different delivery times**—early mornings show stronger opens.
+5. **Set up automated re-engagement flows** for dormant users.
+
+Testing small changes consistently yields the best results over time.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Metrics cover campaigns sent between March 24 and April 23, 2025.
+- Conversion is defined as a form fill, registration, or purchase triggered from email click.
+- Data is aggregated from ESP logs, UTM-tagged URLs, and CRM integrations.
+
+For questions, deeper analysis, or next-quarter planning, contact the marketing analytics team.
+"""
+    )
+
+workflow.execute()

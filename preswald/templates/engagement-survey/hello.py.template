@@ -1,0 +1,150 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Employee Engagement Survey")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This report summarizes the results of your latest employee engagement survey. 
+It highlights participation rates, engagement trends, satisfaction levels, and areas of opportunity, 
+giving leadership actionable insights to improve workplace culture, communication, and retention.
+"""
+    )
+
+@workflow.atom()
+def participation_summary():
+    text("## Participation Summary")
+    text(
+        """
+### Survey Window: April 1–15, 2025  
+- **Invited Employees**: 612  
+- **Responses Received**: 493  
+- **Response Rate**: 80.5%  
+- **Avg. Completion Time**: 6 minutes, 12 seconds
+
+High participation reflects strong interest in contributing feedback. Trends are compared against the previous cycle.
+"""
+    )
+
+@workflow.atom()
+def engagement_scores():
+    text("## Overall Engagement Scores")
+    text(
+        """
+### Composite Engagement Score: **78.2 / 100**
+
+Breakdown of average scores (0–100 scale):
+
+- **Commitment to Company**: 82.5  
+- **Sense of Belonging**: 75.3  
+- **Clarity of Role**: 79.4  
+- **Alignment with Leadership**: 72.1  
+- **Motivation & Purpose**: 81.0
+
+Scores are weighted and benchmarked against industry norms where available.
+"""
+    )
+
+@workflow.atom()
+def sentiment_summary():
+    text("## Sentiment Snapshot")
+    text(
+        """
+Responses to open-ended questions were analyzed for tone and themes:
+
+- **Positive Themes**: Team collaboration, manager support, remote flexibility  
+- **Negative Themes**: Career path clarity, workload balance, internal communication  
+- **Sentiment Balance**: 68% positive / 24% neutral / 8% negative
+
+Insights will be shared with department heads for team-level conversations.
+"""
+    )
+
+@workflow.atom()
+def engagement_by_team():
+    text("## Engagement by Department")
+    text(
+        """
+| Department       | Avg. Engagement | Top Strength          | Primary Concern            |
+|------------------|------------------|------------------------|----------------------------|
+| Engineering      | 81.4             | Innovation culture     | Communication with execs   |
+| Marketing        | 76.8             | Peer collaboration     | Project timelines           |
+| Customer Support | 73.2             | Manager relationships  | Burnout risk               |
+| HR & People Ops  | 84.0             | Transparency           | Career progression         |
+
+Some teams have clear wins to celebrate, while others need targeted improvements.
+"""
+    )
+
+@workflow.atom()
+def question_level_breakdown():
+    text("## Question-Level Insights")
+    text(
+        """
+High- and low-scoring survey items:
+
+- **Highest Agreement**:  
+  *“My manager supports my professional development”* — 89%  
+  *“I understand how my work contributes to our goals”* — 87%
+
+- **Lowest Agreement**:  
+  *“I see a clear path for advancement here”* — 52%  
+  *“I feel informed about decisions that affect my work”* — 59%
+
+Reviewing these items helps prioritize action areas across the organization.
+"""
+    )
+
+@workflow.atom()
+def year_over_year_trends():
+    text("## Year-Over-Year Comparison")
+    text(
+        """
+Changes compared to April 2024:
+
+- **Overall Engagement Score**: ▲ +3.6 points  
+- **Sense of Belonging**: ▲ +4.1  
+- **Clarity of Role**: ▲ +2.3  
+- **Communication Satisfaction**: ▼ -1.7
+
+Improvements reflect better onboarding and team cohesion, while communication challenges may require renewed focus.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Recommendations")
+    text(
+        """
+Based on the data collected, we suggest:
+
+1. **Implement structured career conversations** for all employees twice yearly.
+2. **Clarify company-level decisions** through monthly all-hands and follow-ups.
+3. **Expand leadership coaching** for mid-level managers.
+4. **Pilot team-specific engagement action plans**, especially for at-risk departments.
+5. **Track progress quarterly** with pulse check-ins on targeted areas.
+
+Consistent feedback loops build trust and continuous improvement.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Survey conducted anonymously via Typeform between April 1–15, 2025.
+- 34 total questions: 28 scale-based, 6 open-ended.
+- Analysis performed using sentiment scoring and engagement indices.
+- Results shared with leadership, HRBPs, and department managers.
+
+For support creating custom reports or follow-up sessions, contact the People Analytics team.
+"""
+    )
+
+workflow.execute()

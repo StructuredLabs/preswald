@@ -1,0 +1,157 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Mortgage Refinancing Dashboard")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard helps homeowners evaluate refinancing options by comparing mortgage products, 
+monthly payments, interest savings, and break-even timelines. Use it to explore how changes in rates, terms, 
+or loan types could impact your financial plan.
+"""
+    )
+
+@workflow.atom()
+def current_mortgage_summary():
+    text("## Current Mortgage Overview")
+    text(
+        """
+### Loan Snapshot:
+
+- **Original Loan Amount**: $420,000  
+- **Outstanding Balance**: $342,800  
+- **Interest Rate**: 4.75% (Fixed)  
+- **Remaining Term**: 21 years  
+- **Monthly Payment (P&I)**: $2,298  
+- **Loan Start Date**: June 2019
+
+Current loan terms are based on a fixed-rate 30-year mortgage started mid-2019.
+"""
+    )
+
+@workflow.atom()
+def refinance_options():
+    text("## Refinance Options Comparison")
+    text(
+        """
+| Option               | Interest Rate | Term    | Monthly Payment | Total Interest | Closing Costs |
+|----------------------|---------------|---------|------------------|----------------|----------------|
+| Refi A (30-Year Fixed) | 5.00%       | 30 yrs  | $1,835           | $317,750       | $5,600         |
+| Refi B (20-Year Fixed) | 4.50%       | 20 yrs  | $2,165           | $176,460       | $4,850         |
+| Refi C (15-Year Fixed) | 4.25%       | 15 yrs  | $2,582           | $122,470       | $5,200         |
+
+Shorter terms reduce interest paid significantly, but raise the monthly obligation. Break-even calculations vary by option.
+"""
+    )
+
+@workflow.atom()
+def break_even_analysis():
+    text("## Break-Even Analysis")
+    text(
+        """
+### Based on Estimated Closing Costs:
+
+- **Refi A**: Break-even in 28 months  
+- **Refi B**: Break-even in 22 months  
+- **Refi C**: Break-even in 33 months
+
+The break-even point reflects when accumulated monthly savings surpass the upfront refinancing costs.
+"""
+    )
+
+@workflow.atom()
+def interest_savings():
+    text("## Total Interest Savings")
+    text(
+        """
+Compared to remaining life of original loan (21 years):
+
+- **Refi A**: ~$42,800 interest saved  
+- **Refi B**: ~$103,700 interest saved  
+- **Refi C**: ~$157,000 interest saved
+
+Greater savings occur with shorter loan durations and lower rates, especially when closing costs are recouped early.
+"""
+    )
+
+@workflow.atom()
+def equity_and_ltv():
+    text("## Equity & Loan-to-Value (LTV)")
+    text(
+        """
+### Property Value: $585,000  
+- **Current LTV**: 58.6%  
+- **Post-Refi LTV (Projected)**: 60–63% depending on fees rolled into principal  
+- **Home Equity**: ~$242,200
+
+LTV under 80% may eliminate PMI and improve refinance eligibility with preferred rates.
+"""
+    )
+
+@workflow.atom()
+def rate_trends():
+    text("## Interest Rate Trends")
+    text(
+        """
+### Historical Fixed-Rate Mortgage Averages:
+
+- **2022**: 5.53%  
+- **2023**: 6.62%  
+- **2024**: 6.14%  
+- **Current Market (April 2025)**: ~4.5–5.0%  
+
+Market volatility has driven rates lower over the past six months, creating a potential opportunity window.
+"""
+    )
+
+@workflow.atom()
+def cash_out_scenarios():
+    text("## Cash-Out Refinance Scenarios")
+    text(
+        """
+### Example: $40,000 Cash-Out
+
+- **New Loan Amount**: $382,800  
+- **Rate**: 5.25% (30-Year Fixed)  
+- **Monthly Payment**: ~$2,118  
+- **Cash Received**: $40,000 (less closing costs)
+
+Homeowners can access equity for home improvements or debt consolidation with modest payment increases.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Refinancing Considerations & Recommendations")
+    text(
+        """
+Based on your current loan and market conditions:
+
+- Refi B (20-Year Fixed at 4.50%) offers strong interest savings with manageable payment increase.  
+- Break-even point is under 2 years, ideal for medium-term home ownership.  
+- Refi C (15-Year) offers best savings but requires highest cash flow flexibility.  
+- Cash-out refinancing is feasible, but best paired with ROI-positive projects.
+
+Work with a mortgage advisor to finalize estimates based on credit score, income, and current lender policies.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Interest rates and loan terms are illustrative and subject to credit qualification.  
+- Break-even and savings calculations assume no additional principal prepayments.  
+- All data current as of April 23, 2025.
+
+Consult your lender or financial advisor before refinancing.
+"""
+    )
+
+workflow.execute()

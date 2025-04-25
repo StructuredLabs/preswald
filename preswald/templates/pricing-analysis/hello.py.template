@@ -1,0 +1,158 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Product Pricing Analysis")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard provides a detailed analysis of current product pricing strategies, 
+competitive benchmarks, and market positioning. Use this report to assess pricing effectiveness, 
+identify optimization opportunities, and support packaging decisions across tiers.
+"""
+    )
+
+@workflow.atom()
+def current_pricing_summary():
+    text("## Current Pricing Summary")
+    text(
+        """
+### Active Plans:
+
+| Plan Tier      | Monthly Price | Annual Price | Avg. ACV | % of Revenue |
+|----------------|---------------|--------------|----------|---------------|
+| Starter        | $29           | $290         | $360     | 11%           |
+| Professional   | $99           | $990         | $1,340   | 51%           |
+| Enterprise     | $299          | Custom       | $4,870   | 38%           |
+
+### Overall Stats:
+
+- **Avg. Revenue per User (ARPU)**: $82  
+- **Churn Rate (Blended)**: 4.3%  
+- **Net Revenue Retention (NRR)**: 116%
+
+The Professional plan remains the primary revenue driver, with strong upsell traction from Starter users.
+"""
+    )
+
+@workflow.atom()
+def competitor_comparison():
+    text("## Competitor Price Benchmarks")
+    text(
+        """
+### Price Matrix (Monthly):
+
+| Vendor         | Entry Plan | Mid-Tier     | Enterprise     |
+|----------------|------------|--------------|----------------|
+| Our Product    | $29        | $99          | $299+          |
+| FlowStack      | $25        | $89          | $349+          |
+| Integrio       | $39        | $119         | $279+          |
+| Buildify       | $19        | $99          | $299           |
+
+We remain competitively priced in the mid-market segment, with lower feature gate thresholds.
+"""
+    )
+
+@workflow.atom()
+def usage_vs_value():
+    text("## Feature Usage vs. Perceived Value")
+    text(
+        """
+Based on usage logs and customer interviews:
+
+- **Top 3 Used Features**: Workflow Automation, Audit Logs, API Access  
+- **Top 3 Perceived Value Features**: Integrations, Role-Based Access, SLA Uptime
+
+### Feature Alignment by Plan:
+
+- 87% of users access <60% of features in current plan  
+- 41% of Enterprise accounts use only 2 of 5 core entitlements  
+- 12% of Starter users exceed storage limits monthly
+
+Feature-bundling and usage-based pricing may improve alignment and retention.
+"""
+    )
+
+@workflow.atom()
+def price_sensitivity():
+    text("## Price Sensitivity & Willingness to Pay")
+    text(
+        """
+### Survey Insights (n = 413):
+
+- 48% of Professional users would accept a 10% price increase  
+- 27% of Starter users rate current price as "high" or "very high"  
+- 67% of Enterprise buyers expect custom discounts >15%
+
+Willingness to pay correlates with time-to-value. Onboarding enhancements may support price elasticity at the lower tier.
+"""
+    )
+
+@workflow.atom()
+def packaging_opportunities():
+    text("## Packaging & Tiering Opportunities")
+    text(
+        """
+### Observations:
+
+- **Usage-based billing** interest is highest among customers with irregular usage cycles  
+- **Modular add-ons** (e.g. advanced analytics, white-label support) requested by 18% of Pro users  
+- **Multi-seat bundles** undervalued at Starter tier (avg. team size: 4.3)
+
+Recommended experiments:
+1. Introduce a $59/month “Growth” plan to bridge Starter and Pro  
+2. Test a metered billing model for overage-based workloads  
+3. Launch a-la-carte add-ons for SSO, audit logs, and sandbox environments
+"""
+    )
+
+@workflow.atom()
+def margin_analysis():
+    text("## Margin & Cost Structure")
+    text(
+        """
+### Gross Margin by Tier:
+
+| Plan Tier    | Gross Margin | Avg. COGS/User |
+|--------------|--------------|----------------|
+| Starter      | 72%          | $8.12          |
+| Professional | 84%          | $15.84         |
+| Enterprise   | 87%          | $38.40         |
+
+Infrastructure cost per user remains flat across scale, supporting margin growth with ARPU expansion.
+"""
+    )
+
+@workflow.atom()
+def strategic_recommendations():
+    text("## Strategic Pricing Recommendations")
+    text(
+        """
+1. **Introduce new “Growth” tier** to address gap in user maturity  
+2. **Align features by value drivers**, not complexity—simplify Enterprise differentiation  
+3. **Retire underused Pro features** and repackage as add-ons  
+4. **Explore localized pricing** in high-variance markets (APAC, LATAM)  
+5. **Launch win-back offers** for churned Starter users (>90 days inactive)
+
+Pricing experiments should be A/B tested and measured against conversion, ARPU, and NRR over a 90-day window.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Pricing data sourced from Stripe, CRM, and third-party market scans  
+- Customer research conducted via surveys and CSM interviews (Jan–Mar 2025)  
+- Financials reflect trailing 12-month cohort performance
+
+Next pricing review scheduled for July 2025.
+"""
+    )
+
+workflow.execute()

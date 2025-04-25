@@ -1,0 +1,196 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Market Research Analysis")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This report offers a quantitative analysis of current market conditions, customer behavior, 
+competitive dynamics, and product positioning. It is designed to inform go-to-market strategies, 
+product roadmap decisions, and investor communications with accurate and up-to-date data.
+"""
+    )
+
+@workflow.atom()
+def market_sizing():
+    text("## Market Sizing & Growth Projections")
+    text(
+        """
+### Global Market Estimates (2025):
+
+- **Total Addressable Market (TAM)**: $48.6B  
+- **Serviceable Available Market (SAM)**: $13.2B  
+- **Serviceable Obtainable Market (SOM)**: $2.7B  
+
+### Growth Forecast:
+
+- **YoY Growth Rate**: 14.3%  
+- **5-Year CAGR (2025–2030)**: 11.7%  
+- **Segment with Highest Growth**: B2B Automation Platforms – 19.2% CAGR  
+
+Data sourced from Gartner, IDC, and industry analyst panels. Forecast validated with customer demand trends and regional expansion opportunities.
+"""
+    )
+
+@workflow.atom()
+def customer_trends():
+    text("## Customer Behavior Insights")
+    text(
+        """
+Based on 642 enterprise buyer survey responses (Q1 2025):
+
+- **Avg. Evaluation Period**: 34.2 days  
+- **Avg. Demos Viewed per Buyer**: 2.1  
+- **Vendors Considered per Deal**: 2.8  
+- **Buying Committee Size (avg.)**: 5.4 stakeholders
+
+### Key Decision Drivers:
+- 73%: Ease of API integration  
+- 68%: Enterprise security certifications (SOC2, ISO27001)  
+- 59%: TCO over 3 years  
+- 41%: Time-to-value metrics from onboarding  
+
+Buyers increasingly seek rapid implementation timelines and require cross-functional technical validation.
+"""
+    )
+
+@workflow.atom()
+def competitive_benchmarking():
+    text("## Competitive Benchmarking")
+    text(
+        """
+### Feature Comparison (Top 3 Competitors):
+
+| Feature                     | Our Platform | FlowEdge | TaskRoute | Automax |
+|-----------------------------|--------------|----------|-----------|---------|
+| Native AI Workflow Builder | ✅           | ❌       | ❌        | ✅      |
+| SOC 2 Type II               | ✅           | ✅       | ✅        | ✅      |
+| Partner Marketplace         | ❌           | ✅       | ✅        | ✅      |
+| Free Tier Available         | ✅           | ❌       | ✅        | ✅      |
+
+### Pricing & ACV:
+
+- **Our Avg. ACV**: $26,200  
+- **FlowEdge**: $33,700  
+- **TaskRoute**: $29,300  
+- **Automax**: $31,400  
+
+FlowEdge leads in brand awareness, but trails on speed and onboarding NPS (ours: 47; theirs: 32).
+"""
+    )
+
+@workflow.atom()
+def web_and_brand_metrics():
+    text("## Web Traffic & Brand Metrics")
+    text(
+        """
+### Website Analytics (Q1 2025):
+
+- **Monthly Unique Visitors**: 182,450 (▲ +12.6% QoQ)  
+- **Avg. Time on Site**: 2m 42s  
+- **Top Converting Pages**: /demo-request, /solutions/integrations  
+- **Organic Search Traffic**: 53.4% of total visits  
+- **Bounce Rate**: 42.8%
+
+### Brand Metrics:
+
+- **Share of Voice (Category)**: 11.2% (Ranked #3 behind FlowEdge and Automax)  
+- **Brand Recall (Unaided)**: 17% in recent survey (B2B SaaS buyers)  
+- **NPS**: +42 (vs. category avg. of +31)
+
+Campaigns driving top-funnel growth include the AI Feature Launch and Webinar Series on Process Automation.
+"""
+    )
+
+@workflow.atom()
+def channel_performance():
+    text("## Channel Performance")
+    text(
+        """
+### Pipeline Attribution (Q1 2025):
+
+| Channel           | % of Total Pipeline | Avg. Deal Size | Win Rate |
+|-------------------|----------------------|----------------|----------|
+| Direct (Inbound)  | 49.1%                | $21,400        | 28.4%    |
+| Paid Search       | 13.8%                | $18,200        | 16.7%    |
+| Partner-Sourced   | 14.2%                | $26,800        | 27.1%    |
+| Webinars          | 8.6%                 | $24,150        | 19.8%    |
+| Analyst Referrals | 3.9%                 | $29,300        | 34.5%    |
+
+Partner-influenced pipeline is up 22% QoQ with strongest results from DevSuite Alliance.
+"""
+    )
+
+@workflow.atom()
+def analyst_validation():
+    text("## Analyst & Industry Coverage")
+    text(
+        """
+Industry analyst validation across three major coverage firms:
+
+- **Gartner Market Guide (Mar 2025)**: Included in top 7 “Composable Integration Platforms”  
+- **Forrester Peer Survey**: 82% of respondents “likely to recommend”  
+- **Redpoint B2B Trends (2025)**: “Leading mid-market solution for process orchestration and real-time triggers”
+
+Additionally, we’ve seen 34% uplift in analyst-related inbound mentions quarter-over-quarter.
+"""
+    )
+
+@workflow.atom()
+def opportunities_and_threats():
+    text("## Strategic Opportunities & Market Risks")
+    text(
+        """
+### Opportunities:
+
+- **APAC Expansion**: Forecasted +$6.4M SAM by 2026  
+- **AI Feature Monetization**: Estimated +18% lift in ACV for AI-enhanced plans  
+- **Vertical Integration (Healthcare + Legal)**: TAM boost of $2.1B in target verticals  
+- **Field GTM**: Increases NRR by 7–11% on average based on pilot cohort
+
+### Risks:
+
+- **Competitor Pricing Pressure**: 12% price drop in SMB tier YoY  
+- **New Entrants**: 4 well-funded startups launched since Jan 2025  
+- **Churn Risk**: Highest in legacy plans with <50% feature utilization
+
+Mitigation plans in development for churn and pricing compression segments.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Data-Driven Recommendations")
+    text(
+        """
+To align with trends and mitigate identified risks, we recommend:
+
+1. **Refactor entry-level pricing tiers** for SMB retention (target churn <3%).  
+2. **Launch APAC localization roadmap** (JP + SG for Q3 launch).  
+3. **Expand AI adoption playbook** for CSMs—expected +20% expansion revenue.  
+4. **Commission brand refresh** to increase SOV beyond current 11%.  
+5. **Push analyst briefings monthly** for category leadership positioning.
+
+KPIs and execution milestones will be tracked via GTM dashboard and quarterly business reviews.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data collected from Jan 1 to March 31, 2025.  
+- Sources: HubSpot, Segment, Google Analytics, G2 Crowd, Gartner Peer Insights, and proprietary survey panels.  
+- For segmentation breakdowns or vertical-specific dashboards, contact Strategy & Insights.
+
+Next update scheduled: May 1, 2025.
+"""
+    )
+
+workflow.execute()

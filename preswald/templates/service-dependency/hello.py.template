@@ -1,0 +1,130 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Service Dependency Graph")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard tracks service-to-service dependencies within your infrastructure. 
+It helps engineering and SRE teams map critical paths, assess health metrics, 
+and identify cascading failure risks across distributed systems.
+"""
+    )
+
+@workflow.atom()
+def dependency_overview():
+    text("## Dependency Overview")
+    text(
+        """
+### As of April 23, 2025:
+
+- **Total Services Monitored**: 43  
+- **Direct Dependencies (Avg)**: 3.7 per service  
+- **Critical Path Services**: 8  
+- **External APIs Integrated**: 5  
+- **Most Connected Node**: `auth-service` (12 dependencies)
+
+The system graph shows tightly coupled paths in authentication and notification layers.
+"""
+    )
+
+@workflow.atom()
+def top_dependency_chains():
+    text("## Top 5 Longest Dependency Chains")
+    text(
+        """
+1. `web-client` → `api-gateway` → `auth-service` → `user-service` → `billing-engine`  
+2. `dashboard-ui` → `session-manager` → `profile-service` → `s3-archive`  
+3. `mobile-app` → `api-gateway` → `analytics-router` → `metrics-ingest` → `bigquery-loader`  
+4. `admin-console` → `auth-service` → `role-resolver` → `audit-logger`  
+5. `partner-portal` → `api-gateway` → `thirdparty-sync` → `salesforce-proxy`
+
+Chains with 4+ hops are flagged for potential latency risk during high load.
+"""
+    )
+
+@workflow.atom()
+def service_health_summary():
+    text("## Service Health Summary")
+    text(
+        """
+| Service            | Uptime (30d) | 95th Latency | Error Rate | Dependencies |
+|--------------------|--------------|---------------|-------------|---------------|
+| auth-service       | 99.97%       | 162ms         | 0.22%       | 12            |
+| api-gateway        | 99.92%       | 248ms         | 0.31%       | 9             |
+| billing-engine     | 99.89%       | 433ms         | 0.52%       | 6             |
+| metrics-ingest     | 99.84%       | 290ms         | 0.46%       | 4             |
+| thirdparty-sync    | 99.65%       | 378ms         | 0.71%       | 5             |
+
+`billing-engine` and `thirdparty-sync` show highest latency and error propagation under peak concurrency.
+"""
+    )
+
+@workflow.atom()
+def failure_propagation():
+    text("## Failure Propagation Insights")
+    text(
+        """
+### Past 30 Days:
+
+- **Incidents with Downstream Impact**: 5  
+- **Avg. Blast Radius (Affected Services)**: 3.2  
+- **Most Impactful Root**: `auth-service` – triggered cascading retries across `user-service` and `billing-engine`  
+- **Mean Time to Detect (MTTD)**: 3.1 mins  
+- **Mean Time to Resolve (MTTR)**: 26.4 mins
+
+Latency spikes in foundational services compound faster than application layer outages.
+"""
+    )
+
+@workflow.atom()
+def external_dependency_health():
+    text("## External Dependencies")
+    text(
+        """
+| External API      | Avg. Latency | Error Rate | SLO Violations (30d) |
+|--------------------|--------------|------------|------------------------|
+| Stripe API         | 281ms        | 0.13%      | 0                      |
+| Salesforce Proxy   | 403ms        | 0.48%      | 2                      |
+| OpenAI Gateway     | 329ms        | 0.18%      | 1                      |
+| Plaid Connector    | 377ms        | 0.21%      | 0                      |
+| SendGrid Webhook   | 191ms        | 0.08%      | 0                      |
+
+SLO adherence solid across third parties except Salesforce, where retries increased queue depth twice in April.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Architecture & Reliability Recommendations")
+    text(
+        """
+1. **Add async queueing between `auth-service` and `user-service`** to isolate retries  
+2. **Increase observability on `thirdparty-sync`**—introduce span annotations and timeout dashboards  
+3. **Introduce dependency budgets** for chains with >3 hops  
+4. **Pre-warm edge cache for `billing-engine`** during known concurrency spikes  
+5. **Establish fallback logic for Salesforce failures**
+
+All proposals align with Q2 SRE goals for latency control and fault tolerance.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Dependency map updated nightly from service registry  
+- Metrics from Datadog APM, Honeycomb, and internal SLO dashboards  
+- Next full dependency audit scheduled: May 8, 2025
+
+Contact sre-ops@company.com for topology exports or graph visualization requests.
+"""
+    )
+
+workflow.execute()

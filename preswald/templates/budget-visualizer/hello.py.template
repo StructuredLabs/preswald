@@ -1,0 +1,143 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def app_title():
+    text("# Personal Budget Visualizer")
+
+@workflow.atom()
+def app_description():
+    text("""
+Track your income and expenses, identify trends, and stay in control of your finances. This application provides a structured, narrative-driven overview of your monthly budget, helping you make informed financial decisions and achieve your personal goals.
+""")
+
+@workflow.atom()
+def income_summary():
+    text("## Income Summary")
+    text("""
+This section aggregates your income sources for the month. Each stream is itemized and tracked, giving you full visibility into how much money is coming in. Whether it's a full-time salary, freelance gigs, dividends, or rental income, this overview ensures you're aware of every dollar earned.
+
+**Example breakdown:**
+- Primary Job: $3,500
+- Freelance Projects: $1,200
+- Dividends: $300
+- Total Income: $5,000
+""")
+
+@workflow.atom()
+def fixed_expenses_overview():
+    text("## Fixed Expenses Overview")
+    text("""
+Fixed expenses are those recurring costs that stay relatively constant month to month—like rent, utilities, subscriptions, and insurance. These form the foundation of your budget and must be prioritized in planning.
+
+**Common categories:**
+- Rent/Mortgage
+- Utilities (Water, Gas, Electric)
+- Internet & Phone
+- Subscriptions (Netflix, Spotify)
+- Insurance (Health, Auto)
+
+**Tip:** Review subscriptions regularly to cancel underused services.
+""")
+
+@workflow.atom()
+def variable_expenses_insights():
+    text("## Variable Expenses Insights")
+    text("""
+Unlike fixed expenses, variable costs fluctuate each month. This section helps you monitor areas where you may overspend—like dining out, shopping, or entertainment.
+
+**Useful metrics:**
+- Average weekly spending
+- Month-over-month change
+- Highest single expense
+
+**Pro tip:** Set weekly caps for discretionary categories to control spending without feeling restricted.
+""")
+
+@workflow.atom()
+def savings_health_check():
+    text("## Savings Health Check")
+    text("""
+Your ability to save consistently is a key indicator of financial health. This section evaluates how much you’ve allocated toward short- and long-term savings goals, emergency funds, and investments.
+
+**Example savings goals:**
+- Emergency Fund (Target: $10,000)
+- Vacation Fund (Target: $2,000)
+- Retirement Account Contributions
+
+Monitor progress with actionable insights and monthly contribution summaries.
+""")
+
+@workflow.atom()
+def budget_allocation_vs_spending():
+    text("## Budget Allocation vs. Actual Spending")
+    text("""
+Compare your planned budget against actual spending to identify areas of alignment and overspending. This comparison fosters accountability and encourages better forecasting over time.
+
+**Metrics to track:**
+- Budgeted vs. Actual per category
+- % variance
+- Cumulative over/underspending
+
+Adjust your future budgets based on observed behaviors and needs.
+""")
+
+@workflow.atom()
+def recurring_payment_alerts():
+    text("## Recurring Payments & Alerts")
+    text("""
+Stay ahead of upcoming expenses with reminders for automatic payments such as credit card bills, loan repayments, and subscriptions. Get alerts when due dates approach or when actual spending nears preset thresholds.
+
+**Scenarios to monitor:**
+- Credit card due in 3 days
+- Subscription renewal next week
+- Monthly grocery budget 90% spent
+
+Helps avoid late fees and unintentional overspending.
+""")
+
+@workflow.atom()
+def spending_trends_analysis():
+    text("## Spending Trends Analysis")
+    text("""
+Understand your financial habits over time by analyzing multi-month trends. This section helps you uncover seasonal patterns, cost inflation, and recurring spending behaviors.
+
+**Features:**
+- 3-month rolling averages
+- High-spend category identification
+- Weekday vs. weekend spending comparison
+
+Use trend insights to plan ahead for months with historically higher spending (e.g., holidays).
+""")
+
+@workflow.atom()
+def lifestyle_adjustment_recommendations():
+    text("## Lifestyle Adjustment Recommendations")
+    text("""
+Based on your spending patterns, this section provides personalized suggestions for optimizing your lifestyle. Recommendations balance cost savings with maintaining quality of life.
+
+**Examples:**
+- Consider meal prepping to reduce food delivery costs.
+- Negotiate your internet plan for a lower monthly rate.
+- Consolidate streaming subscriptions.
+
+Each suggestion is data-informed, realistic, and aligned with your financial goals.
+""")
+
+@workflow.atom()
+def financial_summary_and_next_steps():
+    text("## Monthly Financial Summary & Next Steps")
+    text("""
+This wrap-up summarizes your financial performance for the month, celebrates wins, and suggests next steps for improvement.
+
+**Summary includes:**
+- Net Income (Income - Expenses)
+- Savings Rate %
+- Categories with most variance
+- Personal finance score (customized scale)
+
+Use this as a checkpoint to reflect, recalibrate your budget, and set a positive tone for the upcoming month.
+""")
+
+workflow.execute()

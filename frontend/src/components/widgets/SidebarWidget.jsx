@@ -14,6 +14,12 @@ const navigation = [
 const SidebarWidget = ({ defaultOpen = false, ...props }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(!defaultOpen);
+  const customBranding = props.branding || {};
+  const branding = {
+    logo: customBranding.logo || window.PRESWALD_BRANDING?.logo,
+    name: customBranding.name || window.PRESWALD_BRANDING?.name,
+    primaryColor: window.PRESWALD_BRANDING?.primaryColor,
+  };
 
   return (
     <>
@@ -33,7 +39,7 @@ const SidebarWidget = ({ defaultOpen = false, ...props }) => {
         isCollapsed={isCollapsed}
         setIsCollapsed={setIsCollapsed}
         navigation={navigation}
-        branding={window.PRESWALD_BRANDING}
+        branding={branding}
       />
     </>
   );

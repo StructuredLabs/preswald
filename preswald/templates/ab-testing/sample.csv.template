@@ -1,0 +1,103 @@
+Variant,Visitors,Conversions,Conversion Rate,Significance
+Control,500,50,10%,Yes
+Variant A,480,60,12.5%,No
+Control,510,45,8.8%,No
+Variant B,490,70,14.3%,Yes
+Control,520,55,10.6%,No
+Variant A,510,65,12.7%,No
+Control,530,48,9.1%,No
+Variant B,520,75,14.4%,Yes
+Control,540,60,11.1%,No
+Variant A,530,70,13.2%,No
+Control,550,52,9.5%,No
+Variant B,540,80,14.8%,Yes
+Control,560,65,11.6%,No
+Variant A,550,75,13.6%,No
+Control,570,55,9.6%,No
+Variant B,560,85,15.2%,Yes
+Control,580,70,12.1%,No
+Variant A,570,80,14%,Yes
+Control,590,58,9.8%,No
+Variant B,580,90,15.5%,Yes
+Control,600,75,12.5%,No
+Variant A,590,85,14.4%,Yes
+Control,610,62,10.2%,No
+Variant B,600,95,15.8%,Yes
+Control,620,80,12.9%,No
+Variant A,610,90,14.8%,Yes
+Control,630,65,10.3%,No
+Variant B,620,100,16.1%,Yes
+Control,640,85,13.3%,No
+Variant A,630,95,15%,Yes
+Control,650,68,10.5%,No
+Variant B,640,105,16.4%,Yes
+Control,660,90,13.6%,No
+Variant A,650,100,15.4%,Yes
+Control,670,72,10.7%,No
+Variant B,660,110,16.7%,Yes
+Control,680,95,14%,Yes
+Variant A,670,105,15.7%,Yes
+Control,690,78,11.3%,No
+Variant B,680,115,16.9%,Yes
+Control,700,100,14.3%,Yes
+Variant A,690,110,15.9%,Yes
+Control,710,82,11.5%,No
+Variant B,700,120,17.1%,Yes
+Control,720,105,14.6%,Yes
+Variant A,710,115,16.2%,Yes
+Control,730,85,11.6%,No
+Variant B,720,125,17.4%,Yes
+Control,740,110,14.9%,Yes
+Variant A,730,120,16.4%,Yes
+Control,750,90,12%,No
+Variant B,740,130,17.6%,Yes
+Control,760,115,15.1%,Yes
+Variant A,750,125,16.7%,Yes
+Control,770,88,11.4%,No
+Variant B,760,135,17.8%,Yes
+Control,780,120,15.4%,Yes
+Variant A,770,130,16.9%,Yes
+Control,790,92,11.6%,No
+Variant B,780,140,17.9%,Yes
+Control,800,125,15.6%,Yes
+Variant A,790,135,17.1%,Yes
+Control,810,95,11.7%,No
+Variant B,800,145,18.1%,Yes
+Control,820,130,15.9%,Yes
+Variant A,810,140,17.3%,Yes
+Control,830,98,11.8%,No
+Variant B,820,150,18.3%,Yes
+Control,840,135,16%,Yes
+Variant A,830,145,17.5%,Yes
+Control,850,100,11.8%,No
+Variant B,840,155,18.4%,Yes
+Control,860,140,16.3%,Yes
+Variant A,850,150,17.6%,Yes
+Control,870,105,12%,No
+Variant B,860,160,18.6%,Yes
+Control,880,145,16.5%,Yes
+Variant A,870,155,17.8%,Yes
+Control,890,110,12.3%,No
+Variant B,880,165,18.8%,Yes
+Control,900,150,16.7%,Yes
+Variant A,890,160,18%,Yes
+Control,910,115,12.6%,No
+Variant B,900,170,19%,Yes
+Control,920,155,16.8%,Yes
+Variant A,910,165,18.1%,Yes
+Control,930,120,12.9%,No
+Variant B,920,175,19.2%,Yes
+Control,940,160,17%,Yes
+Variant A,930,170,18.3%,Yes
+Control,950,125,13.2%,No
+Variant B,940,180,19.4%,Yes
+Control,960,165,17.2%,Yes
+Variant A,950,175,18.4%,Yes
+Control,970,130,13.4%,No
+Variant B,960,185,19.6%,Yes
+Control,980,170,17.3%,Yes
+Variant A,970,180,18.6%,Yes
+Control,990,135,13.6%,No
+Variant B,980,190,19.8%,Yes
+Control,1000,175,17.5%,Yes
+Variant A,990,185,18.7%,Yes

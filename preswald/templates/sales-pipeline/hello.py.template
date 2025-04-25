@@ -1,0 +1,145 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Sales Pipeline Dashboard")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard provides a comprehensive view of your active sales pipeline. 
+Track deal progress, forecasted revenue, and team performance metrics to support accurate planning, 
+identify bottlenecks, and drive strategic sales execution.
+"""
+    )
+
+@workflow.atom()
+def pipeline_summary():
+    text("## Pipeline Summary")
+    text(
+        """
+### Snapshot as of April 23, 2025:
+
+- **Total Pipeline Value**: $6.74M  
+- **Open Opportunities**: 382  
+- **Avg. Deal Size**: $17,640  
+- **Pipeline Coverage Ratio**: 3.4x (vs. target)  
+- **Forecast Confidence**: Moderate
+
+Pipeline volume supports Q2 targets, but high-value deals skew later-stage risk.
+"""
+    )
+
+@workflow.atom()
+def stage_breakdown():
+    text("## Pipeline by Stage")
+    text(
+        """
+| Stage               | Deals | Value     | Avg. Age | Win Rate (Hist.) |
+|---------------------|-------|-----------|----------|------------------|
+| Discovery           | 124   | $1.28M    | 7.3 days | 17%              |
+| Evaluation          | 102   | $1.82M    | 12.5 days| 31%              |
+| Proposal Sent       | 84    | $2.09M    | 15.2 days| 45%              |
+| Negotiation/Review  | 42    | $1.03M    | 18.9 days| 63%              |
+| Contract Sent       | 30    | $520K     | 10.1 days| 78%              |
+
+Most deals are in mid-stage. Time-in-stage and drop-off rates indicate room to accelerate Evaluation-to-Proposal movement.
+"""
+    )
+
+@workflow.atom()
+def forecast_by_month():
+    text("## Forecasted Revenue by Month")
+    text(
+        """
+| Month     | Weighted Forecast | Best Case | Closed Won |
+|-----------|-------------------|-----------|-------------|
+| April     | $1.38M            | $1.96M    | $1.12M      |
+| May       | $2.04M            | $2.71M    | $218K       |
+| June      | $1.22M            | $1.97M    | $0          |
+
+Weighted pipeline supports $4.6M Q2 target, but >40% sits in May/June with >15-day aging.
+"""
+    )
+
+@workflow.atom()
+def deal_velocity():
+    text("## Deal Velocity & Conversion")
+    text(
+        """
+- **Avg. Sales Cycle**: 24.7 days  
+- **Avg. Time from Discovery → Proposal**: 9.4 days  
+- **Win Rate (Last 90 days)**: 38.1%  
+- **Stalled Deals (>30d inactive)**: 57  
+- **Lost Deals (MTD)**: 42 (16.2% of active volume)
+
+Speed has improved in early stages, but deal aging and activity gaps remain primary loss contributors.
+"""
+    )
+
+@workflow.atom()
+def rep_performance():
+    text("## Sales Rep Pipeline Contributions")
+    text(
+        """
+| Rep Name     | Pipeline Value | # of Deals | Avg. Deal Size | Forecast Confidence |
+|--------------|----------------|-------------|----------------|----------------------|
+| Jordan L.    | $938K          | 41          | $22,878        | High                 |
+| Carla M.     | $722K          | 38          | $18,992        | High                 |
+| Noah P.      | $687K          | 32          | $21,468        | Medium               |
+| Rachel T.    | $609K          | 29          | $21,000        | Medium               |
+| Dante P.     | $558K          | 44          | $12,682        | Low                  |
+
+High performers are focusing on fewer, higher-value deals. Dante needs coaching on qualification and deal focus.
+"""
+    )
+
+@workflow.atom()
+def opportunity_sources():
+    text("## Opportunity Source Breakdown")
+    text(
+        """
+| Source               | Deals | Pipeline Value | Win Rate |
+|----------------------|-------|----------------|----------|
+| Inbound Web          | 122   | $1.96M         | 43%      |
+| Outbound SDR         | 103   | $1.48M         | 28%      |
+| Referrals            | 58    | $1.22M         | 62%      |
+| Channel Partners     | 66    | $1.48M         | 36%      |
+| Events               | 33    | $600K          | 30%      |
+
+Referrals outperform in close rate and cycle time. Outbound deals tend to be smaller and take longer to qualify.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Strategic Recommendations")
+    text(
+        """
+1. **Accelerate Evaluation-stage deals** with enablement content and mid-funnel nudges  
+2. **Refocus SDR activity on high-conversion industries** and better-qualified lists  
+3. **Add forecast hygiene check** to clean stale or unlikely contracts from May/June targets  
+4. **Prioritize referral follow-ups**—lowest effort, highest return segment  
+5. **Coach low-converting reps** on lead scoring and next-step urgency
+
+Weekly forecast review cadence continues every Monday with sales leadership.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data sourced from Salesforce and Gong, April 1–22, 2025  
+- Weighted forecast = expected revenue × stage probability  
+- Deals < $5K excluded from averages to focus on strategic pipeline
+
+Next forecast refresh scheduled for April 29, 2025.
+"""
+    )
+
+workflow.execute()

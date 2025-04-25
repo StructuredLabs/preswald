@@ -1,0 +1,146 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Customer Support SLA Dashboard")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard tracks SLA adherence, response time metrics, and ticket resolution performance 
+across the customer support organization. Use it to ensure timely service delivery, monitor escalations, 
+and improve customer satisfaction through operational transparency.
+"""
+    )
+
+@workflow.atom()
+def sla_summary():
+    text("## SLA Compliance Summary")
+    text(
+        """
+### April 1–22, 2025:
+
+- **Total Tickets Logged**: 3,724  
+- **SLA Compliance (All)**: 93.6%  
+- **SLA Breaches**: 238  
+- **SLA Breach Rate**: 6.4%  
+- **Critical Ticket SLA**: 98.2% (SLA target: 98%)  
+- **High Priority SLA**: 94.7% (SLA target: 95%)  
+- **Median First Response Time**: 41 min  
+- **Median Time to Resolution**: 6h 28m
+
+SLA targets were met for critical issues, but high-priority compliance fell slightly below threshold.
+"""
+    )
+
+@workflow.atom()
+def priority_breakdown():
+    text("## Ticket Volume by Priority")
+    text(
+        """
+| Priority     | Tickets | SLA Met | SLA %   | Avg. Response | Avg. Resolution |
+|--------------|---------|---------|---------|----------------|------------------|
+| Critical     | 122     | 120     | 98.2%   | 12 min         | 3h 21m           |
+| High         | 642     | 608     | 94.7%   | 29 min         | 5h 18m           |
+| Medium       | 1,982   | 1,861   | 93.9%   | 47 min         | 7h 12m           |
+| Low          | 978     | 897     | 91.7%   | 1h 16m         | 10h 45m          |
+
+Response and resolution times are trending within targets except for low-priority ticket backlog.
+"""
+    )
+
+@workflow.atom()
+def response_metrics():
+    text("## First Response Time Metrics")
+    text(
+        """
+### April Distribution:
+
+- **<15 Minutes**: 21.4% of tickets  
+- **15–60 Minutes**: 47.8%  
+- **1–4 Hours**: 20.1%  
+- **>4 Hours**: 10.7%  
+
+94.3% of tickets were acknowledged within 4 hours. Weekend gaps remain in first-response SLA tracking.
+"""
+    )
+
+@workflow.atom()
+def resolution_metrics():
+    text("## Resolution Time Metrics")
+    text(
+        """
+### April Resolution Times:
+
+- **Resolved <4h**: 28.9%  
+- **Resolved 4–8h**: 37.6%  
+- **Resolved 8–24h**: 22.4%  
+- **Resolved >24h**: 11.1%  
+
+Resolution speed is highest in Tier 1 teams. Tier 2 escalations account for most of the >24h durations.
+"""
+    )
+
+@workflow.atom()
+def escalation_and_reopen():
+    text("## Escalations & Reopened Tickets")
+    text(
+        """
+| Metric                     | Count | % of Total |
+|----------------------------|--------|-------------|
+| Escalated to Tier 2        | 317    | 8.5%        |
+| Reopened After Closure     | 94     | 2.5%        |
+| Reopened SLA Breach        | 28     | 0.75%       |
+
+Reopens most often stem from billing disputes and misunderstood automation resolutions.
+"""
+    )
+
+@workflow.atom()
+def team_performance():
+    text("## Team SLA Performance")
+    text(
+        """
+| Team            | SLA % (All) | First Response Avg | Resolution Avg |
+|------------------|-------------|---------------------|----------------|
+| Tier 1 - General | 94.8%       | 39 min              | 6h 04m         |
+| Tier 2 - Product | 91.1%       | 58 min              | 9h 51m         |
+| Tier 2 - Billing | 89.6%       | 63 min              | 10h 17m        |
+| Escalation Team  | 96.3%       | 18 min              | 5h 12m         |
+
+Escalation team maintains fastest resolution time. Billing team flagged for backlog review.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Operational Recommendations")
+    text(
+        """
+1. **Staff Tier 2 billing queue** with one additional agent to address >24h tickets  
+2. **Launch SLA dashboard alerts** for high-priority breaches beyond 2h  
+3. **Refine triage automation** to reduce incorrect assignment delays  
+4. **Offer asynchronous support** during weekend coverage gaps  
+5. **Conduct root cause analysis** on repeat reopen categories (billing + automation)
+
+Follow-up actions to be tracked in CS Ops board and reviewed biweekly.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data from Zendesk and internal SLA tracker  
+- Coverage window: April 1–22, 2025  
+- SLA breach defined as first response or full resolution outside contractually defined window
+
+Next full SLA report scheduled: May 6, 2025.
+"""
+    )
+
+workflow.execute()

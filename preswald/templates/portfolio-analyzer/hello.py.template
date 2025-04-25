@@ -1,0 +1,162 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Portfolio Analyzer")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard provides a structured performance analysis of your equity portfolio. 
+Upload your stock holdings to track historical returns, benchmark comparisons, sector exposure, 
+and risk-adjusted performance metrics. Use it to evaluate your portfolio strategy with confidence.
+"""
+    )
+
+@workflow.atom()
+def holdings_summary():
+    text("## Holdings Summary")
+    text(
+        """
+### As of April 23, 2025:
+
+- **Total Portfolio Value**: $148,200  
+- **Number of Positions**: 21  
+- **Top Holding**: AAPL – 18.3% of portfolio  
+- **Cash Allocation**: 6.4%  
+- **YTD Portfolio Return**: +9.8%  
+- **Trailing 12-Month Return**: +15.2%
+
+The portfolio is moderately concentrated with high exposure to large-cap tech stocks.
+"""
+    )
+
+@workflow.atom()
+def performance_vs_benchmark():
+    text("## Performance vs. Benchmark")
+    text(
+        """
+| Period         | Portfolio Return | S&P 500 Return | Delta   |
+|----------------|------------------|----------------|---------|
+| YTD 2025       | +9.8%            | +7.3%          | ▲ +2.5% |
+| Last 12 Months | +15.2%           | +14.6%         | ▲ +0.6% |
+| Last 3 Years   | +36.7%           | +30.9%         | ▲ +5.8% |
+
+Your portfolio has consistently outperformed the S&P 500, particularly in periods of tech sector strength.
+"""
+    )
+
+@workflow.atom()
+def sector_allocation():
+    text("## Sector Allocation")
+    text(
+        """
+| Sector             | Allocation | Benchmark (S&P 500) |
+|--------------------|------------|---------------------|
+| Technology         | 41.2%      | 28.5%               |
+| Healthcare         | 12.4%      | 13.1%               |
+| Consumer Discretionary | 10.6%  | 10.8%               |
+| Financials         | 8.8%       | 11.4%               |
+| Industrials        | 6.3%       | 8.2%                |
+| Other              | 14.3%      | 28.0%               |
+
+Technology overweight has contributed to alpha but increases risk in sector-specific downturns.
+"""
+    )
+
+@workflow.atom()
+def risk_metrics():
+    text("## Risk Metrics")
+    text(
+        """
+| Metric              | Value    | Benchmark (S&P 500) |
+|---------------------|----------|---------------------|
+| Beta (1Y)           | 1.14     | 1.00                |
+| Volatility (Std Dev)| 14.2%    | 12.7%               |
+| Sharpe Ratio (1Y)   | 1.03     | 0.94                |
+| Max Drawdown (1Y)   | -8.9%    | -9.2%               |
+
+Slightly higher volatility than market but with favorable risk-adjusted returns.
+"""
+    )
+
+@workflow.atom()
+def top_performers():
+    text("## Top 5 Performing Holdings (YTD)")
+    text(
+        """
+1. **NVDA** – +42.5%  
+2. **AAPL** – +19.4%  
+3. **META** – +15.8%  
+4. **MSFT** – +13.9%  
+5. **ASML** – +12.7%
+
+AI and chip-related names have driven most of the recent upside.
+"""
+    )
+
+@workflow.atom()
+def laggards_watchlist():
+    text("## Laggards & Watchlist")
+    text(
+        """
+### Underperforming Holdings (YTD):
+
+- **INTC**: -5.4%  
+- **PYPL**: -3.8%  
+- **DIS**: -2.1%
+
+These positions have underperformed both the market and sector peers. Consider reviewing earnings guidance and technical support levels.
+"""
+    )
+
+@workflow.atom()
+def dividend_income():
+    text("## Dividend Income Summary")
+    text(
+        """
+- **Projected Annual Income**: $2,410  
+- **Yield on Cost**: 1.56%  
+- **Top Dividend Contributors**:
+  - JPM: $660/year
+  - T: $440/year
+  - PFE: $385/year
+
+Dividend reinvestment enabled on all eligible positions.
+"""
+    )
+
+@workflow.atom()
+def allocation_recommendations():
+    text("## Allocation Recommendations")
+    text(
+        """
+To enhance diversification and reduce risk concentration:
+
+1. **Trim Technology to <35%** of portfolio exposure  
+2. **Increase allocation to Industrials or Energy** for cyclical balance  
+3. **Boost cash buffer to 8–10%** in preparation for rate volatility  
+4. **Explore international ETFs** to reduce correlation with U.S. equities
+
+These adjustments may improve long-term stability and smooth drawdowns.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Portfolio data as of April 23, 2025  
+- Benchmark: S&P 500 Index (SPX)  
+- Performance includes price appreciation and dividends  
+- Risk metrics calculated using trailing 12-month returns
+
+For detailed trade analysis or rebalance simulations, contact your advisor or use the modeling tool.
+"""
+    )
+
+workflow.execute()

@@ -41,6 +41,7 @@
     "classnames": "^2.5.1",
     "clsx": "^2.1.1",
     "dagre": "^0.8.5",
+    "katex": "^0.16.21",
     "lucide-react": "^0.473.0",
     "pako": "^2.1.0",
     "plotly.js": "^2.35.3",
@@ -54,11 +55,14 @@
     "react-router-dom": "^6.28.1",
     "react-syntax-highlighter": "^15.6.1",
     "reactflow": "^11.11.4",
+    "rehype-katex": "^7.0.1",
     "remark-autolink-headings": "^7.0.1",
     "remark-gfm": "^4.0.0",
+    "remark-math": "^6.0.0",
     "remark-slug": "^7.0.1",
     "tailwind-merge": "^2.6.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "use-debounce": "^10.0.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
