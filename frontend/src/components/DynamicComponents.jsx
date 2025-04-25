@@ -74,7 +74,7 @@ const MemoizedComponent = memo(
       case 'sidebar':
         return (
           <SidebarWidget
-            id={id}
+            id={componentId}
             defaultOpen={component.defaultopen}
             branding={component.branding}
           />
