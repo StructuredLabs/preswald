@@ -3,6 +3,7 @@ import builtins
 import logging
 from functools import wraps, lru_cache
 from types import FunctionType
+
 from preswald.interfaces.workflow import AtomContext
 from preswald.interfaces.tracked_value import TrackedValue
 from preswald.interfaces.dependency_tracker import (
@@ -17,34 +18,47 @@ logger = logging.getLogger(__name__)
 
 @lru_cache(maxsize=1)
 def get_builtin_components():
+    """
+    Return a set of builtin Preswald component function names
+    (e.g., slider, text) that should not be auto-wrapped as reactive atoms.
+    """
     results = {
         name
         for name, val in vars(components_module).items()
         if callable(val) and getattr(val, "_preswald_component_type", None)
     }
-    logger.debug(f"[get_builtin_components] builtin component names: {results}")
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug(f"[get_builtin_components] builtin component names: {results}")
     return results
 
 
 def reactive(func=None, *, workflow=None):
+    """
+    Decorator that turns a function into a reactive atom,
+    automatically registering it with the workflow.
+
+    If called without a function, returns a partially applied decorator.
+    """
     if func is None:
         return lambda actual_func: reactive(actual_func, workflow=workflow)
 
     @wraps(func)
     def wrapper(*args, **kwargs):
         from preswald import get_workflow
+
         wf = workflow or get_workflow()
         logger.debug(f"[reactive] using workflow id: {id(wf)}")
         atom_name = func.__name__
-
         registry = wf._auto_atom_registry
 
+        # Atom is not yet registered, or the existing registration is stale.
         if atom_name not in registry or not hasattr(registry[atom_name], "_fresh"):
             logger.debug(f"[AUTO-ATOM] Registering {atom_name} as implicit atom")
             wf._registered_reactive_atoms.append(func)
 
             def wrapped_body(*args, **kwargs):
                 from preswald.interfaces.components import ComponentReturn
+
                 ctx = AtomContext(workflow=wf, atom_name=atom_name)
                 push_context(ctx)
                 try:
@@ -70,14 +84,15 @@ def reactive(func=None, *, workflow=None):
 
                     tracked = TrackedValue(result, atom_name)
                     return tracked
+
                 finally:
                     pop_context()
 
             wrapped_body.__name__ = atom_name
             registered_func = wf.atom()(wrapped_body)
 
-            # TEMPORARY: Used to mark this atom as freshly registered to avoid double-wrapping.
-            # Can likely be removed when atom registration is more deterministic (e.g., via context manager).
+            # TEMPORARY: Mark this atom as freshly registered to avoid double-wrapping.
+            # Once the reactive runtime is fully AST-driven, this manual marking will be unnecessary.
             registered_func._fresh = True
 
             registry[atom_name] = registered_func
@@ -86,15 +101,30 @@ def reactive(func=None, *, workflow=None):
 
     return wrapper
 
+
 def get_registered_reactive_atoms(workflow=None):
+    """
+    Return the list of reactive atom functions registered with the current workflow.
+    """
     from preswald import get_workflow
+
     wf = workflow or get_workflow()
     return wf._registered_reactive_atoms
 
-def wrap_auto_atoms(globals_dict, workflow=None):
-    from preswald import get_workflow
-    wf = workflow or get_workflow()
 
+def wrap_auto_atoms(globals_dict, workflow=None):
+    """
+    Automatically wrap zero argument functions defined at module scope
+    as reactive atoms. Updates globals in place.
+
+    Only wraps functions that:
+    - Are not already registered
+    - Are not builtin components
+    - Do not require positional arguments
+    """
+    from preswald import get_workflow
+
+    wf = workflow or get_workflow()
     registry = wf._auto_atom_registry
     builtin_names = get_builtin_components()
 
@@ -107,10 +137,7 @@ def wrap_auto_atoms(globals_dict, workflow=None):
             and name not in registry
             and name not in EXCLUDED_NAMES
         ):
-            # TEMPORARY: Skip auto-wrapping any function that requires positional arguments.
-            # This avoids accidentally breaking user-defined functions that expect input.
-            # Once we support `with reactive_block():` for opt-in reactivity, this check can be removed.
-            # The context manager is itself a stepping stone toward full callsite-level precision via AST transformation.
+            # Skip functions that require positional arguments to avoid accidental breakage.
             sig = inspect.signature(val)
             has_required_params = any(
                 param.default is inspect.Parameter.empty and
@@ -125,13 +152,15 @@ def wrap_auto_atoms(globals_dict, workflow=None):
             result = wrapped()
             globals_dict[name] = result
 
-    # reregister atoms explicitly now that all globals are wrapped
+    # Reregister all atoms explicitly after global wrapping
     for name, wrapped in registry.items():
         wf.atom()(wrapped)
 
-# TEMPORARY: Patch `builtins` so users don't need to import `reactive` or `wrap_auto_atoms` manually.
-# This will be removed once we introduce `with reactive_scope():`, which gives users explicit control
-# over which code blocks are reactive. That approach is safer and avoids potential atom name collisions
-# across concurrently loaded scripts. It also aligns better with our long-term AST transformation plan.
+
+# TEMPORARY: Patch `builtins` so that `sl_reactive` and `sl_wrap_auto_atoms`
+# are globally available without needing manual imports.
+#
+# TODO: Cleanup global namespace pollution. In the future, these helpers
+# should be injected per user script or workflow to avoid conflicts.
 builtins.sl_reactive = reactive
 builtins.sl_wrap_auto_atoms = wrap_auto_atoms

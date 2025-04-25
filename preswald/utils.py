@@ -158,7 +158,7 @@ def generate_stable_id(prefix: str = "component", identifier: Optional[str] = No
     """
     if identifier:
         hashed = hashlib.md5(identifier.lower().encode()).hexdigest()[:8]
-        logger.info(f'[generate_stable_id] using identifier to generate hash {hashed}')
+        logger.debug(f"[generate_stable_id] Using identifier to generate hash {hashed}")
         return f"{prefix}-{hashed}"
 
     if callsite_hint:
@@ -182,13 +182,14 @@ def generate_stable_id(prefix: str = "component", identifier: Optional[str] = No
             stack = inspect.stack()
             for frame_info in stack:
                 filename = frame_info.filename
+                # Skip frames from virtual environments, installed libraries, or internal preswald code
                 if (
                     not any(filename.startswith(p) for p in venv_paths if p)
                     and "site-packages" not in filename
                     and "/lib/python" not in filename
                     and "/preswald/" not in filename
                 ):
-                    logger.info(f"[generate_stable_id] Callsite used: {filename}:{frame_info.lineno}")
+                    logger.debug(f"[generate_stable_id] Using callsite: {filename}:{frame_info.lineno}")
                     return f"{filename}:{frame_info.lineno}"
 
             logger.warning("[generate_stable_id] Could not find valid callsite, falling back")
@@ -197,14 +198,15 @@ def generate_stable_id(prefix: str = "component", identifier: Optional[str] = No
         callsite_hint = get_callsite_id()
 
     hashed = hashlib.md5(callsite_hint.encode()).hexdigest()[:8]
-    logger.info(f"[generate_stable_id] using callsite_hint to generate hash {hashed}")
+    logger.debug(f"[generate_stable_id] Using callsite_hint to generate hash {hashed}")
     return f"{prefix}-{hashed}"
-
 
 def generate_stable_atom_id_from_component_id(component_id: str, prefix: str = "_auto_atom") -> str:
     """
     Generate an atom ID by reusing a component's stable ID hash but with a different prefix.
     Example: component_id='text-abc123ef' -> atom_id='_auto_atom-abc123ef'
+
+    If the input is badly formatted, fallback to generating a fresh stable ID.
     """
     if component_id and "-" in component_id:
         hash_part = component_id.rsplit("-", 1)[-1]

@@ -172,7 +172,7 @@ class Atom:
             finally:
                 end_time = time.time()
                 execution_time = end_time - start_time
-                logger.info(f"Atom {self.name} execution time: {execution_time:.2f}s")
+                logger.debug(f"Atom {self.name} execution time: {execution_time:.2f}s")
 
         # Replace the function with the wrapped version
         self.func = wrapped_func
@@ -249,6 +249,7 @@ class Workflow:
             atom_name = name or func.__name__
 
             if self._is_rerun and atom_name in self.atoms:
+                logger.debug(f"[workflow.atom] Skipping re-registration of {atom_name} during rerun")
                 return func
 
             logger.info(f"[workflow.atom] Registered atom: {atom_name}")
@@ -319,11 +320,11 @@ class Workflow:
             atoms_to_recompute = set()
             if recompute_atoms:
                 atoms_to_recompute = self._get_affected_atoms(recompute_atoms)
-                logger.debug(f"Atoms requiring recomputation: {atoms_to_recompute}")
+                logger.debug(f"[DAG] Atoms requiring recomputation: {atoms_to_recompute}")
 
             for atom_name in execution_order:
                 if self._is_rerun and atoms_to_recompute and atom_name not in atoms_to_recompute:
-                    logger.debug(f"Skipping atom {atom_name} (not affected)")
+                    logger.debug(f"[DAG] Skipping atom {atom_name} (not affected)")
                     continue
                 atom = self.atoms[atom_name]
 
@@ -359,16 +360,16 @@ class Workflow:
             name for name, atom in self.atoms.items() if not atom.dependencies
         ]
 
-        logger.debug(f"[workflow] Executing relevant atoms: {top_level_atoms}")
+        logger.debug(f"[workflow] Executing top-level atoms: {top_level_atoms}")
 
         for atom_name in top_level_atoms:
             try:
-                logger.debug(f"[workflow] Triggering: {atom_name}")
+                logger.debug(f"[workflow] Triggering top-level atom: {atom_name}")
                 atom = self.atoms[atom_name]
                 result = self._execute_atom(atom)
                 self.context.set_result(atom_name, result)
             except Exception as e:
-                logger.warning(f"[workflow] Failed to execute {atom_name}: {e!s}", exc_info=True)
+                logger.warning(f"[workflow] Failed to execute top-level atom {atom_name}: {e!s}", exc_info=True)
 
     def get_component_producer(self, component_id: str) -> str | None:
         """Retrieve the name of the atom that last produced the component."""
@@ -378,7 +379,7 @@ class Workflow:
     # This may cause DAG to miss component -> atom associations in edge cases.
     def register_component_producer(self, component_id: str):
         """Associate a component ID with the currently active atom."""
-        logger.debug(f"[DEBUG] Called register_component_producer({component_id})")
+        logger.debug(f"[DAG] Called register_component_producer({component_id})")
         if hasattr(self, '_current_atom') and self._current_atom:
             logger.debug(f"[DAG] Registering {component_id} as output of {self._current_atom}")
             self._component_producers[component_id] = self._current_atom
@@ -390,7 +391,7 @@ class Workflow:
         """
         affected = set(changed_atoms)
 
-        logger.debug(f"[DAG] Starting traversal from: {changed_atoms}")
+        logger.debug(f"[DAG] Starting traversal from changed atoms: {changed_atoms}")
 
         # Repeatedly find atoms that depend on affected atoms until no new ones are found
         while True:
@@ -398,10 +399,10 @@ class Workflow:
             for atom_name, atom in self.atoms.items():
                 if atom_name not in affected:  # Skip already affected atoms
                     if any(dep in affected for dep in atom.dependencies):
-                        logger.debug(f"[DAG] Visiting: {atom_name}")
+                        logger.debug(f"[DAG] Atom {atom_name} depends on affected atom, marking for recompute")
                         new_affected.add(atom_name)
 
-            if not new_affected:  # No new affected atoms found
+            if not new_affected:
                 break
 
             affected.update(new_affected)
@@ -423,7 +424,7 @@ class Workflow:
 
         def has_cycle(atom_name: str) -> bool:
             if atom_name in temp_visited:
-                logger.error(f"[CYCLE DETECTED] -> {' -> '.join(stack + [atom_name])}")
+                logger.error(f"[DAG] Cycle detected -> {' -> '.join(stack + [atom_name])}")
                 return True
             if atom_name in visited:
                 return False
@@ -464,6 +465,8 @@ class Workflow:
         for atom_name in self.atoms:
             visit(atom_name)
 
+        logger.debug(f"[DAG] Computed atom execution order: {order}")
+
         return order
 
     def _execute_atom(self, atom: Atom, **kwargs) -> AtomResult:
@@ -480,10 +483,8 @@ class Workflow:
         }
 
         input_hash = self.cache.compute_input_hash(atom.name, dependency_values)
-        if not atom.force_recompute and not self.cache.should_recompute(
-            atom.name, input_hash
-        ):
-            logger.debug(f"Using cached result for atom: {atom.name}")
+        if not atom.force_recompute and not self.cache.should_recompute(atom.name, input_hash):
+            logger.debug(f"[DAG] Using cached result for atom: {atom.name}")
             cached_result = self.cache.cache[atom.name]
             cached_result.status = AtomStatus.SKIPPED
             return cached_result
@@ -499,7 +500,7 @@ class Workflow:
         finally:
             self._current_atom = None
 
-    def _execute_atom_inner(self, atom, dependency_values, input_hash):
+    def _execute_atom_inner(self, atom: Atom, dependency_values: dict[str, Any], input_hash: str) -> AtomResult:
         attempts = 0
         start_time = time.time()
 
@@ -512,7 +513,8 @@ class Workflow:
                     if dep in dependency_values
                 ]
                 if logger.isEnabledFor(logging.DEBUG):
-                    logger.debug(f'[_execute_atom_inner] calling atom.func with args {args}')
+                    logger.debug(f"[DAG] Executing atom {atom.name} with args: {args}")
+
                 result = atom.func(*args)
 
                 end_time = time.time()
@@ -525,17 +527,16 @@ class Workflow:
                     input_hash=input_hash,
                 )
 
-                # Cache the successful result
                 self.cache.cache[atom.name] = atom_result
                 return atom_result
             except Exception as e:
                 current_time = time.time()
                 if atom.retry_policy.should_retry(attempts, e):
+                    delay = atom.retry_policy.get_delay(attempts)
                     logger.warning(
-                        f"Atom {atom.name} failed (attempt {attempts}). "
-                        f"Retrying after {atom.retry_policy.get_delay(attempts)}s"
+                        f"[DAG] Atom {atom.name} failed on attempt {attempts}. Retrying after {delay:.2f}s."
                     )
-                    time.sleep(atom.retry_policy.get_delay(attempts))
+                    time.sleep(delay)
                     continue
                 else:
                     return AtomResult(
@@ -547,12 +548,12 @@ class Workflow:
                         input_hash=input_hash,
                     )
 
-    def _register_dependency(self, atom_name, dep_name):
+    def _register_dependency(self, atom_name: str, dep_name: str):
         if atom_name in self.atoms:
             self.atoms[atom_name].dependencies.add(dep_name)
-            logger.debug(f"[DAG] {atom_name} depends on {dep_name} (registered)")
+            logger.debug(f"[DAG] Registered dependency: {atom_name} -> {dep_name}")
         else:
-            logger.warning(f"[DAG] Tried to register dependency for unknown atom {atom_name}")
+            logger.warning(f"[DAG] Tried to register dependency for unknown atom '{atom_name}'")
 
 
 class WorkflowAnalyzer:
