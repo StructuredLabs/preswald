@@ -181,7 +181,14 @@ class CSVSource(DataSource):
         self._table_name = f"csv_{name}_{uuid.uuid4().hex[:8]}"
         self._duckdb.execute(f"""
             CREATE TABLE {self._table_name} AS
-            SELECT * FROM read_csv_auto('{self.path}')
+            SELECT * FROM read_csv_auto('{self.path}',
+                header=true,
+                auto_detect=true,
+                ignore_errors=true,
+                normalize_names=false,
+                sample_size=-1,
+                all_varchar=true
+            )
         """)
 
     def query(self, sql: str) -> pd.DataFrame:

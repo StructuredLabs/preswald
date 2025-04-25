@@ -48,6 +48,11 @@ class ScriptRunner:
         self._lock = threading.Lock()
         self._script_globals = {}
 
+        from .service import (
+            PreswaldService,  # deferred import to avoid cyclic dependency
+        )
+        self._service = PreswaldService.get_instance()
+
         logger.info(f"[ScriptRunner] Initialized with session_id: {session_id}")
         if initial_states:
             logger.debug(f"[ScriptRunner] Loaded initial states: {initial_states}")
@@ -125,18 +130,49 @@ class ScriptRunner:
                 for component_id, value in new_widget_states.items():
                     old_value = self.widget_states.get(component_id)
                     self.widget_states[component_id] = value
-                    logger.debug(
-                        f"[ScriptRunner] Updated state: {component_id} = {value} (was {old_value})"
-                    )
-
+                    logger.debug(f"[ScriptRunner] Updated state: {component_id} = {value} (was {old_value})")
                 self._run_count += 1
                 self._last_run_time = current_time
 
-            await self.run_script()
+            # determine affected components and force recomputation
+            changed_component_ids = set(new_widget_states.keys())
+            changed_atoms = {
+                self._service.get_workflow().get_component_producer(cid)
+                for cid in changed_component_ids
+                if self._service.get_workflow().get_component_producer(cid)
+            }
+
+            affected = self._service.get_affected_components(changed_atoms)
+
+            if not changed_atoms and not affected:
+                logger.warning("[ScriptRunner] No atoms affected — falling back to full script rerun")
+                await self.run_script()
+                return
+
+            self._service.force_recompute(affected)
+
+            # Execute workflow with selective recompute
+            workflow = self._service.get_workflow()
+            results = workflow.execute(recompute_atoms=affected)
+
+            # Ensure layout rendering happens for all atoms
+            for atom_name, result in results.items():
+                with self._service.active_atom(atom_name):
+                    if result is not None:
+                        value = result.value if hasattr(result, 'value') else None
+                        if value is not None:
+                            self._service.append_component({"id": atom_name, "value": value})
+
+            components = self._service.get_rendered_components()
+            logger.info(f"[ScriptRunner] Rendered {len(components)} components (rerun)")
+
+            if components:
+                await self.send_message({"type": "components", "components": components})
+                logger.info("[ScriptRunner] Sent components to frontend")
 
         except Exception as e:
             error_msg = f"Error updating widget states: {e!s}"
-            logger.error(f"[ScriptRunner] {error_msg}")
+            logger.error(f"[ScriptRunner] {error_msg}", exc_info=True)
             await self._send_error(error_msg)
             self._state = ScriptState.ERROR
 
@@ -217,18 +253,12 @@ class ScriptRunner:
         )
 
         try:
-            from .service import PreswaldService
-
-            service = PreswaldService.get_instance()
-
             # Clear previous components before execution
-            service.clear_components()
-            service.connect_data_manager()
+            self._service.clear_components()
+            self._service.connect_data_manager()
 
             # Set up script environment
-            self._script_globals = {
-                "widget_states": self.widget_states,
-            }
+            self._script_globals = {"widget_states": self.widget_states}
 
             # Capture script output
             with self._redirect_stdout():
@@ -247,14 +277,21 @@ class ScriptRunner:
                     os.chdir(current_working_dir)
 
                 # Process rendered components
-                components = service.get_rendered_components()
+                components = self._service.get_rendered_components()
                 logger.info(f"[ScriptRunner] Rendered {len(components)} components")
+
+                rows = components.get("rows", [])
+                for row in rows:
+                    for component in row:
+                        component_id = component.get("id")
+                        if not component_id:
+                            continue
+                        with self._service.active_atom(component_id):
+                            _ = self._service.get_component_state(component_id)
 
                 if components:
                     # Send to frontend
-                    await self.send_message(
-                        {"type": "components", "components": components}
-                    )
+                    await self.send_message({"type": "components", "components": components})
                     logger.debug("[ScriptRunner] Sent components to frontend")
 
         except Exception as e:

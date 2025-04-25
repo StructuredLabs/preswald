@@ -1,0 +1,85 @@
+Category,Amount,Type,Date,Notes
+Income,5000,Salary,2022-01-01,January Salary
+Income,4500,Salary,2022-02-01,February Salary
+Income,4800,Salary,2022-03-01,March Salary
+Income,5200,Salary,2022-04-01,April Salary
+Income,4900,Salary,2022-05-01,May Salary
+Income,5100,Salary,2022-06-01,June Salary
+Income,5300,Salary,2022-07-01,July Salary
+Income,5400,Salary,2022-08-01,August Salary
+Income,5500,Salary,2022-09-01,September Salary
+Income,5600,Salary,2022-10-01,October Salary
+Income,5700,Salary,2022-11-01,November Salary
+Income,5800,Salary,2022-12-01,December Salary
+Expense,2000,Rent,2022-01-05,Monthly Rent
+Expense,150,Groceries,2022-01-10,Weekly Groceries
+Expense,100,Transportation,2022-01-15,Bus Fare
+Expense,300,Utilities,2022-01-20,Electricity Bill
+Expense,50,Entertainment,2022-01-25,Movie Night
+Expense,200,Dining Out,2022-01-30,Restaurant Dinner
+Expense,1800,Rent,2022-02-05,Monthly Rent
+Expense,160,Groceries,2022-02-10,Weekly Groceries
+Expense,90,Transportation,2022-02-15,Bus Fare
+Expense,280,Utilities,2022-02-20,Electricity Bill
+Expense,40,Entertainment,2022-02-25,Concert Tickets
+Expense,220,Dining Out,2022-02-28,Date Night
+Expense,2100,Rent,2022-03-05,Monthly Rent
+Expense,170,Groceries,2022-03-10,Weekly Groceries
+Expense,80,Transportation,2022-03-15,Bus Fare
+Expense,320,Utilities,2022-03-20,Electricity Bill
+Expense,60,Entertainment,2022-03-25,Game Night
+Expense,240,Dining Out,2022-03-31,Family Dinner
+Income,6000,Sales,2022-04-05,Product Sales
+Income,5200,Salary,2022-04-10,April Salary
+Income,4800,Sales,2022-04-15,Service Sales
+Income,5500,Salary,2022-04-20,April Salary
+Income,5800,Sales,2022-04-25,Product Sales
+Income,5300,Salary,2022-04-30,April Salary
+Income,6200,Sales,2022-05-05,Service Sales
+Income,5400,Salary,2022-05-10,May Salary
+Income,5700,Sales,2022-05-15,Product Sales
+Income,5600,Salary,2022-05-20,May Salary
+Income,5900,Sales,2022-05-25,Service Sales
+Income,5100,Salary,2022-05-30,May Salary
+Expense,1850,Rent,2022-06-05,Monthly Rent
+Expense,180,Groceries,2022-06-10,Weekly Groceries
+Expense,95,Transportation,2022-06-15,Bus Fare
+Expense,310,Utilities,2022-06-20,Electricity Bill
+Expense,55,Entertainment,2022-06-25,Movie Night
+Expense,215,Dining Out,2022-06-30,Restaurant Dinner
+Expense,1900,Rent,2022-07-05,Monthly Rent
+Expense,155,Groceries,2022-07-10,Weekly Groceries
+Expense,85,Transportation,2022-07-15,Bus Fare
+Expense,290,Utilities,2022-07-20,Electricity Bill
+Expense,45,Entertainment,2022-07-25,Concert Tickets
+Expense,225,Dining Out,2022-07-31,Date Night
+Expense,1950,Rent,2022-08-05,Monthly Rent
+Expense,165,Groceries,2022-08-10,Weekly Groceries
+Expense,75,Transportation,2022-08-15,Bus Fare
+Expense,330,Utilities,2022-08-20,Electricity Bill
+Expense,65,Entertainment,2022-08-25,Game Night
+Expense,245,Dining Out,2022-08-31,Family Dinner
+Income,6100,Sales,2022-09-05,Product Sales
+Income,5400,Salary,2022-09-10,September Salary
+Income,5900,Sales,2022-09-15,Service Sales
+Income,5800,Salary,2022-09-20,September Salary
+Income,5700,Sales,2022-09-25,Product Sales
+Income,5300,Salary,2022-09-30,September Salary
+Income,6300,Sales,2022-10-05,Service Sales
+Income,5500,Salary,2022-10-10,October Salary
+Income,5800,Sales,2022-10-15,Product Sales
+Income,5700,Salary,2022-10-20,October Salary
+Income,6000,Sales,2022-10-25,Service Sales
+Income,5200,Salary,2022-10-30,October Salary
+Expense,1900,Rent,2022-11-05,Monthly Rent
+Expense,175,Groceries,2022-11-10,Weekly Groceries
+Expense,100,Transportation,2022-11-15,Bus Fare
+Expense,320,Utilities,2022-11-20,Electricity Bill
+Expense,60,Entertainment,2022-11-25,Movie Night
+Expense,230,Dining Out,2022-11-30,Restaurant Dinner
+Expense,1950,Rent,2022-12-05,Monthly Rent
+Expense,160,Groceries,2022-12-10,Weekly Groceries
+Expense,90,Transportation,2022-12-15,Bus Fare
+Expense,300,Utilities,2022-12-20,Electricity Bill
+Expense,50,Entertainment,2022-12-25,Concert Tickets
+Expense,220,Dining Out,2022-12-31,Date Night

@@ -1,0 +1,177 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Podcast Analytics Dashboard")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard provides an overview of podcast performance across platforms. 
+Track episode downloads, listener demographics, and engagement trends to optimize content strategy 
+and understand audience behavior in real time.
+"""
+    )
+
+@workflow.atom()
+def performance_summary():
+    text("## Performance Summary")
+    text(
+        """
+### Q1 2025 Totals:
+
+- **Total Downloads**: 124,530  
+- **Avg. Downloads per Episode**: 4,151  
+- **Listener Retention (Avg.)**: 68.3%  
+- **Top Platform**: Spotify (43% of streams)  
+- **Most Played Episode**: “Future of Remote Work” – 9,710 plays
+
+Monthly growth rate for downloads: ▲ 8.2%  
+Engagement steadily improving with recent content refresh.
+"""
+    )
+
+@workflow.atom()
+def top_episodes():
+    text("## Top Performing Episodes")
+    text(
+        """
+| Episode Title                 | Downloads | Completion Rate | Avg. Listen Time |
+|-------------------------------|-----------|------------------|------------------|
+| Future of Remote Work         | 9,710     | 76%              | 34m 12s          |
+| Building Better Onboarding    | 8,635     | 73%              | 31m 08s          |
+| AI in Everyday Products       | 7,420     | 68%              | 29m 45s          |
+| The Subscription Economy      | 7,110     | 70%              | 30m 14s          |
+
+Top episodes show stronger retention with practical takeaways and guest interviews.
+"""
+    )
+
+@workflow.atom()
+def listener_demographics():
+    text("## Listener Demographics")
+    text(
+        """
+### Platform Distribution:
+
+- Spotify: 43%  
+- Apple Podcasts: 28%  
+- Web Player: 12%  
+- Overcast & Others: 17%
+
+### Geographic Breakdown:
+
+- United States: 62%  
+- United Kingdom: 14%  
+- Canada: 9%  
+- Australia: 6%  
+- Other: 9%
+
+### Age Segments:
+
+- 18–24: 9%  
+- 25–34: 39%  
+- 35–44: 27%  
+- 45–54: 15%  
+- 55+: 10%
+
+Primary audience is young professionals and tech-forward mid-career listeners.
+"""
+    )
+
+@workflow.atom()
+def engagement_metrics():
+    text("## Engagement Metrics")
+    text(
+        """
+### Average Across Episodes (Q1 2025):
+
+- **Avg. Listen Time**: 30m 18s  
+- **Completion Rate**: 68.3%  
+- **Listener Drop-off Point**: 24–28 minute mark  
+- **Episodes with Ads Skipped**: 43%  
+- **Social Shares per Episode**: 87  
+
+Improving mid-episode structure and placing CTAs earlier may help with drop-off mitigation.
+"""
+    )
+
+@workflow.atom()
+def release_schedule_analysis():
+    text("## Release Schedule Impact")
+    text(
+        """
+### Publish Days Performance:
+
+- **Tuesday Releases**: Avg. 5,120 downloads  
+- **Thursday Releases**: Avg. 3,940 downloads  
+- **Sunday Drops**: Avg. 2,710 downloads
+
+Tuesday is the strongest release day, with higher early-week listener engagement.
+"""
+    )
+
+@workflow.atom()
+def monetization_metrics():
+    text("## Monetization & Ads Performance")
+    text(
+        """
+### Q1 2025 Ad Stats:
+
+- **Ad Slots Filled**: 92%  
+- **CPM Range**: $18–$32  
+- **Avg. Revenue per Episode**: $186  
+- **Top Sponsor Category**: SaaS Tools  
+- **Listener Feedback on Ads**: 4.1/5
+
+Dynamic ad insertion shows stronger results on back catalog (25% higher fill rate).
+"""
+    )
+
+@workflow.atom()
+def subscriber_growth():
+    text("## Subscriber Growth")
+    text(
+        """
+| Month      | New Subscribers | Churn Rate | Net Growth |
+|------------|------------------|------------|------------|
+| January    | 3,420            | 8.1%       | +2,644     |
+| February   | 3,725            | 7.4%       | +2,830     |
+| March      | 4,180            | 6.9%       | +3,034     |
+
+Churn decreasing month-over-month with improvements to episode consistency and trailer previews.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Recommendations")
+    text(
+        """
+1. **Prioritize Tuesday publishing** based on performance lift  
+2. **Move ad breaks before minute 20** to reduce skip behavior  
+3. **Test 3-part content series** to increase listen-through and retention  
+4. **Expand social promotions** for top 10 episodes (target share count >150)  
+5. **Improve mobile player UX** on web for long-tail audience access
+
+These actions align with current audience behavior and top-performing content patterns.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data sourced from Spotify for Podcasters, Apple Analytics, Castos, and Chartable  
+- All episode stats reflect activity from January 1 to March 31, 2025  
+- Engagement metrics exclude bot or auto-download traffic
+
+Next dashboard update scheduled for July 15, 2025.
+"""
+    )
+
+workflow.execute()

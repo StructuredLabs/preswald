@@ -1,0 +1,13 @@
+from preswald import text, plotly, connect, get_df, table
+import pandas as pd
+import plotly.express as px
+
+text("# API Usage Tracker")
+text("Monitor API endpoints, usage patterns, and performance metrics in real-time.")
+
+# Load the CSV
+connect()
+df = get_df('sample_csv')
+
+# Show the data
+table(df)

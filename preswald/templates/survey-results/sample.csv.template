@@ -1,0 +1,26 @@
+Question,Response,Count,Percentage
+Overall satisfaction,Very satisfied,120,40%
+Overall satisfaction,Satisfied,100,33.33%
+Overall satisfaction,Neutral,50,16.67%
+Overall satisfaction,Unsatisfied,20,6.67%
+Overall satisfaction,Very unsatisfied,10,3.33%
+Likelihood to recommend,Highly likely,130,43.33%
+Likelihood to recommend,Somewhat likely,90,30%
+Likelihood to recommend,Neutral,40,13.33%
+Likelihood to recommend,Not likely,30,10%
+Likelihood to recommend,Not at all likely,10,3.33%
+Ease of use,Very easy,140,46.67%
+Ease of use,Easy,90,30%
+Ease of use,Neutral,40,13.33%
+Ease of use,Difficult,20,6.67%
+Ease of use,Very difficult,10,3.33%
+Customer support satisfaction,Very satisfied,110,36.67%
+Customer support satisfaction,Satisfied,90,30%
+Customer support satisfaction,Neutral,40,13.33%
+Customer support satisfaction,Unsatisfied,30,10%
+Customer support satisfaction,Very unsatisfied,30,10%
+Product quality,Excellent,120,40%
+Product quality,Good,100,33.33%
+Product quality,Average,40,13.33%
+Product quality,Poor,30,10%
+Product quality,Very poor,10,3.33%

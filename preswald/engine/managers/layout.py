@@ -1,3 +1,9 @@
+import logging
+
+
+logger = logging.getLogger(__name__)
+
+
 class LayoutManager:
     """Manages the layout of components in rows based on their sizes"""
 
@@ -57,3 +63,21 @@ class LayoutManager:
         self.current_row.clear()
         self.current_row_size = 0.0
         self.seen_ids = set()
+
+    def patch_component(self, updated_component):
+        """Patch an existing component in the layout if it exists by ID."""
+        if "id" not in updated_component or updated_component["id"] not in self.seen_ids:
+            return False  # cannot patch if component is not existing
+
+        component_id = updated_component["id"]
+        logger.debug(f"[PATCH] Patching existing component { component_id }")
+
+        for row in self.rows:
+            for i, existing in enumerate(row):
+                if existing.get("id") == component_id:
+                    row[i] = updated_component
+                    return True
+
+        # Component id was seen, but not found in rows. This could be a layout bug
+        logger.warning(f"[PATCH] Component id {component_id} was seen but not found in layout rows")
+        return False

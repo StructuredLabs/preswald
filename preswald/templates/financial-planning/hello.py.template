@@ -1,0 +1,172 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Financial Planning Dashboard")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard provides a holistic view of your financial health and long-term planning. 
+It helps track personal or household financial goals, investment performance, and retirement readiness. 
+Use this dashboard to stay on top of your financial future and make confident, informed decisions.
+"""
+    )
+
+@workflow.atom()
+def financial_snapshot():
+    text("## Current Financial Snapshot")
+    text(
+        """
+### As of April 23, 2025:
+
+- **Total Net Worth**: $1,042,800  
+- **Cash & Checking Accounts**: $52,300  
+- **Investment Accounts**: $631,450  
+- **Retirement Accounts**: $296,720  
+- **Debt Outstanding**: $62,670  
+
+This section gives a high-level picture of your assets and liabilities across major account types.
+"""
+    )
+
+@workflow.atom()
+def financial_goals():
+    text("## Financial Goals Tracking")
+    text(
+        """
+Progress toward your top three financial goals:
+
+1. **Save $100,000 for Home Down Payment**  
+   _Current_: $72,600 (72.6%)  
+   _Target Date_: June 2026
+
+2. **Pay Off Student Loans**  
+   _Current Balance_: $18,400  
+   _Target Payoff_: May 2027
+
+3. **Build Emergency Fund (6 months expenses)**  
+   _Current_: $14,200  
+   _Target_: $21,000 (67.6% complete)
+
+These goals are customizable and update automatically based on your latest account balances.
+"""
+    )
+
+@workflow.atom()
+def investment_performance():
+    text("## Investment Portfolio Performance")
+    text(
+        """
+### Last 12 Months:
+
+- **Total Return**: +7.9%  
+- **Best Performing Asset Class**: US Equity – +13.4%  
+- **Worst Performing Asset Class**: Emerging Markets – -2.1%  
+- **Average Annual Return (3Y)**: 6.5%  
+
+Asset allocation and individual holdings can be reviewed in more detail under your brokerage or retirement accounts.
+"""
+    )
+
+@workflow.atom()
+def retirement_planning():
+    text("## Retirement Planning Overview")
+    text(
+        """
+### Current Plan:
+
+- **Target Retirement Age**: 65  
+- **Projected Retirement Fund at 65**: $1.24M  
+- **Annual Withdrawal Goal**: $64,000  
+- **Estimated Longevity Coverage**: 31 years (to age 96)  
+
+Assumptions include average return of 5.8% and inflation at 2.1%. This projection is recalculated monthly.
+"""
+    )
+
+@workflow.atom()
+def monthly_cash_flow():
+    text("## Monthly Cash Flow")
+    text(
+        """
+### March 2025 Overview:
+
+- **Income**: $9,420  
+- **Fixed Expenses**: $4,150  
+- **Variable Expenses**: $2,320  
+- **Savings & Investments**: $2,150  
+- **Net Cash Flow**: +$800
+
+These figures provide a breakdown of where your money goes and how much is set aside toward your goals.
+"""
+    )
+
+@workflow.atom()
+def debt_summary():
+    text("## Debt Summary")
+    text(
+        """
+Active debts and their status:
+
+| Type             | Balance | Interest Rate | Monthly Payment | Target Payoff |
+|------------------|---------|----------------|------------------|----------------|
+| Student Loans    | $18,400 | 4.7%           | $320             | May 2027       |
+| Auto Loan        | $12,100 | 3.9%           | $285             | Jan 2026       |
+| Credit Card      | $2,170  | 17.9%          | $250             | Jul 2025       |
+| Mortgage         | $30,000 | 3.5%           | $980             | Dec 2040       |
+
+Paying down high-interest debt remains a top financial priority.
+"""
+    )
+
+@workflow.atom()
+def insurance_snapshot():
+    text("## Insurance & Protection Overview")
+    text(
+        """
+A summary of active coverage across key areas:
+
+- **Health Insurance**: Covered via employer (Aetna PPO)
+- **Life Insurance**: $250K term policy through Prudential (expires 2042)
+- **Homeowner’s Insurance**: $400K coverage, includes fire and flood
+- **Auto Insurance**: Full coverage through GEICO
+
+Review annually to ensure adequate protection aligned with life changes.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Recommendations")
+    text(
+        """
+To strengthen your financial position over the next 12 months:
+
+1. **Increase 401(k) contributions** from 7% to 10% to accelerate retirement growth.
+2. **Refinance credit card debt** to lower-interest personal loan.
+3. **Continue automatic deposits** into home savings account.
+4. **Review asset allocation** and consider rebalancing after Q2.
+5. **Schedule a mid-year review** with your financial advisor.
+
+Small, consistent improvements can have a major impact over time.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- All figures are based on data as of April 23, 2025.
+- Account balances are synced nightly via Plaid and investment APIs.
+- Retirement projections assume historical market returns and are not guaranteed.
+
+This dashboard is intended for personal planning and should be reviewed quarterly.
+"""
+    )
+
+workflow.execute()

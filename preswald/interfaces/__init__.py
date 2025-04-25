@@ -11,6 +11,7 @@ from .components import (
     checkbox,
     # fastplotlib,
     image,
+    json_viewer,
     matplotlib,
     mosaic,
     playground,

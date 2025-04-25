@@ -1,0 +1,508 @@
+{
+    "templates": [
+      {
+        "id": "executive-summary",
+        "title": "Executive Summary Dashboard",
+        "author": "Structured Labs",
+        "description": "Track company-wide KPIs, revenue, burn rate, headcount, and OKR progress in one comprehensive view.",
+        "preview": "executive-summary",
+        "tags": ["Business", "Analytics", "Dashboard"],
+        "type": "Preswald"
+      },
+      {
+        "id": "board-meeting",
+        "title": "Board Meeting Report",
+        "author": "Structured Labs",
+        "description": "Present quarterly financials, strategic goals, key initiatives, and hiring plans to your board.",
+        "preview": "board-meeting",
+        "tags": ["Business", "Operations", "Presentation"],
+        "type": "Preswald"
+      },
+      {
+        "id": "burn-rate",
+        "title": "Burn Rate & Runway Dashboard",
+        "author": "Structured Labs",
+        "description": "Monitor cash burn, runway projections, and financial health metrics in real-time.",
+        "preview": "burn-rate",
+        "tags": ["Business", "Analytics", "Dashboard"],
+        "type": "Preswald"
+      },
+      {
+        "id": "sales-pipeline",
+        "title": "Sales Pipeline Dashboard",
+        "author": "Structured Labs",
+        "description": "Track deals, forecast revenue, and analyze sales performance across your pipeline.",
+        "preview": "sales-pipeline",
+        "tags": ["Sales", "Analytics", "Dashboard"],
+        "type": "Preswald"
+      },
+      {
+        "id": "marketing-campaign",
+        "title": "Marketing Campaign Performance",
+        "author": "Structured Labs",
+        "description": "Analyze campaign metrics, ROI, and channel performance across your marketing efforts.",
+        "preview": "marketing-campaign",
+        "tags": ["Sales", "Analytics", "Campaign"],
+        "type": "Preswald"
+      },
+      {
+        "id": "personal-finance",
+        "title": "Personal Finance Dashboard",
+        "author": "Structured Labs",
+        "description": "Track expenses, investments, and financial goals in a Mint-like interface.",
+        "preview": "personal-finance",
+        "tags": ["Personal", "Business", "Dashboard"],
+        "type": "Preswald"
+      },
+      {
+        "id": "github-activity",
+        "title": "GitHub Activity Dashboard",
+        "author": "Structured Labs",
+        "description": "Visualize commit history, PR activity, and team contributions across repositories.",
+        "preview": "github-activity",
+        "tags": ["Engineering", "Analytics", "Dashboard"],
+        "type": "Preswald"
+      },
+      {
+        "id": "portfolio-analyzer",
+        "title": "Portfolio Analyzer",
+        "author": "Structured Labs",
+        "description": "Upload stock holdings and analyze performance with interactive charts and benchmarks.",
+        "preview": "portfolio-analyzer",
+        "tags": ["Business", "Analytics", "Investment"],
+        "type": "Preswald"
+      },
+      {
+        "id": "customer-health",
+        "title": "Customer Health Dashboard",
+        "author": "Structured Labs",
+        "description": "Monitor customer engagement, satisfaction, and risk factors in real-time.",
+        "preview": "customer-health",
+        "tags": ["Sales", "Analytics", "Dashboard"],
+        "type": "Preswald"
+      },
+      {
+        "id": "incident-postmortem",
+        "title": "Incident Postmortem Report",
+        "author": "Structured Labs",
+        "description": "Document incidents, root causes, and action items with a structured template.",
+        "preview": "incident-postmortem",
+        "tags": ["Operations", "Documentation"],
+        "type": "Preswald"
+      },
+      {
+        "id": "on-call-handoff",
+        "title": "On-call Handoff Report",
+        "author": "Structured Labs",
+        "description": "Create comprehensive handoff reports for on-call rotations with key metrics and alerts.",
+        "preview": "on-call-handoff",
+        "tags": ["Operations", "Analytics", "Metrics"],
+        "type": "Preswald"
+      },
+      {
+        "id": "user-retention",
+        "title": "User Retention Cohorts",
+        "author": "Structured Labs",
+        "description": "Analyze user retention patterns with cohort analysis and visualization tools.",
+        "preview": "user-retention",
+        "tags": ["Sales", "Analytics", "Retention"],
+        "type": "Preswald"
+      },
+      {
+        "id": "test-coverage",
+        "title": "Test Coverage Heatmap",
+        "author": "Structured Labs",
+        "description": "Visualize code coverage across your codebase with interactive heatmaps.",
+        "preview": "test-coverage",
+        "tags": ["Engineering", "Analytics", "Testing"],
+        "type": "Preswald"
+      },
+      {
+        "id": "service-dependency",
+        "title": "Service Dependency Graph",
+        "author": "Structured Labs",
+        "description": "Map service dependencies and visualize metrics across your infrastructure.",
+        "preview": "service-dependency",
+        "tags": ["Engineering", "Analytics", "Monitoring"],
+        "type": "Preswald"
+      },
+      {
+        "id": "unit-economics",
+        "title": "Unit Economics Deep Dive",
+        "author": "Structured Labs",
+        "description": "Analyze unit economics with detailed cost and revenue breakdowns.",
+        "preview": "unit-economics",
+        "tags": ["Business", "Analytics"],
+        "type": "Preswald"
+      },
+      {
+        "id": "m-and-a",
+        "title": "M&A Due Diligence Memo",
+        "author": "Structured Labs",
+        "description": "Document M&A due diligence findings with financial analysis and risk assessment.",
+        "preview": "m-and-a",
+        "tags": ["Business", "Documentation"],
+        "type": "Preswald"
+      },
+      {
+        "id": "survey-results",
+        "title": "Visualize Survey Results",
+        "author": "Structured Labs",
+        "description": "Create interactive visualizations for survey data with charts and insights.",
+        "preview": "survey-results",
+        "tags": ["Analytics", "Visualization"],
+        "type": "Preswald"
+      },
+      {
+        "id": "sales-leaderboard",
+        "title": "Sales Team Leaderboard",
+        "author": "Structured Labs",
+        "description": "Track sales performance, rankings, and achievements across your team.",
+        "preview": "sales-leaderboard",
+        "tags": ["Sales", "Analytics", "Performance"],
+        "type": "Preswald"
+      },
+      {
+        "id": "customer-churn",
+        "title": "Customer Churn Dashboard",
+        "author": "Structured Labs",
+        "description": "Monitor customer retention, churn rates, and risk factors in real-time.",
+        "preview": "customer-churn",
+        "tags": ["Sales", "Analytics", "Dashboard"],
+        "type": "Preswald"
+      },
+      {
+        "id": "real-estate-search",
+        "title": "Real Estate Search Dashboard",
+        "author": "Structured Labs",
+        "description": "Compare MLS listings and analyze market trends with interactive visualizations.",
+        "preview": "real-estate-search",
+        "tags": ["Business", "Analytics", "Dashboard"],
+        "type": "Preswald"
+      },
+      {
+        "id": "mortgage-refinancing",
+        "title": "Mortgage Refinancing Dashboard",
+        "author": "Structured Labs",
+        "description": "Compare mortgage options and calculate refinancing scenarios with interactive tools.",
+        "preview": "mortgage-refinancing",
+        "tags": ["Business", "Analytics", "Calculator"],
+        "type": "Preswald"
+      },
+      {
+        "id": "health-metrics",
+        "title": "Personal Health Metrics Dashboard",
+        "author": "Structured Labs",
+        "description": "Track daily activity, sleep, nutrition, and health indicators with interactive visualizations.",
+        "preview": "health-metrics",
+        "tags": ["Personal", "Analytics", "Dashboard"],
+        "type": "Preswald"
+      },
+      {
+        "id": "health-insurance",
+        "title": "Health Insurance Comparison Tool",
+        "author": "Structured Labs",
+        "description": "Compare health insurance plans, coverage, and costs with interactive visualizations.",
+        "preview": "health-insurance",
+        "tags": ["Personal", "Business", "Analytics"],
+        "type": "Preswald"
+      },
+      {
+        "id": "budget-visualizer",
+        "title": "Personal Budget Visualizer",
+        "author": "Structured Labs",
+        "description": "Track spending patterns and budget categories with interactive charts and analysis.",
+        "preview": "budget-visualizer",
+        "tags": ["Personal", "Business", "Analytics"],
+        "type": "Preswald"
+      },
+      {
+        "id": "crypto-tracker",
+        "title": "Crypto Holdings Tracker",
+        "author": "Structured Labs",
+        "description": "Monitor cryptocurrency investments with real-time price tracking and portfolio analysis.",
+        "preview": "crypto-tracker",
+        "tags": ["Business", "Analytics", "Investment"],
+        "type": "Preswald"
+      },
+      {
+        "id": "api-usage",
+        "title": "API Usage Tracker",
+        "author": "Structured Labs",
+        "description": "Monitor API endpoints, usage patterns, and performance metrics in real-time.",
+        "preview": "api-usage",
+        "tags": ["Engineering", "Analytics", "Monitoring"],
+        "type": "Preswald"
+      },
+      {
+        "id": "api-latency",
+        "title": "API Latency Breakdown",
+        "author": "Structured Labs",
+        "description": "Analyze API performance with p50/p95/p99 latency metrics and endpoint comparison.",
+        "preview": "api-latency",
+        "tags": ["Engineering", "Analytics", "Monitoring"],
+        "type": "Preswald"
+      },
+      {
+        "id": "podcast-analytics",
+        "title": "Podcast Analytics Dashboard",
+        "author": "Structured Labs",
+        "description": "Track episode performance, listener demographics, and engagement metrics.",
+        "preview": "podcast-analytics",
+        "tags": ["Business", "Analytics", "Dashboard"],
+        "type": "Preswald"
+      },
+      {
+        "id": "social-media-analytics",
+        "title": "Social Media Analytics Dashboard",
+        "author": "Structured Labs",
+        "description": "Track engagement, reach, and performance across all social media platforms in one view.",
+        "preview": "social-media-analytics",
+        "tags": ["Marketing", "Analytics", "Dashboard"],
+        "type": "Preswald"
+      },
+      {
+        "id": "seo-tracker",
+        "title": "SEO Performance Tracker",
+        "author": "Structured Labs",
+        "description": "Monitor keyword rankings, backlinks, and organic traffic with detailed analytics.",
+        "preview": "seo-tracker",
+        "tags": ["Marketing", "Analytics", "SEO"],
+        "type": "Preswald"
+      },
+      {
+        "id": "email-analytics",
+        "title": "Email Marketing Analytics",
+        "author": "Structured Labs",
+        "description": "Track email campaign performance, open rates, and conversion metrics.",
+        "preview": "email-analytics",
+        "tags": ["Marketing", "Analytics", "Campaign"],
+        "type": "Preswald"
+      },
+      {
+        "id": "user-feedback",
+        "title": "User Feedback Analysis",
+        "author": "Structured Labs",
+        "description": "Analyze and categorize user feedback with sentiment analysis and trend tracking.",
+        "preview": "user-feedback",
+        "tags": ["Product", "Analytics", "Research"],
+        "type": "Preswald"
+      },
+      {
+        "id": "ab-testing",
+        "title": "A/B Test Results Dashboard",
+        "author": "Structured Labs",
+        "description": "Visualize and analyze A/B test results with statistical significance indicators.",
+        "preview": "ab-testing",
+        "tags": ["Product", "Analytics", "Testing"],
+        "type": "Preswald"
+      },
+      {
+        "id": "infrastructure-costs",
+        "title": "Infrastructure Cost Analysis",
+        "author": "Structured Labs",
+        "description": "Analyze cloud infrastructure costs and optimize resource allocation.",
+        "preview": "infrastructure-costs",
+        "tags": ["Engineering", "Analytics", "Operations"],
+        "type": "Preswald"
+      },
+      {
+        "id": "recruitment-pipeline",
+        "title": "Recruitment Pipeline Dashboard",
+        "author": "Structured Labs",
+        "description": "Track candidate progress, interview feedback, and hiring metrics.",
+        "preview": "recruitment-pipeline",
+        "tags": ["HR", "Analytics", "Operations"],
+        "type": "Preswald"
+      },
+      {
+        "id": "engagement-survey",
+        "title": "Employee Engagement Survey",
+        "author": "Structured Labs",
+        "description": "Create and analyze employee engagement surveys with interactive results.",
+        "preview": "engagement-survey",
+        "tags": ["HR", "Analytics", "Survey"],
+        "type": "Preswald"
+      },
+      {
+        "id": "learning-tracker",
+        "title": "Learning & Development Tracker",
+        "author": "Structured Labs",
+        "description": "Track employee training progress, certifications, and skill development.",
+        "preview": "learning-tracker",
+        "tags": ["HR", "Analytics", "Development"],
+        "type": "Preswald"
+      },
+      {
+        "id": "vendor-management",
+        "title": "Vendor Management Dashboard",
+        "author": "Structured Labs",
+        "description": "Track vendor performance, contracts, and relationship metrics.",
+        "preview": "vendor-management",
+        "tags": ["Operations", "Analytics", "Business"],
+        "type": "Preswald"
+      },
+      {
+        "id": "project-budget",
+        "title": "Project Budget Tracker",
+        "author": "Structured Labs",
+        "description": "Monitor project expenses, budget allocation, and cost projections.",
+        "preview": "project-budget",
+        "tags": ["Operations", "Analytics", "Finance"],
+        "type": "Preswald"
+      },
+      {
+        "id": "risk-assessment",
+        "title": "Risk Assessment Matrix",
+        "author": "Structured Labs",
+        "description": "Evaluate and track business risks with probability and impact analysis.",
+        "preview": "risk-assessment",
+        "tags": ["Business", "Analytics", "Operations"],
+        "type": "Preswald"
+      },
+      {
+        "id": "compliance-tracking",
+        "title": "Compliance Tracking Dashboard",
+        "author": "Structured Labs",
+        "description": "Monitor regulatory compliance status and track audit requirements.",
+        "preview": "compliance-tracking",
+        "tags": ["Operations", "Analytics", "Compliance"],
+        "type": "Preswald"
+      },
+      {
+        "id": "sustainability",
+        "title": "Sustainability Metrics Dashboard",
+        "author": "Structured Labs",
+        "description": "Track environmental impact, carbon footprint, and sustainability goals.",
+        "preview": "sustainability",
+        "tags": ["Operations", "Analytics", "ESG"],
+        "type": "Preswald"
+      },
+      {
+        "id": "supply-chain",
+        "title": "Supply Chain Analytics",
+        "author": "Structured Labs",
+        "description": "Monitor supply chain performance, inventory levels, and logistics metrics.",
+        "preview": "supply-chain",
+        "tags": ["Operations", "Analytics", "Logistics"],
+        "type": "Preswald"
+      },
+      {
+        "id": "investor-relations",
+        "title": "Investor Relations Dashboard",
+        "author": "Structured Labs",
+        "description": "Track key metrics, shareholder communications, and investor meeting materials.",
+        "preview": "investor-relations",
+        "tags": ["Business", "Finance", "Analytics"],
+        "type": "Preswald"
+      },
+      {
+        "id": "market-research",
+        "title": "Market Research Analysis",
+        "author": "Structured Labs",
+        "description": "Analyze market trends, competitor data, and industry insights with interactive visualizations.",
+        "preview": "market-research",
+        "tags": ["Business", "Research", "Analytics"],
+        "type": "Preswald"
+      },
+      {
+        "id": "product-usage",
+        "title": "Product Usage Analytics",
+        "author": "Structured Labs",
+        "description": "Track feature adoption, user behavior, and engagement patterns across your product.",
+        "preview": "product-usage",
+        "tags": ["Product", "Analytics", "User"],
+        "type": "Preswald"
+      },
+      {
+        "id": "customer-success",
+        "title": "Customer Success Scorecard",
+        "author": "Structured Labs",
+        "description": "Track customer health, engagement, and success metrics across your portfolio.",
+        "preview": "customer-success",
+        "tags": ["Sales", "Analytics", "Customer"],
+        "type": "Preswald"
+      },
+      {
+        "id": "content-performance",
+        "title": "Content Performance Dashboard",
+        "author": "Structured Labs",
+        "description": "Analyze content engagement, conversion rates, and audience demographics.",
+        "preview": "content-performance",
+        "tags": ["Marketing", "Analytics", "Content"],
+        "type": "Preswald"
+      },
+      {
+        "id": "qa-dashboard",
+        "title": "Quality Assurance Dashboard",
+        "author": "Structured Labs",
+        "description": "Track test coverage, bug metrics, and quality assurance KPIs.",
+        "preview": "qa-dashboard",
+        "tags": ["Engineering", "Analytics", "Quality"],
+        "type": "Preswald"
+      },
+      {
+        "id": "financial-planning",
+        "title": "Financial Planning Dashboard",
+        "author": "Structured Labs",
+        "description": "Track financial goals, investment performance, and retirement planning.",
+        "preview": "financial-planning",
+        "tags": ["Finance", "Analytics", "Personal"],
+        "type": "Preswald"
+      },
+      {
+        "id": "customer-journey",
+        "title": "Customer Journey Analytics",
+        "author": "Structured Labs",
+        "description": "Analyze customer touchpoints, conversion paths, and journey optimization opportunities.",
+        "preview": "customer-journey",
+        "tags": ["Marketing", "Analytics", "Customer"],
+        "type": "Preswald"
+      },
+      {
+        "id": "security-incident",
+        "title": "Security Incident Response",
+        "author": "Structured Labs",
+        "description": "Document and track security incidents with response protocols and resolution tracking.",
+        "preview": "security-incident",
+        "tags": ["Engineering", "Security", "Operations"],
+        "type": "Preswald"
+      },
+      {
+        "id": "sales-territory",
+        "title": "Sales Territory Planning",
+        "author": "Structured Labs",
+        "description": "Optimize sales territories with market potential analysis and resource allocation.",
+        "preview": "sales-territory",
+        "tags": ["Sales", "Planning", "Analytics"],
+        "type": "Preswald"
+      },
+      {
+        "id": "pricing-analysis",
+        "title": "Product Pricing Analysis",
+        "author": "Structured Labs",
+        "description": "Analyze pricing strategies, competitor pricing, and market positioning.",
+        "preview": "pricing-analysis",
+        "tags": ["Product", "Analytics", "Business"],
+        "type": "Preswald"
+      },
+      {
+        "id": "sla-dashboard",
+        "title": "Customer Support SLA Dashboard",
+        "author": "Structured Labs",
+        "description": "Monitor support ticket SLAs, response times, and resolution metrics.",
+        "preview": "sla-dashboard",
+        "tags": ["Operations", "Analytics", "Support"],
+        "type": "Preswald"
+      },
+      {
+        "id": "resource-allocation",
+        "title": "Team Resource Allocation",
+        "author": "Structured Labs",
+        "description": "Optimize team resources with workload balancing and capacity planning.",
+        "preview": "resource-allocation",
+        "tags": ["Operations", "Analytics", "Management"],
+        "type": "Preswald"
+      }
+    ]
+  } 

@@ -83,6 +83,40 @@ from preswald import chat
 events_df = chat('eq_clickhouse', 'events')
 ```
 
+### Interactive Source
+
+The chat component can be used with the selectbox component to allow the datasource to be changed interactively:
+
+```python
+from preswald import chat, selectbox
+import tomllib
+
+# Get all data sources
+with open("preswald.toml", "rb") as f:
+    config = tomllib.load(f)
+
+source_list = []
+for source_path in config["data"]:
+    source_list.append(source_path)
+ 
+# Create a selectbox for choosing a column to visualize
+source_choice = selectbox(
+    label="Choose a dataset as chat source",
+    options=source_list,
+)
+
+# Create an AI chat window using the selected source!
+chat(source_choice)
+```
+
+<Frame>
+<img
+  className="block dark:hidden"
+  src="/images/chat_source_change.gif"
+  alt="Hero Light"
+/>
+</Frame>
+
 ## Key Features
 
 - **Natural Conversation**: Engage in fluid, context-aware dialogues with Claude

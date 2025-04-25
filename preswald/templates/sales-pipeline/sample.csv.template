@@ -1,0 +1,161 @@
+Deal ID, Account Name, Stage, Value, Probability, Expected Close Date, Owner
+1001,ABC Company,Qualification,5000,30%,2022-03-15,Alice Smith
+1002,XYZ Corporation,Negotiation,10000,40%,2022-04-20,Bob Johnson
+1003,123 Industries,Proposal,15000,50%,2022-05-10,Charlie Brown
+1004,Acme Ltd,Qualification,7500,25%,2022-03-28,Diana White
+1005,Global Innovations,Discovery,3000,20%,2022-03-05,Emily Green
+1006,New Horizons Inc,Qualification,6000,30%,2022-04-08,Frank Miller
+1007,Infinite Solutions,Proposal,12000,45%,2022-05-25,Grace Davis
+1008,Peak Performance,Discovery,4000,15%,2022-03-12,Henry Lee
+1009,Summit Enterprises,Qualification,8000,30%,2022-04-30,Isabelle Brown
+1010,Starlight Technologies,Negotiation,9500,60%,2022-06-05,Jack Roberts
+1011,Prime Partners,Proposal,11000,55%,2022-05-15,Kate Wilson
+1012,Blue Sky Corporation,Discovery,3500,20%,2022-03-20,Liam Johnson
+1013,Wonder Works Ltd,Qualification,7000,30%,2022-04-10,Mia Clark
+1014,Golden Gate Group,Negotiation,10500,40%,2022-06-15,Noah Adams
+1015,Dynamic Solutions,Discovery,3200,25%,2022-03-25,Olivia Moore
+1016,Silver Lining Inc,Qualification,6800,35%,2022-04-15,Patrick Harris
+1017,Elite Enterprises,Proposal,12500,50%,2022-05-20,Quinn Evans
+1018,Red Rock Industries,Qualification,7200,30%,2022-04-05,Rachel Carter
+1019,Green Leaf Co,Negotiation,9700,55%,2022-06-10,Stephen Roberts
+1020,Orange Blossom Corp,Discovery,3800,20%,2022-03-30,Taylor White
+1021,Swift Solutions,Qualification,7200,30%,2022-04-20,Victoria Baker
+1022,Ace Innovations,Proposal,13000,60%,2022-05-30,William King
+1023,Pinnacle Group,Discovery,3400,15%,2022-03-10,Xavier Lopez
+1024,Optimum Solutions,Qualification,6900,30%,2022-04-25,Yvonne Scott
+1025,First Class Services,Negotiation,9900,50%,2022-06-20,Zoe Adams
+1026,Proactive Enterprises,Discovery,3900,20%,2022-04-05,Alexander Hall
+1027,Innovative Solutions,Qualification,7600,35%,2022-05-01,Benjamin Reed
+1028,Summit Innovations,Proposal,13500,70%,2022-06-10,Charlotte Hill
+1029,Blue Ridge Technologies,Discovery,3600,15%,2022-03-15,Daniel Young
+1030,Golden Harvest Co,Qualification,7100,30%,2022-04-10,Emma Hayes
+1031,Mountain View Group,Negotiation,9800,45%,2022-06-15,Felix Brooks
+1032,Horizon Enterprises,Discovery,3700,20%,2022-03-20,Gabrielle Cox
+1033,Spectrum Solutions,Qualification,7300,30%,2022-04-15,Harper Price
+1034,Dynamic Dynamics,Proposal,14000,75%,2022-06-20,Ivy Morgan
+1035,Global Connections,Discovery,4100,20%,2022-03-25,James Bell
+1036,Innovate Now Ltd,Qualification,7700,35%,2022-04-20,Karen Reed
+1037,Summit Solutions,Negotiation,10000,60%,2022-06-25,Lucas Turner
+1038,Future Forward Inc,Discovery,4200,25%,2022-04-01,Mason Cooper
+1039,First Light Technologies,Qualification,7400,30%,2022-04-25,Natalie Brooks
+1040,Peak Performance,Proposal,14500,80%,2022-06-30,Oscar Ward
+1041,Dynamic Innovations,Discovery,4300,20%,2022-03-10,Penelope Foster
+1042,Innovate Enterprises,Qualification,7800,35%,2022-04-15,Quincy Parker
+1043,Summit Enterprises,Negotiation,10200,65%,2022-07-05,Riley Adams
+1044,New Horizon Group,Discovery,4500,25%,2022-03-30,Stella Mitchell
+1045,Golden Path Co,Qualification,7500,30%,2022-04-20,Theo Hughes
+1046,Red Sky Technologies,Proposal,15000,85%,2022-07-10,Unity Cooper
+1047,Blue Ocean Solutions,Discovery,4400,20%,2022-03-15,Valerie Griffin
+1048,High Peak Corporation,Qualification,7900,35%,2022-04-10,Willow Sanchez
+1049,Dynamic Growth Inc,Negotiation,10400,70%,2022-07-15,Xander Price
+1050,Summit Solutions,Discovery,4600,30%,2022-04-05,Yara Mitchell
+1051,Optimal Enterprises,Qualification,8200,40%,2022-04-30,Zara Patel
+1052,First Class Co,Proposal,15500,90%,2022-07-15,Aaron Stewart
+1053,Spectrum Innovations,Discovery,4700,25%,2022-03-20,Bella Coleman
+1054,Innovate Tech Corp,Qualification,8000,35%,2022-04-15,Chris Powell
+1055,Summit Enterprises,Negotiation,10600,75%,2022-07-20,Dylan Perez
+1056,Dynamic Dynamics,Discovery,4800,30%,2022-04-10,Ella Hughes
+1057,Global Connections,Qualification,8300,45%,2022-05-05,Finnley Brooks
+1058,Innovate Now Ltd,Proposal,16000,95%,2022-07-25,Gabriel Ward
+1059,Summit Solutions,Discovery,4900,20%,2022-03-30,Hannah Perry
+1060,Future Forward Inc,Qualification,8100,40%,2022-04-20,Isla Turner
+1061,First Light Technologies,Negotiation,10800,80%,2022-07-30,Jameson Adams
+1062,Peak Performance,Discovery,5000,30%,2022-04-05,Kayla Evans
+1063,Dynamic Innovations,Qualification,8400,50%,2022-05-10,Luke Reyes
+1064,Innovate Enterprises,Proposal,16500,100%,2022-08-01,Mia Perez
+1065,Summit Enterprises,Discovery,5100,25%,2022-04-15,Nora Fisher
+1066,New Horizon Group,Qualification,8200,40%,2022-05-20,Owen Ward
+1067,Golden Path Co,Negotiation,11000,85%,2022-08-05,Piper Rogers
+1068,Red Sky Technologies,Discovery,5200,30%,2022-04-10,Quinn Morris
+1069,Blue Ocean Solutions,Qualification,8600,45%,2022-05-15,Rylan Turner
+1070,High Peak Corporation,Proposal,17000,100%,2022-08-10,Sophia Hayes
+1071,Dynamic Growth Inc,Discovery,5300,20%,2022-03-25,Thea Jackson
+1072,Summit Solutions,Qualification,8500,50%,2022-05-30,Uriel Rivera
+1073,Optimal Enterprises,Negotiation,11200,90%,2022-08-15,Valentina Walker
+1074,First Class Co,Discovery,5400,25%,2022-04-01,Wyatt Phillips
+1075,Spectrum Innovations,Qualification,8700,45%,2022-05-05,Ximena Perry
+1076,Innovate Tech Corp,Proposal,17500,100%,2022-08-20,Yasmin Lopez
+1077,Summit Enterprises,Discovery,5500,30%,2022-04-15,Zane Carter
+1078,Dynamic Dynamics,Qualification,8800,55%,2022-05-10,Alana Cooper
+1079,Global Connections,Negotiation,11400,95%,2022-08-25,Beckett Griffin
+1080,Innovate Now Ltd,Discovery,5600,20%,2022-03-30,Chiara Sanchez
+1081,Future Forward Inc,Qualification,8900,50%,2022-05-15,Dante Ward
+1082,First Light Technologies,Proposal,18000,100%,2022-08-30,Elara Scott
+1083,Peak Performance,Discovery,5700,25%,2022-04-05,Fiona Turner
+1084,Dynamic Innovations,Qualification,9000,60%,2022-05-20,Gavin Rogers
+1085,Innovate Enterprises,Negotiation,11600,95%,2022-09-05,Holly Morris
+1086,Summit Enterprises,Discovery,5800,30%,2022-04-10,Isaac Turner
+1087,New Horizon Group,Qualification,9200,55%,2022-05-25,Julia Ward
+1088,Golden Path Co,Proposal,18500,100%,2022-09-10,Kai Hayes
+1089,Red Sky Technologies,Discovery,5900,20%,2022-04-15,Luna Turner
+1090,Blue Ocean Solutions,Qualification,9300,60%,2022-05-30,Milo Turner
+1091,High Peak Corporation,Negotiation,11800,100%,2022-09-15,Nova Hayes
+1092,Dynamic Growth Inc,Discovery,6000,25%,2022-04-01,Orion Phillips
+1093,Summit Solutions,Qualification,9100,60%,2022-05-05,Piper Perry
+1094,Optimal Enterprises,Proposal,19000,100%,2022-09-20,Quinn Perez
+1095,First Class Co,Discovery,6100,30%,2022-04-15,Ryker Carter
+1096,Spectrum Innovations,Qualification,9400,65%,2022-06-10,Stella Cooper
+1097,Innovate Tech Corp,Negotiation,12000,100%,2022-09-25,Tyler Griffin
+1098,Summit Enterprises,Discovery,6200,20%,2022-04-30,Unity Sanchez
+1099,Dynamic Dynamics,Qualification,9200,70%,2022-06-15,Valentine Rogers
+1100,Global Connections,Proposal,19500,100%,2022-09-30,Wyatt Morris
+1101,Innovate Now Ltd,Discovery,6300,25%,2022-04-05,Xavier Turner
+1102,Future Forward Inc,Qualification,9500,70%,2022-06-20,Yara Ward
+1103,First Light Technologies,Negotiation,12200,100%,2022-10-05,Zane Hayes
+1104,Peak Performance,Discovery,6400,30%,2022-04-10,Alana Phillips
+1105,Dynamic Innovations,Qualification,9700,75%,2022-06-25,Beckett Perry
+1106,Innovate Enterprises,Proposal,20000,100%,2022-10-10,Chiara Perez
+1107,Summit Enterprises,Discovery,6500,20%,2022-04-15,Dante Carter
+1108,New Horizon Group,Qualification,9800,80%,2022-06-30,Elara Ward
+1109,Golden Path Co,Negotiation,12400,100%,2022-10-15,Fiona Hayes
+1110,Red Sky Technologies,Discovery,6600,25%,2022-04-20,Gavin Turner
+1111,Blue Ocean Solutions,Qualification,9900,85%,2022-07-05,Holly Perry
+1112,High Peak Corporation,Proposal,20500,100%,2022-10-20,Isaac Perez
+1113,Dynamic Growth Inc,Discovery,6700,30%,2022-04-25,Julia Carter
+1114,Summit Solutions,Qualification,9600,90%,2022-07-10,Kai Perry
+1115,Optimal Enterprises,Negotiation,12600,100%,2022-10-25,Luna Perez
+1116,First Class Co,Discovery,6800,20%,2022-05-01,Milo Cooper
+1117,Spectrum Innovations,Qualification,10100,90%,2022-07-15,Nova Perry
+1118,Innovate Tech Corp,Proposal,21000,100%,2022-10-30,Orion Perez
+1119,Summit Enterprises,Discovery,6900,25%,2022-05-06,Piper Carter
+1120,Dynamic Dynamics,Qualification,10300,95%,2022-07-20,Quinn Perry
+1121,Global Connections,Proposal,21500,100%,2022-11-01,Ryker Perez
+1122,Innovate Now Ltd,Discovery,7000,30%,2022-05-11,Stella Carter
+1123,Future Forward Inc,Qualification,10400,100%,2022-07-26,Tyler Perry
+1124,First Light Technologies,Negotiation,12800,100%,2022-11-05,Unity Perez
+1125,Peak Performance,Discovery,7100,20%,2022-05-02,Valentine Carter
+1126,Dynamic Innovations,Qualification,10500,100%,2022-07-21,Wyatt Perez
+1127,Innovate Enterprises,Negotiation,13000,100%,2022-11-10,Xavier Perez
+1128,Summit Enterprises,Discovery,7200,25%,2022-05-07,Yara Carter
+1129,New Horizon Group,Qualification,10600,100%,2022-07-22,Zane Perez
+1130,Golden Path Co,Proposal,22000,100%,2022-11-15,Alana Perez
+1131,Red Sky Technologies,Discovery,7300,30%,2022-05-12,Beckett Carter
+1132,Blue Ocean Solutions,Qualification,10700,100%,2022-07-27,Chiara Perez
+1133,High Peak Corporation,Negotiation,13200,100%,2022-11-20,Dante Carter
+1134,Dynamic Growth Inc,Discovery,7400,20%,2022-05-03,Elara Perez
+1135,Summit Solutions,Qualification,10800,100%,2022-07-28,Fiona Carter
+1136,Optimal Enterprises,Proposal,22500,100%,2022-11-30,Gavin Perez
+1137,First Class Co,Discovery,7500,25%,2022-05-08,Holly Carter
+1138,Spectrum Innovations,Qualification,10900,100%,2022-08-02,Isaac Perez
+1139,Innovate Tech Corp,Negotiation,13400,100%,2022-12-05,Julia Carter
+1140,Summit Enterprises,Discovery,7600,30%,2022-05-13,Kai Perez
+1141,Dynamic Dynamics,Qualification,11000,100%,2022-08-03,Luna Carter
+1142,Global Connections,Proposal,23000,100%,2022-12-10,Milo Perez
+1143,Innovate Now Ltd,Discovery,7700,20%,2022-05-04,Nova Carter
+1144,Future Forward Inc,Qualification,11100,100%,2022-08-08,Orion Perez
+1145,First Light Technologies,Negotiation,13600,100%,2022-12-15,Piper Carter
+1146,Peak Performance,Discovery,7800,25%,2022-05-09,Quinn Perez
+1147,Dynamic Innovations,Qualification,11200,100%,2022-08-12,Ryker Carter
+1148,Innovate Enterprises,Negotiation,13800,100%,2022-12-20,Stella Perez
+1149,Summit Enterprises,Discovery,7900,30%,2022-05-14,Tyler Carter
+1150,New Horizon Group,Qualification,11300,100%,2022-08-15,Unity Perez
+1151,Golden Path Co,Proposal,23500,100%,2022-12-30,Valentine Carter
+1152,Red Sky Technologies,Discovery,8000,20%,2022-05-15,Wyatt Perez
+1153,Blue Ocean Solutions,Qualification,11400,100%,2022-08-18,Xavier Carter
+1154,High Peak Corporation,Negotiation,14000,100%,2023-01-05,Yara Perez
+1155,Dynamic Growth Inc,Discovery,8100,25%,2022-05-20,Zane Carter
+1156,Summit Solutions,Qualification,11500,100%,2022-08-23,Alana Perez
+1157,Optimal Enterprises,Proposal,24000,100%,2023-01-10,Beckett Carter
+1158,First Class Co,Discovery,8200,30%,2022-05-25,Chiara Perez
+1159,Spectrum Innovations,Qualification,11600,100%,2022-08-28,Dante Carter
+1160,Innovate Tech Corp,N

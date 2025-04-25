@@ -1,12 +1,13 @@
+import hashlib
 import json
 import logging
+import re
 import zlib
 from datetime import date, datetime
-from typing import Any, Dict, List, Union
-import hashlib
+from typing import Any
+
 import msgpack
 import numpy as np
-import re
 
 
 logger = logging.getLogger(__name__)
@@ -43,7 +44,7 @@ class PreswaldJSONEncoder(json.JSONEncoder):
             logger.error(f"Error encoding object {type(obj)}: {e}")
             return None
 
-    def _handle_ndarray(self, arr: np.ndarray) -> Union[List, None]:
+    def _handle_ndarray(self, arr: np.ndarray) -> list | None:
         """Handle numpy array conversion."""
         try:
             if arr.dtype.kind in ["U", "S"]:  # Unicode or string
@@ -60,7 +61,7 @@ class PreswaldJSONEncoder(json.JSONEncoder):
             logger.error(f"Error handling ndarray: {e}")
             return None
 
-    def _handle_array_values(self, arr: List) -> List:
+    def _handle_array_values(self, arr: list) -> list:
         """Handle array values recursively."""
         if isinstance(arr, (list, tuple)):
             return [self._handle_array_values(x) for x in arr]
@@ -137,8 +138,8 @@ def clean_nan_values(obj):
 
 
 def optimize_plotly_data(
-    data: Dict[str, Any], max_points: int = 5000
-) -> Dict[str, Any]:
+    data: dict[str, Any], max_points: int = 5000
+) -> dict[str, Any]:
     """Optimize Plotly data for large datasets."""
     if not isinstance(data, dict) or "data" not in data:
         return data
@@ -177,13 +178,13 @@ def optimize_plotly_data(
     return optimized_data
 
 
-def compress_data(data: Union[Dict, List, str]) -> bytes:
+def compress_data(data: dict | list | str) -> bytes:
     """Compress data using zlib."""
     json_str = dumps(data)
     return zlib.compress(json_str.encode("utf-8"))
 
 
-def decompress_data(compressed_data: bytes) -> Union[Dict, List, str]:
+def decompress_data(compressed_data: bytes) -> dict | list | str:
     """Decompress zlib compressed data."""
     decompressed = zlib.decompress(compressed_data)
     return loads(decompressed.decode("utf-8"))
@@ -198,7 +199,7 @@ class RenderBuffer:
     HASH_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 
     def __init__(self):
-        self._state_cache: Dict[str, str] = {}
+        self._state_cache: dict[str, str] = {}
 
     def has_changed(self, component_id: str, new_value: Any) -> bool:
         """Check if the new hash differs from the cached one."""
@@ -223,7 +224,7 @@ class RenderBuffer:
 
     def _ensure_hash(self, value: Any) -> str:
         """Convert value to SHA256 hash. Accepts either a hash string or a hashable object."""
-        if isinstance(value, str) and HASH_PATTERN.match(value):
+        if isinstance(value, str) and self.HASH_PATTERN.match(value):
             return value  # already a hash
         try:
             cleaned = clean_nan_values(value)

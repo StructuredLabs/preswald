@@ -1,0 +1,112 @@
+from preswald: Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Test Coverage Heatmap")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard summarizes automated test coverage across your codebase. 
+Track coverage by module, file, and function to identify gaps, prioritize test work, 
+and improve quality assurance throughout your development lifecycle.
+"""
+    )
+
+@workflow.atom()
+def coverage_summary():
+    text("## Coverage Summary")
+    text(
+        """
+### As of April 23, 2025:
+
+- **Overall Coverage**: 78.6%  
+- **Unit Test Coverage**: 84.1%  
+- **Integration Test Coverage**: 66.7%  
+- **Critical Modules >90%**: 5 of 9  
+- **Files Below 50% Coverage**: 28
+
+Coverage improved 3.2% from last month after test expansion in API and auth services.
+"""
+    )
+
+@workflow.atom()
+def coverage_by_module():
+    text("## Coverage by Module")
+    text(
+        """
+| Module           | Coverage % | LOC Tested | LOC Untested | Status     |
+|------------------|-------------|------------|---------------|-------------|
+| auth             | 93.4%       | 5,632      | 392           | ✅ Healthy   |
+| billing          | 82.9%       | 4,119      | 850           | ⚠ Moderate  |
+| dashboard        | 76.8%       | 6,401      | 1,930         | ⚠ Moderate  |
+| notifications    | 62.2%       | 2,218      | 1,348         | ❗ Low       |
+| data pipeline    | 48.5%       | 3,510      | 3,723         | ❗ Critical  |
+
+Data pipeline flagged for urgent coverage improvement due to production outage link.
+"""
+    )
+
+@workflow.atom()
+def lowest_coverage_files():
+    text("## Lowest Coverage Files")
+    text(
+        """
+| File Path                               | Coverage | Lines Untested | Priority |
+|----------------------------------------|----------|----------------|-----------|
+| pipeline/extractors/ingest.py          | 32.1%    | 197            | High      |
+| billing/payments/stripe_adapter.py     | 46.8%    | 84             | Medium    |
+| notifications/handlers/slack.py        | 44.3%    | 61             | High      |
+| dashboard/widgets/charts.py            | 49.9%    | 109            | Medium    |
+
+Owners have been notified via Jira. CI failures will be enforced on sub-50% regressions starting May 1.
+"""
+    )
+
+@workflow.atom()
+def test_flakiness():
+    text("## Flaky Test Overview")
+    text(
+        """
+- **Total Flaky Tests (30d)**: 21  
+- **Most Frequent Failures**: 7 in dashboard and 6 in auth  
+- **Flaky Rate (Last 500 Runs)**: 1.3%  
+- **Avg. Reruns/Fail**: 2.6  
+
+Top flaky tests identified by tag and re-run frequency. Remediation plan in place for Q2 sprints.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Recommendations")
+    text(
+        """
+1. **Increase unit coverage** in data pipeline to >65% in next 2 sprints  
+2. **Split flaky test cleanup tasks** by module owner  
+3. **Raise coverage threshold in CI** from 70% to 75% starting May  
+4. **Add test cases for dashboard widgets** flagged in analytics  
+5. **Enable test coverage checks on PR diff scope**
+
+Monthly test health reviews scheduled with QA and platform leads.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data from Jest + Pytest + Istanbul reports  
+- CI coverage tracked via CircleCI and Codecov pipelines  
+- Report generated April 23, 2025  
+- Contact qa-engineering@company.com for test tagging support
+
+Next heatmap refresh: May 3, 2025
+"""
+    )
+
+workflow.execute()

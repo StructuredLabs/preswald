@@ -1,0 +1,130 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Sales Territory Planning")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard provides a structured view of sales territory design and performance. 
+Analyze market potential, current coverage, rep assignments, and revenue contribution to 
+optimize go-to-market efficiency and ensure balanced workload distribution across regions.
+"""
+    )
+
+@workflow.atom()
+def territory_summary():
+    text("## Territory Summary Overview")
+    text(
+        """
+### Q2 2025 Structure:
+
+- **Total Active Territories**: 16  
+- **Assigned Reps**: 21  
+- **Uncovered Regions**: 2 (Midwest SMB, Canada East)  
+- **Avg. Territory Revenue (Q1)**: $412K  
+- **Median Quota Coverage**: 87%
+
+Coverage gaps flagged for expansion regions. East Coast showing highest revenue per territory.
+"""
+    )
+
+@workflow.atom()
+def market_potential():
+    text("## Market Potential by Region")
+    text(
+        """
+| Territory        | TAM Estimate | Current Coverage | Q1 Revenue | Coverage % |
+|------------------|--------------|------------------|------------|------------|
+| West Coast       | $12.4M       | 3 reps           | $1.39M     | 11.2%      |
+| Northeast        | $9.8M        | 2 reps           | $1.01M     | 10.3%      |
+| Southeast        | $7.1M        | 2 reps           | $882K      | 12.4%      |
+| Midwest          | $5.5M        | 1 rep            | $476K      | 8.7%       |
+| Canada (East)    | $3.3M        | —                | $0         | 0%         |
+
+West and Southeast show highest potential. Midwest rep allocation may need reinforcement.
+"""
+    )
+
+@workflow.atom()
+def rep_assignments():
+    text("## Rep Assignments & Load")
+    text(
+        """
+| Rep Name     | Territory         | Accounts Assigned | Q1 Revenue | % to Quota |
+|--------------|-------------------|-------------------|------------|-------------|
+| Jordan Lee   | West Coast (SaaS) | 74                | $628K      | 134%        |
+| Carla Mendes | Southeast         | 56                | $524K      | 119%        |
+| Noah Park    | Northeast (Ent)   | 63                | $482K      | 107%        |
+| Rachel T.    | West Coast (SMB)  | 88                | $441K      | 93%         |
+| Sam R.       | Midwest           | 92                | $314K      | 78%         |
+
+Jordan and Carla exceed quota with fewer accounts—efficiency drivers worth modeling.
+"""
+    )
+
+@workflow.atom()
+def coverage_analysis():
+    text("## Coverage & Overlap Analysis")
+    text(
+        """
+- **High Overlap**: 3 reps in West Coast SaaS segment  
+- **Undercoverage**: Canada East and Manufacturing vertical in Midwest  
+- **Avg. Accounts per Rep**: 61  
+- **Territories >75% Quota**: 13 of 16  
+- **Open Account Backlog**: 112 unassigned leads (primarily SMB)
+
+Rebalancing SMB vs. Enterprise ratio could improve rep efficiency and response time.
+"""
+    )
+
+@workflow.atom()
+def revenue_by_territory():
+    text("## Revenue Contribution by Territory")
+    text(
+        """
+| Territory      | % of Total Revenue | Q1 Revenue | YoY Growth |
+|----------------|--------------------|------------|-------------|
+| West Coast     | 34%                | $1.39M     | +18%        |
+| Southeast      | 23%                | $882K      | +21%        |
+| Northeast      | 19%                | $726K      | +9%         |
+| Midwest        | 15%                | $476K      | +12%        |
+| Other (Intl.)  | 9%                 | $369K      | +6%         |
+
+Territories with >15% contribution prioritized for H2 expansion plans.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Territory Optimization Recommendations")
+    text(
+        """
+1. **Add a second rep to Midwest** to manage growing SMB base  
+2. **Launch Canada East pilot territory** with hybrid inbound/outbound focus  
+3. **Reduce West Coast overlap** by consolidating SaaS vertical into 2 core pods  
+4. **Route unassigned leads** in SMB queue to Rachel T. and Carla M. for immediate coverage  
+5. **Define vertical overlays** for reps in mature territories to drive upsell potential
+
+Territory updates to be finalized by May 10, 2025, for June handoff.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data reflects CRM exports and territory planner inputs as of April 22, 2025  
+- TAM = Total Addressable Market (from 2024 industry data and firmographic modeling)  
+- Quota attainment prorated for ramping reps
+
+Next allocation review scheduled for May 6, 2025.
+"""
+    )
+
+workflow.execute()

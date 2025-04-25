@@ -1,0 +1,156 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Unit Economics Deep Dive")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard analyzes core unit economics metrics, providing a detailed breakdown 
+of cost drivers, revenue per customer, gross margin, and payback periods. 
+Use these insights to optimize pricing, reduce CAC, and improve long-term profitability.
+"""
+    )
+
+@workflow.atom()
+def core_metrics():
+    text("## Core Unit Economics Metrics")
+    text(
+        """
+### April 2025 Snapshot:
+
+- **Customer Acquisition Cost (CAC)**: $468  
+- **Customer Lifetime Value (LTV)**: $4,720  
+- **LTV:CAC Ratio**: 10.1x  
+- **Gross Margin**: 72.4%  
+- **Payback Period**: 5.6 months
+
+Healthy LTV:CAC ratio reflects strong retention and margin discipline.
+"""
+    )
+
+@workflow.atom()
+def revenue_per_user():
+    text("## Revenue per User Breakdown")
+    text(
+        """
+| Segment          | ARPU (Monthly) | Annualized | Churn Rate |
+|------------------|----------------|-------------|------------|
+| SMB              | $64            | $768        | 4.1%       |
+| Mid-Market       | $112           | $1,344      | 2.6%       |
+| Enterprise       | $183           | $2,196      | 1.8%       |
+
+Mid-market and enterprise cohorts provide strongest unit contribution.
+"""
+    )
+
+@workflow.atom()
+def cost_components():
+    text("## Cost Breakdown per Customer")
+    text(
+        """
+| Cost Category          | Avg. Monthly Cost | % of CAC | Notes                           |
+|------------------------|-------------------|----------|----------------------------------|
+| Paid Acquisition       | $311              | 66.5%    | Mostly search + LinkedIn ads     |
+| Sales Compensation     | $78               | 16.7%    | Account executives + SDR         |
+| Onboarding & Support   | $49               | 10.5%    | Includes CS + training content   |
+| Infrastructure & Tools | $30               | 6.3%     | Hosting, CRM, comms platforms    |
+
+Ad spend is the primary CAC driver. CS onboarding cost trending down YoY.
+"""
+    )
+
+@workflow.atom()
+def gross_margin_analysis():
+    text("## Gross Margin Analysis")
+    text(
+        """
+| Cohort        | COGS/User | Gross Margin | Margin Trend (QoQ) |
+|---------------|-----------|---------------|---------------------|
+| SMB           | $19       | 70.3%         | ▲ +1.4 pts          |
+| Mid-Market    | $21       | 73.5%         | ▲ +0.9 pts          |
+| Enterprise    | $24       | 76.3%         | ▲ +1.8 pts          |
+
+Improvements driven by server optimizations and lower support ticket volume.
+"""
+    )
+
+@workflow.atom()
+def payback_by_channel():
+    text("## Payback Period by Acquisition Channel")
+    text(
+        """
+| Channel           | CAC    | Payback Period | Notes                     |
+|-------------------|--------|----------------|---------------------------|
+| Inbound (SEO)     | $138   | 2.8 months     | Most efficient source     |
+| Paid Search       | $402   | 5.1 months     | High intent; higher CAC   |
+| LinkedIn Ads      | $560   | 7.4 months     | Strongest in Enterprise   |
+| Channel Partners  | $485   | 5.8 months     | Under pilot program       |
+
+SEO and referrals remain lowest-cost, fastest-recovery channels.
+"""
+    )
+
+@workflow.atom()
+def retention_contribution():
+    text("## Retention Impact on LTV")
+    text(
+        """
+- **Monthly Net Revenue Retention (NRR)**: 116%  
+- **12-Month Logo Retention**: 88%  
+- **Expansion Revenue Contribution**: 27% of LTV  
+- **Contract Renewal Rate (Enterprise)**: 92%
+
+Expansion revenue plays key role in achieving high LTV:CAC ratios.
+"""
+    )
+
+@workflow.atom()
+def benchmarks_comparison():
+    text("## Benchmark Comparison")
+    text(
+        """
+| Metric       | Our Company | SaaS Median | Top Quartile |
+|--------------|-------------|-------------|---------------|
+| CAC          | $468        | $492        | <$400         |
+| LTV:CAC      | 10.1x       | 3.2x        | >5.0x         |
+| Gross Margin | 72.4%       | 68.0%       | >75.0%        |
+| Payback      | 5.6 mo      | 14.2 mo     | <12.0 mo      |
+
+We outperform across all major SaaS benchmarks for capital efficiency.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Strategic Recommendations")
+    text(
+        """
+1. Double down on SEO content and organic acquisition channels  
+2. Optimize LinkedIn ad targeting to reduce CAC by 10–15%  
+3. Maintain high-margin cohorts by emphasizing usage-based upsell  
+4. Improve onboarding conversion with live CSM activation at SMB level  
+5. Run CAC-to-NRR ratio by segment to refine GTM allocation
+
+Quarterly reviews to track performance by cohort, channel, and lifecycle stage.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data reflects Q1 2025 trailing averages  
+- Sources: Salesforce, Stripe, Google Ads, Looker, Amplitude  
+- Calculations follow SaaS unit economics methodology as per SaaStr + Bessemer benchmarks
+
+Next update: July 2025
+"""
+    )
+
+workflow.execute()

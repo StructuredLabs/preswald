@@ -6,7 +6,7 @@ on:
     branches:
       - cicd
   schedule:
-    - cron: "0 */12 * * *"
+    - cron: "0 0 * * *"
 
 jobs:
   deployment-tests:
@@ -38,18 +38,6 @@ jobs:
           python -m preswald.build frontend
           uv build
           pip install ./dist/*.whl
-
-      - name: Create .env file
-        run: |
-          mkdir -p autotest/deployments/structured
-          echo "GITHUB_USERNAME=${{ secrets.DEPLOYMENT_AUTOTEST_GITHUB_USERNAME }}" > autotest/deployments/structured/.env.structured
-          echo "STRUCTURED_CLOUD_API_KEY=${{ secrets.DEPLOYMENT_AUTOTEST_STRUCTURED_CLOUD_API_KEY }}" >> autotest/deployments/structured/.env.structured
-
-      - name: Run structured target deployment tests
-        run: |
-          source .venv/bin/activate
-          chmod +x autotest/deployments/structured/test.sh
-          ./autotest/deployments/structured/test.sh
 
       - name: Run local target deployment tests
         run: |

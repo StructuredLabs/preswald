@@ -59,8 +59,8 @@ The backend is built on **FastAPI** and is responsible for managing application 
 - Manages multiple **concurrent WebSocket sessions**.
 
 #### **Workflow Execution Engine (`workflow.py`)**
-- Defines **dependency-driven workflows** using task-based execution (`Atom`).
-- Manages **caching, retries, and task failures**.
+- Defines **reactive workflows** using automatically tracked atoms (`@workflow.atom()`).
+- Manages **caching, retries, failure recovery, and DAG-based reruns**.
 - Provides **execution tracking and visualization**.
 - Executes **data transformation and computational pipelines**.
 
@@ -93,6 +93,27 @@ graph TD
     A -->|Determines Execution Mode| F[Service Loader]
     A -->|Collects Metrics| G[Telemetry]
 ```
+---
+
+### **2.1.1 Reactive Runtime and DAG-based Execution**
+
+Preswald's workflow engine includes a **reactive runtime** that selectively reruns only the parts of your script affected by user interaction or upstream changes. This avoids redundant computation and enables fast, responsive apps, even as workflows grow complex.
+
+At the core of this system is a **DAG (Directed Acyclic Graph)** of atoms, where each atom represents a computational unit (e.g., a widget, transformation, or result display). The runtime automatically tracks:
+
+- **Which atoms produced which UI components**
+- **Which atoms depend on the outputs of others**
+- **Which values have changed**, using stable component IDs and hashing
+
+#### Key Benefits
+
+- **Selective execution**: Only changed atoms and their downstream dependents are recomputed
+- **Flexible dependency tracking**: Dependencies can be **manually declared** or **automatically inferred** from function arguments
+- **Minimal boilerplate**: Build reactive UIs using composable Python functions
+
+This model allows you to build complex workflows that feel simple to maintain, whether you prefer to declare dependencies explicitly or let Preswald infer them automatically.
+
+Want to see it in action? [Check out the `Workflow` guide →](./sdk/workflow)
 
 ---
 

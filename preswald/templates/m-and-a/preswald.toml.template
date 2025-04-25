@@ -1,0 +1,20 @@
+[project]
+title = "M&A Due Diligence Memo"
+version = "0.1.0"
+port = 8501
+entrypoint = "hello.py"
+slug = "m-and-a"
+
+[branding]
+name = "M&A Due Diligence Memo"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#000000"
+
+[data.sample_csv]
+type = "csv"
+path = "data/sample.csv"
+
+[logging]
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

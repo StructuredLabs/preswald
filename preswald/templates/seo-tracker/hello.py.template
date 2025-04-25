@@ -1,0 +1,144 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# SEO Performance Tracker")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard provides comprehensive visibility into SEO performance. 
+Track keyword rankings, organic traffic, backlink profiles, and technical health to measure 
+search visibility and identify optimization opportunities across your website.
+"""
+    )
+
+@workflow.atom()
+def traffic_overview():
+    text("## Organic Traffic Overview")
+    text(
+        """
+### April 1–22, 2025:
+
+- **Organic Sessions**: 94,320  
+- **Users from Search**: 83,710  
+- **Bounce Rate**: 42.3%  
+- **Avg. Session Duration**: 2m 56s  
+- **New Users**: 69,480  
+- **YoY Growth**: +21.4%
+
+Traffic growth driven by new blog content, improved meta tags, and top-of-funnel discovery queries.
+"""
+    )
+
+@workflow.atom()
+def keyword_rankings():
+    text("## Keyword Rankings")
+    text(
+        """
+| Keyword                  | Current Rank | Change (30d) | Volume | Page |
+|--------------------------|--------------|---------------|--------|------|
+| workflow automation      | #3           | ▲ +2           | 6,100  | /platform |
+| AI task management       | #6           | ▲ +4           | 3,400  | /ai-tasks |
+| how to document sops     | #8           | ▲ +3           | 2,900  | /resources/sop-guide |
+| process builder software | #12          | ▼ -1           | 1,700  | /builder |
+
+Total tracked keywords in Top 10: 46 (▲ 11 from last month).
+"""
+    )
+
+@workflow.atom()
+def backlinks_profile():
+    text("## Backlink Profile")
+    text(
+        """
+### Referring Domains:
+
+- **Total Referring Domains**: 1,342  
+- **New Backlinks (30d)**: 188  
+- **Lost Backlinks (30d)**: 42  
+- **Authority Score (Moz DA)**: 56  
+- **Top Referring Sites**: HubSpot, G2, Zapier Blog, TechCrunch
+
+Link building campaigns and guest post exchanges contributed to net +146 new backlinks.
+"""
+    )
+
+@workflow.atom()
+def top_pages():
+    text("## Top Organic Pages")
+    text(
+        """
+| Page URL                   | Organic Sessions | Entrances | Avg. Position | Bounce Rate |
+|----------------------------|------------------|-----------|----------------|--------------|
+| /platform                  | 22,160           | 19,820    | 4.2            | 34.8%        |
+| /ai-tasks                  | 18,740           | 17,540    | 6.1            | 38.2%        |
+| /resources/sop-guide       | 14,130           | 12,950    | 8.7            | 41.0%        |
+| /pricing                   | 9,420            | 8,610     | 11.2           | 47.6%        |
+
+Platform and SOP guide pages driving consistent search entry traffic.
+"""
+    )
+
+@workflow.atom()
+def technical_health():
+    text("## Technical SEO Health")
+    text(
+        """
+- **Pages with Meta Issues**: 18  
+- **404 Errors**: 7 (all redirected)  
+- **Duplicate Content Flags**: 3  
+- **Mobile Usability Errors**: 0  
+- **Avg. Page Speed Score**: 91 (Mobile), 98 (Desktop)
+
+Site audit score: 96/100. Only minor title tag and canonical issues remain.
+"""
+    )
+
+@workflow.atom()
+def opportunities():
+    text("## Optimization Opportunities")
+    text(
+        """
+1. **Improve internal linking** between /resources and /platform to consolidate authority  
+2. **Expand content on long-tail keywords**: “workflow software for HR”, “SOP AI tools”  
+3. **Reoptimize /pricing page** for lower bounce and higher entry conversion  
+4. **Submit updated sitemap** with newly indexed blog posts  
+5. **Increase anchor text diversity** in new backlinks
+
+Each action aimed at driving domain equity and relevance for high-conversion queries.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Strategic SEO Recommendations")
+    text(
+        """
+- **Continue weekly publishing cadence** (2 blogs/week)  
+- **Run quarterly content refresh audit** to maintain freshness score  
+- **Invest in AI-written snippets** for featured SERP placement  
+- **Target Top 5 rankings for 12 high-volume keywords by Q3**  
+- **Monitor lost links weekly** to reclaim top-tier referring domains
+
+SEO team to review next sprint roadmap on April 30, 2025.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data sources: Google Search Console, Ahrefs, GA4, Moz Pro  
+- Tracking window: April 1–22, 2025  
+- Rankings based on U.S. desktop search unless noted otherwise
+
+Next SEO performance review scheduled for May 6, 2025.
+"""
+    )
+
+workflow.execute()
