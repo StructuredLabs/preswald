@@ -82,7 +82,7 @@ export default function PlaygroundWidget({
   }, [value]);
 
   return (
-    <div className="border rounded-md border-gray-200">
+    <div id={id} className="border rounded-md border-gray-200">
       <Card className="w-full border-0 shadow-none">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-between">

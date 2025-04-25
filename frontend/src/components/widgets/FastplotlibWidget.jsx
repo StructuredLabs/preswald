@@ -36,7 +36,7 @@ const FastplotlibWidget = ({ id, label, src, className, clientId }) => {
   }, [id]);
 
   return (
-    <Card className={cn('w-full p-4 flex justify-center items-center relative', className)}>
+    <Card id={id} className={cn('w-full p-4 flex justify-center items-center relative', className)}>
       {hasLoadedOnce ? (
         <>
           <img src={currentSrc} alt={label || 'Fastplotlib chart'} className="max-w-full h-auto" />

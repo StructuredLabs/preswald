@@ -5,13 +5,17 @@ import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 const SpinnerWidget = ({
+  id,
   label = 'Loading...',
   variant = 'default',
   className,
   showLabel = true,
 }) => {
   const SpinnerContent = (
-    <div className={cn('flex flex-col items-center gap-2 p-4', className)}>
+    <div
+      id={variant !== 'card' ? id : undefined}
+      className={cn('flex flex-col items-center gap-2 p-4', className)}
+    >
       <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       {showLabel && label && <p className="text-sm text-muted-foreground">{label}</p>}
     </div>
@@ -19,7 +23,7 @@ const SpinnerWidget = ({
 
   if (variant === 'card') {
     return (
-      <Card>
+      <Card id={id}>
         <CardContent>{SpinnerContent}</CardContent>
       </Card>
     );

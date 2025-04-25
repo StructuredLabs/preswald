@@ -14,6 +14,7 @@ const UnknownWidget = ({
 }) => {
   return (
     <Alert
+      id={id}
       variant={variant === 'default' ? 'default' : 'destructive'}
       className={cn('unknownwidget-container', className)}
     >

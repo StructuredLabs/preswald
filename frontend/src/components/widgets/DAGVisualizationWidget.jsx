@@ -69,7 +69,7 @@ const getStatusStyles = (status) => {
   };
 };
 
-const DAGVisualizationWidget = ({ data: rawData, error, className = '' }) => {
+const DAGVisualizationWidget = ({ id, data: rawData, error, className = '' }) => {
   const [nodes, setNodes] = useNodesState([]);
   const [edges, setEdges] = useEdgesState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -118,7 +118,7 @@ const DAGVisualizationWidget = ({ data: rawData, error, className = '' }) => {
 
   if (error) {
     return (
-      <Card className={className}>
+      <Card id={id} className={className}>
         <CardContent>
           <div className="rounded-lg border border-red-200 bg-red-50 p-4">
             <h4 className="text-sm font-medium text-red-800 mb-1">Error</h4>
@@ -131,7 +131,7 @@ const DAGVisualizationWidget = ({ data: rawData, error, className = '' }) => {
 
   if (isLoading) {
     return (
-      <Card className={className}>
+      <Card id={id} className={className}>
         <CardContent>
           <div className="h-4 w-48 bg-gray-100 rounded animate-pulse mb-4" />
           <div className="h-[200px] w-full bg-gray-100 rounded animate-pulse" />
@@ -141,7 +141,7 @@ const DAGVisualizationWidget = ({ data: rawData, error, className = '' }) => {
   }
 
   return (
-    <Card className={className}>
+    <Card id={id} className={className}>
       <div className="h-[300px] overflow-hidden">
         <ReactFlow
           nodes={nodes}

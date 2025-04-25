@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { createChatCompletion } from '@/services/openai';
 
 const ChatWidget = ({
+  id,
   sourceId = null,
   sourceData = null,
   value = { messages: [] },
@@ -174,6 +175,7 @@ const ChatWidget = ({
 
   return (
     <Card
+      id={id}
       className={cn(
         'flex flex-col w-full border border-border/60 rounded-lg bg-background overflow-hidden',
         'h-[100dvh] sm:h-[600px]',

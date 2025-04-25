@@ -29,12 +29,12 @@ const levelConfig = {
   },
 };
 
-const AlertWidget = ({ message, level = 'info', className }) => {
+const AlertWidget = ({ id, message, level = 'info', className }) => {
   const config = levelConfig[level] || levelConfig.info;
   const Icon = config.icon;
 
   return (
-    <Alert variant={config.variant} className={cn('alertwidget-container', className)}>
+    <Alert id={id} variant={config.variant} className={cn('alertwidget-container', className)}>
       <Icon className="alertwidget-icon" />
       <AlertTitle>{config.title}</AlertTitle>
       <AlertDescription>{message}</AlertDescription>

@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
 const TextInputWidget = ({
+  id,
   label,
   placeholder,
   value = '',
@@ -14,7 +15,7 @@ const TextInputWidget = ({
   disabled = false,
 }) => {
   return (
-    <div className={cn('flex flex-col gap-2', className)}>
+    <div id={id} className={cn('flex flex-col gap-2', className)}>
       {label && <Label className="text-sm font-medium">{label}</Label>}
       <Input
         value={value}

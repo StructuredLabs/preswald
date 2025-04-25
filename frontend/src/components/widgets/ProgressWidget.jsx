@@ -4,12 +4,12 @@ import React from 'react';
 
 import { Progress } from '@/components/ui/progress';
 
-const ProgressWidget = ({ value = 0, label }) => {
+const ProgressWidget = ({ id, value = 0, label }) => {
   // Ensure value is between 0 and 100
   const normalizedValue = Math.min(Math.max(parseFloat(value) || 0, 0), 100);
 
   return (
-    <div className="w-full space-y-2">
+    <div id={id} className="w-full space-y-2">
       {label && (
         <div className="flex justify-between text-sm">
           <span>{label}</span>

@@ -15,7 +15,7 @@ import { Card, CardContent } from '@/components/ui/card';
 
 import { cn } from '@/lib/utils';
 
-const MarkdownRendererWidget = ({ markdown, value, error, className }) => {
+const MarkdownRendererWidget = ({ id, markdown, value, error, className }) => {
   const content = markdown || value || '';
   const [targetId, setTargetId] = useState('');
 
@@ -48,8 +48,13 @@ const MarkdownRendererWidget = ({ markdown, value, error, className }) => {
   }
 
   return (
+<<<<<<< HEAD
     <Card className={cn('overflow-hidden', className)}>
       <CardContent className="prose max-w-none prose-pre:p-0 prose-pre:bg-transparent prose-pre:m-0 prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-foreground prose-code:before:content-none prose-code:after:content-none prose-headings:mt-2 prose-headings:mb-2 prose-p:my-0 prose-p:mb-0.5">
+=======
+    <Card id={id} className={cn('overflow-hidden', className)}>
+      <CardContent className="prose max-w-none prose-pre:p-0 prose-pre:bg-transparent prose-pre:m-0 prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-foreground prose-code:before:content-none prose-code:after:content-none">
+>>>>>>> fc8c401 (export pdf with components rendered check)
         <ReactMarkdown
           remarkPlugins={[remarkGfm, remarkMath, remarkSlug]}
           rehypePlugins={[rehypeKatex]}

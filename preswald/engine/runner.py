@@ -51,6 +51,7 @@ class ScriptRunner:
         from .service import (
             PreswaldService,  # deferred import to avoid cyclic dependency
         )
+
         self._service = PreswaldService.get_instance()
 
         logger.info(f"[ScriptRunner] Initialized with session_id: {session_id}")
@@ -130,7 +131,9 @@ class ScriptRunner:
                 for component_id, value in new_widget_states.items():
                     old_value = self.widget_states.get(component_id)
                     self.widget_states[component_id] = value
-                    logger.debug(f"[ScriptRunner] Updated state: {component_id} = {value} (was {old_value})")
+                    logger.debug(
+                        f"[ScriptRunner] Updated state: {component_id} = {value} (was {old_value})"
+                    )
                 self._run_count += 1
                 self._last_run_time = current_time
 
@@ -159,15 +162,19 @@ class ScriptRunner:
             for atom_name, result in results.items():
                 with self._service.active_atom(atom_name):
                     if result is not None:
-                        value = result.value if hasattr(result, 'value') else None
+                        value = result.value if hasattr(result, "value") else None
                         if value is not None:
-                            self._service.append_component({"id": atom_name, "value": value})
+                            self._service.append_component(
+                                {"id": atom_name, "value": value}
+                            )
 
             components = self._service.get_rendered_components()
             logger.info(f"[ScriptRunner] Rendered {len(components)} components (rerun)")
 
             if components:
-                await self.send_message({"type": "components", "components": components})
+                await self.send_message(
+                    {"type": "components", "components": components}
+                )
                 logger.info("[ScriptRunner] Sent components to frontend")
 
         except Exception as e:
@@ -242,6 +249,17 @@ class ScriptRunner:
             sys.stdout = old_stdout
             logger.debug("[ScriptRunner] Restored stdout")
 
+    def run_sync(self, script_path: str):
+        """Run the script synchronously for CLI tools like export."""
+        import asyncio
+
+        self.script_path = script_path
+        self._state = ScriptState.RUNNING
+        self._run_count = 1
+
+        # block on the async `run_script()` method
+        asyncio.run(self.run_script())
+
     async def run_script(self):
         """Execute the script with enhanced error handling and state management."""
         if not self.is_running or not self.script_path:
@@ -291,7 +309,9 @@ class ScriptRunner:
 
                 if components:
                     # Send to frontend
-                    await self.send_message({"type": "components", "components": components})
+                    await self.send_message(
+                        {"type": "components", "components": components}
+                    )
                     logger.debug("[ScriptRunner] Sent components to frontend")
 
         except Exception as e:

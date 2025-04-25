@@ -436,31 +436,40 @@ def tutorial(ctx):
 
 
 @cli.command()
-@click.option(
-    "--format",
-    type=click.Choice(["pdf"]),
-    required=True,
-    help="Export format (currently only 'pdf' is supported).",
-)
+@click.argument("script", required=True)
+@click.option("--format", type=click.Choice(["pdf"]), required=True)
 @click.option("--output", type=click.Path(), help="Path to the output file.")
-def export(format, output):
-    """Export the current Preswald app as a PDF report."""
+def export(script, format, output):
+    """Export the given Preswald script as a PDF report."""
     output_path = output or "preswald_report.pdf"
 
-    if format == "pdf":
-        expected_ids = layout.seen_ids
+    if not os.path.exists(script):
+        click.echo(f"❌ Script not found: {script}")
+        return
 
-        click.echo(
-            f"📄 Exporting to PDF. Waiting for {len(expected_ids)} components to render..."
-        )
+    click.echo(f"📄 Rendering '{script}'...")
 
-        # export_app_to_pdf(
-        #     url="http://localhost:8501",
-        #     output=output_path,
-        #     expected_ids=expected_ids
-        # )
+    from preswald.main import render_once
+    from preswald.utils import (
+        export_app_to_pdf,
+    )  # ✅ make sure this is at the top level to avoid E402
 
-        click.echo(f"✅ Export complete. File saved to: {output_path}")
+    layout = render_once(script)
+
+    click.echo(f"✅ Render complete. Found {len(layout['rows'])} rows of components.")
+
+    component_ids = []
+    for row in layout["rows"]:
+        for component in row:
+            cid = component.get("id")
+            ctype = component.get("type")
+            if cid and ctype:
+                component_ids.append({"id": cid, "type": ctype})
+
+    # 🔽 Pass the component IDs to the export function
+    export_app_to_pdf(component_ids, output_path)
+
+    click.echo(f"\n✅ Export complete. PDF saved to: {output_path}")
 
 
 if __name__ == "__main__":

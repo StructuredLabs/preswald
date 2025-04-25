@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 const ButtonWidget = ({
+  id,
   children,
   onClick,
   isLoading,
@@ -16,6 +17,7 @@ const ButtonWidget = ({
 }) => {
   return (
     <Button
+      id={id}
       variant={variant}
       size={size}
       onClick={onClick}

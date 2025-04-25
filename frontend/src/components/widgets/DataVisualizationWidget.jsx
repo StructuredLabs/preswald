@@ -167,7 +167,7 @@ const DataVisualizationWidget = ({ id, data: rawData, content, error, className 
   }
 
   return (
-    <Card className={cn('plotly-container', className)} ref={setRefs}>
+    <Card id={id} className={cn('plotly-container', className)} ref={setRefs}>
       <CardContent className="plotly-card-content">
         {!inView || isLoading ? (
           <div className="plotly-loading-container">
