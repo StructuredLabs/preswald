@@ -272,6 +272,11 @@ class Workflow:
                 force_recompute=force_recompute,
             )
             self.atoms[atom_name] = atom
+
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug(f"[DAG] Atom {atom_name} registered with deps: {atom_deps}")
+                logger.debug(f"[DAG] Current DAG edges: {[(a.name, list(a.dependencies)) for a in self.atoms.values()]}")
+
             return func
 
         return decorator

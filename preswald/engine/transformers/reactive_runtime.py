@@ -23,7 +23,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
     def _discover_known_components(self):
         return {
             name for name in dir(components)
-            if getattr(getattr(components, name), "_preswald_component_type", None)
+            if getattr(getattr(components, name), "_preswald_component_type", None) is not None
         }
 
     def _has_callsite_hint(self, call_node):
@@ -34,7 +34,10 @@ class AutoAtomTransformer(ast.NodeTransformer):
         return func_name in self.known_components
 
     def visit_Module(self, node):
-        logger.info(f'variable_to_atom={self.variable_to_atom}')
+
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("[AST] Visiting module: beginning auto-atom transformation")
+            logger.debug(f'variable_to_atom={self.variable_to_atom}')
 
         for stmt in node.body:
             if isinstance(stmt, ast.Assign) and isinstance(stmt.value, ast.Call):
@@ -43,13 +46,21 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 callsite_hint = f"{self.filename}:{getattr(call_node, 'lineno', 0)}"
                 component_id = generate_stable_id(component_type, callsite_hint=callsite_hint)
                 stable_name = generate_stable_atom_id_from_component_id(component_id)
-                logger.info(f"first pass - stable_name: {stable_name}")
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug(f"first pass - stable_name: {stable_name}")
                 for target in stmt.targets:
                     if isinstance(target, ast.Name):
+                        if target.id in self.variable_to_atom and logger.isEnabledFor(logging.DEBUG):
+                            logger.debug(
+                                f"[AST] variable_to_atom overwrite: {target.id} → {stable_name} (was {self.variable_to_atom[target.id]})"
+                            )
+
                         self.variable_to_atom[target.id] = stable_name
                 self.helper_counter += 1
 
-        logger.info(f'variable_to_atom after first pass: {self.variable_to_atom}')
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(f'variable_to_atom after first pass: {self.variable_to_atom}')
+
         self.helper_counter = 0
         new_body = []
 
@@ -59,11 +70,20 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
                 call_node = stmt.value if isinstance(stmt, ast.Expr) else stmt.value
                 component_type = getattr(call_node.func, 'id', 'component')
+
+                # Skip known component calls
+                if component_type in self.known_components:
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.debug(f"Skipping known component call: {component_type}")
+                    new_body.append(stmt)
+                    continue
+
                 callsite_hint = f"{self.filename}:{getattr(call_node, 'lineno', 0)}"
                 component_id = generate_stable_id(component_type, callsite_hint=callsite_hint)
                 stable_name = generate_stable_atom_id_from_component_id(component_id)
 
-                logger.info(f"second pass - stable_name: {stable_name}")
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug(f"second pass - stable_name: {stable_name}")
 
                 deps = []
                 for arg in call_node.args:
@@ -84,8 +104,11 @@ class AutoAtomTransformer(ast.NodeTransformer):
                         if var in self.variable_to_atom:
                             deps.append(self.variable_to_atom[var])
 
-                param_mapping = {}
                 sorted_deps = sorted(deps)
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug(f"[AST] Generating helper function {func_name} for component '{component_type}' with dependencies: {sorted_deps}")
+
+                param_mapping = {}
                 for idx, dep in enumerate(sorted_deps):
                     param_name = f"param{idx}"
                     param_mapping[dep] = param_name
@@ -151,10 +174,12 @@ class AutoAtomTransformer(ast.NodeTransformer):
                     var_name = next((var for var, atom in self.variable_to_atom.items() if atom == dep), None)
                     if var_name:
                         call_args.append(ast.Name(id=var_name, ctx=ast.Load()))
-                        logger.info(f"Calling {func_name} with positional arg from variable: {var_name} for dependency: {dep}")
+                        if logger.isEnabledFor(logging.DEBUG):
+                            logger.debug(f"Calling {func_name} with positional arg from variable: {var_name} for dependency: {dep}")
                     else:
                         call_args.append(ast.Constant(value=None))
-                        logger.warning(f"Dependency {dep} could not be resolved to a variable; using None")
+                        if logger.isEnabledFor(logging.DEBUG):
+                            logger.warning(f"Dependency {dep} could not be resolved to a variable; using None")
 
                 new_call_expr = ast.Call(
                     func=ast.Name(id=func_name, ctx=ast.Load()),

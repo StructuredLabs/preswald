@@ -107,72 +107,55 @@ class BasePreswaldService:
             )
 
     def append_component(self, component):
-        """Add a component to the layout manager"""
+        """
+        Append a component to the current layout if it is valid and not a duplicate.
+
+        This method performs the following steps:
+        - Unwraps the component if it is a ComponentReturn wrapper.
+        - Validates that the component is a dictionary with a valid "type".
+        - Cleans the component by removing or replacing NaN values.
+        - Uses the layout manager to patch an existing component or add a new one.
+
+        Logs are emitted at various levels for debugging and tracing component flow.
+
+        Args:
+            component (dict or ComponentReturn): The component to append. Can be a raw dict or a wrapped object.
+
+        Returns:
+            None
+        """
         try:
-            # Unwrap ComponentReturn if present
+            # Unwrap if necessary
             if hasattr(component, "_preswald_component"):
                 component = component._preswald_component
 
-            # Early guard against invalid components
             if not isinstance(component, dict):
-                logger.debug(f"[APPEND] Skipping non-dict component: {component}")
+                logger.warning(f"[APPEND] Skipping non-dict component: {component}")
                 return
 
             if "type" not in component or not isinstance(component["type"], str):
-                logger.debug(f"[APPEND] Skipping component with no valid type: {component}")
+                logger.warning(f"[APPEND] Skipping component with no valid type: {component}")
                 return
 
-            logger.info(f"[APPEND] Appending component: {component.get('id')}, type: {component.get('type')}")
+            component_id = component.get("id")
+            component_type = component.get("type")
+            logger.info(f"[APPEND] Appending component: {component_id}, type: {component_type}")
 
-            # Clean any NaN values in the component
-            clean_start = time.time()
             cleaned_component = clean_nan_values(component)
-            logger.debug(f"NaN cleanup took {time.time() - clean_start:.3f}s")
 
             if "id" in cleaned_component:
-                component_id = cleaned_component["id"]
-                logger.info(f"[TEST] append_component() called with id: {component_id}")
-
-                # Try to patch instead of re-adding if already exists
+                # Attempt to patch; if no match, add it
                 if not self._layout_manager.patch_component(cleaned_component):
-                    # Update value if we have previous state
-                    if "value" in cleaned_component:
-                        current_state = self.get_component_state(component_id)
-                        if current_state is not None:
-                            cleaned_component["value"] = clean_nan_values(current_state)
-                            if logger.isEnabledFor(logging.DEBUG):
-                                logger.debug(f"Updated component {component_id} with state: {current_state}")
-
-                    with self.active_atom(self._workflow._current_atom):
-                        current_atom = self._workflow._current_atom
-                        logger.info(f"[DEBUG] Current atom before register: {current_atom}")
-
-                        # Register the producer relationship
-                        self._workflow.register_component_producer(component_id)
-
-                        # Avoid circular fallback: component shouldn't self-register
-                        producer = self._workflow.get_component_producer(component_id)
-                        if current_atom and component_id != current_atom and producer != current_atom:
-                            self._ensure_dummy_atom(component_id)
-
-                        # Store return value in workflow context (if present)
-                        if "value" in cleaned_component:
-                            producer = self._workflow.get_component_producer(component_id)
-                            if producer:
-                                self._workflow.context.set_variable(producer, cleaned_component["value"])
-                                logger.info(f"[DAG] Stored return value of {component_id} in context under {producer}")
-
-                        self._layout_manager.add_component(cleaned_component)
-                        if logger.isEnabledFor(logging.DEBUG):
-                            logger.debug(f"Added component with state: {cleaned_component}")
+                    self._layout_manager.add_component(cleaned_component)
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.debug(f"[APPEND] Added component with state: {cleaned_component}")
             else:
-                # Components without IDs are added as-is
                 self._layout_manager.add_component(cleaned_component)
                 if logger.isEnabledFor(logging.DEBUG):
-                    logger.debug(f"Added component without ID: {cleaned_component}")
+                    logger.debug(f"[APPEND] Added component without ID: {cleaned_component}")
 
         except Exception as e:
-            logger.error(f"Error adding component: {e}", exc_info=True)
+            logger.error(f"[APPEND] Error adding component: {e}", exc_info=True)
 
     def clear_components(self):
         """Clear all components from the layout manager"""
@@ -180,7 +163,7 @@ class BasePreswaldService:
 
     def force_recompute(self, component_ids: set[str]) -> None:
         """Mark components as needing recomputation."""
-        logger.debug(f"[DAG] Forcing recompute for: {component_ids}")
+        logger.info(f"[DAG] Forcing recompute for: {component_ids}")
         for cid in component_ids:
             if cid in self._workflow.atoms:
                 self._workflow.atoms[cid].force_recompute = True
@@ -188,7 +171,7 @@ class BasePreswaldService:
     def get_affected_components(self, changed_components: set[str]) -> set[str]:
         """Compute all components affected by the updated component state."""
         affected = self._workflow._get_affected_atoms(changed_components)
-        logger.debug(f"Changed: {changed_components} → Affected: {affected}")
+        logger.info(f"Changed: {changed_components} → Affected: {affected}")
         return affected
 
     def get_component_state(self, component_id: str, default: Any = None) -> Any:
@@ -332,7 +315,7 @@ class BasePreswaldService:
         changed_states = {k: v for k, v in states.items() if self.should_render(k, v)}
 
         if not changed_states:
-            logger.debug("[STATE] No actual state changes detected. Skipping rerun.")
+            logger.info("[STATE] No actual state changes detected. Skipping rerun.")
             return
 
         # Update only changed states
@@ -386,7 +369,7 @@ class BasePreswaldService:
 
         # Avoid registering a dummy that would point to itself
         if atom_name == current_atom:
-            logger.debug(f"[DAG] Skipping dummy registration for {atom_name} (would self-loop)")
+            logger.info(f"[DAG] Skipping dummy registration for {atom_name} (would self-loop)")
             return
 
         if atom_name not in self._workflow.atoms:
@@ -422,7 +405,7 @@ class BasePreswaldService:
     def _update_component_states(self, states: dict[str, Any]):
         """Update internal state dictionary with cleaned component values."""
         with self._lock:
-            logger.debug("[STATE] Updating states")
+            logger.info("[STATE] Updating states")
             for component_id, new_value in states.items():
                 old_value = self._component_states.get(component_id)
 
@@ -435,3 +418,6 @@ class BasePreswaldService:
                         logger.debug(f"[STATE] State changed for {component_id}:")
                         logger.debug(f"  - Old value: {cleaned_old_value}")
                         logger.debug(f"  - New value: {cleaned_new_value}")
+                    logger.info(f"[STATE] State changed for {component_id}:")
+                    logger.info(f"  - Old value: {cleaned_old_value}")
+                    logger.info(f"  - New value: {cleaned_new_value}")

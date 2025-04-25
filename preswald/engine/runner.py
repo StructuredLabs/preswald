@@ -108,22 +108,30 @@ class ScriptRunner:
             raise
 
     async def rerun(self, new_widget_states: dict[str, Any] | None = None):
-        """Rerun the script with new widget values and debouncing.
+        """
+        Rerun the script in response to updated widget state.
+
+        This uses DAG-based dependency tracking (from AST instrumentation in Phase 3)
+        to determine which atoms are affected and should be recomputed.
+
+        Fallback to full rerun is triggered if affected atoms cannot be determined.
 
         Args:
-            new_widget_states: Dictionary of widget ID to new value
+            new_widget_states (dict[str, Any] | None): Updated component states (by ID).
         """
-        if not new_widget_states:
-            logger.debug("[ScriptRunner] No new states for rerun")
-            return
 
         # Basic debouncing - skip if last run was too recent
         current_time = time.time()
         if current_time - self._last_run_time < 0.1:  # 100ms debounce
-            logger.debug("[ScriptRunner] Skipping rerun due to debounce")
+            logger.info("[ScriptRunner] Skipping rerun due to debounce")
             return
 
-        logger.info(f"[ScriptRunner] Rerunning with new states: {new_widget_states}")
+        if not new_widget_states:
+            logger.debug("[ScriptRunner] No new states for rerun")
+            return
+
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(f"[ScriptRunner] Rerunning with new states: {new_widget_states}")
 
         try:
             # Update states atomically
@@ -131,38 +139,56 @@ class ScriptRunner:
                 for component_id, value in new_widget_states.items():
                     old_value = self.widget_states.get(component_id)
                     self.widget_states[component_id] = value
-                    logger.debug(f"[ScriptRunner] Updated state: {component_id} = {value} (was {old_value})")
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.debug(f"[ScriptRunner] Updated state: {component_id} = {value} (was {old_value})")
                 self._run_count += 1
                 self._last_run_time = current_time
 
             # determine affected components and force recomputation
             changed_component_ids = set(new_widget_states.keys())
-            changed_atoms = {
-                self._service.get_workflow().get_component_producer(cid)
-                for cid in changed_component_ids
-                if self._service.get_workflow().get_component_producer(cid)
-            }
+            workflow = self._service.get_workflow()
 
-            affected = self._service.get_affected_components(changed_atoms)
+            changed_atoms = set()
+            for cid in changed_component_ids:
+                atom = workflow.get_component_producer(cid)
+                if atom:
+                    changed_atoms.add(atom)
+                else:
+                    logger.warning(f"[ScriptRunner] No producer found for component_id: {cid}")
 
-            if not changed_atoms and not affected:
+            affected_atoms = workflow._get_affected_atoms(changed_atoms)
+
+            if not changed_atoms and not affected_atoms:
                 logger.warning("[ScriptRunner] No atoms affected — falling back to full script rerun")
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug(f"[ScriptRunner] changed_atoms = {changed_atoms}, component_ids = {changed_component_ids}")
+
                 await self.run_script()
                 return
+            else:
+                logger.info(f"[ScriptRunner] Rerun using DAG reactivity with {len(affected_atoms)} affected atoms")
 
-            self._service.force_recompute(affected)
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug(f"[ScriptRunner] changed_atoms = {changed_atoms}, affected_atoms = {affected_atoms}")
+                logger.debug(f"[ScriptRunner] affected_atoms = {affected_atoms}")
 
-            # Execute workflow with selective recompute
-            workflow = self._service.get_workflow()
-            results = workflow.execute(recompute_atoms=affected)
+            self._service.force_recompute(affected_atoms)
+            results = workflow.execute(recompute_atoms=affected_atoms)
 
             # Ensure layout rendering happens for all atoms
             for atom_name, result in results.items():
                 with self._service.active_atom(atom_name):
                     if result is not None:
                         value = result.value if hasattr(result, 'value') else None
-                        if value is not None:
-                            self._service.append_component({"id": atom_name, "value": value})
+                        if (
+                            hasattr(value, "_preswald_component_type")  # component created by with_render_tracking
+                            or (isinstance(value, dict) and "type" in value)  # fallback safety
+                        ):
+                            self._service.append_component(value)
+                        else:
+                            logger.info(f"[ScriptRunner] Skipping non-component value for atom: {atom_name}")
+                            if logger.isEnabledFor(logging.DEBUG):
+                                logger.debug(f"[ScriptRunner] Atom {atom_name} returned: {result!r}")
 
             components = self._service.get_rendered_components()
             logger.info(f"[ScriptRunner] Rendered {len(components)} components (rerun)")
@@ -170,6 +196,8 @@ class ScriptRunner:
             if components:
                 await self.send_message({"type": "components", "components": components})
                 logger.info("[ScriptRunner] Sent components to frontend")
+
+            logger.info(f"[ScriptRunner] Rerun completed in {time.time() - current_time:.2f}s (total)")
 
         except Exception as e:
             error_msg = f"Error updating widget states: {e!s}"
