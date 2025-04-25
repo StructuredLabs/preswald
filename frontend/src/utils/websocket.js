@@ -86,7 +86,7 @@ class WebSocketClient {
 
                   console.log('[WebSocket] Component state updated from server:', {
                     componentId,
-                    hasComplexValue: newValue && typeof newValue === 'object',
+                    valueType: typeof newValue,
                   });
                 }
                 break;
@@ -97,18 +97,15 @@ class WebSocketClient {
                     row.forEach((component) => {
                       if (component.id) {
                         // Store the entire component structure regardless of type
-                        // This ensures we have all the necessary properties for any component
                         this.componentStates[component.id] = {
                           ...component,
                           // Keep track that this is a complete component, not just a value
                           _isCompleteComponent: true,
                         };
 
-                        console.log('[WebSocket] Stored complete component:', {
-                          componentId: component.id,
+                        console.log('[WebSocket] Stored component:', {
+                          id: component.id,
                           type: component.type,
-                          hasData: !!component.data,
-                          hasProps: !!component.props,
                         });
                       }
                     });
@@ -218,15 +215,9 @@ class WebSocketClient {
   }
 
   getComponentState(componentId) {
-    // Add debugging for component state access
     const state = this.componentStates[componentId];
     if (state && state._isCompleteComponent) {
-      console.log(`[WebSocket] Getting complete component state for ${componentId}`, {
-        type: state.type,
-        hasValue: state.value !== undefined,
-        hasData: state.data !== undefined,
-        hasProps: state.props !== undefined,
-      });
+      console.log(`[WebSocket] Get state for ${componentId}`, { type: state.type });
     }
     return state;
   }
@@ -243,14 +234,14 @@ class WebSocketClient {
     const message = { type: 'component_update', states: { [componentId]: value } };
     try {
       this.socket.send(JSON.stringify(message));
-      console.log('[WebSocket] Sent component update:', { componentId });
+      console.log('[WebSocket] Sent update:', { componentId });
 
       // Update the local state
       this._updateComponentState(componentId, value);
 
       return true;
     } catch (error) {
-      console.error('[WebSocket] Error sending component update:', error);
+      console.error('[WebSocket] Error sending update:', error);
       throw error;
     }
   }
@@ -265,7 +256,7 @@ class WebSocketClient {
 
     // If we have a complete component, preserve its structure
     if (currentState && currentState._isCompleteComponent) {
-      // First update the value property
+      // Update with deep merge to maintain component structure
       let updatedState = deepMerge(currentState, { value: newValue });
 
       // If the new value is an object with additional properties, merge those too
@@ -355,9 +346,9 @@ class PostMessageClient {
 
           this._updateComponentState(componentId, newValue);
 
-          console.log('[PostMessage] Component state updated from server:', {
+          console.log('[PostMessage] Updated state from server:', {
             componentId,
-            hasComplexValue: newValue && typeof newValue === 'object',
+            valueType: typeof newValue,
           });
         }
         this._notifySubscribers(data);
@@ -369,18 +360,15 @@ class PostMessageClient {
             row.forEach((component) => {
               if (component.id) {
                 // Store the entire component structure regardless of type
-                // This ensures we have all the necessary properties for any component
                 this.componentStates[component.id] = {
                   ...component,
                   // Keep track that this is a complete component, not just a value
                   _isCompleteComponent: true,
                 };
 
-                console.log('[PostMessage] Stored complete component:', {
-                  componentId: component.id,
+                console.log('[PostMessage] Stored component:', {
+                  id: component.id,
                   type: component.type,
-                  hasData: !!component.data,
-                  hasProps: !!component.props,
                 });
               }
             });
@@ -411,15 +399,9 @@ class PostMessageClient {
   }
 
   getComponentState(componentId) {
-    // Add debugging for component state access
     const state = this.componentStates[componentId];
     if (state && state._isCompleteComponent) {
-      console.log(`[PostMessage] Getting complete component state for ${componentId}`, {
-        type: state.type,
-        hasValue: state.value !== undefined,
-        hasData: state.data !== undefined,
-        hasProps: state.props !== undefined,
-      });
+      console.log(`[PostMessage] Get state for ${componentId}`, { type: state.type });
     }
     return state;
   }
@@ -446,7 +428,7 @@ class PostMessageClient {
       // Update the local state
       this._updateComponentState(componentId, value);
 
-      console.log('[PostMessage] Sent component update:', { componentId });
+      console.log('[PostMessage] Sent update:', { componentId });
     } else {
       console.warn('[PostMessage] No parent window to send update');
     }
@@ -462,7 +444,7 @@ class PostMessageClient {
 
     // If we have a complete component, preserve its structure
     if (currentState && currentState._isCompleteComponent) {
-      // First update the value property
+      // Update with deep merge to maintain component structure
       let updatedState = deepMerge(currentState, { value: newValue });
 
       // If the new value is an object with additional properties, merge those too
