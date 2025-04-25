@@ -72,7 +72,7 @@ const MemoizedComponent = memo(
 
     switch (component.type) {
       case 'sidebar':
-        return <SidebarWidget defaultOpen={component.defaultopen} />;
+        return <SidebarWidget defaultOpen={component.defaultopen} branding={component.branding} />;
 
       case 'button':
         return (

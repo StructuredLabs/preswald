@@ -27,6 +27,7 @@ from preswald.interfaces.workflow import Workflow
 from preswald.interfaces.component_return import ComponentReturn
 
 
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 # Components
 
-@with_render_tracking('alert')
+@with_render_tracking("alert")
 def alert(message: str, level: str = "info", size: float = 1.0, component_id: str | None = None, **kwargs) -> ComponentReturn:
     """Create an alert component."""
 
@@ -50,7 +51,8 @@ def alert(message: str, level: str = "info", size: float = 1.0, component_id: st
 
     return ComponentReturn(message, component)
 
-@with_render_tracking('big_number')
+
+@with_render_tracking("big_number")
 def big_number(
     value: int | float | str,
     label: str | None = None,
@@ -84,7 +86,8 @@ def big_number(
 
     return ComponentReturn(str(value), component)
 
-@with_render_tracking('button')
+
+@with_render_tracking("button")
 def button(
     label: str,
     variant: str = "default",
@@ -116,7 +119,7 @@ def button(
 
     return ComponentReturn(current_value, component)
 
-@with_render_tracking('chat')
+@with_render_tracking("chat")
 def chat(source: str, table: str | None = None, component_id: str | None = None, **kwargs) -> ComponentReturn:
     """Create a chat component to chat with data source"""
     service = PreswaldService.get_instance()
@@ -166,7 +169,7 @@ def chat(source: str, table: str | None = None, component_id: str | None = None,
 
     return ComponentReturn(component, component)
 
-@with_render_tracking('checkbox')
+@with_render_tracking("checkbox")
 def checkbox(label: str, default: bool = False, size: float = 1.0, component_id: str | None = None, **kwargs) -> ComponentReturn:
     """Create a checkbox component with consistent ID based on label."""
     service = PreswaldService.get_instance()
@@ -262,7 +265,7 @@ def checkbox(label: str, default: bool = False, size: float = 1.0, component_id:
 #     return component_id
 
 
-@with_render_tracking('image')
+@with_render_tracking("image")
 def image(src, alt="Image", size=1.0, component_id: str | None = None, **kwargs) -> ComponentReturn:
     """Create an image component.
 
@@ -323,9 +326,14 @@ def image(src, alt="Image", size=1.0, component_id: str | None = None, **kwargs)
 
     return ComponentReturn(component, component)
 
-@with_render_tracking('json_viewer')
+
+@with_render_tracking("json_viewer")
 def json_viewer(
-    data, title: str | None = None, expanded: bool = True, size: float = 1.0, component_id: str | None = None, **kwargs
+    data, title: str | None = None,
+    expanded: bool = True,
+    size: float = 1.0,
+    component_id: str | None = None,
+    **kwargs
 ) -> dict:
     """Create a JSON viewer component with collapsible tree view."""
     # Attempt to ensure JSON is serializable and safe
@@ -349,9 +357,8 @@ def json_viewer(
 
     logger.debug(f"Created JSON viewer component with id {component_id}")
     return ComponentReturn(component, component)
-   
 
-@with_render_tracking('matplotlib')
+@with_render_tracking("matplotlib")
 def matplotlib(fig: plt.Figure | None = None, label: str = "plot", component_id: str | None = None, **kwargs) -> ComponentReturn:
     """Render a Matplotlib figure as a component."""
 
@@ -372,12 +379,19 @@ def matplotlib(fig: plt.Figure | None = None, label: str = "plot", component_id:
         "image": img_b64,  # Store the image data
     }
 
-    return ComponentReturn(component_id, component)  # Returning ID for potential tracking
+    return ComponentReturn(
+        component_id, component
+    )  # Returning ID for potential tracking
 
 
-@with_render_tracking('playground')
+@with_render_tracking("playground")
 def playground(
-    label: str, query: str, source: str | None = None, size: float = 1.0, component_id: str | None = None, **kwargs
+    label: str,
+    query: str,
+    source: str | None = None,
+    size: float = 1.0,
+    component_id: str | None = None,
+    **kwargs
 ) -> ComponentReturn:
     """
     Create a playground component for interactive data querying and visualization.
@@ -470,7 +484,7 @@ def playground(
     # Return the raw DataFrame
     return ComponentReturn(data, component)
 
-@with_render_tracking('plotly')
+@with_render_tracking("plotly")
 def plotly(fig, size: float = 1.0, component_id: str | None = None, **kwargs) -> ComponentReturn:  # noqa: C901
     """
     Render a Plotly figure.
@@ -612,7 +626,7 @@ def plotly(fig, size: float = 1.0, component_id: str | None = None, **kwargs) ->
 
         return ComponentReturn(error_component, error_component)
 
-@with_render_tracking('progress')
+@with_render_tracking("progress")
 def progress(label: str, value: float = 0.0, size: float = 1.0, component_id: str | None = None, **kwargs) -> ComponentReturn:
     """Create a progress component."""
 
@@ -627,9 +641,15 @@ def progress(label: str, value: float = 0.0, size: float = 1.0, component_id: st
 
     return ComponentReturn(value, component)
 
-@with_render_tracking('selectbox')
+
+@with_render_tracking("selectbox")
 def selectbox(
-    label: str, options: list[str], default: str | None = None, size: float = 1.0, component_id: str | None = None, **kwargs
+    label: str,
+    options: list[str],
+    default: str | None = None,
+    size: float = 1.0,
+    component_id: str | None = None,
+    **kwargs
 ) -> ComponentReturn:
     """Create a select component with consistent ID based on label."""
     service = PreswaldService.get_instance()
@@ -653,7 +673,7 @@ def selectbox(
     return ComponentReturn(current_value, component)
 
 
-@with_render_tracking('separator')
+@with_render_tracking("separator")
 def separator(component_id: str | None = None, **kwargs) -> ComponentReturn:
     """Create a separator component that forces a new row."""
     component = {"type": "separator", "id": component_id}
@@ -661,7 +681,8 @@ def separator(component_id: str | None = None, **kwargs) -> ComponentReturn:
     logger.debug(f"[separator] ID={component_id}")
     return ComponentReturn(component, component)
 
-@with_render_tracking('slider')
+
+@with_render_tracking("slider")
 def slider(
     label: str,
     min_val: float = 0.0,
@@ -694,7 +715,8 @@ def slider(
     logger.debug(f"[slider] ID={component_id}, value={current_value}")
     return ComponentReturn(current_value, component)
 
-@with_render_tracking('spinner')
+
+@with_render_tracking("spinner")
 def spinner(
     label: str = "Loading...",
     variant: str = "default",
@@ -724,19 +746,36 @@ def spinner(
     logger.debug(f"[spinner] ID={component_id}")
     return ComponentReturn(None, component)
 
-@with_render_tracking('sidebar')
-def sidebar(defaultopen: bool = False, component_id: str | None = None, **kwargs) -> ComponentReturn:
-    """Create a sidebar component."""
 
-    component = {"type": "sidebar", "id": component_id, "defaultopen": defaultopen}
+@with_render_tracking("sidebar")
+def sidebar(
+    defaultopen: bool = False,
+    component_id: str | None = None,
+    logo: str | None = None,
+    name: str | None = None,
+    **kwargs
+) -> ComponentReturn:
+    """Create a sidebar component with optional logo and name."""
+    component = {
+        "type": "sidebar",
+        "id": component_id,
+        "defaultopen": defaultopen,
+        "branding": {"logo": logo, "name": name},
+    }
 
-    logger.debug(f"[sidebar] ID={component_id}, defaultopen={defaultopen}")
+    logger.debug(
+        f"[sidebar] ID={component_id}, defaultopen={defaultopen}, logo={logo}, name={name}"
+    )
     return ComponentReturn(component, component)
 
 
-@with_render_tracking('table')
+@with_render_tracking("table")
 def table(
-    data: pd.DataFrame, title: str | None = None, limit: int | None = None, component_id: str | None = None, **kwargs
+    data: pd.DataFrame,
+    title: str | None = None,
+    limit: int | None = None,
+    component_id: str | None = None,
+    **kwargs
 ) -> ComponentReturn:
     """Create a table component that renders data using TableViewerWidget.
 
@@ -820,7 +859,7 @@ def table(
         return ComponentReturn(error_component, error_component)
 
 
-@with_render_tracking('text')
+@with_render_tracking("text")
 def text(markdown_str: str, size: float = 1.0, component_id: str | None = None, **kwargs) -> ComponentReturn:
     """Create a text/markdown component."""
     component = {
@@ -835,7 +874,7 @@ def text(markdown_str: str, size: float = 1.0, component_id: str | None = None, 
     return ComponentReturn(markdown_str, component)
 
 
-@with_render_tracking('text_input')
+@with_render_tracking("text_input")
 def text_input(
     label: str,
     placeholder: str = "",
@@ -875,7 +914,7 @@ def text_input(
     return ComponentReturn(current_value, component)
 
 
-@with_render_tracking('topbar')
+@with_render_tracking("topbar")
 def topbar(component_id: str | None = None, **kwargs) -> ComponentReturn:
     """Creates a topbar component."""
     component = {"type": "topbar", "id": component_id}
@@ -884,8 +923,13 @@ def topbar(component_id: str | None = None, **kwargs) -> ComponentReturn:
     return ComponentReturn(component, component)
 
 
-@with_render_tracking('workflow_dag')
-def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph", component_id: str | None = None, **kwargs) -> ComponentReturn:
+@with_render_tracking("workflow_dag")
+def workflow_dag(
+        workflow: Workflow,
+        title: str = "Workflow Dependency Graph",
+        component_id: str | None = None,
+        **kwargs
+) -> ComponentReturn:
     """
     Render the workflow's DAG visualization.
 

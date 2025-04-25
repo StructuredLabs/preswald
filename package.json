@@ -8,6 +8,10 @@
     "@ag-grid-enterprise/all-modules": "^27.3.0",
     "@monaco-editor/react": "^4.7.0",
     "ag-grid-react": "^32.3.4",
-    "highlight.js": "^11.11.1"
+    "highlight.js": "^11.11.1",
+    "plotly.js-dist": "^3.0.1",
+    "katex": "^0.16.21",
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0"
   }
 }

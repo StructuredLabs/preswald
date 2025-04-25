@@ -1,18 +1,27 @@
 ---
 title: "sidebar"
 icon: "table-columns"
-description: ""
+description: "Add a customizable sidebar to your Preswald app"
 ---
 
 ```python
 sidebar(defaultopen = True) -> Dict
 ```
 
-The `sidebar` function adds sidebar to your app.
+The `sidebar` function adds a sidebar to your app, optionally allowing you to customize the logo and title.
 
 ## Parameters
 
-- **`defaultopen`** _(True)_: Whether to expand sidebar on desktop by default
+- **`defaultopen`** _(bool, default=True)_:  
+  Whether to expand the sidebar on desktop by default.
+
+- **`logo`** _(str, optional)_:  
+  A URL pointing to the logo image shown at the top of the sidebar.  
+  Example: `"https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg"`
+
+- **`name`** _(str, optional)_:  
+  A string to be shown as the title next to the logo in the sidebar.  
+  Example: `"Iris Dashboard"
 
 <Frame>
 <img
@@ -28,19 +37,24 @@ The `sidebar` function adds sidebar to your app.
 
 ## Usage Example
 
-Here's an example of how to add sidebar to your app:
+Here's an example of how to add a customizable sidebar to your app:
 
 ```python
 from preswald import sidebar
 
-sidebar(defaultopen=True)
+sidebar(
+    defaultopen=True,
+    logo="https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg",
+    name="Iris Dashboard"
+)
 ```
 
 ### Key Features
 
-1. **Control**: You can use sidebar only if needed which gives you the full control.
-2. **Easy to use**: No configuration needed—just call the function.
+1. **Custom Branding**: Set a custom logo and title to match your brand or app.
+2. **Control**: You can use sidebar only if needed which gives you the full control.
+3. **Easy to use**: No configuration needed—just call the function.
 
 ### Why Use `sidebar`?
 
-Sidebar provide a way to show sidebar on your preswald app explicitly as needed.
+The sidebar helps organize navigation in your Preswald app and can now also visually reflect your app’s identity through branding.
