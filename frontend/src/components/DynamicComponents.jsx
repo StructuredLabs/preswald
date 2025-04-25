@@ -4,6 +4,7 @@ import React, { memo, useEffect } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import { cn } from '@/lib/utils';
+import { areComponentsEqual } from '@/utils/deepComparison';
 import { comm } from '@/utils/websocket';
 
 // Utilities
@@ -326,11 +327,9 @@ const MemoizedComponent = memo(
     }
   },
   (prevProps, nextProps) => {
-    // Custom comparison function for memoization
+    // Use the generalized deep comparison function for components
     return (
-      prevProps.component.id === nextProps.component.id &&
-      prevProps.component.value === nextProps.component.value &&
-      prevProps.component.error === nextProps.component.error &&
+      areComponentsEqual(prevProps.component, nextProps.component) &&
       prevProps.index === nextProps.index
     );
   }

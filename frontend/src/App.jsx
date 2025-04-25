@@ -5,6 +5,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import Layout from './components/Layout';
 import LoadingState from './components/LoadingState';
 import Dashboard from './components/pages/Dashboard';
+import { deepMerge } from './utils/deepComparison';
 import { comm } from './utils/websocket';
 
 const App = () => {
@@ -80,12 +81,21 @@ const App = () => {
         row.map((component) => {
           if (!component || !component.id) return component;
 
+          // Get current state from websocket client
           const currentState = comm.getComponentState(component.id);
-          return {
-            ...component,
-            value: currentState !== undefined ? currentState : component.value,
-            error: null,
-          };
+
+          // Skip components with no stored state
+          if (!currentState) return component;
+
+          // Deep merge the component with current state
+          const merged = currentState._isCompleteComponent
+            ? deepMerge(component, { ...currentState, _isCompleteComponent: undefined })
+            : { ...component, value: currentState };
+
+          // Reset error state
+          merged.error = null;
+
+          return merged;
         })
       );
 
@@ -128,16 +138,25 @@ const App = () => {
       comm.updateComponentState(componentId, value);
     } catch (error) {
       console.error('[App] Error updating component state:', error);
+
+      // Find the component to update
       setComponents((prevState) => {
         if (!prevState || !prevState.rows) return { rows: [] };
 
-        return {
-          rows: prevState.rows.map((row) =>
-            row.map((component) =>
-              component.id === componentId ? { ...component, error: error.message } : component
-            )
-          ),
-        };
+        const updatedRows = prevState.rows.map((row) =>
+          row.map((component) => {
+            if (component.id !== componentId) return component;
+
+            // Use deepMerge to update component with error and new value
+            // while preserving its structure
+            return deepMerge(component, {
+              error: error.message,
+              value: value,
+            });
+          })
+        );
+
+        return { rows: updatedRows };
       });
     }
   };
