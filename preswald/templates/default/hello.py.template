@@ -6,7 +6,7 @@ text("# Welcome to Preswald!")
 text("This is your first app. 🎉")
 
 # Load the CSV
-connect() # load in all sources, which by default is the sample_csv
+connect()
 df = get_df('sample_csv')
 
 # Create a scatter plot

@@ -1,12 +1,10 @@
 # Standard Library
 import base64
-import hashlib
 import io
 import json
 import logging
+import os
 import re
-import uuid
-from typing import Dict, List, Optional
 
 # Third-Party
 import matplotlib.pyplot as plt
@@ -25,7 +23,8 @@ import pandas as pd
 # Internal
 from preswald.engine.service import PreswaldService
 from preswald.interfaces.workflow import Workflow
-
+from preswald.interfaces.component_return import ComponentReturn
+from preswald.utils import with_render_tracking
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -34,37 +33,34 @@ logger = logging.getLogger(__name__)
 
 # Components
 
-
-def alert(message: str, level: str = "info", size: float = 1.0) -> str:
+@with_render_tracking('alert')
+def alert(message: str, level: str = "info", size: float = 1.0, component_id: str | None = None) -> ComponentReturn:
     """Create an alert component."""
-    service = PreswaldService.get_instance()
 
-    id = generate_id("alert")
-    logger.debug(f"Creating alert component with id {id}, message: {message}")
+    logger.debug(f"Creating alert component with id {component_id}, message: {message}")
+
     component = {
         "type": "alert",
-        "id": id,
+        "id": component_id,
         "message": message,
         "level": level,
         "size": size,
     }
-    logger.debug(f"Created component: {component}")
-    service.append_component(component)
-    return message
 
+    return ComponentReturn(message, component)
 
+@with_render_tracking('big_number')
 def big_number(
     value: int | float | str,
-    label: Optional[str] = None,
-    delta: Optional[str] = None,
-    delta_color: Optional[str] = None,
-    icon: Optional[str] = None,
-    description: Optional[str] = None,
+    label: str | None = None,
+    delta: str | None = None,
+    delta_color: str | None = None,
+    icon: str | None = None,
+    description: str | None = None,
     size: float = 1.0,
-) -> str:
+    component_id: str | None = None
+) -> ComponentReturn:
     """Create a big number metric card component."""
-    service = PreswaldService.get_instance()
-    component_id = generate_id("big_number")
 
     logger.debug(
         f"Creating big number component with id {component_id}, value: {value}"
@@ -83,20 +79,20 @@ def big_number(
     }
 
     logger.debug(f"Created component: {component}")
-    service.append_component(component)
-    return str(value)
 
+    return ComponentReturn(str(value), component)
 
+@with_render_tracking('button')
 def button(
     label: str,
     variant: str = "default",
     disabled: bool = False,
     loading: bool = False,
     size: float = 1.0,
-) -> bool:
+    component_id: str | None = None
+) -> ComponentReturn:
     """Create a button component that returns True when clicked."""
     service = PreswaldService.get_instance()
-    component_id = generate_id_by_label("button", label)
 
     # Get current state or use default
     current_value = service.get_component_state(component_id)
@@ -115,16 +111,12 @@ def button(
         "onClick": True,  # Always enable click handling
     }
 
-    service.append_component(component)
-    return current_value
+    return ComponentReturn(current_value, component)
 
-
-def chat(source: str, table: Optional[str] = None) -> Dict:
+@with_render_tracking('chat')
+def chat(source: str, table: str | None = None, component_id: str | None = None) -> ComponentReturn:
     """Create a chat component to chat with data source"""
     service = PreswaldService.get_instance()
-
-    # Create a consistent ID based on the source
-    component_id = f"chat-{hashlib.md5(str(source).encode()).hexdigest()[:8]}"
 
     # Get current state or initialize empty
     current_state = service.get_component_state(component_id)
@@ -147,7 +139,7 @@ def chat(source: str, table: Optional[str] = None) -> Dict:
         for record in records:
             processed_record = {}
             for key, value in record.items():
-                if isinstance(value, (pd.Timestamp, pd.NaT.__class__)):
+                if isinstance(value, pd.Timestamp | pd.NaT.__class__):
                     processed_record[key] = (
                         value.isoformat() if not pd.isna(value) else None
                     )
@@ -169,17 +161,12 @@ def chat(source: str, table: Optional[str] = None) -> Dict:
         },
     }
 
-    logger.debug(f"Created component: {component}")
-    service.append_component(component)
-    return component
+    return ComponentReturn(component, component)
 
-
-def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
+@with_render_tracking('checkbox')
+def checkbox(label: str, default: bool = False, size: float = 1.0, component_id: str | None = None) -> ComponentReturn:
     """Create a checkbox component with consistent ID based on label."""
     service = PreswaldService.get_instance()
-
-    # Create a consistent ID based on the label
-    component_id = generate_id_by_label("checkbox", label)
 
     # Get current state or use default
     current_value = service.get_component_state(component_id)
@@ -194,9 +181,8 @@ def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
         "value": current_value,
         "size": size,
     }
-    logger.debug(f"Created component: {component}")
-    service.append_component(component)
-    return current_value
+
+    return ComponentReturn(current_value, component)
 
 
 # def fastplotlib(fig: "fplt.Figure", size: float = 1.0) -> str:
@@ -273,21 +259,98 @@ def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
 #     return component_id
 
 
-# TODO: requires testing
-def image(src, alt="Image", size=1.0):
-    """Create an image component."""
-    service = PreswaldService.get_instance()
-    id = generate_id("image")
-    logger.debug(f"Creating image component with id {id}, src: {src}")
-    component = {"type": "image", "id": id, "src": src, "alt": alt, "size": size}
-    logger.debug(f"Created component: {component}")
-    service.append_component(component)
-    return component
+@with_render_tracking('image')
+def image(src, alt="Image", size=1.0, component_id: str | None = None) -> ComponentReturn:
+    """Create an image component.
 
+    Args:
+        src: The image source. Can be:
+            - A URL to a remote image
+            - A local file path (relative to the project root)
+            - A base64 encoded image string
+            - A data URI
+        alt: Alternative text for the image
+        size: Size of the component (0.0-1.0)
+    """
 
-def matplotlib(fig: Optional[plt.Figure] = None, label: str = "plot") -> str:
+    logger.debug(f"Creating image component with id {component_id}, src: {src}")
+
+    # Handle different types of image sources
+    processed_src = src
+
+    # If it's a local file path, convert it to a data URL
+    if isinstance(src, str) and not src.startswith(
+        ("http://", "https://", "data:", "/")
+    ):
+        # Check if file exists in project's images directory
+        project_images_dir = os.path.join(os.getcwd(), "images")
+        local_path = os.path.join(project_images_dir, src)
+        if os.path.exists(local_path):
+            try:
+                # Read the image file and convert to base64
+                with open(local_path, "rb") as img_file:
+                    img_data = img_file.read()
+                    img_base64 = base64.b64encode(img_data).decode("utf-8")
+
+                    # Get the file extension to determine MIME type
+                    _, ext = os.path.splitext(src)
+                    mime_type = {
+                        ".png": "image/png",
+                        ".jpg": "image/jpeg",
+                        ".jpeg": "image/jpeg",
+                        ".gif": "image/gif",
+                        ".svg": "image/svg+xml",
+                    }.get(ext.lower(), "image/png")
+
+                    # Create data URL
+                    processed_src = f"data:{mime_type};base64,{img_base64}"
+            except Exception as e:
+                logger.error(f"Error converting local image to data URL: {e}")
+                processed_src = f"/images/{src}"  # Fallback to regular URL
+        else:
+            logger.warning(f"Local image file not found in images directory: {src}")
+
+    component = {
+        "type": "image",
+        "id": component_id,
+        "src": processed_src,
+        "alt": alt,
+        "size": size,
+    }
+
+    return ComponentReturn(component, component)
+
+@with_render_tracking('json_viewer')
+def json_viewer(
+    data, title: str | None = None, expanded: bool = True, size: float = 1.0, component_id: str | None = None
+) -> dict:
+    """Create a JSON viewer component with collapsible tree view."""
+    # Attempt to ensure JSON is serializable and safe
+    try:
+        if isinstance(data, str):
+            parsed_data = json.loads(data)
+        else:
+            parsed_data = data
+        serializable_data = convert_to_serializable(parsed_data)
+    except Exception as e:
+        serializable_data = {"error": f"Invalid JSON: {e!s}"}
+
+    component = {
+        "type": "json_viewer",
+        "id": component_id,
+        "data": serializable_data,
+        "title": title,
+        "expanded": expanded,
+        "size": size,
+    }
+
+    logger.debug(f"Created JSON viewer component with id {component_id}")
+    return ComponentReturn(component, component)
+   
+
+@with_render_tracking('matplotlib')
+def matplotlib(fig: plt.Figure | None = None, label: str = "plot", component_id: str | None = None) -> ComponentReturn:
     """Render a Matplotlib figure as a component."""
-    service = PreswaldService.get_instance()
 
     if fig is None:
         fig, ax = plt.subplots()
@@ -299,9 +362,6 @@ def matplotlib(fig: Optional[plt.Figure] = None, label: str = "plot") -> str:
     buf.seek(0)
     img_b64 = base64.b64encode(buf.read()).decode()
 
-    # Generate a unique component ID based on the label
-    component_id = f"matplotlib-{hashlib.md5(label.encode()).hexdigest()[:8]}"
-
     component = {
         "type": "matplotlib",
         "id": component_id,
@@ -309,14 +369,13 @@ def matplotlib(fig: Optional[plt.Figure] = None, label: str = "plot") -> str:
         "image": img_b64,  # Store the image data
     }
 
-    service.append_component(component)
-
-    return component_id  # Returning ID for potential tracking
+    return ComponentReturn(component_id, component)  # Returning ID for potential tracking
 
 
+@with_render_tracking('playground')
 def playground(
-    label: str, query: str, source: str | None = None, size: float = 1.0
-) -> pd.DataFrame:
+    label: str, query: str, source: str | None = None, size: float = 1.0, component_id: str | None = None
+) -> ComponentReturn:
     """
     Create a playground component for interactive data querying and visualization.
 
@@ -327,14 +386,12 @@ def playground(
         size (float, optional): The visual size/scale of the component. Defaults to 1.0.
 
     Returns:
-        pd.DataFrame: The queried data as a pandas DataFrame.
+        ComponentReturn: The queried data as a pandas DataFrame, along with component metadata for rendering.
+
     """
 
     # Get the singleton instance of the PreswaldService
     service = PreswaldService.get_instance()
-
-    # Generate a unique component ID using the label's hash
-    component_id = f"playground-{hashlib.md5(label.encode()).hexdigest()[:8]}"
 
     logger.debug(
         f"Creating playground component with id {component_id}, label: {label}"
@@ -384,7 +441,7 @@ def playground(
                 processed_row = {
                     str(key): (
                         value.item()
-                        if isinstance(value, (np.integer, np.floating))
+                        if isinstance(value, np.integer | np.floating)
                         else value
                     )
                     if value is not None
@@ -407,29 +464,24 @@ def playground(
         "data": {"columnDefs": column_defs, "rowData": processed_data or []},
     }
 
-    logger.debug(f"Created component: {component}")
-    service.append_component(component)
-
     # Return the raw DataFrame
-    return data
+    return ComponentReturn(data, component)
 
-
-def plotly(fig, size: float = 1.0) -> Dict:  # noqa: C901
+@with_render_tracking('plotly')
+def plotly(fig, size: float = 1.0, component_id: str | None = None) -> ComponentReturn:  # noqa: C901
     """
     Render a Plotly figure.
 
     Args:
         fig: A Plotly figure object.
     """
-    service = PreswaldService.get_instance()
+
     try:
         import time
 
         start_time = time.time()
         logger.debug("[PLOTLY] Starting plotly render")
-
-        id = generate_id("plot")
-        logger.debug(f"[PLOTLY] Created plot component with id {id}")
+        logger.debug(f"[PLOTLY] Created plot component with id {component_id}")
 
         # Optimize the figure for web rendering
         optimize_start = time.time()
@@ -439,13 +491,13 @@ def plotly(fig, size: float = 1.0) -> Dict:  # noqa: C901
             for attr in ["x", "y", "z", "lat", "lon"]:
                 if hasattr(trace, attr):
                     values = getattr(trace, attr)
-                    if isinstance(values, (list, np.ndarray)):
+                    if isinstance(values, list | np.ndarray):
                         if np.issubdtype(np.array(values).dtype, np.floating):
                             setattr(trace, attr, np.round(values, decimals=4))
 
             # Optimize marker sizes
             if hasattr(trace, "marker") and hasattr(trace.marker, "size"):
-                if isinstance(trace.marker.size, (list, np.ndarray)):
+                if isinstance(trace.marker.size, list | np.ndarray):
                     # Scale marker sizes to a reasonable range
                     sizes = np.array(trace.marker.size)
                     if len(sizes) > 0:
@@ -497,16 +549,16 @@ def plotly(fig, size: float = 1.0) -> Dict:  # noqa: C901
 
             # Clean up other potential NaN values
             for key, value in trace.items():
-                if isinstance(value, (list, np.ndarray)):
+                if isinstance(value, list | np.ndarray):
                     trace[key] = [
                         (
                             None
-                            if isinstance(x, (float, np.floating)) and np.isnan(x)
+                            if isinstance(x, float | np.floating) and np.isnan(x)
                             else x
                         )
                         for x in value
                     ]
-                elif isinstance(value, (float, np.floating)) and np.isnan(value):
+                elif isinstance(value, float | np.floating) and np.isnan(value):
                     trace[key] = None
         logger.debug(f"[PLOTLY] NaN cleanup took {time.time() - clean_start:.3f}s")
 
@@ -519,7 +571,7 @@ def plotly(fig, size: float = 1.0) -> Dict:  # noqa: C901
 
         component = {
             "type": "plot",
-            "id": id,
+            "id": component_id,
             "data": {
                 "data": serializable_fig_dict.get("data", []),
                 "layout": serializable_fig_dict.get("layout", {}),
@@ -540,49 +592,44 @@ def plotly(fig, size: float = 1.0) -> Dict:  # noqa: C901
         json.dumps(component)
         logger.debug(f"[PLOTLY] JSON verification took {time.time() - json_start:.3f}s")
 
-        logger.debug(f"[PLOTLY] Plot data created successfully for id {id}")
+        logger.debug(f"[PLOTLY] Plot data created successfully for id {component_id}")
         logger.debug(
             f"[PLOTLY] Total plotly render took {time.time() - start_time:.3f}s"
         )
-        service.append_component(component)
-        return component
+
+        return ComponentReturn(component, component)
 
     except Exception as e:
         logger.error(f"[PLOTLY] Error creating plot: {e!s}", exc_info=True)
         error_component = {
             "type": "plot",
-            "id": id,
+            "id": component_id,
             "error": f"Failed to create plot: {e!s}",
         }
-        service.append_component(error_component)
-        return error_component
 
+        return ComponentReturn(error_component, error_component)
 
-def progress(label: str, value: float = 0.0, size: float = 1.0) -> float:
+@with_render_tracking('progress')
+def progress(label: str, value: float = 0.0, size: float = 1.0, component_id: str | None = None) -> ComponentReturn:
     """Create a progress component."""
-    service = PreswaldService.get_instance()
 
-    id = generate_id("progress")
-    logger.debug(f"Creating progress component with id {id}, label: {label}")
+    logger.debug(f"Creating progress component with id {component_id}, label: {label}")
     component = {
         "type": "progress",
-        "id": id,
+        "id": component_id,
         "label": label,
         "value": value,
         "size": size,
     }
-    logger.debug(f"Created component: {component}")
-    service.append_component(component)
-    return value
 
+    return ComponentReturn(value, component)
 
+@with_render_tracking('selectbox')
 def selectbox(
-    label: str, options: List[str], default: Optional[str] = None, size: float = 1.0
-) -> str:
+    label: str, options: list[str], default: str | None = None, size: float = 1.0, component_id: str | None = None
+) -> ComponentReturn:
     """Create a select component with consistent ID based on label."""
     service = PreswaldService.get_instance()
-
-    component_id = generate_id_by_label("selectbox", label)
     current_value = service.get_component_state(component_id)
     if current_value is None:
         current_value = (
@@ -597,31 +644,32 @@ def selectbox(
         "value": current_value,
         "size": size,
     }
-    service.append_component(component)
-    return current_value
+
+    logger.debug(f"[selectbox] ID={component_id}, selected={current_value}")
+
+    return ComponentReturn(current_value, component)
 
 
-def separator() -> Dict:
+@with_render_tracking('separator')
+def separator(component_id: str | None = None) -> ComponentReturn:
     """Create a separator component that forces a new row."""
-    service = PreswaldService.get_instance()
-    component = {"type": "separator", "id": str(uuid.uuid4())}
-    service.append_component(component)
-    return component
+    component = {"type": "separator", "id": component_id}
 
+    logger.debug(f"[separator] ID={component_id}")
+    return ComponentReturn(component, component)
 
+@with_render_tracking('slider')
 def slider(
     label: str,
     min_val: float = 0.0,
     max_val: float = 100.0,
     step: float = 1.0,
-    default: Optional[float] = None,
+    default: float | None = None,
     size: float = 1.0,
-) -> float:
+    component_id: str | None = None,
+) -> ComponentReturn:
     """Create a slider component with consistent ID based on label"""
     service = PreswaldService.get_instance()
-
-    # Create a consistent ID based on the label
-    component_id = generate_id_by_label("slider", label)
 
     # Get current state or use default
     current_value = service.get_component_state(component_id)
@@ -639,16 +687,17 @@ def slider(
         "size": size,
     }
 
-    service.append_component(component)
-    return current_value
+    logger.debug(f"[slider] ID={component_id}, value={current_value}")
+    return ComponentReturn(current_value, component)
 
-
+@with_render_tracking('spinner')
 def spinner(
     label: str = "Loading...",
     variant: str = "default",
     show_label: bool = True,
     size: float = 1.0,
-) -> None:
+    component_id: str | None = None,
+) -> ComponentReturn:
     """Create a loading spinner component.
 
     Args:
@@ -657,8 +706,6 @@ def spinner(
         show_label: Whether to show the label text
         size: Component width (1.0 = full width)
     """
-    service = PreswaldService.get_instance()
-    component_id = generate_id("spinner")
 
     component = {
         "type": "spinner",
@@ -669,24 +716,23 @@ def spinner(
         "size": size,
     }
 
-    service.append_component(component)
-    return None
+    logger.debug(f"[spinner] ID={component_id}")
+    return ComponentReturn(None, component)
 
-
-def sidebar(defaultopen: bool = False):
+@with_render_tracking('sidebar')
+def sidebar(defaultopen: bool = False, component_id: str | None = None) -> ComponentReturn:
     """Create a sidebar component."""
-    service = PreswaldService.get_instance()
-    id = generate_id("sidebar")
-    logger.debug(f"Creating sidebar component with id {id}")
-    component = {"type": "sidebar", "id": id, "defaultopen": defaultopen}
-    logger.debug(f"Created component: {component}")
-    service.append_component(component)
-    return component
+
+    component = {"type": "sidebar", "id": component_id, "defaultopen": defaultopen}
+
+    logger.debug(f"[sidebar] ID={component_id}, defaultopen={defaultopen}")
+    return ComponentReturn(component, component)
 
 
+@with_render_tracking('table')
 def table(
-    data: pd.DataFrame, title: Optional[str] = None, limit: Optional[int] = None
-) -> Dict:
+    data: pd.DataFrame, title: str | None = None, limit: int | None = None, component_id: str | None = None
+) -> ComponentReturn:
     """Create a table component that renders data using TableViewerWidget.
 
     Args:
@@ -695,11 +741,8 @@ def table(
         limit: Optional limit for rows displayed.
 
     Returns:
-        Dict: Component metadata and processed data.
+        ComponentReturn: Component metadata and processed data.
     """
-    id = generate_id("table")
-    logger.debug(f"Creating table component with id {id}")
-    service = PreswaldService.get_instance()
 
     try:
         # Convert pandas DataFrame to a list of dictionaries if needed
@@ -728,7 +771,7 @@ def table(
             processed_row = {
                 str(key): (
                     value.item()
-                    if isinstance(value, (np.integer, np.floating))
+                    if isinstance(value, np.integer | np.floating)
                     else value
                 )
                 if value is not None
@@ -746,7 +789,7 @@ def table(
         # Create AG Grid compatible component structure
         component = {
             "type": "table",
-            "id": id,
+            "id": component_id,
             "props": {
                 "columnDefs": column_defs,
                 "rowData": processed_data,
@@ -754,50 +797,47 @@ def table(
             },
         }
 
-        # Verify JSON serialization before returning
-        json.dumps(component)
-        logger.debug(f"Created AG Grid table component: {component}")
-        service.append_component(component)
-        return component
+        logger.debug(f"[table] ID={component_id}")
+        return ComponentReturn(component, component)
 
     except Exception as e:
         logger.error(f"Error creating table component: {e!s}")
         error_component = {
             "type": "table",
-            "id": id,
+            "id": component_id,
             "props": {
                 "columnDefs": [],
                 "rowData": [],
                 "title": f"Error: {e!s}",
             },
         }
-        service.append_component(error_component)
-        return error_component
+
+        return ComponentReturn(error_component, error_component)
 
 
-def text(markdown_str: str, size: float = 1.0) -> str:
+@with_render_tracking('text')
+def text(markdown_str: str, size: float = 1.0, component_id: str | None = None) -> ComponentReturn:
     """Create a text/markdown component."""
-    service = PreswaldService.get_instance()
-    id = generate_id("text")
-    logger.debug(f"Creating text component with id {id}")
     component = {
         "type": "text",
-        "id": id,
+        "id": component_id,
         "markdown": markdown_str,
         "value": markdown_str,
         "size": size,
     }
-    logger.debug(f"Created component: {component}")
-    service.append_component(component)
-    return markdown_str
+
+    logger.info(f"[text] ID = {component_id}, content = {markdown_str}")
+    return ComponentReturn(markdown_str, component)
 
 
+@with_render_tracking('text_input')
 def text_input(
     label: str,
     placeholder: str = "",
     default: str = "",
     size: float = 1.0,
-) -> str:
+    component_id: str | None = None
+) -> ComponentReturn:
     """Create a text input component.
 
     Args:
@@ -807,10 +847,9 @@ def text_input(
         size: Component width (1.0 = full width)
 
     Returns:
-        str: Current value of the input
+        ComponentReturn: Current value of the input, along with component metadata for rendering.
     """
     service = PreswaldService.get_instance()
-    component_id = generate_id_by_label("text_input", label)
 
     # Get current state or use default
     current_value = service.get_component_state(component_id)
@@ -826,22 +865,21 @@ def text_input(
         "size": size,
     }
 
-    service.append_component(component)
-    return current_value
+    logger.debug(f"[text_input] ID={component_id}, value={current_value}")
+    return ComponentReturn(current_value, component)
 
 
-def topbar() -> Dict:
+@with_render_tracking('topbar')
+def topbar(component_id: str | None = None) -> ComponentReturn:
     """Creates a topbar component."""
-    service = PreswaldService.get_instance()
-    id = generate_id("topbar")
-    logger.debug(f"Creating topbar component with id {id}")
-    component = {"type": "topbar", "id": id}
-    logger.debug(f"Created component: {component}")
-    service.append_component(component)
-    return component
+    component = {"type": "topbar", "id": component_id}
+
+    logger.debug(f"[topbar] ID={component_id}")
+    return ComponentReturn(component, component)
 
 
-def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -> Dict:
+@with_render_tracking('workflow_dag')
+def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph", component_id: str | None = None) -> ComponentReturn:
     """
     Render the workflow's DAG visualization.
 
@@ -849,7 +887,6 @@ def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -
         workflow: The workflow object to visualize
         title: Optional title for the visualization
     """
-    service = PreswaldService.get_instance()
     try:
         from .workflow import WorkflowAnalyzer
 
@@ -872,10 +909,9 @@ def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -
             )
 
         # Create the component with the correct type and data structure
-        id = generate_id("dag")
         component = {
             "type": "dag",  # Changed from "plot" to "dag"
-            "id": id,
+            "id": component_id,
             "data": {
                 "data": [
                     {
@@ -888,9 +924,8 @@ def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -
             },
         }
 
-        logger.debug(f"[WORKFLOW_DAG] Created DAG component with id {id}")
-        service.append_component(component)
-        return component
+        logger.debug(f"[WORKFLOW_DAG] Created DAG component with id {component_id}")
+        return ComponentReturn(component, component)
 
     except Exception as e:
         logger.error(
@@ -898,11 +933,10 @@ def workflow_dag(workflow: Workflow, title: str = "Workflow Dependency Graph") -
         )
         error_component = {
             "type": "dag",  # Changed from "plot" to "dag"
-            "id": generate_id("dag"),
+            "id": component_id,
             "error": f"Failed to create DAG visualization: {e!s}",
         }
-        service.append_component(error_component)
-        return error_component
+        return ComponentReturn(error_component, error_component)
 
 
 # Helpers
@@ -912,9 +946,9 @@ def convert_to_serializable(obj):
     """Convert numpy arrays and other non-serializable objects to Python native types."""
     if isinstance(obj, np.ndarray):
         return obj.tolist()
-    elif isinstance(obj, (np.int8, np.int16, np.int32, np.int64, np.integer)):
+    elif isinstance(obj, np.int8 | np.int16 | np.int32 | np.int64 | np.integer):
         return int(obj)
-    elif isinstance(obj, (np.float16, np.float32, np.float64, np.floating)):
+    elif isinstance(obj, np.float16 | np.float32 | np.float64 | np.floating):
         if np.isnan(obj):
             return None
         return float(obj)
@@ -922,38 +956,13 @@ def convert_to_serializable(obj):
         return bool(obj)
     elif isinstance(obj, dict):
         return {k: convert_to_serializable(v) for k, v in obj.items()}
-    elif isinstance(obj, (list, tuple)):
+    elif isinstance(obj, list | tuple):
         return [convert_to_serializable(item) for item in obj]
     elif isinstance(obj, np.generic):
         if np.isnan(obj):
             return None
         return obj.item()
     return obj
-
-
-def generate_id(prefix: str = "component") -> str:
-    """Generate a unique ID for a component."""
-    return f"{prefix}-{uuid.uuid4().hex[:8]}"
-
-
-def generate_id_by_label(prefix: str, label: str) -> str:
-    """
-    Generate a deterministic component ID based on a label string.
-
-    Useful for components like Fastplotlib or Slider where the same label should result
-    in the same component ID across rerenders.
-
-    Args:
-        prefix (str): The component type prefix, e.g. 'slider' or 'fastplotlib'.
-        label (str): The label to hash and include in the ID.
-
-    Returns:
-        str: A stable ID like 'slider-ab12cd34'.
-    """
-    if not label:
-        return generate_id(prefix)
-    hashed = hashlib.md5(label.lower().encode()).hexdigest()[:8]
-    return f"{prefix}-{hashed}"
 
 
 # async def render_and_send_fastplotlib(
@@ -967,10 +976,10 @@ def generate_id_by_label(prefix: str, label: str) -> str:
 #     """
 #     Asynchronously renders a Fastplotlib figure to an offscreen canvas, encodes it as a PNG,
 #     and streams the resulting image data via WebSocket to the connected frontend client.
-#
+
 #     This helper function handles rendering logic, alpha-blending, and ensures robust error
 #     handling. It updates the component state after successfully sending the image data.
-#
+
 #     Args:
 #         fig (fplt.Figure): The fully configured Fastplotlib figure instance to render.
 #         component_id (str): Unique identifier for the component instance receiving this image.
@@ -978,42 +987,42 @@ def generate_id_by_label(prefix: str, label: str) -> str:
 #         size (float): Relative size of the component in the UI layout (0.0-1.0).
 #         client_id (str): WebSocket client identifier to route the rendered image correctly.
 #         data_hash (str): SHA-256 hash representing the figure state, used for cache invalidation.
-#
+
 #     Returns:
 #         str: Returns "Render failed" if framebuffer blending fails, otherwise None.
-#
+
 #     Raises:
 #         Logs and handles any exceptions internally without raising further.
 #     """
 #     service = PreswaldService.get_instance()
-#
+
 #     fig.show()  # must call even in offscreen mode to initialize GPU resources
-#
+
 #     # manually render the scene for all subplots
 #     for subplot in fig:
 #         subplot.viewport.render(subplot.scene, subplot.camera)
-#
+
 #     # read from the framebuffer
 #     try:
 #         fig.canvas.request_draw()
 #         raw_img = np.asarray(fig.renderer.target.draw())
-#
+
 #         if raw_img.ndim != 3 or raw_img.shape[2] != 4:
 #             raise ValueError(f"Unexpected image shape: {raw_img.shape}")
-#
+
 #         # handle alpha blending
 #         alpha = raw_img[..., 3:4] / 255.0
 #         rgb = (raw_img[..., :3] * alpha + (1 - alpha) * 255).astype(np.uint8)
-#
+
 #     except Exception as e:
 #         logger.error(f"Framebuffer blending failed for {component_id}: {e}")
 #         return "Render failed"
-#
+
 #     # encode image to PNG
 #     img_buf = io.BytesIO()
 #     Image.fromarray(rgb).save(img_buf, format="PNG")
 #     png_bytes = img_buf.getvalue()
-#
+
 #     # handle websocket communication
 #     client_websocket = service.websocket_connections.get(client_id)
 #     if client_websocket:
@@ -1028,7 +1037,7 @@ def generate_id_by_label(prefix: str, label: str) -> str:
 #             },
 #             use_bin_type=True,
 #         )
-#
+
 #         try:
 #             await client_websocket.send_bytes(packed_msg)
 #             await service.handle_client_message(

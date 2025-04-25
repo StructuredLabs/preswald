@@ -1,0 +1,163 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Personal Health Metrics Dashboard")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard provides a comprehensive overview of your personal health data, including daily activity, 
+sleep patterns, nutrition intake, and wellness indicators. Use it to monitor progress, spot trends, 
+and stay accountable to your health goals.
+"""
+    )
+
+@workflow.atom()
+def daily_activity_summary():
+    text("## Daily Activity Summary")
+    text(
+        """
+### Weekly Averages (April 17–23, 2025):
+
+- **Steps per Day**: 8,732  
+- **Active Minutes**: 61 min  
+- **Distance Walked**: 4.3 miles  
+- **Floors Climbed**: 11  
+- **Exercise Sessions**: 4
+
+You’re meeting your movement goals most days. Consider stretching your walks or workouts to boost endurance.
+"""
+    )
+
+@workflow.atom()
+def sleep_tracking():
+    text("## Sleep Patterns")
+    text(
+        """
+### Last 7 Days:
+
+- **Average Sleep Duration**: 7h 26m  
+- **Sleep Efficiency**: 91%  
+- **Time to Fall Asleep**: 22 min  
+- **Waking Events per Night**: 1.3  
+- **Lowest Night**: 5h 44m (April 20)  
+- **Best Night**: 8h 12m (April 22)
+
+Consistent routines and screen-free wind-down time continue to improve overall sleep quality.
+"""
+    )
+
+@workflow.atom()
+def nutrition_overview():
+    text("## Nutrition Overview")
+    text(
+        """
+### Weekly Totals:
+
+- **Avg. Daily Calories**: 2,160 kcal  
+- **Macronutrient Breakdown**:
+  - Protein: 102g
+  - Carbohydrates: 248g
+  - Fat: 76g
+- **Hydration**: 82 oz/day  
+- **Sugar Intake**: 34g/day
+
+Your diet is balanced and within range. Keep monitoring added sugars and protein consistency post-exercise.
+"""
+    )
+
+@workflow.atom()
+def heart_rate_metrics():
+    text("## Heart Rate & Vitals")
+    text(
+        """
+### Key Readings (Weekly Average):
+
+- **Resting Heart Rate**: 61 bpm  
+- **Max Heart Rate (Exercise)**: 162 bpm  
+- **HR Variability**: 48 ms  
+- **Blood Pressure**: 117 / 76 mmHg  
+- **Oxygen Saturation (SpO2)**: 97%
+
+Vitals are within healthy ranges. HRV and resting heart rate indicate recovery is trending well.
+"""
+    )
+
+@workflow.atom()
+def stress_and_mood():
+    text("## Stress & Mood Logging")
+    text(
+        """
+### Mood Trends:
+
+- **Most Common Mood**: “Focused”  
+- **Stress Peaks**: Monday morning, Thursday late afternoon  
+- **Mood Score (1–10 scale)**: Avg. 7.4  
+- **Logged Reflections**: 5 this week
+
+Try short breathwork or journaling sessions during peak stress times to improve daily balance.
+"""
+    )
+
+@workflow.atom()
+def goal_progress():
+    text("## Health Goal Progress")
+    text(
+        """
+### Active Goals:
+
+1. **Lose 5 lbs by June 1** — _Progress_: 3.2 lbs lost (64%)  
+2. **Sleep 8 hours/night for 2 weeks** — _Streak_: 5 nights  
+3. **Run a 10K by July** — _Training_: 4.8 miles this week
+
+Your consistency is strong—keep logging, and consider updating goals monthly.
+"""
+    )
+
+@workflow.atom()
+def insights_and_trends():
+    text("## Weekly Insights & Trends")
+    text(
+        """
+- Activity was lower on Monday but surged mid-week with two strength sessions.
+- Sugar intake exceeded your target on two days—linked to late evening snacks.
+- Mood stability improved on days with morning walks.
+
+Tracking routines helps clarify what’s working. Celebrate wins, and adjust where needed.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Personalized Recommendations")
+    text(
+        """
+Based on your recent data:
+
+1. **Add one more day of cardio** to meet your weekly activity goal.
+2. **Move dinner earlier** to improve sleep onset time.
+3. **Batch-prep meals** to stay within your macro targets on busier days.
+4. **Include mobility work post-run** to support recovery and joint health.
+
+These changes align with your current goals and support long-term wellness.
+"""
+    )
+
+@workflow.atom()
+def notes_footer():
+    text("## Notes")
+    text(
+        """
+- Data synced from fitness tracker, nutrition log, and wellness app as of April 23, 2025.
+- Metrics may vary slightly due to device tracking variance or manual logging gaps.
+- For health concerns or medical advice, consult a healthcare provider.
+
+This dashboard is designed for personal use and progress reflection.
+"""
+    )
+
+workflow.execute()

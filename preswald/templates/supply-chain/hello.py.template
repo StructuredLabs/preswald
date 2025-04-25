@@ -1,0 +1,144 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Supply Chain Analytics")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard provides end-to-end visibility into supply chain operations. 
+Monitor inventory performance, logistics KPIs, supplier reliability, and fulfillment metrics 
+to identify risks, optimize efficiency, and support strategic planning.
+"""
+    )
+
+@workflow.atom()
+def inventory_overview():
+    text("## Inventory Performance Overview")
+    text(
+        """
+### April 1–22, 2025:
+
+- **Avg. Inventory Turnover**: 5.6x  
+- **Stockout Rate**: 3.2%  
+- **Backorder Volume**: 1,430 units  
+- **Deadstock (SKUs inactive >90d)**: 148  
+- **Total Inventory Value**: $7.42M
+
+Inventory turnover has improved 11% over March due to optimized replenishment cycles.
+"""
+    )
+
+@workflow.atom()
+def supplier_metrics():
+    text("## Supplier Reliability Metrics")
+    text(
+        """
+| Supplier        | OTIF % (On-Time/In-Full) | Lead Time Avg | Defect Rate | Active POs |
+|------------------|--------------------------|----------------|-------------|-------------|
+| Pacific Parts    | 96.2%                    | 8.3 days       | 0.8%        | 17          |
+| GlobalFast       | 91.5%                    | 12.1 days      | 1.7%        | 22          |
+| EastBridge Co.   | 87.9%                    | 14.6 days      | 2.2%        | 13          |
+| Omega Logistics  | 98.4%                    | 6.9 days       | 0.5%        | 11          |
+
+EastBridge flagged for quality and lead time inconsistencies.
+"""
+    )
+
+@workflow.atom()
+def fulfillment_analytics():
+    text("## Order Fulfillment KPIs")
+    text(
+        """
+| Metric                       | Value    | Change MoM |
+|------------------------------|----------|-------------|
+| Avg. Order Cycle Time        | 3.4 days | ▼ 0.6 days  |
+| Perfect Order Rate           | 94.8%    | ▲ 1.3 pts   |
+| Partial Shipments            | 6.1%     | ▼ 0.7 pts   |
+| Late Deliveries              | 3.6%     | ▼ 1.1 pts   |
+
+Fulfillment accuracy improving across all warehouse nodes.
+"""
+    )
+
+@workflow.atom()
+def logistics_performance():
+    text("## Logistics Performance")
+    text(
+        """
+### April Summary:
+
+- **Total Shipments**: 8,210  
+- **Avg. Shipping Cost/Unit**: $2.61  
+- **Avg. Transit Time**: 2.9 days  
+- **On-Time Delivery %**: 96.3%  
+- **Freight Claim Rate**: 0.34%
+
+Route consolidation and zone-based dispatch optimization reduced overall shipping costs 7% month-over-month.
+"""
+    )
+
+@workflow.atom()
+def demand_forecasting():
+    text("## Demand Forecast Accuracy")
+    text(
+        """
+| Product Segment   | Forecast Accuracy | Forecast Range | Notes                       |
+|-------------------|-------------------|----------------|-----------------------------|
+| Electronics       | 92.1%             | ±5%            | Most accurate segment       |
+| Apparel           | 84.6%             | ±12%           | Seasonality causes swings   |
+| Home Goods        | 88.4%             | ±9%            | Driven by promotional spikes|
+| Accessories       | 79.3%             | ±16%           | Under-forecasted 2 SKUs     |
+
+Incorporating marketing event overlays into the model is in progress for May.
+"""
+    )
+
+@workflow.atom()
+def risk_and_disruptions():
+    text("## Supply Chain Risk & Disruptions")
+    text(
+        """
+- **Open Supply Disruption Tickets**: 6  
+- **Active Port Delays**: 1 (Long Beach, CA)  
+- **Material Shortage Alerts**: 3 (aluminum, resin, flex cable)  
+- **Average Delay Duration**: 3.2 days  
+- **Contingency Plan Activation**: 2 incidents this month
+
+Risk events managed under 48-hour resolution window; all mitigated through alternate sourcing or air freight routing.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Optimization Recommendations")
+    text(
+        """
+1. **Phase out EastBridge for high-volume SKUs** unless defect rate drops below 1.5%  
+2. **Prioritize safety stock rebalancing** for underperforming Home Goods items  
+3. **Expand use of predictive lead time models** for new suppliers  
+4. **Consolidate shipments in Midwest** to reduce inbound freight expense  
+5. **Deploy RFID scanning at cross-docks** to improve real-time visibility
+
+Q2 roadmap includes launching SKU-level margin heatmaps and vendor scorecards.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data reflects April 1–22, 2025  
+- Sources: NetSuite, ShipStation, Snowflake demand model, Tableau ERP reports  
+- Next supply chain review: May 7, 2025
+
+For SKU-level or route-level drilldowns, contact ops-insights@company.com.
+"""
+    )
+
+workflow.execute()

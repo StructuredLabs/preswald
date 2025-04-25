@@ -1,0 +1,126 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Sales Team Leaderboard")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard tracks individual and team sales performance metrics. 
+View closed revenue, rankings, and goal progress across the sales organization to 
+motivate reps, recognize top performers, and support coaching opportunities.
+"""
+    )
+
+@workflow.atom()
+def team_summary():
+    text("## Team Performance Summary")
+    text(
+        """
+### April 2025 (MTD):
+
+- **Total Closed Revenue**: $1.82M  
+- **Deals Closed**: 116  
+- **Avg. Deal Size**: $15,690  
+- **Quota Attainment (Avg.)**: 87.2%  
+- **Team Size**: 14 AEs (Account Executives)
+
+April pacing is slightly ahead of Q2 target. 6 reps already above 90% attainment.
+"""
+    )
+
+@workflow.atom()
+def leaderboard():
+    text("## Leaderboard – Top 5 Reps")
+    text(
+        """
+| Rank | Rep Name     | Closed Revenue | Quota Attainment | Deals Closed | Avg. Deal Size |
+|------|--------------|----------------|------------------|---------------|----------------|
+| 1    | Jordan Lee   | $248,900       | 124.5%           | 16            | $15,556        |
+| 2    | Kendra Smith | $230,500       | 115.3%           | 13            | $17,730        |
+| 3    | Ali Rami     | $214,600       | 109.1%           | 14            | $15,328        |
+| 4    | Noah Park    | $196,250       | 101.2%           | 11            | $17,841        |
+| 5    | Carla Mendes | $189,000       | 98.9%            | 12            | $15,750        |
+
+Jordan leads in both revenue and consistency, while Noah closes fewer but larger deals.
+"""
+    )
+
+@workflow.atom()
+def goal_tracking():
+    text("## Quota Attainment Overview")
+    text(
+        """
+| Rep Name       | Quota | Closed Revenue | Attainment % |
+|----------------|-------|----------------|---------------|
+| Taylor M.      | $180K | $163,700       | 90.9%         |
+| Dante P.       | $170K | $138,300       | 81.4%         |
+| Rachel T.      | $160K | $129,500       | 80.9%         |
+| Sam R.         | $165K | $118,400       | 71.8%         |
+| Jamie W.       | $150K | $106,300       | 70.9%         |
+
+Coaching recommended for reps below 75% to adjust pipeline focus and deal strategy.
+"""
+    )
+
+@workflow.atom()
+def pipeline_health():
+    text("## Pipeline Health Indicators")
+    text(
+        """
+- **Open Opportunities**: 382  
+- **Pipeline Coverage Ratio**: 3.4x  
+- **Avg. Days in Stage**: 11.6  
+- **Stale Deals (>30d inactive)**: 57  
+- **Deals in Contract Stage**: 48
+
+Pipeline quality strong, though follow-up delays on late-stage deals may impact Q2 close.
+"""
+    )
+
+@workflow.atom()
+def recognition_and_achievements():
+    text("## Recognitions & Milestones")
+    text(
+        """
+🏅 **Top Closer of the Month**: Jordan Lee – $248,900  
+🌟 **Most Improved**: Rachel T. – +21% over March  
+💼 **Largest Deal Closed**: Kendra Smith – $68,400 (Enterprise)  
+🚀 **Fastest Ramp (New Hire)**: Carla Mendes – 98.9% quota in month 3
+
+Achievements shared in Friday standup and Slack kudos channel.
+"""
+    )
+
+@workflow.atom()
+def coaching_recommendations():
+    text("## Coaching Opportunities")
+    text(
+        """
+1. **Target stalled deals** for Sam R. and Jamie W. – review opportunity age  
+2. **Pair high and mid-performers** for live-call shadowing  
+3. **Focus on discovery quality** – reps with low avg. deal size trending toward small wins  
+4. **Conduct win/loss reviews** for Dante P. and Rachel T. to improve proposal conversion
+
+Weekly pipeline reviews scheduled with managers on Thursday afternoons.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data reflects Salesforce exports from April 1–22, 2025  
+- Quotas prorated for mid-quarter hires  
+- All revenue numbers rounded to nearest $100
+
+Next leaderboard refresh: May 1, 2025
+"""
+    )
+
+workflow.execute()

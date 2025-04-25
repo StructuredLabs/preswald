@@ -1,0 +1,166 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Marketing Campaign Performance")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard provides a comprehensive analysis of recent marketing campaigns. 
+It summarizes key performance indicators across channels, tracks campaign ROI, and highlights 
+the most effective strategies driving pipeline growth and customer acquisition.
+"""
+    )
+
+@workflow.atom()
+def campaign_summary():
+    text("## Campaign Summary Overview")
+    text(
+        """
+### Q1 2025 Campaigns:
+
+- **Total Campaigns Tracked**: 18  
+- **Total Spend**: $486,200  
+- **Generated Pipeline**: $4.31M  
+- **Marketing-Sourced Revenue**: $1.26M  
+- **Avg. CAC**: $540  
+- **Average ROI**: 8.9x
+
+Overall performance is tracking ahead of Q4 benchmarks by 14% in revenue contribution.
+"""
+    )
+
+@workflow.atom()
+def top_campaigns():
+    text("## Top Performing Campaigns")
+    text(
+        """
+| Campaign Name           | Pipeline Generated | ROI   | CPL   | Conversion Rate |
+|--------------------------|---------------------|--------|--------|------------------|
+| AI Launch Webinars       | $1.13M             | 11.4x | $34   | 9.7%             |
+| Winter Promo (Paid Social)| $764K             | 7.8x  | $42   | 7.2%             |
+| 2025 Outlook eBook       | $638K              | 10.2x | $28   | 11.1%            |
+| Mid-Market ABM Pilot     | $517K              | 6.5x  | $53   | 6.3%             |
+
+Campaigns with high educational value and long-form content continue to outperform direct promotional efforts.
+"""
+    )
+
+@workflow.atom()
+def channel_performance():
+    text("## Channel Performance")
+    text(
+        """
+### Source Breakdown (Jan–Mar 2025):
+
+| Channel         | Spend     | Pipeline | Revenue | ROI   |
+|------------------|-----------|----------|---------|--------|
+| Paid Search      | $98,000   | $1.04M   | $310K   | 10.6x |
+| Paid Social      | $126,400  | $1.19M   | $356K   | 9.4x  |
+| Email Marketing  | $32,800   | $389K    | $148K   | 11.9x |
+| Organic Content  | $0        | $610K    | $224K   | N/A   |
+| Partner Campaigns| $54,000   | $714K    | $209K   | 13.2x |
+
+Partner and organic channels continue to yield the highest return with low marginal cost.
+"""
+    )
+
+@workflow.atom()
+def lead_quality():
+    text("## Lead Quality & Funnel Progression")
+    text(
+        """
+### Campaign-Acquired Leads:
+
+- **Total Leads Generated**: 18,206  
+- **MQLs**: 6,744 (37.0%)  
+- **SQLs**: 2,418 (13.3%)  
+- **Opportunities Created**: 812 (4.5%)  
+- **Closed-Won**: 136 (0.75%)
+
+Best-performing campaigns show higher conversion rates from MQL to SQL when paired with lead scoring automation and targeted follow-ups.
+"""
+    )
+
+@workflow.atom()
+def email_engagement():
+    text("## Email Engagement Metrics")
+    text(
+        """
+### Email Performance (Campaigns with ≥5,000 Recipients):
+
+| Campaign               | Open Rate | CTR   | Unsub Rate |
+|------------------------|-----------|-------|-------------|
+| Q1 Product Newsletter  | 42.1%     | 6.4%  | 0.7%        |
+| AI Webinar Series      | 47.8%     | 7.9%  | 0.4%        |
+| Gated Report Promo     | 36.4%     | 5.1%  | 0.9%        |
+
+Automated sequences and personalization tokens led to above-average open and click-through rates across the board.
+"""
+    )
+
+@workflow.atom()
+def regional_performance():
+    text("## Regional Campaign Performance")
+    text(
+        """
+| Region      | Pipeline Generated | Avg. CPL | Win Rate |
+|-------------|--------------------|----------|-----------|
+| North America | $2.97M           | $39      | 18.2%     |
+| EMEA          | $911K            | $44      | 14.7%     |
+| APAC          | $428K            | $51      | 11.3%     |
+
+Regional variance suggests opportunity to expand high-converting playbooks from NA into EMEA and APAC.
+"""
+    )
+
+@workflow.atom()
+def budget_vs_forecast():
+    text("## Budget vs. Forecast")
+    text(
+        """
+| Month     | Budgeted Spend | Actual Spend | Variance | Forecasted ROI |
+|-----------|----------------|---------------|----------|----------------|
+| January   | $148,000       | $144,200      | -2.6%    | 8.7x           |
+| February  | $158,000       | $164,800      | +4.3%    | 9.2x           |
+| March     | $182,000       | $177,200      | -2.6%    | 9.9x           |
+
+Spend pacing remains within target bands. Forecasted ROI exceeds quarterly target of 8x across all campaigns.
+"""
+    )
+
+@workflow.atom()
+def strategic_recommendations():
+    text("## Strategic Recommendations")
+    text(
+        """
+Based on performance data, we recommend:
+
+1. **Scale AI webinar format** to monthly cadence with tiered follow-up offers.  
+2. **Increase paid spend efficiency** by shifting 10% from low-ROI Facebook ads to high-ROI Google retargeting.  
+3. **Expand partner campaigns** by activating 3 new VARs for Q2.  
+4. **Double down on long-form content**—eBooks and webinars with value-first CTAs are outperforming short promotions.  
+5. **Continue optimizing lead handoff SLAs** to improve SQL conversion velocity.
+
+These actions align with top-converting segments and current ROI trends.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data reflects campaign performance from January 1 to March 31, 2025.  
+- Sources include HubSpot, Salesforce, Google Ads, LinkedIn Ads, and internal attribution modeling.  
+- ROI calculated based on closed-won revenue attributed within 90-day attribution window.
+
+Next campaign performance review scheduled for July 15, 2025.
+"""
+    )
+
+workflow.execute()

@@ -1,0 +1,152 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# On-call Handoff Report")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This report provides a structured summary of the on-call rotation period, including incident activity, 
+outstanding alerts, system health, and upcoming risks. Use this handoff to ensure continuity, reduce response time, 
+and transfer knowledge clearly between shifts or rotations.
+"""
+    )
+
+@workflow.atom()
+def shift_summary():
+    text("## Shift Summary")
+    text(
+        """
+### Coverage Period:
+- **Start**: April 16, 2025 @ 09:00 UTC  
+- **End**: April 23, 2025 @ 09:00 UTC  
+- **Primary On-Call**: Alex Mendoza  
+- **Secondary**: Leah Chen  
+
+This week included 2 SEV-2 incidents and elevated alert volume during a midweek deploy cycle.
+"""
+    )
+
+@workflow.atom()
+def incident_log():
+    text("## Incident Summary")
+    text(
+        """
+### Major Incidents:
+
+1. **2025-04-17 – API Gateway Latency Spike**  
+   - **Duration**: 48 mins  
+   - **Severity**: SEV-2  
+   - **Impact**: 30% elevated latency across public endpoints  
+   - **Root Cause**: Misconfigured autoscaling limits  
+   - **Status**: Resolved with hotfix, follow-up ticket #INF-2047
+
+2. **2025-04-20 – Redis Node Failure**  
+   - **Duration**: 29 mins  
+   - **Severity**: SEV-2  
+   - **Impact**: Partial session store outage (EU region)  
+   - **Root Cause**: Hardware fault, node failed to failover  
+   - **Status**: Resolved, hardware replacement in progress (#INF-2051)
+
+All postmortems are in draft and scheduled for engineering review by April 25.
+"""
+    )
+
+@workflow.atom()
+def open_alerts():
+    text("## Open Alerts & Action Items")
+    text(
+        """
+| Alert Name                  | Triggered | Severity | Current Status       |
+|-----------------------------|-----------|----------|-----------------------|
+| High Queue Depth – `worker-x` | 7x        | Warning  | Throttling active     |
+| CPU Spike – `api-eu`        | 4x        | Critical | Scoped for redeploy   |
+| Billing Service Retry Failures | 3x    | Warning  | Linked to INF-2053    |
+
+No current paging alerts, but CPU-related issues are recurring and tied to memory constraints under burst traffic.
+"""
+    )
+
+@workflow.atom()
+def deployments_and_changes():
+    text("## Deployments & Infra Changes")
+    text(
+        """
+### Production Changes:
+
+- **2025-04-18** – `web-platform@v2.13.0`  
+  - Includes retry backoff logic for login service  
+  - Early alert spike, mitigated with config patch
+
+- **2025-04-21** – `worker-engine@v1.9.6`  
+  - Memory optimization for batch exports  
+  - Monitoring indicates 18% reduction in RSS
+
+All deploys passed rollout checks. Canary durations have been extended to 90 mins after recent regression reports.
+"""
+    )
+
+@workflow.atom()
+def service_health_summary():
+    text("## Service Health Snapshot")
+    text(
+        """
+### Core Services (Status Last 24h):
+
+- **API Gateway**: Healthy (95th latency: 281ms)  
+- **Auth Service**: Healthy (no 5xx errors)  
+- **Job Queue / Workers**: Degraded (throttle limits in effect)  
+- **Billing API**: Warning (retry rate ↑ 22% over baseline)
+
+Performance within acceptable bounds, though queue backpressure needs tuning under ETL load.
+"""
+    )
+
+@workflow.atom()
+def upcoming_maintenance():
+    text("## Scheduled Maintenance & Risk Events")
+    text(
+        """
+### Known Events:
+
+- **2025-04-25** – Postgres major version upgrade (Read Replicas only)  
+- **2025-04-26** – Kafka partition rebalancing in EU cluster  
+- **Next Rotation**: April 23 @ 09:00 UTC → Taylor Morgan
+
+Monitor downstream services during database maintenance. Risk window elevated for read-only queries.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Recommendations for Next Shift")
+    text(
+        """
+1. Monitor CPU spike trend on `api-eu`; assess vertical scaling thresholds  
+2. Review INF-2053 retry logic for billing edge cases  
+3. Re-evaluate alert sensitivity for worker queues – too many false positives  
+4. Ensure Postgres upgrade checklist is complete and rollback tested  
+5. Confirm Redis node swap status before next deploy window
+
+Documentation has been updated in the on-call runbook. Use #infra-oncall for live coordination.
+"""
+    )
+
+@workflow.atom()
+def notes_footer():
+    text("## Notes")
+    text(
+        """
+- Report compiled April 23, 2025 @ 07:45 UTC  
+- Incident timelines are logged in PagerDuty and postmortems stored in Confluence  
+- Metrics from Datadog, Honeycomb, and internal alerting system
+
+Escalations for this shift handled via SRE protocol v3.4. Contact eng-ops for follow-ups.
+"""
+    )
+
+workflow.execute()

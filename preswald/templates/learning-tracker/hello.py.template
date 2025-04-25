@@ -1,0 +1,162 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Learning & Development Tracker")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard provides a structured view of employee learning progress, certifications, and development milestones. 
+It helps HR and team leads track participation in training programs, identify skill gaps, and support continuous growth 
+through upskilling initiatives.
+"""
+    )
+
+@workflow.atom()
+def participation_overview():
+    text("## Participation Overview")
+    text(
+        """
+### Snapshot (as of April 23, 2025):
+
+- **Employees Enrolled in Training**: 224  
+- **Courses in Progress**: 137  
+- **Completion Rate**: 78.4%  
+- **Avg. Time to Completion**: 12.6 days  
+- **Top Departments by Engagement**: Engineering, Customer Success, Product
+
+Engagement has increased following the rollout of the new LMS and quarterly certification goals.
+"""
+    )
+
+@workflow.atom()
+def certification_tracking():
+    text("## Certification Tracking")
+    text(
+        """
+Track mandatory and optional certifications across roles:
+
+| Certification Name         | Completion % | Recert. Cycle | Assigned To     |
+|----------------------------|---------------|----------------|-----------------|
+| Security Awareness (SOC2) | 96%           | Annual         | All Staff       |
+| Product Knowledge v2       | 82%           | Biannual       | Sales & Success |
+| Accessibility Compliance   | 67%           | Annual         | Design & Frontend|
+| Leadership Foundations     | 58%           | Once           | Managers        |
+
+Reminders are sent via Slack and email 14 and 3 days before due dates.
+"""
+    )
+
+@workflow.atom()
+def skill_development_progress():
+    text("## Skill Development Progress")
+    text(
+        """
+Skill goals are aligned to career growth frameworks:
+
+- **Avg. Skills Tracked per Employee**: 4.6  
+- **Highest Growth Area**: Technical Writing (↑ 18% YTD)  
+- **Emerging Skills Tracked**: Prompt Engineering, AI Ethics, API Security  
+- **Skill Assessments Completed This Quarter**: 96
+
+Managers are encouraged to review skill plans quarterly with their teams.
+"""
+    )
+
+@workflow.atom()
+def course_completion_rates():
+    text("## Course Completion Rates")
+    text(
+        """
+Top completed courses this quarter:
+
+1. **“Effective Remote Communication”** – 92% completion  
+2. **“Mastering Customer Escalations”** – 86%  
+3. **“Building with Accessibility in Mind”** – 74%  
+4. **“SQL for Business Analysts”** – 69%
+
+Drop-off typically occurs after the second module. Microlearning pilots are underway to improve retention.
+"""
+    )
+
+@workflow.atom()
+def progress_by_team():
+    text("## Training Progress by Team")
+    text(
+        """
+| Department        | Completion Rate | Avg. Courses / Person | Notes                      |
+|-------------------|------------------|------------------------|-----------------------------|
+| Engineering       | 81%              | 2.9                    | AI training cohort active   |
+| Customer Success  | 88%              | 3.1                    | Quarterly refresh program   |
+| Marketing         | 75%              | 2.4                    | Content strategy workshop   |
+| G&A               | 64%              | 1.8                    | Onboarding module updates   |
+
+These insights help identify where to reinforce learning or expand curriculum.
+"""
+    )
+
+@workflow.atom()
+def overdue_items():
+    text("## Overdue Items")
+    text(
+        """
+### Currently Overdue:
+
+- **Total Past Due Assignments**: 47  
+- **Employees with Multiple Overdues**: 19  
+- **Most Delayed Course**: “Cybersecurity Basics” – 21 employees overdue  
+- **Longest Pending**: 43 days past due
+
+Automatic follow-ups are triggered weekly and escalated to managers if overdue > 30 days.
+"""
+    )
+
+@workflow.atom()
+def feedback_and_ratings():
+    text("## Course Feedback & Ratings")
+    text(
+        """
+Average course satisfaction rating: **4.4 / 5**  
+Most praised aspects:  
+- Instructor clarity  
+- Relevance to day-to-day work  
+- Interactive assessments
+
+Lower-rated content is flagged for instructional design review each quarter.
+"""
+    )
+
+@workflow.atom()
+def upcoming_learning_cycles():
+    text("## Upcoming Learning Cycles")
+    text(
+        """
+Key dates and planned initiatives:
+
+- **Q2 Mandatory Trainings** launch May 6  
+- **Manager Coaching Program** begins June 1  
+- **Tech Deep Dive Series** (Engineering) scheduled biweekly May–July  
+- **New LMS Rollout** Phase 2 in June
+
+Ensure calendars are updated and managers encourage signups for role-specific series.
+"""
+    )
+
+@workflow.atom()
+def notes_footer():
+    text("## Notes")
+    text(
+        """
+- Data reflects LMS exports and HRIS records as of April 23, 2025.  
+- Completion = finished all required modules and passed assessment (if applicable).  
+- Feedback is collected via post-course surveys with 80%+ response rate.
+
+For curriculum updates or report customizations, contact the L&D team.
+"""
+    )
+
+workflow.execute()

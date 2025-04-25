@@ -1,0 +1,135 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Crypto Holdings Tracker")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+Welcome to your personalized cryptocurrency portfolio report. This dashboard summarizes your current holdings, 
+asset allocation, market performance, and recent activity. All values are presented in USD based on live pricing 
+at the time of this report. Use it to monitor your positions and make informed decisions.
+"""
+    )
+
+@workflow.atom()
+def portfolio_overview():
+    text("## Portfolio Overview")
+    text(
+        """
+As of the most recent sync, your total crypto portfolio is valued at:
+
+**$84,725.36**
+
+### Summary Metrics:
+- **24h Change**: ▲ +3.12%
+- **All-Time Profit/Loss**: +$19,805.12 (+30.5%)
+- **Initial Investment**: $64,920.24
+- **Last Updated**: April 23, 2025 at 14:08 UTC
+
+This reflects current market prices and includes any stablecoins held.
+"""
+    )
+
+@workflow.atom()
+def allocation_breakdown():
+    text("## Asset Allocation")
+    text(
+        """
+Here’s how your holdings are distributed:
+
+- **Bitcoin (BTC)**: 1.4 BTC — $59,220.00 (69.9%)
+- **Ethereum (ETH)**: 7.8 ETH — $22,464.00 (26.5%)
+- **Polygon (MATIC)**: 2,000 MATIC — $1,980.00 (2.3%)
+- **USD Coin (USDC)**: $1,061.36 (1.3%)
+
+This allocation suggests a Bitcoin-dominant portfolio with moderate exposure to ETH and minimal holdings in altcoins or stablecoins.
+"""
+    )
+
+@workflow.atom()
+def market_snapshot():
+    text("## Market Snapshot")
+    text(
+        """
+Latest market prices for your assets:
+
+| Asset | Price (USD) | 24h Change |
+|-------|-------------|------------|
+| BTC   | $42,300     | ▲ +2.8%    |
+| ETH   | $2,880      | ▲ +1.2%    |
+| MATIC | $0.99       | ▲ +0.7%    |
+| USDC  | $1.00       | -          |
+
+All pricing data is updated every 10 minutes. Significant daily movements may suggest rebalancing opportunities.
+"""
+    )
+
+@workflow.atom()
+def performance_by_asset():
+    text("## Asset Performance Since Acquisition")
+    text(
+        """
+| Asset | Total Invested | Current Value | Gain/Loss |
+|-------|----------------|---------------|-----------|
+| BTC   | $40,320.00     | $59,220.00    | +$18,900  |
+| ETH   | $19,920.24     | $22,464.00    | +$2,543.76|
+| MATIC | $2,100.00      | $1,980.00     | -$120.00  |
+| USDC  | $1,061.36      | $1,061.36     | $0.00     |
+
+Bitcoin leads overall returns, while MATIC currently reflects a small unrealized loss.
+"""
+    )
+
+@workflow.atom()
+def recent_activity():
+    text("## Recent Transactions")
+    text(
+        """
+| Date       | Asset | Action | Amount     | Unit Price | Value (USD) |
+|------------|-------|--------|------------|------------|-------------|
+| 2025-04-20 | ETH   | Buy    | 2.0 ETH    | $2,850     | $5,700.00   |
+| 2025-04-18 | BTC   | Buy    | 0.3 BTC    | $41,000    | $12,300.00  |
+| 2025-04-15 | MATIC | Sell   | 500 MATIC  | $0.95      | $475.00     |
+| 2025-04-12 | USDC  | Transfer | $1,000    | $1.00      | $1,000.00   |
+
+These reflect the most recent portfolio actions including purchases, sales, and stablecoin movements.
+"""
+    )
+
+@workflow.atom()
+def outlook():
+    text("## Investor Outlook")
+    text(
+        """
+With positive movement in Bitcoin and steady growth in Ethereum, your portfolio remains on track for long-term growth. 
+Consider the following:
+
+- **BTC** remains the portfolio anchor and continues to outperform.
+- **ETH** could benefit from continued staking and ecosystem activity.
+- **Altcoin positions** remain relatively small — no major adjustments required unless performance worsens.
+- **Cash reserves (USDC)** are low; consider increasing liquidity for future buys or yield farming opportunities.
+
+This is a read-only snapshot. For rebalance recommendations or staking updates, refer to your trading platform or financial advisor.
+"""
+    )
+
+@workflow.atom()
+def report_footer():
+    text("## Report Notes")
+    text(
+        """
+- This dashboard reflects portfolio data as of April 23, 2025.
+- Price data was sourced via API at time of rendering.
+- Transactions are pulled from connected exchange logs or manual input via CSV.
+- Profit/loss calculations are based on FIFO accounting.
+
+For questions or help with custom portfolio views, contact the dashboard administrator.
+"""
+    )
+
+workflow.execute()

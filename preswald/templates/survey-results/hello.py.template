@@ -1,0 +1,132 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Visualize Survey Results")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard summarizes survey results with structured metrics and key findings. 
+It captures response rates, satisfaction scores, sentiment trends, and comparative insights 
+to support data-driven decision-making based on stakeholder feedback.
+"""
+    )
+
+@workflow.atom()
+def response_overview():
+    text("## Response Overview")
+    text(
+        """
+### Survey Period: April 1–18, 2025
+
+- **Total Responses**: 1,246  
+- **Completion Rate**: 78.4%  
+- **Avg. Completion Time**: 6m 47s  
+- **Anonymous Responses**: 92.1%  
+- **Device Breakdown**: 68% desktop, 24% mobile, 8% tablet
+
+Strong response rate with mobile participation higher among younger respondents.
+"""
+    )
+
+@workflow.atom()
+def satisfaction_scores():
+    text("## Overall Satisfaction Scores")
+    text(
+        """
+| Question                          | Avg. Score (1–5) | Positive (%) | Negative (%) |
+|-----------------------------------|------------------|---------------|---------------|
+| How satisfied are you overall?    | 4.3              | 84.2%         | 5.1%          |
+| How likely are you to recommend?  | 4.1              | 81.6%         | 6.7%          |
+| Was the product easy to use?      | 4.5              | 89.4%         | 3.2%          |
+
+Usability received the highest rating. Recommendation intent slightly trails satisfaction.
+"""
+    )
+
+@workflow.atom()
+def feedback_themes():
+    text("## Top Feedback Themes")
+    text(
+        """
+### Positive:
+
+- Simple interface / clear design (126 mentions)  
+- Helpful documentation and onboarding (98 mentions)  
+- Responsive support team (84 mentions)
+
+### Constructive:
+
+- Feature gaps (54 mentions)  
+- Integration complexity (38 mentions)  
+- Dashboard performance issues (22 mentions)
+
+Recurring feedback on integrations led to prioritization of Q3 roadmap features.
+"""
+    )
+
+@workflow.atom()
+def comparative_insights():
+    text("## Comparative Insights")
+    text(
+        """
+### Compared to Previous Survey (Jan 2025):
+
+- **Overall Satisfaction**: ▲ +0.3 points  
+- **Ease of Use**: ▲ +0.4 points  
+- **Net Promoter Score (NPS)**: ▲ +7 pts  
+- **Top Complaint Shift**: “Pricing” → “Integrations”
+
+Sentiment trends improving, with fewer pricing concerns and greater expectations around platform expansion.
+"""
+    )
+
+@workflow.atom()
+def demographic_breakdown():
+    text("## Demographic Breakdown")
+    text(
+        """
+| Segment           | Responses | Avg. Score | NPS   |
+|-------------------|-----------|------------|--------|
+| SMB Customers     | 482       | 4.1        | +39   |
+| Mid-Market        | 397       | 4.4        | +45   |
+| Enterprise        | 218       | 4.2        | +36   |
+| Free Tier Users   | 149       | 3.8        | +24   |
+
+Mid-market respondents report highest satisfaction and retention signals.
+"""
+    )
+
+@workflow.atom()
+def action_items():
+    text("## Suggested Action Items")
+    text(
+        """
+1. Prioritize integration improvements with Salesforce and Slack  
+2. Update documentation to reflect Q1 platform changes  
+3. Launch in-product NPS pulse for free-tier users  
+4. Create onboarding tooltips for most-cited usability themes  
+5. Host webinar to address dashboard tips and performance best practices
+
+Initiatives aligned with top-ranked feedback and satisfaction drivers.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data collected via Typeform + NPS.io between April 1–18, 2025  
+- Sentiment tagging performed on 813 open-text responses using internal NLP tool  
+- Next full survey planned for July 2025
+
+Reach out to insights@company.com for custom segment analysis or dashboard embeds.
+"""
+    )
+
+workflow.execute()

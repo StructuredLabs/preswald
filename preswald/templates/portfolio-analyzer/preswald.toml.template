@@ -1,0 +1,20 @@
+[project]
+title = "Portfolio Analyzer"
+version = "0.1.0"
+port = 8501
+entrypoint = "hello.py"
+slug = "portfolio-analyzer"
+
+[branding]
+name = "Portfolio Analyzer"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#000000"
+
+[data.sample_csv]
+type = "csv"
+path = "data/sample.csv"
+
+[logging]
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

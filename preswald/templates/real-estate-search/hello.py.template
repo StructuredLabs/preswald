@@ -1,0 +1,158 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Real Estate Search Dashboard")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard offers a centralized view of residential real estate listings, pricing trends, 
+and inventory dynamics. Use it to compare active properties, monitor local market conditions, 
+and support buying or investment decisions with data-driven insights.
+"""
+    )
+
+@workflow.atom()
+def market_snapshot():
+    text("## Market Snapshot")
+    text(
+        """
+### As of April 23, 2025:
+
+- **Median Listing Price**: $524,000  
+- **Avg. Days on Market**: 38  
+- **Active Listings**: 1,672  
+- **Pending Sales**: 489  
+- **Inventory YoY Change**: +9.2%  
+- **Price Reductions (Last 30 Days)**: 312 (18.7%)
+
+Sellers continue to list aggressively, with longer time on market softening some list prices.
+"""
+    )
+
+@workflow.atom()
+def listing_comparison():
+    text("## Featured Listing Comparison")
+    text(
+        """
+| Property                | Price     | Beds | Baths | Sq Ft | Days on Market | Price/Sq Ft |
+|-------------------------|-----------|------|-------|--------|----------------|--------------|
+| 712 Crestview Ln        | $619,000  | 4    | 3     | 2,480  | 19             | $249         |
+| 118 Oakview Dr          | $564,500  | 3    | 2.5   | 2,100  | 26             | $269         |
+| 90 Baxter Ridge Ct      | $495,000  | 3    | 2     | 1,875  | 33             | $264         |
+| 4347 Tanglewood Blvd    | $538,000  | 4    | 2.5   | 2,340  | 41             | $230         |
+
+Homes under $550K with at least 3 beds and >1,800 sqft are seeing more competitive offers.
+"""
+    )
+
+@workflow.atom()
+def pricing_trends():
+    text("## Local Pricing Trends")
+    text(
+        """
+### Last 6 Months (Metro Area):
+
+- **Median Price (Nov)**: $487,000  
+- **Median Price (Dec)**: $492,200  
+- **Median Price (Jan)**: $498,600  
+- **Median Price (Feb)**: $506,100  
+- **Median Price (Mar)**: $518,300  
+- **Median Price (Apr)**: $524,000
+
+Consistent upward trend, though price growth is slowing compared to 2022–2023 levels.
+"""
+    )
+
+@workflow.atom()
+def inventory_and_demand():
+    text("## Inventory and Demand Indicators")
+    text(
+        """
+| Metric                      | Current     | Change (MoM) |
+|-----------------------------|-------------|---------------|
+| Active Listings             | 1,672       | ▲ +6.3%       |
+| New Listings (30d)          | 574         | ▲ +4.7%       |
+| Price Reductions (30d)      | 312         | ▲ +8.9%       |
+| Days on Market (Median)     | 38          | ▲ +2 days     |
+| Sale-to-List Ratio (Avg.)   | 97.6%       | ▼ -0.8 pts    |
+
+Moderate softening suggests rising buyer leverage heading into summer.
+"""
+    )
+
+@workflow.atom()
+def affordability_metrics():
+    text("## Affordability & Mortgage Trends")
+    text(
+        """
+### April 2025:
+
+- **30-Year Fixed Mortgage Rate**: 5.12%  
+- **Avg. Monthly Payment (P&I)**: $2,740 (based on median price)  
+- **Income Needed to Qualify (DTI 36%)**: ~$91,200  
+- **First-Time Buyer Affordability Index**: 0.84 (below neutral = less affordable)
+
+Slight rate dip is improving purchasing power, but median home price continues to outpace wage growth.
+"""
+    )
+
+@workflow.atom()
+def neighborhood_insights():
+    text("## Neighborhood-Level Insights")
+    text(
+        """
+Top 3 Zip Codes by Search Volume:
+
+1. **94110 – Mission District**  
+   - Median List Price: $962,000  
+   - Days on Market: 22  
+   - % Listings with Price Drop: 14.2%
+
+2. **94596 – Walnut Creek**  
+   - Median List Price: $734,000  
+   - Days on Market: 34  
+   - Price/Sq Ft: $491
+
+3. **94702 – Berkeley West**  
+   - Median List Price: $889,000  
+   - Days on Market: 26  
+   - Pending Listings: 29 (of 52)
+
+Mission continues to attract fastest offers; Berkeley holds strong despite affordability squeeze.
+"""
+    )
+
+@workflow.atom()
+def strategic_takeaways():
+    text("## Strategic Takeaways")
+    text(
+        """
+1. **Homes listed under $550K with modern upgrades are moving fastest**  
+2. **Price reductions are climbing**, especially in homes listed >45 days  
+3. **Buyer competition is cooling slightly**, offering more negotiation room  
+4. **Affordability remains strained for first-time buyers**, even with softening mortgage rates  
+5. **Inventory is up YoY**, though still tight in sub-$500K segment
+
+Use saved searches and alert filters to monitor price drops and new listings in target zones.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data includes MLS feeds and Redfin/Zillow API pulls for April 1–22, 2025  
+- Mortgage data sourced from Freddie Mac Primary Mortgage Market Survey  
+- Next market update scheduled: May 7, 2025
+
+For alerts or saved search setup, contact your agent or housing advisor.
+"""
+    )
+
+workflow.execute()

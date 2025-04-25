@@ -1,0 +1,143 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Team Resource Allocation")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard supports team leads and project managers with real-time visibility into resource allocation. 
+It tracks workload distribution, capacity planning, and cross-functional utilization to help balance work, 
+prevent burnout, and align staffing with delivery timelines.
+"""
+    )
+
+@workflow.atom()
+def allocation_summary():
+    text("## Current Allocation Summary")
+    text(
+        """
+### Snapshot – Week of April 22, 2025
+
+- **Total Team Members**: 36  
+- **Avg. Allocation (All Roles)**: 86%  
+- **Overallocated (>100%)**: 5 team members  
+- **Underutilized (<70%)**: 4 team members  
+- **Unassigned Hours**: 118 hours/week (available bandwidth)
+
+Engineering is running hot at 92% average utilization. PM and QA show pockets of slack.
+"""
+    )
+
+@workflow.atom()
+def allocation_by_function():
+    text("## Allocation by Function")
+    text(
+        """
+| Function        | Avg. Allocation | Overallocated | Underutilized |
+|------------------|------------------|----------------|----------------|
+| Engineering      | 92%              | 4              | 1              |
+| Product          | 83%              | 1              | 1              |
+| Design           | 78%              | 0              | 1              |
+| QA               | 68%              | 0              | 1              |
+| Data Science     | 82%              | 0              | 0              |
+| Marketing Ops    | 74%              | 0              | 0              |
+
+Redistributing design and QA capacity could unblock sprint deliverables.
+"""
+    )
+
+@workflow.atom()
+def project_allocations():
+    text("## Active Project Allocations")
+    text(
+        """
+| Project                  | Lead         | FTE Assigned | % of Team Capacity |
+|--------------------------|--------------|--------------|---------------------|
+| Platform Rewrite         | Sofia D.     | 9.3 FTE      | 26%                 |
+| AI Search Integration    | Devin M.     | 6.7 FTE      | 18%                 |
+| Mobile UX Redesign       | Haley R.     | 4.2 FTE      | 12%                 |
+| Partner API Expansion    | Thomas Y.    | 5.0 FTE      | 14%                 |
+| Internal Tools Upgrade   | Maya V.      | 3.6 FTE      | 10%                 |
+
+Platform Rewrite continues to consume the most team resources. Rebalancing efforts expected after Phase 2 milestone.
+"""
+    )
+
+@workflow.atom()
+def unallocated_resources():
+    text("## Unallocated Resources")
+    text(
+        """
+| Name        | Role        | Available Hours | Notes                         |
+|-------------|-------------|------------------|-------------------------------|
+| Rachel K.   | QA Analyst  | 16               | Recently rolled off onboarding module |
+| Jinwoo P.   | UX Designer | 12               | Awaiting final specs for sprint 10    |
+| Alina M.    | Engineer    | 10               | Backend coverage buffer       |
+| Ethan T.    | PM          | 8                | Can assist with roadmap prep  |
+
+Reassigning these hours could speed up blocked tickets and documentation efforts.
+"""
+    )
+
+@workflow.atom()
+def forecasting_next_cycle():
+    text("## Forecasting – Next 2 Weeks")
+    text(
+        """
+- **Open Requests**: 9  
+- **Total Hours Requested**: 218  
+- **Available Bandwidth**: 172 hours  
+- **Expected Overrun**: ~46 hours (net)
+
+Forecast assumes current sprint burn rate holds and no additional PTO is logged. Overage concentrated in data engineering and QA testing.
+"""
+    )
+
+@workflow.atom()
+def risks_and_constraints():
+    text("## Risks & Constraints")
+    text(
+        """
+1. **Overcommitment in Platform Rewrite**: Team flagged fatigue; consider partial decompression  
+2. **Cross-team bottleneck in UX research**: 3 projects waiting on the same designer  
+3. **QA testing backlog**: Delays in mobile regression suite could push back release by 1–2 days  
+4. **Knowledge silos**: Partner API reliant on one engineer—needs shadow pairing
+
+Short-term contract QA or part-time reallocation recommended to stabilize deliverables.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Allocation Recommendations")
+    text(
+        """
+1. Reassign QA bandwidth (Rachel K.) to support mobile regression effort  
+2. Shift 6–8 design hours from sprint 11 planning to unblock partner integration  
+3. Split roadmap planning tasks across PMs to free up senior product capacity  
+4. Pair backend engineering resources to reduce single-point risk in Partner API  
+5. Monitor Platform Rewrite team utilization—target reduction to ~85% next sprint
+
+Proposed changes reviewed in weekly delivery sync.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data reflects resource planning as of April 22, 2025  
+- Sources: Asana workload exports, Float planner, PTO calendar  
+- Capacity defined as 32–35 hours/week per FTE
+
+Next allocation review scheduled for April 29 with updated roadmap dependencies.
+"""
+    )
+
+workflow.execute()

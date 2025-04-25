@@ -1,0 +1,146 @@
+from preswald import Workflow, text
+
+workflow = Workflow()
+
+@workflow.atom()
+def intro_header():
+    text("# Project Budget Tracker")
+
+@workflow.atom()
+def intro_description():
+    text(
+        """
+This dashboard tracks project-level financials, including actual expenses, budget allocations, and 
+forecasted costs. It supports project managers and finance teams in monitoring burn rates, 
+preventing overruns, and maintaining fiscal accountability throughout the project lifecycle.
+"""
+    )
+
+@workflow.atom()
+def budget_overview():
+    text("## Budget Overview")
+    text(
+        """
+### Project: Platform Modernization Initiative  
+- **Total Approved Budget**: $1,250,000  
+- **Current Spend (to date)**: $842,350  
+- **Remaining Budget**: $407,650  
+- **Percent Utilized**: 67.4%  
+- **Project Phase**: Phase 2 of 3 (as of April 2025)
+
+Spending is on track with projections for this phase. Remaining budget includes contingency reserves.
+"""
+    )
+
+@workflow.atom()
+def expense_breakdown():
+    text("## Expense Breakdown by Category")
+    text(
+        """
+| Category           | Budgeted   | Spent     | % Used |
+|--------------------|------------|-----------|--------|
+| Engineering Labor  | $650,000   | $441,200  | 67.9%  |
+| Software Licenses  | $185,000   | $157,800  | 85.3%  |
+| Infrastructure     | $220,000   | $158,600  | 72.1%  |
+| Vendor Services    | $115,000   | $64,300   | 55.9%  |
+| Travel & Training  | $45,000    | $20,450   | 45.4%  |
+| Contingency        | $35,000    | $0        | 0.0%   |
+
+License costs are nearly capped; renegotiation or deferral is recommended.
+"""
+    )
+
+@workflow.atom()
+def monthly_spending_trend():
+    text("## Monthly Spending Trend")
+    text(
+        """
+### Monthly Spend (Last 6 Months):
+
+- **November**: $121,400  
+- **December**: $98,250  
+- **January**: $142,800  
+- **February**: $138,900  
+- **March**: $178,400  
+- **April (MTD)**: $162,600
+
+Burn rate has stabilized after initial ramp-up, with peak spend aligned to infrastructure provisioning.
+"""
+    )
+
+@workflow.atom()
+def forecast_projection():
+    text("## Forecasted Spend Through Completion")
+    text(
+        """
+### Remaining Timeline: 3.5 months  
+- **Projected Final Spend**: ~$1,178,500  
+- **Variance to Budget**: $71,500 under  
+- **Forecast Confidence**: High (based on current staffing and rates)  
+- **Major Upcoming Costs**: Phase 3 deployment, vendor QA audit, final DevOps tool integration
+
+Forecast assumes no change to staffing model or scope.
+"""
+    )
+
+@workflow.atom()
+def variances_and_flags():
+    text("## Variance Highlights & Risk Flags")
+    text(
+        """
+### Over Budget Categories:
+- **Licensing**: Projected to exceed budget by ~$18K unless optimized  
+- **Infrastructure**: Usage-based costs nearing allocation limits
+
+### Underutilized:
+- **Contingency Funds**: Unused—may be repurposed for training or final QA
+
+Risk window flagged for external vendor deliverables in May. Escalation plan in place with contracts team.
+"""
+    )
+
+@workflow.atom()
+def upcoming_expenses():
+    text("## Upcoming Major Expenses")
+    text(
+        """
+| Item                             | Estimated Cost | Due Date     |
+|----------------------------------|----------------|--------------|
+| Phase 3 rollout (infra + labor)  | $112,000       | May 15       |
+| Vendor QA certification          | $18,700        | May 28       |
+| DevOps platform licensing renewal| $14,600        | June 1       |
+| Final training & documentation   | $7,300         | June 10      |
+
+These costs are covered by the remaining budget, assuming no additional scope changes.
+"""
+    )
+
+@workflow.atom()
+def recommendations():
+    text("## Budget Management Recommendations")
+    text(
+        """
+1. **Pause any non-critical licensing upgrades** until final deployment milestone is reached  
+2. **Monitor infrastructure usage weekly**, especially after environment scale-out  
+3. **Reallocate unused contingency** to offset projected license overrun  
+4. **Finalize contracts early** with vendor QA to avoid last-minute cost escalations  
+5. **Continue weekly finance syncs** to track burn against forecast and surface risks
+
+Budget is in good health; focus remains on controlling costs in variable categories.
+"""
+    )
+
+@workflow.atom()
+def closing_notes():
+    text("## Notes")
+    text(
+        """
+- Data reflects actuals through April 22, 2025  
+- Sources: ERP ledger exports, timesheet system, AWS billing console  
+- Next update: May 20, 2025
+
+Contact PMO Finance Ops for spreadsheet downloads or drill-down by vendor.
+"""
+    )
+
+workflow.execute()

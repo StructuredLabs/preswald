@@ -1,0 +1,32 @@
+Date,User,Feedback,Category,Sentiment
+2022-01-10,Alice,"Great service and fast delivery!,Product Quality,Positive
+2022-01-12,Bob,The user interface could be more intuitive,Website Navigation,Negative
+2022-01-15,Charlie,The customer support team was very helpful,Customer Service,Positive
+2022-01-18,Alice,The product exceeded my expectations,Product Quality,Positive
+2022-01-20,Bob,Shipping took longer than expected,Delivery Time,Negative
+2022-01-22,David,The pricing is competitive,Price,Positive
+2022-01-25,Eve,The website is easy to navigate,Website Navigation,Positive
+2022-01-28,Frank,The product arrived damaged,Product Quality,Negative
+2022-01-30,Alice,The customer service was unresponsive,Customer Service,Negative
+2022-02-02,Bob,The checkout process was smooth,Checkout Process,Positive
+2022-02-05,Charlie,The packaging was eco-friendly,Product Packaging,Positive
+2022-02-08,Alice,The product didn't meet my expectations,Product Quality,Negative
+2022-02-10,Bob,The delivery was prompt,Delivery Time,Positive
+2022-02-12,David,The pricing is too high,Price,Negative
+2022-02-15,Eve,The website needs improvement in search functionality,Website Navigation,Negative
+2022-02-18,Frank,The product quality is top-notch,Product Quality,Positive
+2022-02-20,Alice,The customer service team was polite,Customer Service,Positive
+2022-02-22,Bob,The delivery was delayed,Delivery Time,Negative
+2022-02-25,Charlie,The pricing is fair,Price,Positive
+2022-02-28,Alice,The website layout is confusing,Website Navigation,Negative
+2022-03-02,Bob,The product arrived in perfect condition,Product Quality,Positive
+2022-03-05,David,The pricing is reasonable,Price,Positive
+2022-03-08,Eve,The checkout process was quick,Checkout Process,Positive
+2022-03-10,Frank,The packaging was secure,Product Packaging,Positive
+2022-03-12,Alice,The customer service was helpful,Customer Service,Positive
+2022-03-15,Bob,The delivery was earlier than expected,Delivery Time,Positive
+2022-03-18,Charlie,The pricing is too high,Price,Negative
+2022-03-20,David,The website loads slowly,Website Navigation,Negative
+2022-03-22,Eve,The product quality is inconsistent,Product Quality,Negative
+2022-03-25,Frank,The customer service team was unprofessional,Customer Service,Negative
+2022-03-28,Alice,The checkout process was confusing,Checkout Process,Negative

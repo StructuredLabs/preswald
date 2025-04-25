@@ -2,13 +2,11 @@
 
 import { PanelLeft, PanelLeftClose } from 'lucide-react';
 
-import React, { useEffect } from 'react';
+import * as React from 'react';
+import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 import TableOfContents from '@/components/TableOfContents';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 import { cn } from '@/lib/utils';
@@ -30,7 +28,7 @@ const Sidebar = ({
         <div className="sidebar-nav">
           {!isMobile && (
             <div className="sidebar-header">
-              <div className="flex items-center">
+              <div className="flex items-center justify-center">
                 <img src={branding?.logo} alt={branding?.name} className="sidebar-logo" />
                 {!isCollapsed && <span className="sidebar-title">{branding?.name}</span>}
               </div>

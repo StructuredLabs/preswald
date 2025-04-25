@@ -1,0 +1,121 @@
+Date, Metric, Value, Target, Trend
+2022-01-01, Weight, 150, 140, Up
+2022-01-02, Blood Pressure, 120/80, 120/80, Stable
+2022-01-03, Steps, 8000, 10000, Down
+2022-01-04, Calories Burned, 300, 500, Down
+2022-01-05, Sleep Hours, 7, 8, Down
+2022-01-06, Water Intake, 8, 10, Down
+2022-01-07, BMI, 25, 22, Up
+2022-01-08, Heart Rate, 70, 65, Up
+2022-01-09, Active Minutes, 30, 45, Down
+2022-01-10, Sugar Intake, 25, 20, Up
+2022-01-11, Weight, 149, 140, Down
+2022-01-12, Blood Pressure, 118/78, 120/80, Down
+2022-01-13, Steps, 7500, 10000, Down
+2022-01-14, Calories Burned, 320, 500, Down
+2022-01-15, Sleep Hours, 6, 8, Down
+2022-01-16, Water Intake, 7, 10, Down
+2022-01-17, BMI, 26, 22, Up
+2022-01-18, Heart Rate, 72, 65, Up
+2022-01-19, Active Minutes, 25, 45, Down
+2022-01-20, Sugar Intake, 30, 20, Up
+2022-01-21, Weight, 148, 140, Down
+2022-01-22, Blood Pressure, 115/75, 120/80, Down
+2022-01-23, Steps, 7000, 10000, Down
+2022-01-24, Calories Burned, 340, 500, Down
+2022-01-25, Sleep Hours, 7, 8, Down
+2022-01-26, Water Intake, 6, 10, Down
+2022-01-27, BMI, 27, 22, Up
+2022-01-28, Heart Rate, 75, 65, Up
+2022-01-29, Active Minutes, 20, 45, Down
+2022-01-30, Sugar Intake, 35, 20, Up
+2022-01-31, Weight, 147, 140, Down
+2022-02-01, Blood Pressure, 112/72, 120/80, Down
+2022-02-02, Steps, 6500, 10000, Down
+2022-02-03, Calories Burned, 360, 500, Down
+2022-02-04, Sleep Hours, 8, 8, Stable
+2022-02-05, Water Intake, 5, 10, Down
+2022-02-06, BMI, 28, 22, Up
+2022-02-07, Heart Rate, 78, 65, Up
+2022-02-08, Active Minutes, 15, 45, Down
+2022-02-09, Sugar Intake, 40, 20, Up
+2022-02-10, Weight, 146, 140, Down
+2022-02-11, Blood Pressure, 110/70, 120/80, Down
+2022-02-12, Steps, 6000, 10000, Down
+2022-02-13, Calories Burned, 380, 500, Down
+2022-02-14, Sleep Hours, 7, 8, Down
+2022-02-15, Water Intake, 4, 10, Down
+2022-02-16, BMI, 29, 22, Up
+2022-02-17, Heart Rate, 80, 65, Up
+2022-02-18, Active Minutes, 10, 45, Down
+2022-02-19, Sugar Intake, 45, 20, Up
+2022-02-20, Weight, 145, 140, Down
+2022-02-21, Blood Pressure, 108/68, 120/80, Down
+2022-02-22, Steps, 5500, 10000, Down
+2022-02-23, Calories Burned, 400, 500, Down
+2022-02-24, Sleep Hours, 8, 8, Stable
+2022-02-25, Water Intake, 3, 10, Down
+2022-02-26, BMI, 30, 22, Up
+2022-02-27, Heart Rate, 82, 65, Up
+2022-02-28, Active Minutes, 5, 45, Down
+2022-03-01, Sugar Intake, 50, 20, Up
+2022-03-02, Weight, 144, 140, Down
+2022-03-03, Blood Pressure, 105/65, 120/80, Down
+2022-03-04, Steps, 5000, 10000, Down
+2022-03-05, Calories Burned, 420, 500, Down
+2022-03-06, Sleep Hours, 7, 8, Down
+2022-03-07, Water Intake, 2, 10, Down
+2022-03-08, BMI, 31, 22, Up
+2022-03-09, Heart Rate, 85, 65, Up
+2022-03-10, Active Minutes, 0, 45, Down
+2022-03-11, Sugar Intake, 55, 20, Up
+2022-03-12, Weight, 143, 140, Down
+2022-03-13, Blood Pressure, 100/60, 120/80, Down
+2022-03-14, Steps, 4500, 10000, Down
+2022-03-15, Calories Burned, 440, 500, Down
+2022-03-16, Sleep Hours, 8, 8, Stable
+2022-03-17, Water Intake, 1, 10, Down
+2022-03-18, BMI, 32, 22, Up
+2022-03-19, Heart Rate, 88, 65, Up
+2022-03-20, Active Minutes, 5, 45, Down
+2022-03-21, Sugar Intake, 60, 20, Up
+2022-03-22, Weight, 142, 140, Down
+2022-03-23, Blood Pressure, 95/55, 120/80, Down
+2022-03-24, Steps, 4000, 10000, Down
+2022-03-25, Calories Burned, 460, 500, Down
+2022-03-26, Sleep Hours, 7, 8, Down
+2022-03-27, Water Intake, 2, 10, Down
+2022-03-28, BMI, 33, 22, Up
+2022-03-29, Heart Rate, 90, 65, Up
+2022-03-30, Active Minutes, 10, 45, Down
+2022-03-31, Sugar Intake, 65, 20, Up
+2022-04-01, Weight, 141, 140, Down
+2022-04-02, Blood Pressure, 90/50, 120/80, Down
+2022-04-03, Steps, 3500, 10000, Down
+2022-04-04, Calories Burned, 480, 500, Down
+2022-04-05, Sleep Hours, 8, 8, Stable
+2022-04-06, Water Intake, 3, 10, Down
+2022-04-07, BMI, 34, 22, Up
+2022-04-08, Heart Rate, 92, 65, Up
+2022-04-09, Active Minutes, 15, 45, Down
+2022-04-10, Sugar Intake, 70, 20, Up
+2022-04-11, Weight, 140, 140, Stable
+2022-04-12, Blood Pressure, 85/45, 120/80, Down
+2022-04-13, Steps, 3000, 10000, Down
+2022-04-14, Calories Burned, 500, 500, Stable
+2022-04-15, Sleep Hours, 7, 8, Down
+2022-04-16, Water Intake, 4, 10, Down
+2022-04-17, BMI, 35, 22, Up
+2022-04-18, Heart Rate, 95, 65, Up
+2022-04-19, Active Minutes, 20, 45, Down
+2022-04-20, Sugar Intake, 75, 20, Up
+2022-04-21, Weight, 139, 140, Down
+2022-04-22, Blood Pressure, 80/40, 120/80, Down
+2022-04-23, Steps, 2500, 10000, Down
+2022-04-24, Calories Burned, 520, 500, Up
+2022-04-25, Sleep Hours, 8, 8, Stable
+2022-04-26, Water Intake, 5, 10, Down
+2022-04-27, BMI, 36, 22, Up
+2022-04-28, Heart Rate, 98, 65, Up
+2022-04-29, Active Minutes, 25, 45, Down
+2022-04-30, Sugar Intake, 80, 20, Up
