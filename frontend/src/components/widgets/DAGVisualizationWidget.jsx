@@ -18,55 +18,25 @@ const CardContent = ({ className = '', children, ...props }) => (
   </div>
 );
 
-const nodeStyles = {
-  padding: '8px 12px',
-  fontSize: '13px',
-  fontWeight: 500,
-  width: 'auto',
-  minWidth: '120px',
-  borderWidth: '1px',
-  borderStyle: 'solid',
-  borderRadius: '6px',
-  transition: 'all 150ms ease',
-};
-
-const statusStyles = {
-  pending: {
-    border: '1px solid #e5e5e5',
-    background: '#fafafa',
-  },
-  running: {
-    border: '1px solid #2563eb',
-    background: '#eff6ff',
-  },
-  completed: {
-    border: '1px solid #16a34a',
-    background: '#f0fdf4',
-  },
-  failed: {
-    border: '1px solid #dc2626',
-    background: '#fef2f2',
-  },
-  retry: {
-    border: '1px solid #d97706',
-    background: '#fffbeb',
-  },
-  skipped: {
-    border: '1px solid #6b7280',
-    background: '#f9fafb',
-  },
-  not_executed: {
-    border: '1px solid #e5e5e5',
-    background: '#fafafa',
-  },
-};
-
-const getStatusStyles = (status) => {
-  const style = statusStyles[status] || statusStyles.not_executed;
-  return {
-    ...nodeStyles,
-    ...style,
-  };
+// Tailwind dark mode status classes
+const getStatusClasses = (status) => {
+  switch (status) {
+    case 'pending':
+      return 'border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900';
+    case 'running':
+      return 'border-blue-600 bg-blue-50 dark:border-blue-400 dark:bg-blue-900';
+    case 'completed':
+      return 'border-green-600 bg-green-50 dark:border-green-400 dark:bg-green-900';
+    case 'failed':
+      return 'border-red-600 bg-red-50 dark:border-red-400 dark:bg-red-900';
+    case 'retry':
+      return 'border-amber-600 bg-amber-50 dark:border-amber-400 dark:bg-amber-900';
+    case 'skipped':
+      return 'border-gray-500 bg-gray-100 dark:border-gray-400 dark:bg-gray-800';
+    case 'not_executed':
+    default:
+      return 'border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900';
+  }
 };
 
 const DAGVisualizationWidget = ({ data: rawData, error, className = '' }) => {
@@ -87,7 +57,7 @@ const DAGVisualizationWidget = ({ data: rawData, error, className = '' }) => {
           label: data.name,
           status: data.status,
         },
-        style: getStatusStyles(data.status),
+        className: `p-2 px-3 text-foreground text-[13px] font-medium min-w-[120px] rounded-md transition-all duration-150 border ${getStatusClasses(data.status)}`,
       }));
 
       const flowEdges = nodeData.flatMap((node) =>
@@ -98,14 +68,14 @@ const DAGVisualizationWidget = ({ data: rawData, error, className = '' }) => {
           type: 'smoothstep',
           animated: node.status === 'running',
           style: {
-            stroke: '#64748b',
+            stroke: 'var(--tw-prose-invert-borders, #64748b)',
             strokeWidth: 1,
           },
           markerEnd: {
             type: MarkerType.ArrowClosed,
             width: 12,
             height: 12,
-            color: '#64748b',
+            color: 'var(--tw-prose-invert-borders, #64748b)',
           },
         }))
       );
@@ -120,9 +90,9 @@ const DAGVisualizationWidget = ({ data: rawData, error, className = '' }) => {
     return (
       <Card className={className}>
         <CardContent>
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-            <h4 className="text-sm font-medium text-red-800 mb-1">Error</h4>
-            <p className="text-sm text-red-600">{error}</p>
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-700 dark:bg-red-950">
+            <h4 className="text-sm font-medium text-red-800 mb-1 dark:text-red-200">Error</h4>
+            <p className="text-sm text-red-600 dark:text-red-300">{error}</p>
           </div>
         </CardContent>
       </Card>
@@ -133,8 +103,8 @@ const DAGVisualizationWidget = ({ data: rawData, error, className = '' }) => {
     return (
       <Card className={className}>
         <CardContent>
-          <div className="h-4 w-48 bg-gray-100 rounded animate-pulse mb-4" />
-          <div className="h-[200px] w-full bg-gray-100 rounded animate-pulse" />
+          <div className="h-4 w-48 bg-gray-100 rounded animate-pulse mb-4 dark:bg-gray-800" />
+          <div className="h-[200px] w-full bg-gray-100 rounded animate-pulse dark:bg-gray-800" />
         </CardContent>
       </Card>
     );
@@ -155,7 +125,7 @@ const DAGVisualizationWidget = ({ data: rawData, error, className = '' }) => {
           nodesDraggable={false}
           nodesConnectable={false}
           elementsSelectable={false}
-          className="bg-white"
+          className="bg-background"
         />
       </div>
     </Card>

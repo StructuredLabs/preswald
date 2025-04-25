@@ -1,9 +1,10 @@
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
 import { ModuleRegistry } from '@ag-grid-community/core';
-import { AgGridReact } from 'ag-grid-react';
 import { themeAlpine } from 'ag-grid-community';
-import React from 'react';
 import { colorSchemeDark } from 'ag-grid-community';
+import { AgGridReact } from 'ag-grid-react';
+
+import React from 'react';
 
 ModuleRegistry.registerModules([ClientSideRowModelModule]);
 
@@ -34,7 +35,7 @@ const TableViewerWidget = ({
   });
 
   const darkTheme = themeAlpine.withPart(colorSchemeDark);
-  const isDark =document.body.classList.contains('dark');
+  const isDark = document.body.classList.contains('dark');
 
   return (
     <div
