@@ -3,7 +3,6 @@ import plotly.express as px
 
 from preswald import connect, get_df, plotly, slider, table, text
 
-
 # Title
 text("# Travel Details Analytics Dashboard 🌍")
 
@@ -80,6 +79,10 @@ fig_hist = px.histogram(
     x=CLEANED_COST_COLUMN,
     nbins=20,
     title="Distribution of Accommodation Cost",
+)
+fig_hist.update_layout(  # ✅ Added axis titles for Issue #656
+    xaxis_title="Accommodation Cost (USD)",
+    yaxis_title="Number of Trips"
 )
 plotly(fig_hist)
 
