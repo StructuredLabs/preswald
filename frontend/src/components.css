@@ -588,6 +588,14 @@
   min-height: 400px;
 }
 
+.plotly-download-button {
+  @apply absolute top-2 right-2 opacity-0 transition-opacity duration-200 ease-in-out;
+}
+
+.plotly-plot-container:hover .plotly-download-button {
+  @apply opacity-100;
+}
+
 .plotly-progress-container {
   @apply absolute top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm px-4 py-2;
 }
@@ -698,6 +706,18 @@
 
 .dag-visualizer-tooltip-content {
   @apply text-xs;
+}
+
+.download-dropdown {
+  @apply absolute right-0 mt-2 z-10 bg-white border border-gray-300 rounded;
+}
+
+.download-option {
+  @apply px-4 py-2 cursor-pointer whitespace-nowrap;
+}
+
+.download-option:hover {
+  @apply bg-gray-100;
 }
 
 /* Platform/Section Headers in Sidebar */

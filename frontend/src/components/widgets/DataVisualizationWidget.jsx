@@ -1,8 +1,11 @@
+import Plotly from 'plotly.js-dist';
+
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 import Plot from 'react-plotly.js';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 
@@ -24,7 +27,13 @@ const DataVisualizationWidget = ({ id, data: rawData, content, error, className 
   const [plotError, setPlotError] = useState(null);
   const [processedData, setProcessedData] = useState(null);
   const plotContainerRef = useRef(null);
+  const plotWrapperRef = useRef(null);
   const [loadedDataPercentage, setLoadedDataPercentage] = useState(0);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  useEffect(() => {
+    window.Plotly = Plotly;
+  }, []);
 
   const { ref: inViewRef, inView } = useInView({
     threshold: 0.1,
@@ -158,6 +167,19 @@ const DataVisualizationWidget = ({ id, data: rawData, content, error, className 
     return () => window.removeEventListener('resize', debouncedResize);
   }, [debouncedResize]);
 
+  const handleDownload = (format = 'png') => {
+    const plotlyDiv = plotWrapperRef.current?.querySelector('.js-plotly-plot');
+    if (plotlyDiv) {
+      const title = processedData?.layout?.title?.text || 'my-graph';
+      window.Plotly.downloadImage(plotlyDiv, {
+        scale: 3,
+        format,
+        filename: title.replace(/\s+/g, '-').toLowerCase(),
+      });
+    }
+    setShowDropdown(false);
+  };
+
   if (error || plotError) {
     return (
       <Alert variant="destructive">
@@ -181,59 +203,85 @@ const DataVisualizationWidget = ({ id, data: rawData, content, error, className 
                 <Progress value={loadedDataPercentage} className="plotly-progress-bar" />
               </div>
             )}
-            <Plot
-              key={id}
-              data={processedData.data}
-              layout={{
-                ...processedData.layout,
-                font: {
-                  family: 'Inter, system-ui, sans-serif',
-                  color: isDark ? '#FFFFFF' : '#000000',
-                },
-                paper_bgcolor: 'transparent',
-                plot_bgcolor: 'transparent',
-                geo: {
-                  // Copy existing geo properties and override with transparent values for various theme support
-                  ...processedData.layout.geo,
-                  bgcolor: 'transparent',
-                  landcolor: 'transparent',
-                  oceancolor: 'transparent',
-                  lakecolor: 'transparent',
-                  coastlinecolor: 'transparent',
-                  countrycolor: 'transparent',
-                },
-                mapbox: {
-                  ...processedData.layout.mapbox,
-                  style: isDark ? 'carto-darkmatter' : 'open-street-map', // Use dark or light map style based on theme
-                },
+            <div ref={plotWrapperRef}>
+              <Plot
+                key={id}
+                data={processedData.data}
+                layout={{
+                  ...processedData.layout,
+                  font: {
+                    family: 'Inter, system-ui, sans-serif',
+                    color: isDark ? '#FFFFFF' : '#000000',
+                  },
+                  paper_bgcolor: 'transparent',
+                  plot_bgcolor: 'transparent',
+                  geo: {
+                    // Copy existing geo properties and override with transparent values for various theme support
+                    ...processedData.layout.geo,
+                    bgcolor: 'transparent',
+                    landcolor: 'transparent',
+                    oceancolor: 'transparent',
+                    lakecolor: 'transparent',
+                    coastlinecolor: 'transparent',
+                    countrycolor: 'transparent',
+                  },
+                  mapbox: {
+                    ...processedData.layout.mapbox,
+                    style: isDark ? 'carto-darkmatter' : 'open-street-map', // Use dark or light map style based on theme
+                  },
 
-                margin: { t: 40, r: 10, l: 60, b: 40 },
-                showlegend: true,
-                hovermode: 'closest',
-                xaxis: { fixedrange: true },
-                yaxis: { fixedrange: true },
-              }}
-              config={{
-                responsive: false,
-                scrollZoom: false,
-                displayModeBar: false,
-                modeBarButtonsToRemove: [''],
-                displaylogo: false,
-                dragmode: false,
-                zoom: false,
-                doubleClick: false,
-                showAxisDragHandles: false,
-                showAxisRangeEntryBoxes: false,
-                ...processedData.config,
-              }}
-              className="plotly-plot"
-              useResizeHandler={true}
-              style={{ width: '100%', height: '100%' }}
-              onError={(err) => {
-                console.error('Plotly rendering error:', err);
-                setPlotError('Failed to render plot');
-              }}
-            />
+                  margin: { t: 40, r: 10, l: 60, b: 40 },
+                  showlegend: true,
+                  hovermode: 'closest',
+                  xaxis: { fixedrange: true },
+                  yaxis: { fixedrange: true },
+                }}
+                config={{
+                  responsive: false,
+                  scrollZoom: false,
+                  displayModeBar: false,
+                  modeBarButtonsToRemove: [''],
+                  displaylogo: false,
+                  dragmode: false,
+                  zoom: false,
+                  doubleClick: false,
+                  showAxisDragHandles: false,
+                  showAxisRangeEntryBoxes: false,
+                  ...processedData.config,
+                }}
+                className="plotly-plot"
+                useResizeHandler={true}
+                style={{ width: '100%', height: '100%' }}
+                onError={(err) => {
+                  console.error('Plotly rendering error:', err);
+                  setPlotError('Failed to render plot');
+                }}
+              />
+            </div>
+            <div className="plotly-download-button">
+              <div style={{ position: 'relative' }}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setShowDropdown((prev) => !prev)}
+                >
+                  Download
+                </Button>
+                {showDropdown && (
+                  <div className="download-dropdown">
+                    {['png', 'jpeg', 'webp', 'svg', 'full-json'].map((format) => (
+                      <div
+                        key={format}
+                        className="download-option"
+                        onClick={() => handleDownload(format)}
+                      >
+                        {format.toUpperCase()}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         ) : (
           <div className="plotly-plot" ref={plotContainerRef} />
