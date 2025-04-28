@@ -17,6 +17,8 @@ from preswald.interfaces.component_return import ComponentReturn
 # Configure logging
 logger = logging.getLogger(__name__)
 
+IS_PYODIDE = "pyodide" in sys.modules
+
 
 def read_template(template_name, template_id=None):
     """Read a template file from the package.
@@ -167,26 +169,34 @@ def generate_stable_id(prefix: str = "component", identifier: str | None = None)
 
     def get_callsite_id():
         frame = inspect.currentframe()
-        while frame:
-            info = inspect.getframeinfo(frame)
-            filepath = os.path.abspath(info.filename)
+        try:
+            while frame:
+                info = inspect.getframeinfo(frame)
+                filepath = os.path.abspath(info.filename)
 
-            in_preswald_src = filepath.startswith(preswald_src_dir)
-            in_venv = ".venv" in filepath or "site-packages" in filepath
-            in_stdlib = filepath.startswith(sys.base_prefix)
+                in_preswald_src = filepath.startswith(preswald_src_dir)
+                in_venv = ".venv" in filepath or "site-packages" in filepath
 
-            if not (in_preswald_src or in_venv or in_stdlib):
-                logger.info(
-                    f"[generate_stable_id] Callsite used: {filepath}:{info.lineno}"
+                # Skip stdlib check entirely if we're in pyodide
+                in_stdlib = (
+                    False if IS_PYODIDE else filepath.startswith(sys.base_prefix)
                 )
-                return f"{filepath}:{info.lineno}"
 
-            frame = frame.f_back
+                if not (in_preswald_src or in_venv or in_stdlib):
+                    logger.debug(
+                        f"[generate_stable_id] Found user code: {filepath}:{info.lineno}"
+                    )
+                    return f"{filepath}:{info.lineno}"
 
-        logger.warning(
-            "[generate_stable_id] Could not find valid callsite, falling back"
-        )
-        return "unknown:0"
+                logger.debug(
+                    f"[generate_stable_id] in_preswald_src: {in_preswald_src}, in_venv: {in_venv}, in_stdlib: {in_stdlib}"
+                )
+
+                frame = frame.f_back
+
+            return "unknown:0"
+        finally:
+            del frame
 
     if identifier:
         hashed = hashlib.md5(identifier.lower().encode()).hexdigest()[:8]
