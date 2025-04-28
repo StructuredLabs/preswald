@@ -62,7 +62,7 @@ export default function Layout({ branding, children }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <PreswaldBadge />
+      {window === window.top && <PreswaldBadge />}
       <div className="flex min-h-screen relative">
         <main className="flex-1 main-content-layout relative">
           <div className="pt-14 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">{children}</div>
