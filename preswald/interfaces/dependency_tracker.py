@@ -3,32 +3,55 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Thread-local context stack for dependency tracking.
-# This records which atom is currently running,
-# so that dynamic dependencies (like reading another atom's value)
-# can be registered correctly into the DAG at runtime.
+# This tracks the currently executing atom so that dynamic dependencies
+# (like reading another atom's value during execution) can be recorded.
+
 _context_stack = []
 
+
 def get_current_context():
-    """Return the current active dependency tracking context, if any."""
+    """
+    Get the currently active dependency tracking context, if any.
+
+    Returns:
+        The topmost context object from the stack, or None if the stack is empty.
+    """
     return _context_stack[-1] if _context_stack else None
+
 
 def track_dependency(dep_name: str):
     """
-    Track that the current active atom depends on 'dep_name'.
-    This should be called inside code paths that dynamically access other atoms.
+    Register a runtime dependency between the currently executing atom and another.
+
+    This is typically invoked when an atom reads the value of another tracked value.
+    The dependency is added to the DAG via the current context.
+
+    Args:
+        dep_name (str): The name of the dependency being accessed.
     """
     ctx = get_current_context()
     if ctx:
-        logger.debug(f"[DAG] Tracking dependency: {ctx.atom_name} → {dep_name}")
-        ctx.workflow._register_dependency(ctx.atom_name, dep_name)
+        logger.info(f"[DAG] Registered dynamic dependency {{atom={ctx.atom_name}, dep={dep_name}}}")
+        ctx.workflow.register_dependency(ctx.atom_name, dep_name)
+    else:
+        logger.warning(f"[DAG] Dependency tracking failed (no context) {{dep={dep_name}}}")
+
 
 def push_context(ctx):
-    """Push a new dependency tracking context onto the stack."""
+    """
+    Push a new atom execution context onto the stack.
+
+    Args:
+        ctx: A context object with 'atom_name' and 'workflow' attributes.
+    """
     _context_stack.append(ctx)
 
+
 def pop_context():
-    """Pop the current dependency tracking context off the stack."""
+    """
+    Pop the topmost context off the stack, ending dependency tracking for the current atom.
+    """
     if _context_stack:
         _context_stack.pop()
     else:
-        logger.warning("[DAG] Attempted to pop from empty context stack")
+        logger.warning("[DAG] Attempted to pop context, but stack was empty")

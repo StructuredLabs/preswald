@@ -1,14 +1,28 @@
+import logging
 from preswald.interfaces.dependency_tracker import track_dependency, get_current_context
 
+logger = logging.getLogger(__name__)
+
+
 class TrackedValue:
-    """Wraps a value and tracks accesses for reactive recomputation."""
+    """
+    Wraps a value and automatically tracks read access for reactive dependency resolution.
+
+    When a value is read (via property access or coercion), we register a dynamic dependency
+    from the current executing atom to the atom that produced this value.
+    """
 
     def __init__(self, value, atom_name):
         self._value = value
         self._atom_name = atom_name
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(f"[Dependency Tracking] Created TrackedValue {self._value=} {self._atom_name=}")
+        else:
+            logger.info(f"[Dependency Tracking] Created TrackedValue {self._atom_name=}")
 
     @property
     def value(self):
+        # Track dynamic access to the value
         track_dependency(self._atom_name)
         return self._value
 

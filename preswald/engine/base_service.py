@@ -54,6 +54,18 @@ class BasePreswaldService:
 
     @contextmanager
     def active_atom(self, atom_name: str):
+        """
+        Context manager to track the currently executing atom during script execution.
+
+        This is used by the reactive runtime to associate component accesses or side effects
+        with the atom currently being evaluated. It enables dynamic dependency tracking
+        by letting systems like the DAG or component registry know which atom is "active"
+        when a component or value is used.
+
+        Args:
+            atom_name (str): The name of the atom that is being executed.
+        """
+
         previous_atom = self._current_atom
         self._current_atom = atom_name
         try:
@@ -90,15 +102,34 @@ class BasePreswaldService:
         self._initialize_data_manager(path)
 
     def _ensure_dummy_atom(self, atom_name: str):
-        """Helper to ensure a dummy atom is registered if it doesn’t already exist and isn’t the current atom."""
+        """
+        Register a placeholder (dummy) atom if one does not already exist.
+
+        This is a fallback mechanism used during reactive execution when a component
+        is referenced but no atom has been registered as its producer. While many
+        components are produced inside reactive atoms (functions decorated with
+        @workflow.atom), it's also valid for components to exist at the top level
+        of a script, such components do not require producers.
+
+        However, during reruns or DAG updates, we may attempt to associate a component
+        with an atom. If no producer is found and a dependency edge is needed,
+        we register a no-op dummy atom to preserve DAG consistency.
+
+        This avoids runtime errors during reactivity while ensuring components and
+        their relationships can be traced. If the atom is currently executing,
+        dummy registration is skipped to avoid creating a self-loop in the DAG.
+        """
+
         current_atom = self._workflow._current_atom
         if atom_name == current_atom:
-            #logger.debug(f"[DAG] Skipping dummy registration for {atom_name} (would self-loop)")
-            logger.info(f"[DAG] Skipping dummy registration for {atom_name} (would self-loop)")
+            logger.info(f"[DAG] Skipping dummy registration for {atom_name=} (would self-loop)")
             return
 
         if atom_name not in self._workflow.atoms:
-            logger.warning(f"[DAG] (fallback) Registering dummy atom for '{atom_name}'")
+            logger.warning(
+                "[DAG] No producer found; registering dummy atom (expected for standalone components, but may indicate a missing producer if dynamic inputs were intended) {atom_name=}"
+            )
+
             dummy_func = lambda **kwargs: None
             self._workflow.atoms[atom_name] = Atom(
                 name=atom_name,
@@ -108,23 +139,29 @@ class BasePreswaldService:
 
     def append_component(self, component):
         """
-        Append a component to the current layout if it is valid and not a duplicate.
+        Append a new or updated component to the active layout.
 
-        This method performs the following steps:
-        - Unwraps the component if it is a ComponentReturn wrapper.
-        - Validates that the component is a dictionary with a valid "type".
-        - Cleans the component by removing or replacing NaN values.
-        - Uses the layout manager to patch an existing component or add a new one.
+        This method plays a key role in the reactive runtime by determining whether
+        a component has meaningfully changed and should be re-rendered. It ensures:
 
-        Logs are emitted at various levels for debugging and tracing component flow.
+        - Components are validated for structure and type.
+        - Redundant re-renders are avoided via intelligent patching.
+        - Cleaned, normalized data (e.g., no NaNs) is sent to the frontend.
+        - Dynamic layout updates are handled efficiently.
+
+        Components may originate from user code, reactive atoms, or system-level updates.
 
         Args:
-            component (dict or ComponentReturn): The component to append. Can be a raw dict or a wrapped object.
-
-        Returns:
-            None
+            component (dict or ComponentReturn):
+                The component to append. Can be either a raw dictionary following the
+                component protocol or a wrapped `ComponentReturn` object.
         """
         try:
+            # TODO: Investigate stricter type checking for component unwrapping.
+            # We currently unwrap any object with a `_preswald_component` attribute,
+            # not just true `ComponentReturn` instances. Tightening this later will require
+            # ensuring all component generators consistently return ComponentReturn objects.
+
             # Unwrap if necessary
             if hasattr(component, "_preswald_component"):
                 component = component._preswald_component
@@ -139,7 +176,7 @@ class BasePreswaldService:
 
             component_id = component.get("id")
             component_type = component.get("type")
-            logger.info(f"[APPEND] Appending component: {component_id}, type: {component_type}")
+            logger.info(f"[APPEND] Appending component {component_id=} {component_type=}")
 
             cleaned_component = clean_nan_values(component)
 
@@ -148,57 +185,104 @@ class BasePreswaldService:
                 if not self._layout_manager.patch_component(cleaned_component):
                     self._layout_manager.add_component(cleaned_component)
                     if logger.isEnabledFor(logging.DEBUG):
-                        logger.debug(f"[APPEND] Added component with state: {cleaned_component}")
+                        logger.debug(f"[APPEND] Added component with state {cleaned_component=}")
             else:
                 self._layout_manager.add_component(cleaned_component)
                 if logger.isEnabledFor(logging.DEBUG):
-                    logger.debug(f"[APPEND] Added component without ID: {cleaned_component}")
+                    logger.debug(f"[APPEND] Added component without ID {cleaned_component=}")
 
         except Exception as e:
             logger.error(f"[APPEND] Error adding component: {e}", exc_info=True)
 
     def clear_components(self):
-        """Clear all components from the layout manager"""
+        """
+        Clear all rendered components from the layout manager.
+
+        This removes all visual components from the layout without modifying the underlying workflow DAG.
+        Typically used when resetting the UI, reloading scripts, or handling client disconnects.
+        """
+        logger.info("[LAYOUT] Clearing all components from layout manager")
         self._layout_manager.clear_layout()
 
+
     def force_recompute(self, component_ids: set[str]) -> None:
-        """Mark components as needing recomputation."""
-        logger.info(f"[DAG] Forcing recompute for: {component_ids}")
+        """
+        Mark specific components as needing recomputation.
+
+        This sets the `force_recompute` flag on atoms associated with the given component IDs.
+        On the next script execution, these atoms will be recomputed even if their inputs have not changed.
+
+        Args:
+            component_ids (set[str]): Set of component IDs to force recompute.
+        """
+        logger.info(f"[DAG] Forcing recompute for components {component_ids=}")
         for cid in component_ids:
-            if cid in self._workflow.atoms:
-                self._workflow.atoms[cid].force_recompute = True
+            atom_name = self._workflow.get_component_producer(cid)
+            if atom_name and atom_name in self._workflow.atoms:
+                self._workflow.atoms[atom_name].force_recompute = True
+                logger.debug(f"[DAG] Force recompute set for atom {atom_name}")
+            else:
+                logger.warning(f"[DAG] No atom producer found for component, skipping force recompute of {cid=}")
 
     def get_affected_components(self, changed_components: set[str]) -> set[str]:
-        """Compute all components affected by the updated component state."""
-        affected = self._workflow._get_affected_atoms(changed_components)
-        logger.info(f"Changed: {changed_components} → Affected: {affected}")
-        return affected
+        """
+        Determine all components affected by a change in given components.
+
+        This computes the transitive closure of dependencies: starting from the changed components,
+        it identifies all downstream atoms whose outputs may need to be updated.
+
+        Args:
+            changed_components (set[str]): Set of changed component IDs.
+
+        Returns:
+            set[str]: Set of atom names that are affected.
+        """
+        affected_atoms = self._workflow._get_affected_atoms(changed_components)
+        logger.info(f"[DAG] Dependency traversal complete {changed_components=} {affected_atoms=}")
+        return affected_atoms
 
     def get_component_state(self, component_id: str, default: Any = None) -> Any:
+        """
+        Retrieve the current value of a component by ID.
+
+        If a workflow atom is currently active, registers a dynamic dependency
+        between the active atom and the component's producer atom. If no producer
+        exists, a dummy atom is automatically registered to maintain DAG integrity.
+
+        Args:
+            component_id (str): The ID of the component to retrieve.
+            default (Any): The value to return if the component ID is not found.
+
+        Returns:
+            Any: The current value associated with the component ID.
+        """
         with self._lock:
             value = self._component_states.get(component_id, default)
+
             if logger.isEnabledFor(logging.DEBUG):
-                logger.debug(f"[STATE] Getting state for {component_id}: {value}")
-            logger.info(f"[STATE] Getting state for {component_id}: {value}")
+                logger.debug(f"[STATE] Retrieved component state {component_id=} {value=}")
+            else:
+                logger.info(f"[STATE] Retrieved component state {component_id=}")
 
+            # Handle unexpected wrapped ComponentReturn objects
             if isinstance(value, ComponentReturn):
-                logger.warning(f"[STATE] Got unexpected ComponentReturn in state for {component_id}")
-                value = value.value  # unwrap
+                logger.warning(f"[STATE] Unwrapping unexpected ComponentReturn {component_id=}")
+                value = value.value
 
+            # Register DAG dependency if inside an active atom context
             if self._current_atom:
                 producer = self._workflow.get_component_producer(component_id)
 
-                # ⛔ Don't create circular edge: current_atom → its own output
-                if component_id != self._current_atom and producer != self._current_atom:
-                    #logger.info(f"[DAG] {self._current_atom} depends on {component_id}")
-                    #self._workflow.atoms[self._current_atom].dependencies.add(component_id)
-
-                    if producer:
-                        logger.info(f"[DAG] {self._current_atom} also depends on producer atom {producer}")
-                        self._workflow.atoms[self._current_atom].dependencies.add(producer)
-
-                    # Register fallback only if atom not declared
-                    self._ensure_dummy_atom(self._current_atom)
+            if producer is None:
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug(f"[DAG] No producer registered; registering dummy {component_id=} {self._current_atom=}")
+                self._ensure_dummy_atom(self._current_atom)
+            elif producer != self._current_atom:
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug(f"[DAG] Registering dynamic dependency {self._current_atom=} {producer=}")
+                self._workflow.atoms[self._current_atom].dependencies.add(producer)
+            else:
+                logger.info(f"[DAG] Producer matches current atom; skipping dependency {self._current_atom=} {component_id=}")
 
             return value
 
@@ -363,24 +447,6 @@ class BasePreswaldService:
 
         return runner
 
-    def _register_dummy_atom(self, atom_name: str):
-        """Safely register a placeholder atom to avoid undefined references."""
-        current_atom = self._workflow._current_atom
-
-        # Avoid registering a dummy that would point to itself
-        if atom_name == current_atom:
-            logger.info(f"[DAG] Skipping dummy registration for {atom_name} (would self-loop)")
-            return
-
-        if atom_name not in self._workflow.atoms:
-            logger.warning(f"[DAG] (fallback) Registering dummy atom for '{atom_name}'")
-            dummy_func = lambda **kwargs: None
-            self._workflow.atoms[atom_name] = Atom(
-                name=atom_name,
-                func=dummy_func,
-                original_func=dummy_func,
-            )
-
     async def _send_error(self, client_id: str, message: str):
         """Send error message to a client"""
         if websocket := self.websocket_connections.get(client_id):
@@ -415,9 +481,7 @@ class BasePreswaldService:
                 if cleaned_old_value != cleaned_new_value:
                     self._component_states[component_id] = cleaned_new_value
                     if logger.isEnabledFor(logging.DEBUG):
-                        logger.debug(f"[STATE] State changed for {component_id}:")
+                        logger.debug(f"[STATE] State changed for {component_id=}")
                         logger.debug(f"  - Old value: {cleaned_old_value}")
                         logger.debug(f"  - New value: {cleaned_new_value}")
-                    logger.info(f"[STATE] State changed for {component_id}:")
-                    logger.info(f"  - Old value: {cleaned_old_value}")
-                    logger.info(f"  - New value: {cleaned_new_value}")
+

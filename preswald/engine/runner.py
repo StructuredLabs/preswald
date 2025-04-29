@@ -56,7 +56,7 @@ class ScriptRunner:
 
         logger.info(f"[ScriptRunner] Initialized with session_id: {session_id}")
         if initial_states:
-            logger.debug(f"[ScriptRunner] Loaded initial states: {initial_states}")
+            logger.info(f"[ScriptRunner] Loaded initial states: {initial_states}")
 
     async def send_message(self, msg: dict):
         """Send a message to the frontend."""
@@ -127,12 +127,12 @@ class ScriptRunner:
             return
 
         if not new_widget_states:
-            logger.debug("[ScriptRunner] No new states for rerun")
+            logger.info("[ScriptRunner] No new states for rerun")
             return
 
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug(f"[ScriptRunner] Rerunning with new states: {new_widget_states}")
-
+        logger.info(f"[ScriptRunner] Rerunning with new states: {new_widget_states}")
         try:
             # Update states atomically
             with self._lock:
@@ -141,6 +141,7 @@ class ScriptRunner:
                     self.widget_states[component_id] = value
                     if logger.isEnabledFor(logging.DEBUG):
                         logger.debug(f"[ScriptRunner] Updated state: {component_id} = {value} (was {old_value})")
+                    logger.info(f"[ScriptRunner] Updated state: {component_id} = {value} (was {old_value})")
                 self._run_count += 1
                 self._last_run_time = current_time
 
@@ -158,11 +159,18 @@ class ScriptRunner:
 
             affected_atoms = workflow._get_affected_atoms(changed_atoms)
 
+            # Inject updated widget states into workflow context before executing
+            for component_id, new_value in self.widget_states.items():
+                producer_atom = workflow.get_component_producer(component_id)
+                if producer_atom:
+                    logger.info(f"[ScriptRunner] Updating context variable for {producer_atom} with widget value {new_value}")
+                    workflow.context.set_variable(producer_atom, new_value)
+
             if not changed_atoms and not affected_atoms:
                 logger.warning("[ScriptRunner] No atoms affected — falling back to full script rerun")
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug(f"[ScriptRunner] changed_atoms = {changed_atoms}, component_ids = {changed_component_ids}")
-
+                logger.info(f"[ScriptRunner] changed_atoms = {changed_atoms}, component_ids = {changed_component_ids}")
                 await self.run_script()
                 return
             else:
@@ -171,6 +179,8 @@ class ScriptRunner:
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug(f"[ScriptRunner] changed_atoms = {changed_atoms}, affected_atoms = {affected_atoms}")
                 logger.debug(f"[ScriptRunner] affected_atoms = {affected_atoms}")
+            logger.info(f"[ScriptRunner] changed_atoms = {changed_atoms}, affected_atoms = {affected_atoms}")
+            logger.info(f"[ScriptRunner] affected_atoms = {affected_atoms}")
 
             self._service.force_recompute(affected_atoms)
             results = workflow.execute(recompute_atoms=affected_atoms)
@@ -198,6 +208,8 @@ class ScriptRunner:
                 logger.info("[ScriptRunner] Sent components to frontend")
 
             logger.info(f"[ScriptRunner] Rerun completed in {time.time() - current_time:.2f}s (total)")
+
+            self._service.get_workflow().debug_print_dag()
 
         except Exception as e:
             error_msg = f"Error updating widget states: {e!s}"
@@ -272,21 +284,29 @@ class ScriptRunner:
             logger.debug("[ScriptRunner] Restored stdout")
 
     async def run_script(self):
-        """Execute the script with enhanced error handling and state management."""
+        """
+        Execute the user script with a clean workflow state, AST transformation,
+        dependency tracking, and final component collection.
+
+        This prepares the runtime environment, executes the script with reactivity enabled,
+        and sends generated components back to the frontend.
+        """
         if not self.is_running or not self.script_path:
             logger.warning("[ScriptRunner] Not running or no script path set")
             return
 
-        logger.info(
-            f"[ScriptRunner] Running script: {self.script_path} (run #{self._run_count})"
-        )
+        # Ensure we run the script from a clear state
+        workflow = self._service.get_workflow()
+        workflow.reset()
+
+        logger.info(f"[ScriptRunner] Starting script execution {self.script_path=} {self._run_count=}")
 
         try:
-            # Clear previous components before execution
+            # Reset state and connect services
             self._service.clear_components()
             self._service.connect_data_manager()
 
-            # Set up script environment
+            # Prepare script execution environment
             self._script_globals = {"widget_states": self.widget_states}
 
             # Capture script output
@@ -299,44 +319,61 @@ class ScriptRunner:
                     script_dir = os.path.dirname(os.path.realpath(self.script_path))
                     os.chdir(script_dir)
 
+                    # Transform the script source to support reactivity
                     raw_code = f.read()
                     tree, _ = transform_source(raw_code, filename=self.script_path)
 
-                    # import astpretty
-                    # logger.info("[AST DEBUG] Transformed AST:\n" + astpretty.pformat(tree, show_offsets=False))
+                    # Optional: pretty print AST if debugging
+                    # try:
+                    #     import astpretty
+                    #     logger.info("[AST DEBUG] Transformed AST:\n" + astpretty.pformat(tree, show_offsets=False))
+                    # except ImportError:
+                    #     logger.debug("[AST DEBUG] astpretty not installed, skipping AST pretty-print")
 
-                    self._script_globals["workflow"] = self._service.get_workflow()
-
+                    # Compile and execute transformed script
+                    self._script_globals["workflow"] = workflow
                     code = compile(tree, self.script_path, "exec")
-                    logger.debug("[ScriptRunner] Script compiled with transformer")
+                    logger.info("[ScriptRunner] Script compiled with transformer")
                     exec(code, self._script_globals)
-                    logger.debug("[ScriptRunner] Script executed")
+                    logger.info("[ScriptRunner] Script executed")
 
-                    # TODO: re-visit our globals pollution
-                    # We need to support multiple runners via webwald
+                    # Patch global namespace (temporary for sl_wrap_auto_atoms)
                     builtins.sl_wrap_auto_atoms(self._script_globals)
-                    self._service.get_workflow().execute_relevant_atoms()
+
+                    # Execute top-level atoms to trigger natural flow
+                    workflow.execute_relevant_atoms()
 
                     # Change back to original working dir
                     os.chdir(current_working_dir)
 
-                # Process rendered components
+                # Collect and process rendered components
                 components = self._service.get_rendered_components()
-                logger.info(f"[ScriptRunner] Rendered {len(components)} components")
-
                 rows = components.get("rows", [])
+                row_count = len(rows)
+                logger.info(f"[ScriptRunner] Rendered components {row_count=}")
+
                 for row in rows:
                     for component in row:
                         component_id = component.get("id")
                         if not component_id:
                             continue
-                        with self._service.active_atom(component_id):
-                            _ = self._service.get_component_state(component_id)
+                        producer_atom = workflow.get_component_producer(component_id)
+                        if producer_atom:
+                            with self._service.active_atom(producer_atom):
+                                _ = self._service.get_component_state(component_id)
+                        else:
+                            logger.warning(f"[ScriptRunner] No producer atom found {component_id=}")
+                            continue
 
                 if components:
                     # Send to frontend
                     await self.send_message({"type": "components", "components": components})
-                    logger.debug("[ScriptRunner] Sent components to frontend")
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.debug("[ScriptRunner] Components sent to frontend {components=}")
+                    else:
+                        logger.info("[ScriptRunner] Components sent to frontend")
+
+                workflow.debug_print_dag()
 
         except Exception as e:
             error_msg = f"Error executing script: {e!s}"

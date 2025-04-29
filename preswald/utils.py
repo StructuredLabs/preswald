@@ -143,73 +143,81 @@ def generate_slug(base_name: str) -> str:
 
 def generate_stable_id(prefix: str = "component", identifier: Optional[str] = None, callsite_hint: Optional[str] = None) -> str:
     """
-    Generate a stable, deterministic component ID using either:
+    Generate a stable, deterministic component ID using:
     - a user-supplied identifier string, or
     - the source code callsite (file path and line number).
 
     Args:
-        prefix (str): A prefix for the component type (e.g., "text", "slider").
-        identifier (Optional[str]): Optional string to override callsite-based ID generation.
-        callsite_hint (Optional[str]): Optional explicit callsite string (e.g., "file.py:42") to use
-                                       instead of inspecting the call stack.
+        prefix (str): Prefix for the component type (e.g., "text", "slider").
+        identifier (Optional[str]): Overrides callsite-based ID generation.
+        callsite_hint (Optional[str]): Explicit callsite (e.g., "file.py:42") for deterministic hashing.
 
     Returns:
-        str: A stable ID like "text-abc123ef"
+        str: A stable component ID like "text-abc123ef".
     """
     if identifier:
         hashed = hashlib.md5(identifier.lower().encode()).hexdigest()[:8]
-        logger.debug(f"[generate_stable_id] Using identifier to generate hash {hashed}")
+        logger.info(f"[generate_stable_id] Using provided identifier to generate hash {hashed=}")
         return f"{prefix}-{hashed}"
 
     if callsite_hint:
-        # Clamp callsite_hint to safe pattern: filename:lineno
         if ":" in callsite_hint:
             filename, lineno = callsite_hint.rsplit(":", 1)
             try:
-                int(lineno)
+                int(lineno)  # Validate it's a number
                 callsite_hint = f"{filename}:{lineno}"
             except ValueError:
-                logger.warning(f"[generate_stable_id] Invalid line number in callsite_hint: {callsite_hint}")
+                logger.warning(f"[generate_stable_id] Invalid line number in callsite_hint {callsite_hint=}")
                 callsite_hint = None
         else:
-            logger.warning(f"[generate_stable_id] Invalid callsite_hint format (missing colon): {callsite_hint}")
+            logger.warning(f"[generate_stable_id] Invalid callsite_hint format (missing colon) {callsite_hint=}")
             callsite_hint = None
 
     if not callsite_hint:
+        # Fallback to inspecting the stack for a usable callsite
         venv_paths = {sys.prefix, os.environ.get("VIRTUAL_ENV")}
 
         def get_callsite_id():
             stack = inspect.stack()
             for frame_info in stack:
                 filename = frame_info.filename
-                # Skip frames from virtual environments, installed libraries, or internal preswald code
                 if (
                     not any(filename.startswith(p) for p in venv_paths if p)
                     and "site-packages" not in filename
                     and "/lib/python" not in filename
                     and "/preswald/" not in filename
                 ):
-                    logger.debug(f"[generate_stable_id] Using callsite: {filename}:{frame_info.lineno}")
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.debug(f"[generate_stable_id] Using dynamic callsite {filename=} {frame_info.lineno=}")
                     return f"{filename}:{frame_info.lineno}"
-
-            logger.warning("[generate_stable_id] Could not find valid callsite, falling back")
+            logger.warning("[generate_stable_id] No valid callsite found, falling back to default")
             return "unknown:0"
 
         callsite_hint = get_callsite_id()
 
     hashed = hashlib.md5(callsite_hint.encode()).hexdigest()[:8]
-    logger.debug(f"[generate_stable_id] Using callsite_hint to generate hash {hashed}")
+    logger.debug(f"[generate_stable_id] Using final callsite_hint to generate hash {hashed=} {callsite_hint=}")
     return f"{prefix}-{hashed}"
 
-def generate_stable_atom_id_from_component_id(component_id: str, prefix: str = "_auto_atom") -> str:
-    """
-    Generate an atom ID by reusing a component's stable ID hash but with a different prefix.
-    Example: component_id='text-abc123ef' -> atom_id='_auto_atom-abc123ef'
 
-    If the input is badly formatted, fallback to generating a fresh stable ID.
+def generate_stable_atom_name_from_component_id(component_id: str, prefix: str = "_auto_atom") -> str:
+    """
+    Convert a stable component ID into a corresponding atom name.
+    Normalizes the suffix and replaces hyphens with underscores.
+
+    Example:
+        component_id='text-abc123ef' → '_auto_atom_abc123ef'
+
+    Args:
+        component_id (str): A previously generated component ID.
+        prefix (str): Optional prefix for the atom name.
+
+    Returns:
+        str: A deterministic, underscore-safe atom name.
     """
     if component_id and "-" in component_id:
         hash_part = component_id.rsplit("-", 1)[-1]
-        return f"{prefix}-{hash_part}"
-    logger.warning(f"[generate_stable_atom_id_from_component_id] Unexpected component_id format: {component_id}")
+        return f"{prefix}_{hash_part}"
+
+    logger.warning(f"[generate_stable_atom_name_from_component_id] Unexpected component_id format {component_id=}")
     return generate_stable_id(prefix)
