@@ -74,22 +74,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         else:
             logger.info("[AST] Starting module transformation")
 
-        # Inject TrackedValue import for lifted atoms
-        import_tracked_value = ast.ImportFrom(
-            module="preswald.interfaces.tracked_value",
-            names=[ast.alias(name="TrackedValue", asname=None)],
-            level=0,
-        )
-        node.body.insert(0, import_tracked_value)
-
-        # Inject track_dependency import for lifted atoms
-        import_dependency_tracker = ast.ImportFrom(
-            module="preswald.interfaces.dependency_tracker",
-            names=[ast.alias(name="track_dependency", asname=None)],
-            level=0,
-        )
-        node.body.insert(1, import_dependency_tracker)
-        logger.debug("[AST] Inserted import for track_dependency")
+        original_imports = [stmt for stmt in node.body if isinstance(stmt, (ast.Import, ast.ImportFrom))]
 
         # First pass: assign stable IDs to component calls and track variable-to-atom mapping
         self.variable_to_atom = {}
@@ -166,33 +151,12 @@ class AutoAtomTransformer(ast.NodeTransformer):
                     if logger.isEnabledFor(logging.DEBUG):
                          logger.debug(f"[AST] Final call args for lifted atom {atom_name=} {final_args=}")
 
-                    if isinstance(stmt, ast.Assign):
-                        new_stmt = ast.Assign(
-                            targets=stmt.targets,
-                            value=ast.Call(
-                                func=atom_call.func,
-                                args=final_args,
-                                keywords=[]
-                            )
-                        )
 
-                        for target in stmt.targets:
-                            if isinstance(target, ast.Name):
-                                self.variable_to_atom[target.id] = atom_name
-                    else:
-                        new_stmt = ast.Expr(
-                            value=ast.Call(
-                                func=atom_call.func,
-                                args=final_args,
-                                keywords=[]
-                            )
-                        )
-
-                    new_body.append(new_stmt)
                     continue
 
             # Preserve non-components
-            new_body.append(stmt)
+            if not isinstance(stmt, (ast.Import, ast.ImportFrom)):
+                new_body.append(stmt)
 
         original_len = len(node.body)
         new_len = len(self.generated_atoms + new_body)
@@ -211,8 +175,33 @@ class AutoAtomTransformer(ast.NodeTransformer):
                     logger.debug(f"  [{idx}] Expr {ast.dump(stmt)}")
                 case _:
                     logger.debug(f"  [{idx}] Other {ast.dump(stmt)}")
+        import_nodes = []
+        # Inject get_workflow import for atom execution
+        import_get_workflow = ast.ImportFrom(
+            module="preswald",
+            names=[ast.alias(name="get_workflow", asname=None)],
+            level=0,
+        )
+        #node.body.insert(2, import_get_workflow)
+        import_nodes.append(import_get_workflow)
 
-        node.body = self.generated_atoms + new_body
+        # Create: workflow = get_workflow()
+        workflow_assign = ast.Assign(
+            targets=[ast.Name(id="workflow", ctx=ast.Store())],
+            value=ast.Call(func=ast.Name(id="get_workflow", ctx=ast.Load()), args=[], keywords=[]),
+        )
+
+        # Create: workflow.execute()
+        workflow_execute = ast.Expr(
+            value=ast.Call(
+                func=ast.Attribute(value=ast.Name(id="workflow", ctx=ast.Load()), attr="execute", ctx=ast.Load()),
+                args=[],
+                keywords=[],
+            )
+        )
+
+        node.body = original_imports + import_nodes + self.generated_atoms + [workflow_assign] + new_body + [workflow_execute]
+        logger.info("[AST] Inserted import statements for lifted atoms and workflow execution")
         return node
 
     def _replace_dep_args(self, call, param_mapping):
