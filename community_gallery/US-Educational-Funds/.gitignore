@@ -1,0 +1,7 @@
+secrets.toml
+.preswald_deploy
+.env.structured
+
+# To deploy in live production , .csv files are needed to show the visualization
+# Overriding the data folder 
+!data/
