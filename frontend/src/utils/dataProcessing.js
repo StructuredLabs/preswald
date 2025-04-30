@@ -119,3 +119,31 @@ export const debounce = (func, wait, immediate = false) => {
     if (callNow) func.apply(context, args);
   };
 };
+
+/**
+ * Compares two arrays of row objects to determine if they are shallowly equal.
+ *
+ * It performs a shallow comparison:
+ * - Same length
+ * - Same keys in each row
+ * - Same primitive values for each key
+ *
+ * Note: This does not support nested objects or arrays within rows.
+ *
+ * @param {Array<Object>} a - First array of row objects.
+ * @param {Array<Object>} b - Second array of row objects.
+ * @returns {boolean} True if the arrays are equal in structure and content; otherwise, false.
+ */
+export function areRowDataEqual(a = [], b = []) {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    const rowA = a[i];
+    const rowB = b[i];
+    if (Object.keys(rowA).length !== Object.keys(rowB).length) return false;
+    for (const key in rowA) {
+      if (rowA[key] !== rowB[key]) return false;
+    }
+  }
+  return true;
+}

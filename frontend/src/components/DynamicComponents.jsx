@@ -7,7 +7,8 @@ import { cn } from '@/lib/utils';
 import { comm } from '@/utils/websocket';
 
 // Utilities
-import { createExtractKeyProps } from '../utils/extractKeyProps';
+import { createExtractKeyProps } from '@/utils/extractKeyProps';
+import { areRowDataEqual } from '@/utils/dataProcessing';
 // Widgets
 import AlertWidget from './widgets/AlertWidget';
 import BigNumberWidget from './widgets/BigNumberWidget';
@@ -331,10 +332,13 @@ const MemoizedComponent = memo(
       prevProps.component.id === nextProps.component.id &&
       prevProps.component.value === nextProps.component.value &&
       prevProps.component.error === nextProps.component.error &&
-      prevProps.index === nextProps.index
+      prevProps.index === nextProps.index &&
+      areRowDataEqual(
+        prevProps.component.props?.rowData,
+        nextProps.component.props?.rowData
+      )
     );
-  }
-);
+  });
 
 const DynamicComponents = ({ components, onComponentUpdate }) => {
   useEffect(() => {
