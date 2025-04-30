@@ -204,25 +204,21 @@ class BasePreswaldService:
         logger.info("[LAYOUT] Clearing all components from layout manager")
         self._layout_manager.clear_layout()
 
-
-    def force_recompute(self, component_ids: set[str]) -> None:
+    def force_recompute(self, atom_names: set[str]) -> None:
         """
-        Mark specific components as needing recomputation.
-
-        This sets the `force_recompute` flag on atoms associated with the given component IDs.
-        On the next script execution, these atoms will be recomputed even if their inputs have not changed.
+        Force specific atoms to recompute, regardless of input changes.
 
         Args:
-            component_ids (set[str]): Set of component IDs to force recompute.
+            atom_names (set[str]): Set of atom names to force recompute.
         """
-        logger.info(f"[DAG] Forcing recompute for components {component_ids=}")
-        for cid in component_ids:
-            atom_name = self._workflow.get_component_producer(cid)
-            if atom_name and atom_name in self._workflow.atoms:
-                self._workflow.atoms[atom_name].force_recompute = True
-                logger.debug(f"[DAG] Force recompute set for atom {atom_name}")
+        logger.info(f"[DAG] Forcing recompute for atoms {atom_names=}")
+        for atom_name in atom_names:
+            atom = self._workflow.atoms.get(atom_name)
+            if atom:
+                atom.force_recompute = True
+                logger.info(f"[DAG] Force recompute set for {atom_name=}")
             else:
-                logger.warning(f"[DAG] No atom producer found for component, skipping force recompute of {cid=}")
+                logger.warning(f"[DAG] No atom found with name {atom_name=}, skipping")
 
     def get_affected_components(self, changed_components: set[str]) -> set[str]:
         """
