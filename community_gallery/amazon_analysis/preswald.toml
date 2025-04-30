@@ -1,0 +1,18 @@
+[project]
+title = "Amazon Stock Analysis"
+version = "0.1.0"
+port = 8501
+entrypoint = "hello.py"
+slug = "amazon-stock-analysis"
+
+[branding]
+name = "Amazon Stock Analysis"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#F89613"
+
+[data_sources.amazon_stock]
+type = "csv"
+path = "data/Amazon stock data 20002025.csv"
+delimiter = ","
+header = true
