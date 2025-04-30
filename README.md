@@ -60,9 +60,11 @@ Preswald tracks state and dependencies, so computations update only when needed 
 
 # **🚀 Getting Started**
 
+```markdown
 ## **Installation**
 
-First, install Preswald using pip. https://pypi.org/project/preswald/
+First, install Preswald using pip (requires Python 3.7+)  
+[Preswald on PyPI](https://pypi.org/project/preswald/)
 
 ```bash
 pip install preswald
@@ -71,6 +73,12 @@ or
 
 uv pip install preswald
 ```
+
+**Note:**  
+If you encounter issues during installation, make sure you have an updated version of pip:
+
+```bash
+pip install --upgrade pip
 
 ![Demo GIF](assets/demo1.gif)
 
@@ -158,6 +166,7 @@ The first time you deploy, you'll be prompted to enter your **GitHub username** 
 Now your app is live, shareable, and scalable—without any extra setup.
 
 
+
 ## **🔧 Configuration**
 
 Preswald uses `preswald.toml` for project settings and theming. It’s straightforward, and it makes your app look polished.
@@ -188,6 +197,25 @@ format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 ```
 
 <br>
+
+## 🛠 Troubleshooting
+
+### Port already in use
+
+If you run `preswald run` and see an error like:
+```
+OSError: [Errno 98] Address already in use
+```
+it means another application is already using the default port (8501).
+
+You have two options:
+- Stop the application that's using port 8501
+- Or run Preswald on a different port:
+
+```bash
+preswald run --port 8502
+
+
 
 ## **📚 Documentation**
 
