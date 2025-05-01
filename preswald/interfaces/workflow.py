@@ -11,10 +11,11 @@ from enum import Enum
 from functools import wraps
 from typing import Any, Optional
 
-from preswald.interfaces.tracked_value import TrackedValue
-
 import networkx as nx
 import plotly.graph_objects as go
+
+from preswald.interfaces.tracked_value import TrackedValue
+
 
 logger = logging.getLogger(__name__)
 
@@ -193,7 +194,7 @@ class Workflow:
     Core workflow engine that manages registration and execution of reactive atoms.
     """
 
-    def __init__(self, service: Optional["BasePreswaldService"] = None, default_retry_policy: RetryPolicy | None = None):
+    def __init__(self, service: Optional["BasePreswaldService"] = None, default_retry_policy: Optional[RetryPolicy] = None):
         self.atoms: dict[str, Atom] = {}
         self.context = WorkflowContext()
         self.default_retry_policy = default_retry_policy or RetryPolicy()
@@ -224,13 +225,13 @@ class Workflow:
         TODO: provide example usage before PR comes out of draft
 
         Args:
-            dependencies (list[str], optional): 
+            dependencies (list[str], optional):
                 Explicit list of atom names this atom depends on. If omitted, inferred from function arguments.
-            retry_policy (RetryPolicy, optional): 
+            retry_policy (RetryPolicy, optional):
                 Custom retry policy to apply when this atom fails.
-            force_recompute (bool, optional): 
+            force_recompute (bool, optional):
                 If True, forces this atom to recompute even if inputs have not changed.
-            name (str, optional): 
+            name (str, optional):
                 Custom name for the atom. Defaults to the function's name.
         """
         def decorator(func):
@@ -371,7 +372,7 @@ class Workflow:
 
         def has_cycle(atom_name: str) -> bool:
             if atom_name in temp_visited:
-                logger.error(f"[DAG] Cycle detected -> {' -> '.join(stack + [atom_name])}")
+                logger.error(f"[DAG] Cycle detected -> {' -> '.join([*stack, atom_name])}")
                 return True
             if atom_name in visited:
                 return False
@@ -460,7 +461,7 @@ class Workflow:
         while True:
             attempts += 1
             try:
-                
+
                 args = []
                 missing_args = []
 
@@ -719,9 +720,9 @@ class WorkflowAnalyzer:
             text=list(self.graph.nodes()),
             textposition="bottom center",
             hovertext=node_texts,
-            marker=dict(
-                color=node_colors, size=node_sizes, line_width=2, line_color="white"
-            ),
+            marker={
+                "color": node_colors, "size": node_sizes, "line_width": 2, "line_color": "white"
+            },
             name="Atoms",
         )
 
@@ -743,10 +744,10 @@ class WorkflowAnalyzer:
                 x=[x0, x1, None],
                 y=[y0, y1, None],
                 mode="lines",
-                line=dict(
-                    width=3 if is_highlighted else 1,
-                    color="#d62728" if is_highlighted else "#888",
-                ),
+                line={
+                    "width": 3 if is_highlighted else 1,
+                    "color": "#d62728" if is_highlighted else "#888",
+                },
                 hoverinfo="none",
                 showlegend=False,
             )
@@ -754,14 +755,14 @@ class WorkflowAnalyzer:
 
         # Create the figure
         fig = go.Figure(
-            data=edge_traces + [nodes_trace],
+            data=[*edge_traces, nodes_trace],
             layout=go.Layout(
-                title=dict(text=title, x=0.5, y=0.95),
+                title={"text": title, "x": 0.5, "y": 0.95},
                 showlegend=False,
                 hovermode="closest",
-                margin=dict(b=20, l=5, r=5, t=40),
-                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                margin={"b": 20, "l": 5, "r": 5, "t": 40},
+                xaxis={"showgrid": False, "zeroline": False, "showticklabels": False},
+                yaxis={"showgrid": False, "zeroline": False, "showticklabels": False},
                 plot_bgcolor="white",
             ),
         )
@@ -773,7 +774,7 @@ class WorkflowAnalyzer:
                     x=[None],
                     y=[None],
                     mode="markers",
-                    marker=dict(size=10, color=color),
+                    marker={"size": 10, "color": color},
                     name=status.replace("_", " ").title(),
                     showlegend=True,
                 )

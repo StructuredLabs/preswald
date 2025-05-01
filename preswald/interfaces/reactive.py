@@ -1,13 +1,14 @@
-import inspect
 import builtins
+import inspect
 import logging
-from functools import wraps, lru_cache
+from functools import lru_cache, wraps
 from types import FunctionType
 
-from preswald.interfaces.workflow import AtomContext
-from preswald.interfaces.tracked_value import TrackedValue
-from preswald.interfaces.dependency_tracker import push_context, pop_context
 import preswald.interfaces.components as components_module
+from preswald.interfaces.dependency_tracker import pop_context, push_context
+from preswald.interfaces.tracked_value import TrackedValue
+from preswald.interfaces.workflow import AtomContext
+
 
 logger = logging.getLogger(__name__)
 
@@ -119,14 +120,14 @@ def wrap_auto_atoms(globals_dict, workflow=None):
     wf = workflow or get_workflow()
     registry = wf._auto_atom_registry
     builtin_names = get_builtin_components()
-    EXCLUDED_NAMES = {"wrap_auto_atoms", "reactive"}
+    excluded_names = {"wrap_auto_atoms", "reactive"}
 
     for name, val in globals_dict.items():
         if (
             isinstance(val, FunctionType)
             and name not in builtin_names
             and name not in registry
-            and name not in EXCLUDED_NAMES
+            and name not in excluded_names
         ):
             sig = inspect.signature(val)
             has_required_params = any(
@@ -146,7 +147,7 @@ def wrap_auto_atoms(globals_dict, workflow=None):
             globals_dict[name] = result
 
     # Force re-registration to bind wrapped atoms to workflow
-    for name, wrapped in registry.items():
+    for _, wrapped in registry.items():
         wf.atom()(wrapped)
 
 

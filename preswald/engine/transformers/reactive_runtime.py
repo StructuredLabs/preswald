@@ -1,8 +1,12 @@
 import ast
 import logging
 
-from preswald.utils import generate_stable_id, generate_stable_atom_name_from_component_id
 from preswald.interfaces import components
+from preswald.utils import (
+    generate_stable_atom_name_from_component_id,
+    generate_stable_id,
+)
+
 
 logger = logging.getLogger(__name__)
 

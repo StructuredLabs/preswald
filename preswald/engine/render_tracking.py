@@ -6,7 +6,11 @@ from functools import wraps
 
 from preswald.engine.service import PreswaldService
 from preswald.interfaces.component_return import ComponentReturn
-from preswald.utils import generate_stable_id, generate_stable_atom_name_from_component_id
+from preswald.utils import (
+    generate_stable_atom_name_from_component_id,
+    generate_stable_id,
+)
+
 
 logger = logging.getLogger(__name__)
 

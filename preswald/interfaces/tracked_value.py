@@ -1,5 +1,7 @@
 import logging
-from preswald.interfaces.dependency_tracker import track_dependency, get_current_context
+
+from preswald.interfaces.dependency_tracker import track_dependency
+
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +38,7 @@ class TrackedValue:
 
     def __repr__(self):
         track_dependency(self._atom_name)
-        return f"{self.__class__.__name__}({repr(self._value)})"
+        return f"{self.__class__.__name__}({self._value!r})"
 
     def __str__(self):
         track_dependency(self._atom_name)
