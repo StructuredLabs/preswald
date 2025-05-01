@@ -255,6 +255,8 @@ def with_render_tracking(component_type: str):
                     result.value if isinstance(result, ComponentReturn) else result
                 )
 
+            component['shouldRender'] = service.should_render(component_id, component)
+
             with service.active_atom(service._workflow._current_atom):
                 if service.should_render(component_id, component):
                     logger.debug(f"[{component_type}] Created component: {component}")
