@@ -45,6 +45,7 @@ class BasePreswaldService:
         # DAG workflow engine
         self._workflow = Workflow(service=self)
         self._current_atom: Optional[str] = None
+        self._reactivity_enabled = True
 
         # Initialize session tracking
         self.script_runners: dict[str, ScriptRunner] = {}
@@ -100,6 +101,10 @@ class BasePreswaldService:
 
         self._script_path = path
         self._initialize_data_manager(path)
+
+    @property
+    def is_reactivity_enabled(self):
+        return self._reactivity_enabled
 
     def _ensure_dummy_atom(self, atom_name: str):
         """
@@ -204,6 +209,14 @@ class BasePreswaldService:
         logger.info("[LAYOUT] Clearing all components from layout manager")
         self._layout_manager.clear_layout()
 
+    def disable_reactivity(self):
+        self._reactivity_enabled = False
+        logger.info("[SERVICE] Reactivity disabled for fallback execution")
+
+    def enable_reactivity(self):
+        self._reactivity_enabled = True
+        logger.info("[SERVICE] Reactivity re-enabled")
+
     def force_recompute(self, atom_names: set[str]) -> None:
         """
         Force specific atoms to recompute, regardless of input changes.
@@ -266,6 +279,7 @@ class BasePreswaldService:
                 value = value.value
 
             # Register DAG dependency if inside an active atom context
+            producer = None
             if self._current_atom:
                 producer = self._workflow.get_component_producer(component_id)
 
@@ -476,8 +490,6 @@ class BasePreswaldService:
 
                 if cleaned_old_value != cleaned_new_value:
                     self._component_states[component_id] = cleaned_new_value
+                    logger.info(f"[STATE] State changed for {component_id=}")
                     if logger.isEnabledFor(logging.DEBUG):
-                        logger.debug(f"[STATE] State changed for {component_id=}")
-                        logger.debug(f"  - Old value: {cleaned_old_value}")
-                        logger.debug(f"  - New value: {cleaned_new_value}")
-
+                        logger.debug(f"[STATE]  - {cleaned_old_value=}\n  - {cleaned_new_value=}")

@@ -59,7 +59,6 @@ def with_render_tracking(component_type: str):
                         break
 
             # Resolve component ID and corresponding atom name
-            service = PreswaldService.get_instance()
             if "component_id" in kwargs:
                 component_id = kwargs["component_id"]
                 atom_name = generate_stable_atom_name_from_component_id(component_id)
@@ -69,6 +68,29 @@ def with_render_tracking(component_type: str):
                 atom_name = generate_stable_atom_name_from_component_id(component_id)
                 kwargs["component_id"] = component_id
                 logger.debug(f"[with_render_tracking] Generated component_id {component_id}:{atom_name}")
+
+            service = PreswaldService.get_instance()
+            if not service.is_reactivity_enabled:
+                result = func(*args, **kwargs)
+
+                # Extract the component dict from result
+                component = getattr(result, "_preswald_component", None)
+                if not component and isinstance(result, dict) and "id" in result:
+                    component = result
+
+                if not component:
+                    logger.warning(f"[{component_type}] No component metadata found {func.__name__=}")
+                    return result
+
+                return_value = result.value if isinstance(result, ComponentReturn) else result
+
+                # Skip DAG logic, but still respect RenderBuffer diffing
+                if service.should_render(component_id, component):
+                    service.append_component(component)
+                else:
+                    logger.info(f"[{component_type}] Fallback: No changes detected. Skipping append {component_id=}")
+
+                return return_value
 
             # Run the component function within the atom context (if not already active)
             current_atom = service._workflow._current_atom

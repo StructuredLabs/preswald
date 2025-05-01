@@ -90,6 +90,8 @@ class ScriptRunner:
             self._state = ScriptState.RUNNING
             self._run_count = 0
 
+        self._service.enable_reactivity()
+
         try:
             await self.run_script()
         except Exception as e:
@@ -122,7 +124,7 @@ class ScriptRunner:
 
         # Basic debouncing - skip if last run was too recent
         current_time = time.time()
-        if current_time - self._last_run_time < 0.1:  # 100ms debounce
+        if current_time - self._last_run_time < 0.1:
             logger.info("[ScriptRunner] Skipping rerun due to debounce")
             return
 
@@ -130,18 +132,18 @@ class ScriptRunner:
             logger.info("[ScriptRunner] No new states for rerun")
             return
 
-        if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"[ScriptRunner] Rerunning with new states: {new_widget_states}")
+        if not self._service.is_reactivity_enabled:
+            logger.info("[ScriptRunner] Reactivity disabled — rerunning entire script with updated widget state")
+            return await self.run_script()
+
         logger.info(f"[ScriptRunner] Rerunning with new states: {new_widget_states}")
         try:
-            # Update states atomically
             with self._lock:
                 for component_id, value in new_widget_states.items():
                     old_value = self.widget_states.get(component_id)
                     self.widget_states[component_id] = value
                     if logger.isEnabledFor(logging.DEBUG):
-                        logger.debug(f"[ScriptRunner] Updated state: {component_id} = {value} (was {old_value})")
-                    logger.info(f"[ScriptRunner] Updated state: {component_id} = {value} (was {old_value})")
+                        logger.debug(f"[ScriptRunner] Updated state: {component_id=} -> {value=} (was {old_value=})")
                 self._run_count += 1
                 self._last_run_time = current_time
 
@@ -170,17 +172,24 @@ class ScriptRunner:
                 logger.warning("[ScriptRunner] No atoms affected — falling back to full script rerun")
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug(f"[ScriptRunner] changed_atoms = {changed_atoms}, component_ids = {changed_component_ids}")
-                logger.info(f"[ScriptRunner] changed_atoms = {changed_atoms}, component_ids = {changed_component_ids}")
+
+                # Fallback: reset all DAG and component state before rerunning
+                self._service.disable_reactivity()
+                workflow.reset()
+                self._service.clear_components()
+                self._script_globals = {
+                    "__file__": self.script_path,
+                    "workflow": workflow,
+                    "widget_states": self.widget_states,
+                }
+
                 await self.run_script()
                 return
-            else:
-                logger.info(f"[ScriptRunner] Rerun using DAG reactivity with {len(affected_atoms)} affected atoms")
+
+            logger.info(f"[ScriptRunner] Rerun using DAG reactivity with {len(affected_atoms)} affected atoms")
 
             if logger.isEnabledFor(logging.DEBUG):
-                logger.debug(f"[ScriptRunner] changed_atoms = {changed_atoms}, affected_atoms = {affected_atoms}")
-                logger.debug(f"[ScriptRunner] affected_atoms = {affected_atoms}")
-            logger.info(f"[ScriptRunner] changed_atoms = {changed_atoms}, affected_atoms = {affected_atoms}")
-            logger.info(f"[ScriptRunner] affected_atoms = {affected_atoms}")
+                logger.debug(f"[ScriptRunner] {changed_atoms=}, {affected_atoms=}")
 
             self._service.force_recompute(affected_atoms)
             results = workflow.execute(recompute_atoms=affected_atoms)
@@ -191,25 +200,27 @@ class ScriptRunner:
                     if result is not None:
                         value = result.value if hasattr(result, 'value') else None
                         if (
-                            hasattr(value, "_preswald_component_type")  # component created by with_render_tracking
+                            hasattr(value, "_preswald_component_type")  # identifies a component created by with_render_tracking
                             or (isinstance(value, dict) and "type" in value)  # fallback safety
                         ):
                             self._service.append_component(value)
                         else:
-                            logger.info(f"[ScriptRunner] Skipping non-component value for atom: {atom_name}")
+                            logger.info(f"[ScriptRunner] Skipping non-component value for {atom_name=}")
                             if logger.isEnabledFor(logging.DEBUG):
-                                logger.debug(f"[ScriptRunner] Atom {atom_name} returned: {result!r}")
+                                logger.debug(f"[ScriptRunner] {atom_name=} -> {result!r}")
 
             components = self._service.get_rendered_components()
             logger.info(f"[ScriptRunner] Rendered {len(components)} components (rerun)")
 
             if components:
                 await self.send_message({"type": "components", "components": components})
-                logger.info("[ScriptRunner] Sent components to frontend")
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug(f"[ScriptRunner] Sent components to frontend {components=}")
+                else:
+                    logger.info(f"[ScriptRunner] Sent components to frontend")
 
             logger.info(f"[ScriptRunner] Rerun completed in {time.time() - current_time:.2f}s (total)")
-
-            self._service.get_workflow().debug_print_dag()
+            workflow.debug_print_dag()
 
         except Exception as e:
             error_msg = f"Error updating widget states: {e!s}"
@@ -289,7 +300,8 @@ class ScriptRunner:
         dependency tracking, and final component collection.
 
         This prepares the runtime environment, executes the script with reactivity enabled,
-        and sends generated components back to the frontend.
+        and sends generated components back to the frontend. If transformation fails,
+        it falls back to executing the raw script without reactivity.
         """
         if not self.is_running or not self.script_path:
             logger.warning("[ScriptRunner] Not running or no script path set")
@@ -311,69 +323,71 @@ class ScriptRunner:
 
             # Capture script output
             with self._redirect_stdout():
-                # Execute script
                 with open(self.script_path, encoding="utf-8") as f:
-                    # Save current cwd
-                    current_working_dir = os.getcwd()
-                    # Execute script with script directory set as cwd
-                    script_dir = os.path.dirname(os.path.realpath(self.script_path))
-                    os.chdir(script_dir)
-
-                    # Transform the script source to support reactivity
                     raw_code = f.read()
+
+                current_working_dir = os.getcwd()
+                script_dir = os.path.dirname(os.path.realpath(self.script_path))
+                os.chdir(script_dir)
+
+                try:
+                    # Attempt reactive transformation
                     tree, _ = transform_source(raw_code, filename=self.script_path)
 
-                    # Optional: pretty print AST if debugging
-                    # try:
-                    #     import astpretty
-                    #     logger.info("[AST DEBUG] Transformed AST:\n" + astpretty.pformat(tree, show_offsets=False))
-                    # except ImportError:
-                    #     logger.debug("[AST DEBUG] astpretty not installed, skipping AST pretty-print")
-
-                    # Compile and execute transformed script
                     self._script_globals["workflow"] = workflow
                     code = compile(tree, self.script_path, "exec")
                     logger.info("[ScriptRunner] Script compiled with transformer")
                     exec(code, self._script_globals)
-                    logger.info("[ScriptRunner] Script executed")
+                    logger.info("[ScriptRunner] Script executed (reactive)")
 
-                    # Patch global namespace (temporary for sl_wrap_auto_atoms)
                     builtins.sl_wrap_auto_atoms(self._script_globals)
-
-                    # Execute top-level atoms to trigger natural flow
                     workflow.execute_relevant_atoms()
 
-                    # Change back to original working dir
-                    os.chdir(current_working_dir)
+                except Exception as transform_error:
+                    logger.warning(
+                        "[ScriptRunner] AST transform or reactive execution failed — falling back to full script rerun\n%s",
+                        traceback.format_exc()
+                    )
 
-                # Collect and process rendered components
-                components = self._service.get_rendered_components()
-                rows = components.get("rows", [])
-                row_count = len(rows)
-                logger.info(f"[ScriptRunner] Rendered components {row_count=}")
+                    self._service.disable_reactivity()
+                    workflow.reset()
+                    self._service.clear_components()
+                    self._script_globals = {
+                        "__file__": self.script_path,
+                        "workflow": workflow,
+                        "widget_states": self.widget_states,
+                    }
 
-                for row in rows:
-                    for component in row:
-                        component_id = component.get("id")
-                        if not component_id:
-                            continue
-                        producer_atom = workflow.get_component_producer(component_id)
-                        if producer_atom:
-                            with self._service.active_atom(producer_atom):
-                                _ = self._service.get_component_state(component_id)
-                        else:
-                            logger.warning(f"[ScriptRunner] No producer atom found {component_id=}")
-                            continue
+                    code = compile(raw_code, self.script_path, "exec")
+                    exec(code, self._script_globals)
+                    logger.info("[ScriptRunner] Script executed (fallback, non-reactive)")
 
-                if components:
-                    # Send to frontend
-                    await self.send_message({"type": "components", "components": components})
-                    if logger.isEnabledFor(logging.DEBUG):
-                        logger.debug("[ScriptRunner] Components sent to frontend {components=}")
+                os.chdir(current_working_dir)
+
+            # Collect and process rendered components
+            components = self._service.get_rendered_components()
+            rows = components.get("rows", [])
+            row_count = len(rows)
+            logger.info(f"[ScriptRunner] Rendered components {row_count=}")
+
+            for row in rows:
+                for component in row:
+                    component_id = component.get("id")
+                    if not component_id:
+                        continue
+                    producer_atom = workflow.get_component_producer(component_id)
+                    if producer_atom:
+                        with self._service.active_atom(producer_atom):
+                            _ = self._service.get_component_state(component_id)
                     else:
-                        logger.info("[ScriptRunner] Components sent to frontend")
+                        logger.warning(f"[ScriptRunner] No producer atom found {component_id=}")
+                        continue
 
-                workflow.debug_print_dag()
+            if components:
+                await self.send_message({"type": "components", "components": components})
+                logger.info("[ScriptRunner] Components sent to frontend")
+
+            workflow.debug_print_dag()
 
         except Exception as e:
             error_msg = f"Error executing script: {e!s}"

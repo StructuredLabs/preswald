@@ -537,12 +537,15 @@ class Workflow:
         self.cache.cache.clear()
         self._auto_atom_registry.clear()
         self._registered_reactive_atoms.clear()
+        self._current_atom = None
+        self._is_rerun = False
 
     def debug_print_dag(self):
-        logger.info("[DAG DEBUG] Current DAG edges:")
-        for atom in self.atoms.values():
-            for dep in atom.dependencies:
-                logger.info(f"[DAG DEBUG] {dep=} -> {atom.name=}")
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("[DAG DEBUG] Current DAG edges:")
+            for atom in self.atoms.values():
+                for dep in atom.dependencies:
+                    logger.debug(f"[DAG DEBUG] {dep=} -> {atom.name=}")
 
 
 class WorkflowAnalyzer:

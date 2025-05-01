@@ -446,7 +446,6 @@ class AutoAtomTransformer(ast.NodeTransformer):
             keywords=[]
         )
 
-
     def generate_component_and_atom_name(self, func_name: str) -> tuple[str, str]:
         """
         Generate a component ID and atom name based on the function name and filename context.
@@ -471,4 +470,9 @@ def transform_source(source: str, filename="<script>"):
     transformer = AutoAtomTransformer(filename=filename)
     new_tree = transformer.visit(tree)
     ast.fix_missing_locations(new_tree)
+
+    if logger.isEnabledFor(logging.DEBUG):
+        source_code = ast.unparse(new_tree)
+        logger.info("Transformed source code:\n%s", source_code)
+
     return new_tree, transformer.atoms
