@@ -5,11 +5,9 @@ import os
 import random
 import re
 import sys
-import toml
-
-from importlib.resources import files
 from pathlib import Path
-from typing import Optional
+
+import toml
 
 
 # Configure logging
@@ -146,8 +144,8 @@ def generate_slug(base_name: str) -> str:
 
 def generate_stable_id(
     prefix: str = "component",
-    identifier: Optional[str] = None,
-    callsite_hint: Optional[str] = None,
+    identifier: str | None = None,
+    callsite_hint: str | None = None,
 ) -> str:
     """
     Generate a stable, deterministic component ID using:
@@ -164,8 +162,10 @@ def generate_stable_id(
     """
     if identifier:
         hashed = hashlib.md5(identifier.lower().encode()).hexdigest()[:8]
-        logger.info(f"[generate_stable_id] Using provided identifier to generate hash {hashed=}")
+        logger.debug(f"[generate_stable_id] Using provided identifier to generate hash {hashed=}")
         return f"{prefix}-{hashed}"
+
+    fallback_callsite = "unknown:0"
 
     if callsite_hint:
         if ":" in callsite_hint:
@@ -197,7 +197,7 @@ def generate_stable_id(
                             return f"{filepath}:{info.lineno}"
                     else:
                         # In native: skip stdlib, site-packages, and preswald internals
-                        in_preswald_src = "/preswald/" in filepath
+                        in_preswald_src = filepath.startswith(preswald_src_dir)
                         in_venv = ".venv" in filepath or "site-packages" in filepath
                         in_stdlib = filepath.startswith(sys.base_prefix)
 
@@ -208,7 +208,7 @@ def generate_stable_id(
                     frame = frame.f_back
 
                 logger.warning("[generate_stable_id] No valid callsite found, falling back to default")
-                return "unknown:0"
+                return fallback_callsite
             finally:
                 del frame
 
