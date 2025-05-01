@@ -330,18 +330,27 @@ class ScriptRunner:
                 script_dir = os.path.dirname(os.path.realpath(self.script_path))
                 os.chdir(script_dir)
 
+                def compile_and_run(src_code, script_path, script_globals, execution_context):
+                    code = compile(src_code, script_path, "exec")
+                    logger.info(f"[ScriptRunner] Script compiled {script_path=}")
+                    exec(code, script_globals)
+                    logger.info(f"[ScriptRunner] Script executed {execution_context}")
+
                 try:
-                    # Attempt reactive transformation
-                    tree, _ = transform_source(raw_code, filename=self.script_path)
+                    if self._service.is_reactivity_enabled:
 
-                    self._script_globals["workflow"] = workflow
-                    code = compile(tree, self.script_path, "exec")
-                    logger.info("[ScriptRunner] Script compiled with transformer")
-                    exec(code, self._script_globals)
-                    logger.info("[ScriptRunner] Script executed (reactive)")
+                        # Attempt reactive transformation
+                        tree, _ = transform_source(raw_code, filename=self.script_path)
 
-                    builtins.sl_wrap_auto_atoms(self._script_globals)
-                    workflow.execute_relevant_atoms()
+                        self._script_globals["workflow"] = workflow
+                        compile_and_run(tree, self.script_path, self._script_globals, "(reactive)")
+
+                        builtins.sl_wrap_auto_atoms(self._script_globals)
+                        workflow.execute_relevant_atoms()
+
+                    else:
+                        compile_and_run(raw_code, self.script_path, self._script_globals, "(non-reactive)")
+                        workflow.reset() # just to be safe
 
                 except Exception as transform_error:
                     logger.warning(
@@ -358,9 +367,7 @@ class ScriptRunner:
                         "widget_states": self.widget_states,
                     }
 
-                    code = compile(raw_code, self.script_path, "exec")
-                    exec(code, self._script_globals)
-                    logger.info("[ScriptRunner] Script executed (fallback, non-reactive)")
+                    compile_and_run(raw_code, self.script_path, self._script_globals, "(fallback, non-reactive)")
 
                 os.chdir(current_working_dir)
 
