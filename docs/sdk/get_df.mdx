@@ -12,7 +12,7 @@ The `get_df` function retrieves data from a configured source and returns it as 
 
 ## Parameters
 
-- `source_name` (str): Name of the data source as configured in preswald.toml
+- `source_name` (str): Name of the data source as configured in preswald.toml OR a path to a file (supports CSV, Parquet, and JSON)
 - `table_name` (Optional[str]): Required for database sources, specifies which table to retrieve
 
 ## Returns
@@ -32,6 +32,9 @@ from preswald import get_df
 
 # Read entire CSV file
 customers_df = get_df('eq_csv')
+
+# Or, read specific CSV file
+customers_df = get_df('data/sample.csv')
 ```
 
 ### PostgreSQL Source

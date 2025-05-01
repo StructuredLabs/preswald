@@ -15,41 +15,6 @@ from requests.auth import HTTPBasicAuth
 logger = logging.getLogger(__name__)
 
 
-def load_json_source(config: dict[str, Any]) -> pd.DataFrame:
-    path = config["path"]
-    record_path = config.get("record_path")
-    flatten = config.get("flatten", True)
-
-    # Open and load the JSON file
-    try:
-        with open(path, encoding="utf-8") as f:
-            data = json.load(f)
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Malformed JSON in file '{path}': {e}") from e
-    except Exception as e:
-        raise ValueError(f"Error reading JSON file '{path}': {e}") from e
-
-    # Apply record_path if provided
-    if record_path:
-        try:
-            data = data[record_path]
-        except (KeyError, TypeError) as e:
-            raise ValueError(
-                f"Invalid record_path '{record_path}' for JSON file '{path}': {e}"
-            ) from e
-
-    # Normalize or convert data if "flatten"
-    try:
-        if flatten:
-            return pd.json_normalize(data, sep=".")
-        else:
-            return pd.DataFrame(data)
-    except Exception as e:
-        raise ValueError(
-            f"Error converting JSON data from file '{path}' to DataFrame: {e}"
-        ) from e
-
-
 # Database Configs ############################################################
 @dataclass
 class ClickhouseConfig:
@@ -178,7 +143,7 @@ class CSVSource(DataSource):
         self.path = config.path
 
         # Create a table in DuckDB for this CSV
-        self._table_name = f"csv_{name}_{uuid.uuid4().hex[:8]}"
+        self._table_name = f"csv_{uuid.uuid4().hex[:8]}"
         self._duckdb.execute(f"""
             CREATE TABLE {self._table_name} AS
             SELECT * FROM read_csv_auto('{self.path}',
@@ -206,8 +171,8 @@ class JSONSource(DataSource):
         self, name: str, config: JSONConfig, duckdb_conn: duckdb.DuckDBPyConnection
     ):
         super().__init__(name, duckdb_conn)
-        load_json_source(config.__dict__)
-        self._table_name = f"json_{name}_{uuid.uuid4().hex[:8]}"
+        df = _load_json_source(config.__dict__)  # noqa: F841
+        self._table_name = f"json_{uuid.uuid4().hex[:8]}"
         self._duckdb.execute(f"CREATE TABLE {self._table_name} AS SELECT * FROM df")
 
     def query(self, sql: str) -> pd.DataFrame:
@@ -323,7 +288,7 @@ class APISource(DataSource):
         self.config = config
 
         # Create a table in db
-        self._table_name = f"api_{name}_{uuid.uuid4().hex[:8]}"
+        self._table_name = f"api_{uuid.uuid4().hex[:8]}"
         self._load_data_into_duckdb()
 
     def _load_data_into_duckdb(self):
@@ -390,7 +355,7 @@ class ParquetSource(DataSource):
         super().__init__(name, duckdb_conn)
         self.path = config.path
         self.columns = config.columns
-        self._table_name = f"parquet_{name}_{uuid.uuid4().hex[:8]}"
+        self._table_name = f"parquet_{uuid.uuid4().hex[:8]}"
 
         try:
             # Load Parquet using DuckDB
@@ -445,14 +410,6 @@ class DataManager:
         #     )
 
         config = self._load_sources()
-        sources_to_remove = set(self.sources.keys()) - set(config.keys())
-
-        # Remove sources that no longer exist in config
-        for name in sources_to_remove:
-            if name in self.sources:
-                self._drop_source_table(self.sources[name])
-            del self.sources[name]
-            del self.sources_cache[name]
 
         # Only process sources that are new or have changed
         for name, source_config in config.items():
@@ -544,21 +501,45 @@ class DataManager:
 
     def query(self, sql: str, source_name: str) -> pd.DataFrame:
         """Query a specific data source"""
-        if source_name not in self.sources:
-            raise ValueError(f"Unknown source: {source_name}")
-        return self.sources[source_name].query(sql)
+        source = self._get_or_create_source(source_name)
+        return source.query(sql)
 
     def get_df(self, source_name: str, table_name: str | None = None) -> pd.DataFrame:
         """Get entire source as DataFrame"""
-        if source_name not in self.sources:
-            raise ValueError(f"Unknown source: {source_name}")
+        source = self._get_or_create_source(source_name)
 
-        source = self.sources[source_name]
         if isinstance(source, PostgresSource):
             if table_name is None:
                 raise ValueError("table_name is required for Postgres sources")
             return source.to_df(table_name)
         return source.to_df()
+
+    def _get_or_create_source(self, source_name: str) -> DataSource:
+        """Get an existing source or create a new one from a file path."""
+        if source_name not in self.sources:
+            # check if source_name is a valid file path
+            if os.path.exists(source_name):
+                if source_name.endswith(".csv"):
+                    cfg = CSVConfig(path=source_name)
+                    self.sources[source_name] = CSVSource(
+                        source_name, cfg, self.duckdb_conn
+                    )
+                elif source_name.endswith(".json"):
+                    cfg = JSONConfig(path=source_name)
+                    self.sources[source_name] = JSONSource(
+                        source_name, cfg, self.duckdb_conn
+                    )
+                elif source_name.endswith(".parquet"):
+                    cfg = ParquetConfig(path=source_name)
+                    self.sources[source_name] = ParquetSource(
+                        source_name, cfg, self.duckdb_conn
+                    )
+                else:
+                    raise ValueError(f"Unsupported file type: {source_name}")
+            else:
+                raise ValueError(f"Unknown source: {source_name}")
+
+        return self.sources[source_name]
 
     def _has_source_changed(self, name: str, config: dict) -> bool:
         """Check if a source's configuration has changed"""
@@ -602,3 +583,38 @@ class DataManager:
         except Exception as e:
             logger.error(f"Error loading configuration files: {e!s}")
             raise
+
+
+def _load_json_source(config: dict[str, Any]) -> pd.DataFrame:
+    path = config["path"]
+    record_path = config.get("record_path")
+    flatten = config.get("flatten", True)
+
+    # Open and load the JSON file
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Malformed JSON in file '{path}': {e}") from e
+    except Exception as e:
+        raise ValueError(f"Error reading JSON file '{path}': {e}") from e
+
+    # Apply record_path if provided
+    if record_path:
+        try:
+            data = data[record_path]
+        except (KeyError, TypeError) as e:
+            raise ValueError(
+                f"Invalid record_path '{record_path}' for JSON file '{path}': {e}"
+            ) from e
+
+    # Normalize or convert data if "flatten"
+    try:
+        if flatten:
+            return pd.json_normalize(data, sep=".")
+        else:
+            return pd.DataFrame(data)
+    except Exception as e:
+        raise ValueError(
+            f"Error converting JSON data from file '{path}' to DataFrame: {e}"
+        ) from e

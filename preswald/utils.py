@@ -15,6 +15,8 @@ from typing import Optional
 # Configure logging
 logger = logging.getLogger(__name__)
 
+IS_PYODIDE = "pyodide" in sys.modules
+
 
 def read_template(template_name, template_id=None):
     """Read a template file from the package.
@@ -141,7 +143,12 @@ def generate_slug(base_name: str) -> str:
 
     return slug
 
-def generate_stable_id(prefix: str = "component", identifier: Optional[str] = None, callsite_hint: Optional[str] = None) -> str:
+
+def generate_stable_id(
+    prefix: str = "component",
+    identifier: Optional[str] = None,
+    callsite_hint: Optional[str] = None,
+) -> str:
     """
     Generate a stable, deterministic component ID using:
     - a user-supplied identifier string, or
@@ -174,24 +181,36 @@ def generate_stable_id(prefix: str = "component", identifier: Optional[str] = No
             callsite_hint = None
 
     if not callsite_hint:
-        # Fallback to inspecting the stack for a usable callsite
-        venv_paths = {sys.prefix, os.environ.get("VIRTUAL_ENV")}
+        preswald_src_dir = os.path.abspath(os.path.join(__file__, ".."))
 
         def get_callsite_id():
-            stack = inspect.stack()
-            for frame_info in stack:
-                filename = frame_info.filename
-                if (
-                    not any(filename.startswith(p) for p in venv_paths if p)
-                    and "site-packages" not in filename
-                    and "/lib/python" not in filename
-                    and "/preswald/" not in filename
-                ):
-                    if logger.isEnabledFor(logging.DEBUG):
-                        logger.debug(f"[generate_stable_id] Using dynamic callsite {filename=} {frame_info.lineno=}")
-                    return f"{filename}:{frame_info.lineno}"
-            logger.warning("[generate_stable_id] No valid callsite found, falling back to default")
-            return "unknown:0"
+            frame = inspect.currentframe()
+            try:
+                while frame:
+                    info = inspect.getframeinfo(frame)
+                    filepath = os.path.abspath(info.filename)
+
+                    if IS_PYODIDE:
+                        # In Pyodide: skip anything in /lib/, allow /main.py etc.
+                        if not filepath.startswith("/lib/"):
+                            logger.debug(f"[generate_stable_id] [Pyodide] Found user code: {filepath}:{info.lineno}")
+                            return f"{filepath}:{info.lineno}"
+                    else:
+                        # In native: skip stdlib, site-packages, and preswald internals
+                        in_preswald_src = "/preswald/" in filepath
+                        in_venv = ".venv" in filepath or "site-packages" in filepath
+                        in_stdlib = filepath.startswith(sys.base_prefix)
+
+                        if not (in_preswald_src or in_venv or in_stdlib):
+                            logger.debug(f"[generate_stable_id] Found user code: {filepath}:{info.lineno}")
+                            return f"{filepath}:{info.lineno}"
+
+                    frame = frame.f_back
+
+                logger.warning("[generate_stable_id] No valid callsite found, falling back to default")
+                return "unknown:0"
+            finally:
+                del frame
 
         callsite_hint = get_callsite_id()
 
