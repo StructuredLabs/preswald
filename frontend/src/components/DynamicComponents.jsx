@@ -329,14 +329,10 @@ const MemoizedComponent = memo(
   (prevProps, nextProps) => {
     // Custom comparison function for memoization
     return (
-      prevProps.component.id === nextProps.component.id &&
+      !prevProps.component.shouldRender &&
       prevProps.component.value === nextProps.component.value &&
       prevProps.component.error === nextProps.component.error &&
-      prevProps.index === nextProps.index &&
-      areRowDataEqual(
-        prevProps.component.props?.rowData,
-        nextProps.component.props?.rowData
-      )
+      prevProps.index === nextProps.index
     );
   });
 

@@ -88,6 +88,7 @@ def with_render_tracking(component_type: str):
 
                 return_value = result.value if isinstance(result, ComponentReturn) else result
 
+                component['shouldRender'] = service.should_render(component_id, component)
                 # Skip DAG logic, but still respect RenderBuffer diffing
                 if service.should_render(component_id, component):
                     service.append_component(component)
@@ -121,6 +122,7 @@ def with_render_tracking(component_type: str):
                 # Register the producer for this component ID
                 service._workflow.register_component_producer(component_id, atom_name)
 
+                component['shouldRender'] = service.should_render(component_id, component)
                 # Append component only if changed
                 if service.should_render(component_id, component):
                     if logger.isEnabledFor(logging.DEBUG):
