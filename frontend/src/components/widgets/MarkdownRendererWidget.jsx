@@ -1,4 +1,3 @@
-import 'katex/dist/katex.min.css';
 import { Link2Icon } from 'lucide-react';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
