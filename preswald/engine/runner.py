@@ -12,7 +12,6 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-import preswald.interfaces.reactive  # loads builtins.sl_wrap_auto_atoms
 from preswald.engine.transformers.reactive_runtime import transform_source
 
 logger = logging.getLogger(__name__)
@@ -338,16 +337,11 @@ class ScriptRunner:
 
                 try:
                     if self._service.is_reactivity_enabled:
-
                         # Attempt reactive transformation
                         tree, _ = transform_source(raw_code, filename=self.script_path)
-
                         self._script_globals["workflow"] = workflow
                         compile_and_run(tree, self.script_path, self._script_globals, "(reactive)")
-
-                        builtins.sl_wrap_auto_atoms(self._script_globals)
                         workflow.execute_relevant_atoms()
-
                     else:
                         compile_and_run(raw_code, self.script_path, self._script_globals, "(non-reactive)")
                         workflow.reset() # just to be safe

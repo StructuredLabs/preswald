@@ -32,7 +32,7 @@ def track_dependency(dep_name: str):
     """
     ctx = get_current_context()
     if ctx:
-        logger.info(f"[DAG] Registered dynamic dependency {{atom={ctx.atom_name}, dep={dep_name}}}")
+        logger.debug(f"[DAG] Registered dynamic dependency {{atom={ctx.atom_name}, dep={dep_name}}}")
         ctx.workflow.register_dependency(ctx.atom_name, dep_name)
     else:
         logger.warning(f"[DAG] Dependency tracking failed (no context) {{dep={dep_name}}}")
@@ -45,6 +45,8 @@ def push_context(ctx):
     Args:
         ctx: A context object with 'atom_name' and 'workflow' attributes.
     """
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug(f"Pushing context for atom {ctx.atom_name}")
     _context_stack.append(ctx)
 
 
@@ -53,6 +55,8 @@ def pop_context():
     Pop the topmost context off the stack, ending dependency tracking for the current atom.
     """
     if _context_stack:
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(f"Popping context for atom {ctx.atom_name}")
         _context_stack.pop()
     else:
         logger.warning("[DAG] Attempted to pop context, but stack was empty")
