@@ -1,0 +1,49 @@
+---
+title: "iframe"
+icon: "video"
+description: "Display external web apps in your preswald app"
+---
+
+```python
+iframe(url: string, title: Optional[str] = None, width: Optional[str] = '100%', height: Optional[str] = "500px") -> None
+```
+
+The `iframe` function provides an easy way to load and display external web apps inside of your preswald app.
+
+## Parameters
+
+- **`url`** _(str)_: The url of the web app you want to display. Make sure the site allows to be embededed in an iframe.
+- **`title`** _(str, optional)_: An optional title to display above the table.
+- **`width`** _(int, optional)_: Width of an iframe.
+- **`height`** _(int, optional)_: Height of an iframe.
+
+<Frame>
+<img
+  className="block dark:hidden"
+  src="/images/iframe.png"
+  alt="Hero Light"
+/>
+</Frame>
+
+## Returns
+
+- `None`
+
+## Usage Example
+
+Here's an example of how to use the `iframe` function:
+
+```python
+from preswald import iframe
+
+# Display the external web app using the iframe function
+iframe("https://www.youtube.com/embed/_v9PVk4wIcd", height="200px", width="50%")
+```
+
+## Key Features
+
+1. **Embed external web apps**: Embedding internal web apps or dashboards (Grafana, Metabase, MLflow, etc.) to make your Preswald app a composable dashboard shell.
+
+## Note ⚠️
+
+Make sure the web app you're trying to embed allows itself to be embeded in other websites, and doesn't have X-FRAME-OPTIONS set to 'DENY' or 'SAMEORIGIN'

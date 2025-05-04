@@ -1004,6 +1004,24 @@ def workflow_dag(
         return ComponentReturn(error_component, error_component)
 
 
+def iframe(url: str, height: str = "500px", width: str = "100%", title: str = ""):
+    """Create a iframe component."""
+    service = PreswaldService.get_instance()
+    id = generate_id("iframe")
+    logger.debug(f"Creating iframe component with id {id}")
+    component = {
+        "type": "iframe",
+        "id": id,
+        "url": url,
+        "height": height,
+        "width": width,
+        "title": title,
+    }
+    logger.debug(f"Created component: {component}")
+    service.append_component(component)
+    return component
+
+
 # Helpers
 
 

@@ -72,8 +72,11 @@
               "sdk/table",
               "sdk/text",
               "sdk/text_input",
+              "sdk/workflow_dag",
+              "sdk/button",
+              "sdk/sidebar",
+              "sdk/iframe"
               "sdk/topbar",
-              "sdk/workflow_dag"
             ]
           },
           {

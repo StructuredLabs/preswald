@@ -17,6 +17,7 @@ import CheckboxWidget from './widgets/CheckboxWidget';
 import DAGVisualizationWidget from './widgets/DAGVisualizationWidget';
 import DataVisualizationWidget from './widgets/DataVisualizationWidget';
 import FastplotlibWidget from './widgets/FastplotlibWidget';
+import IframeWidget from './widgets/IframeWidget';
 import ImageWidget from './widgets/ImageWidget';
 import JSONViewerWidget from './widgets/JSONViewerWidget';
 import MarkdownRendererWidget from './widgets/MarkdownRendererWidget';
@@ -73,6 +74,16 @@ const MemoizedComponent = memo(
     switch (component.type) {
       case 'sidebar':
         return <SidebarWidget defaultOpen={component.defaultopen} branding={component.branding} />;
+
+      case 'iframe':
+        return (
+          <IframeWidget
+            url={component.url}
+            width={component.width}
+            height={component.height}
+            title={component.title}
+          />
+        );
 
       case 'button':
         return (
