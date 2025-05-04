@@ -68,7 +68,8 @@ def with_render_tracking(component_type: str):
                 atom_name = generate_stable_atom_name_from_component_id(component_id)
                 logger.debug(f"[with_render_tracking] Using provided component_id {component_id}:{atom_name}")
             else:
-                component_id = generate_stable_id(component_type, callsite_hint=kwargs["callsite_hint"])
+                identifier = kwargs.get("identifier")
+                component_id = generate_stable_id(component_type, callsite_hint=kwargs["callsite_hint"], identifier=identifier)
                 atom_name = generate_stable_atom_name_from_component_id(component_id)
                 kwargs["component_id"] = component_id
                 logger.debug(f"[with_render_tracking] Generated component_id {component_id}:{atom_name}")
