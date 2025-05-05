@@ -1,0 +1,18 @@
+[project]
+title = "League of Legends Champion Analysis"
+version = "0.1.0"
+port = 8501
+slug = "lol-champion-analysis"
+entrypoint = "hello.py"
+
+[branding]
+name = "LoL Champion Analysis"
+primaryColor = "#FF4B4B"
+
+[data.lol_champions]
+type = "csv"
+path = "data/lol_champions.csv"
+
+[logging]
+level = "INFO"
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s" 
