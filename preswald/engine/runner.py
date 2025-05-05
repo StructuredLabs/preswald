@@ -135,7 +135,6 @@ class ScriptRunner:
             logger.info("[ScriptRunner] Reactivity disabled — rerunning entire script with updated widget state")
             return await self.run_script()
 
-        logger.info(f"[ScriptRunner] Rerunning with new states: {new_widget_states}")
         try:
             with self._lock:
                 for component_id, value in new_widget_states.items():
@@ -164,7 +163,6 @@ class ScriptRunner:
             for component_id, new_value in self.widget_states.items():
                 producer_atom = workflow.get_component_producer(component_id)
                 if producer_atom:
-                    logger.info(f"[ScriptRunner] Updating context variable for {producer_atom} with widget value {new_value}")
                     workflow.context.set_variable(producer_atom, new_value)
 
             if not changed_atoms and not affected_atoms:
@@ -185,9 +183,8 @@ class ScriptRunner:
                 await self.run_script()
                 return
 
-            logger.info(f"[ScriptRunner] Rerun using DAG reactivity with {len(affected_atoms)} affected atoms")
-
             if logger.isEnabledFor(logging.DEBUG):
+                logger.debug(f"[ScriptRunner] Rerun using DAG reactivity with {len(affected_atoms)} affected atoms")
                 logger.debug(f"[ScriptRunner] {changed_atoms=}, {affected_atoms=}")
 
             self._service.force_recompute(affected_atoms)
@@ -261,7 +258,8 @@ class ScriptRunner:
                         lines = self.buffer.split("\n")
                         for line in lines[:-1]:
                             if line.strip():
-                                logger.debug(f"[ScriptRunner] Captured output: {line}")
+                                if logger.isEnabledFor(logging.DEBUG):
+                                    logger.debug(f"[ScriptRunner] Captured output: {line}")
                                 asyncio.create_task(  # noqa: RUF006
                                     self.callback(
                                         {"type": "output", "content": line + "\n"}
@@ -273,9 +271,10 @@ class ScriptRunner:
                 with self._lock:
                     if self.buffer:
                         if self.buffer.strip():
-                            logger.debug(
-                                f"[ScriptRunner] Flushing output: {self.buffer}"
-                            )
+                            if logger.isEnabledFor(logging.DEBUG):
+                                logger.debug(
+                                    f"[ScriptRunner] Flushing output: {self.buffer}"
+                                )
                             asyncio.create_task(  # noqa: RUF006
                                 self.callback(
                                     {"type": "output", "content": self.buffer}
@@ -331,9 +330,9 @@ class ScriptRunner:
 
                 def compile_and_run(src_code, script_path, script_globals, execution_context):
                     code = compile(src_code, script_path, "exec")
-                    logger.info(f"[ScriptRunner] Script compiled {script_path=}")
+                    logger.debug(f"[ScriptRunner] Script compiled {script_path=}")
                     exec(code, script_globals)
-                    logger.info(f"[ScriptRunner] Script executed {execution_context}")
+                    logger.debug(f"[ScriptRunner] Script executed {execution_context}")
 
                 try:
                     if self._service.is_reactivity_enabled:
@@ -347,10 +346,11 @@ class ScriptRunner:
                         workflow.reset() # just to be safe
 
                 except Exception as transform_error:
-                    logger.warning(
-                        "[ScriptRunner] AST transform or reactive execution failed — falling back to full script rerun\n%s",
-                        traceback.format_exc()
-                    )
+                    if logger.isEnabledFor(logging.WARNING):
+                        logger.warning(
+                            "[ScriptRunner] AST transform or reactive execution failed — falling back to full script rerun\n%s",
+                            traceback.format_exc()
+                        )
 
                     self._service.disable_reactivity()
                     workflow.reset()
@@ -369,7 +369,7 @@ class ScriptRunner:
             components = self._service.get_rendered_components()
             rows = components.get("rows", [])
             row_count = len(rows)
-            logger.info(f"[ScriptRunner] Rendered components {row_count=}")
+            logger.debug(f"[ScriptRunner] Rendered components {row_count=}")
 
             for row in rows:
                 for component in row:
@@ -386,8 +386,8 @@ class ScriptRunner:
 
             if components:
                 await self.send_message({"type": "components", "components": components})
-                logger.info("[ScriptRunner] Components sent to frontend")
-
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug(f"[ScriptRunner] Components sent to frontend {components=}")
             workflow.debug_print_dag()
 
         except Exception as e:

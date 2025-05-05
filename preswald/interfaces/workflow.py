@@ -180,6 +180,8 @@ class WorkflowContext:
         return self.variables.get(name)
 
     def set_variable(self, name: str, value: Any):
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(f"[CONTEXT] Set variable for {producer_atom} = {new_value}")
         self.variables[name] = value
 
     def set_result(self, atom_name: str, result: AtomResult):
