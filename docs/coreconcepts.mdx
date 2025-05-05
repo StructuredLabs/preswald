@@ -105,6 +105,29 @@ At the core of this system is a **DAG (Directed Acyclic Graph)** of atoms, where
 - **Which atoms depend on the outputs of others**
 - **Which values have changed**, using stable component IDs and hashing
 
+#### Reactive Runtime Fallback Behavior
+
+In some cases, Preswald may disable the reactive runtime and fall back to full script reruns. This happens when an error occurs during the AST transformation or reactive execution step, preventing the system from lifting atoms and computing a DAG for selective execution.
+
+This fallback ensures your script still runs and renders, but reactivity is disabled, meaning the entire script is re-executed on every user interaction.
+
+##### Situations that may trigger fallback:
+- A runtime error during the AST transformation phase
+- A reference to an undefined variable in the lifted portion of your script (e.g., using a variable from global scope inside a for loop)
+- Components rendered outside the reactive atom context
+- Syntax that cannot be safely transformed into reactive atoms
+
+##### Log messages to look for
+When a fallback occurs, you’ll see the following messages in your server logs:
+```
+WARNING - [ScriptRunner] AST transform or reactive execution failed — falling back to full script rerun
+INFO    - [SERVICE] Reactivity disabled for fallback execution
+```
+
+If you see these, it means Preswald has disabled its DAG-based runtime for the current session. You can continue to use the app normally, but interactivity will be slower and less efficient than under reactive execution.
+
+To re-enable reactivity, resolve the underlying issue in your script and rerun the app.
+
 #### Key Benefits
 
 - **Selective execution**: Only changed atoms and their downstream dependents are recomputed
@@ -114,6 +137,28 @@ At the core of this system is a **DAG (Directed Acyclic Graph)** of atoms, where
 This model allows you to build complex workflows that feel simple to maintain, whether you prefer to declare dependencies explicitly or let Preswald infer them automatically.
 
 Want to see it in action? [Check out the `Workflow` guide →](./sdk/workflow)
+
+---
+
+2.1.2 Component Identity with identifier
+
+Preswald generates a stable component_id for each UI component, typically based on its type and callsite. However, if you're creating components inside loops or dynamically generating them, the default behavior may result in duplicated or unstable IDs, which can break reactivity and cause inconsistent rendering.
+
+To address this, you can explicitly set a unique identifier:
+```python
+for i in range(3):
+    text(f"Item {i}", identifier=f"text-{i}")
+```
+
+By providing an identifier, you ensure that each invocation of a component (like text, slider, etc.) receives a stable and unique component_id even when created dynamically. This enables:
+
+- Correct DAG-based dependency tracking
+- Accurate state restoration
+- Reliable UI re-renders
+
+You can pass identifier to any Preswald component.
+
+Internally, identifier is incorporated into the component's stable ID and the atom name, which allows the reactive runtime to associate state with the correct callsite, even across script reruns.
 
 ---
 
