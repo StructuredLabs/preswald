@@ -13,7 +13,7 @@ The `query` function executes SQL queries against configured data sources and re
 ## Parameters
 
 - `sql` (str): SQL query to execute
-- `source_name` (str): Name of the data source as configured in preswald.toml
+- `source_name` (str): Name of the data source as configured in preswald.toml OR a path to a file (supports CSV, Parquet, and JSON)
 
 ## Returns
 
@@ -38,6 +38,9 @@ sql = """
     HAVING COUNT(*) > 5
 """
 frequent_customers = query(sql, 'eq_csv')
+
+# Or, query specific CSV file
+frequent_customers = query(sql, 'data/sample.csv')
 ```
 
 ### PostgreSQL Source

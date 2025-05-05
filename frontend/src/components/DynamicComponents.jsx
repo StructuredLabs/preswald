@@ -332,7 +332,7 @@ const MemoizedComponent = memo(
   (prevProps, nextProps) => {
     // Custom comparison function for memoization
     return (
-      prevProps.component.id === nextProps.component.id &&
+      !prevProps.component.shouldRender &&
       prevProps.component.value === nextProps.component.value &&
       prevProps.component.error === nextProps.component.error &&
       prevProps.index === nextProps.index

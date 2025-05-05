@@ -251,7 +251,7 @@ def run(port, log_level, disable_new_tab):
     default=None,
     help="Set the logging level (overrides config file)",
 )
-def deploy(script, target, port, log_level, github, api_key):
+def deploy(script, target, port, log_level):
     """
     Deploy your Preswald app.
 
@@ -307,8 +307,6 @@ def deploy(script, target, port, log_level, github, api_key):
                 "target": target,
                 "port": port,
                 "log_level": log_level,
-                "has_github": bool(github),
-                "has_api_key": bool(api_key),
             },
         )
 
