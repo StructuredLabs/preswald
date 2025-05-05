@@ -1,0 +1,20 @@
+[project]
+title = "Preswald Project"
+version = "0.1.0"
+port = 8501
+slug = "ipl-2024-auction-111794"  # Required: Unique identifier for your project
+entrypoint = "hello.py"    # Required: Main script to run when executing preswald run
+
+[branding]
+name = "Preswald Project"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#F89613"
+
+[data.auction_csv]
+type = "csv"
+path = "data/auction.csv"
+
+[logging]
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
