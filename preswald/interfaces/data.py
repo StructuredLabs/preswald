@@ -48,3 +48,29 @@ def get_df(source_name: str, table_name: str | None = None) -> pd.DataFrame:
         return df_result
     except Exception as e:
         logger.error(f"Error getting a dataframe from data source: {e}")
+
+
+def get_pdf(source_name: str) -> bytes:
+    """Get a PDF from the named data source from preswald.toml
+
+    Args:
+        source_name: Name of the PDF source in preswald.toml
+
+    Returns:
+        bytes: Raw PDF data
+
+    Raises:
+        ValueError: If source_name is invalid or PDF cannot be retrieved
+    """
+    if not source_name:
+        raise ValueError("source_name cannot be empty")
+
+    try:
+        service = PreswaldService.get_instance()
+        pdf_data = service.data_manager.get_pdf(source_name)
+        if not pdf_data:
+            raise ValueError(f"No PDF data found for source: {source_name}")
+        return pdf_data
+    except Exception as e:
+        logger.error(f"Error getting PDF from data source '{source_name}': {e}")
+        raise

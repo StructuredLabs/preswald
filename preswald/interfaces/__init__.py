@@ -9,6 +9,7 @@ from .components import (
     button,
     chat,
     checkbox,
+    document,
     # fastplotlib,
     image,
     json_viewer,

@@ -45,6 +45,11 @@ class CSVConfig:
 
 
 @dataclass
+class PDFConfig:
+    path: str
+
+
+@dataclass
 class JSONConfig:
     path: str
     record_path: str | None = None
@@ -94,6 +99,17 @@ class DataSource:
 
     def to_df(self) -> pd.DataFrame:
         """Get entire source as a DataFrame"""
+        raise NotImplementedError
+
+
+class DocumentSource:
+    """Base class for all document sources"""
+
+    def __init__(self, name: str, extension: str):
+        self.name = name
+        self.extension = extension
+
+    def to_blob(self) -> bytes:
         raise NotImplementedError
 
 
@@ -164,6 +180,50 @@ class CSVSource(DataSource):
     def to_df(self) -> pd.DataFrame:
         """Get entire CSV as a DataFrame"""
         return self._duckdb.execute(f"SELECT * FROM {self._table_name}").df()
+
+
+class PDFSource(DocumentSource):
+    MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB limit
+
+    def __init__(
+        self, name: str, config: PDFConfig, duckdb_conn: duckdb.DuckDBPyConnection
+    ):
+        super().__init__(name, "pdf")
+        self.path = config.path
+
+    def to_blob(self) -> bytes:
+        """Get the PDF as a bytes object
+
+        Returns:
+            bytes: Raw PDF data
+
+        Raises:
+            ValueError: If file is too large or cannot be read
+        """
+
+        try:
+            # TODO: cache the blob
+
+            logger.info(f"Reading PDF file '{self.path}'")
+
+            # Check if file exists
+            if not os.path.exists(f"{self.path}"):
+                raise ValueError(f"PDF file not found: {self.path}")
+
+            # Check file size
+            file_size = os.path.getsize(f"{self.path}")
+            if file_size > self.MAX_FILE_SIZE:
+                raise ValueError(
+                    f"PDF file too large ({file_size} bytes). Maximum size is {self.MAX_FILE_SIZE} bytes"
+                )
+
+            # Read file
+            with open(f"{self.path}", "rb") as f:
+                return f.read()
+
+        except Exception as e:
+            logger.error(f"Error reading PDF file '{self.path}': {e}")
+            raise
 
 
 class JSONSource(DataSource):
@@ -431,6 +491,10 @@ class DataManager:
                     cfg = CSVConfig(path=source_config["path"])
                     self.sources[name] = CSVSource(name, cfg, self.duckdb_conn)
 
+                elif source_type == "pdf":
+                    cfg = PDFConfig(path=source_config["path"])
+                    self.sources[name] = PDFSource(name, cfg, self.duckdb_conn)
+
                 elif source_type == "json":
                     cfg = JSONConfig(
                         path=source_config["path"],
@@ -514,6 +578,12 @@ class DataManager:
             return source.to_df(table_name)
         return source.to_df()
 
+    def get_pdf(self, source_name: str) -> bytes:
+        """Get the PDF as a bytes object"""
+        logger.info(f"Listing sources: {self.sources}")
+        if source_name not in self.sources:
+            raise ValueError(f"Unknown source: {source_name}")
+        return self.sources[source_name].to_blob()
     def _get_or_create_source(self, source_name: str) -> DataSource:
         """Get an existing source or create a new one from a file path."""
         if source_name not in self.sources:
@@ -564,7 +634,24 @@ class DataManager:
                 )
 
             config = toml.load(self.preswald_path)
-            data_config = config.get("data", {})
+
+            if "data" in config:
+                data_config = config.get("data", {})
+            else:
+                data_config = {}
+
+            if "docs" in config:
+                docs_config = config.get("docs", {})
+            else:
+                docs_config = {}
+
+            if docs_config:
+                for name, values in docs_config.items():
+                    if name in data_config:
+                        data_config[name].update(values)
+                    else:
+                        data_config[name] = values
+
             logger.info("Successfully loaded preswald.toml")
 
             if self.secrets_path and os.path.exists(self.secrets_path):
