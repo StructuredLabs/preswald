@@ -28,7 +28,7 @@ const ChatWidget = ({
   const [apiKey, setApiKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const hasApiKey = useMemo(() => !!sessionStorage.getItem('openai_api_key'), []);
+  const [hasApiKey, setHasApiKey] = useState(!!sessionStorage.getItem('openai_api_key'));
 
   // Add this state to store the processed context
   const [sourceContext, setSourceContext] = useState(null);
@@ -168,7 +168,7 @@ const ChatWidget = ({
     if (apiKey.trim()) {
       sessionStorage.setItem('openai_api_key', apiKey.trim());
       setShowSettings(false);
-      window.location.reload(); // Refresh to update hasApiKey state
+      setHasApiKey(true);
     }
   };
 
