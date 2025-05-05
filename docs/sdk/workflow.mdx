@@ -184,6 +184,59 @@ No matter how you define dependencies, the reactive runtime ensures that only at
 
 ---
 
+#### 3. Automatic Atom Lifting of Top-Level Components
+
+Preswald automatically wraps **top-level UI component calls** (e.g., `slider()`, `text()`, etc.) in workflow atoms, even if you don't explicitly use `@workflow.atom()`.
+
+This allows you to write concise, interactive apps without boilerplate:
+
+```python
+from preswald import (
+    get_df,
+    text,
+    slider,
+    table,
+)
+
+df = get_df("iris_csv")
+val = slider("Pick a number", min_val=0, max_val=10, default=1)
+table(df, limit=val)
+```
+
+These calls are automatically transformed into atoms during script execution. This allows Preswald to:
+
+- Assign stable identifiers and track component state
+- Include them in the dependency graph (DAG)
+- Selectively rerun only the affected parts of the script when state changes
+
+This automatic lifting is how Preswald maintains reactivity even in simple scripts without manual atom definitions.
+
+---
+
+If you run the app with debug logging enabled, you’ll see the transformed source in your logs:
+
+```
+2025-05-05 05:50:56,327 - preswald.engine.transformers.reactive_runtime - INFO - Transformed source code:
+from preswald import get_df, text, slider, table
+from preswald import get_workflow
+
+@workflow.atom(name='_auto_atom_b4f77a63')
+def _auto_atom_b4f77a63():
+    return slider('Pick a number', min_val=0, max_val=10, default=1, component_id='slider-b4f77a63')
+
+@workflow.atom(name='_auto_atom_d93912c6', dependencies=['_auto_atom_b4f77a63'])
+def _auto_atom_d93912c6(param0):
+    return table(df, limit=param0, component_id='table-d93912c6')
+
+workflow = get_workflow()
+df = get_df('iris_csv')
+workflow.execute()
+```
+
+This automatic lifting enables full reactivity while keeping your scripts clean and minimal.
+
+---
+
 ## Why Use `Workflow`?
 
 - **Efficiency**: Avoids redundant computation with caching.
