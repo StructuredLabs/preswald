@@ -44,6 +44,7 @@ format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 - `title`: Name of the app displayed in the interface.
 - `version`: Version of the app.
 - `port`: Port the app runs on (default is `8501`).
+- `disable_reactivity`: (optional) Set to true to disable Preswald’s reactive runtime. When disabled, Preswald will rerun the entire script on every update instead of selectively recomputing affected parts using its dependency graph (DAG). This can be useful for debugging, performance benchmarking, or in environments where reactivity fallback is expected.
 
 ### `[branding]`
 

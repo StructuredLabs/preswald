@@ -15,6 +15,31 @@ logger = logging.getLogger(__name__)
 
 IS_PYODIDE = "pyodide" in sys.modules
 
+def read_disable_reactivity(config_path: str) -> bool:
+    """
+    Read the --disable-reactivity flag from the TOML config.
+
+    Args:
+        config_path: Path to preswald.toml
+
+    Returns:
+        bool: True if reactivity should be disabled
+    """
+    try:
+        if os.path.exists(config_path):
+            config = toml.load(config_path)
+            return bool(config.get("project", {}).get("disable_reactivity", False))
+    except Exception as e:
+        logger.warning(f"Could not load disable_reactivity from {config_path}: {e}")
+    return False
+
+def reactivity_explicitly_disabled(config_path: str = "preswald.toml") -> bool:
+    """Check if reactivity is disabled in project configuration."""
+    try:
+        return read_disable_reactivity(config_path)
+    except Exception as e:
+        logger.warning(f"[is_app_reactivity_disabled] Failed to read config: {e}")
+        return False
 
 def read_template(template_name, template_id=None):
     """Read a template file from the package.

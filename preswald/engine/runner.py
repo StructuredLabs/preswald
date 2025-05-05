@@ -13,6 +13,8 @@ from pathlib import Path
 from typing import Any
 
 from preswald.engine.transformers.reactive_runtime import transform_source
+from preswald.utils import reactivity_explicitly_disabled
+
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +91,10 @@ class ScriptRunner:
             self._state = ScriptState.RUNNING
             self._run_count = 0
 
-        self._service.enable_reactivity()
+        if reactivity_explicitly_disabled():
+           self._service.disable_reactivity()
+        else:
+            logger.info("[ScriptRunner] Reactivity is disabled by configuration")
 
         try:
             await self.run_script()

@@ -13,6 +13,7 @@ from fastapi.staticfiles import StaticFiles
 
 from preswald.engine.managers.branding import BrandingManager
 from preswald.engine.service import PreswaldService
+from preswald.utils import reactivity_explicitly_disabled
 
 
 logger = logging.getLogger(__name__)
@@ -22,6 +23,9 @@ def create_app(script_path: str | None = None) -> FastAPI:
     """Create and configure the FastAPI application"""
     app = FastAPI()
     service = PreswaldService.initialize(script_path)
+
+    if reactivity_explicitly_disabled():
+        service.disable_reactivity()
 
     # Configure CORS
     app.add_middleware(
