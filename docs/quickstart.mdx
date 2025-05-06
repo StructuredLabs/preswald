@@ -8,75 +8,81 @@ description: "Get up and running with the Preswald SDK in under 5 minutes"
 
   <Step title="Install the Preswald SDK">
 
-```bash
-pip install preswald
+    ```bash
+    pip install preswald
 
-or 
+    or 
 
-uv pip install preswald
-```
+    uv pip install preswald
+    ```
 
-<Tip>Need the latest version? Upgrade anytime:</Tip>
+    <Tip>Need the latest version? Upgrade Preswald anytime using:</Tip>
 
-```bash
-pip install --upgrade preswald
+    ```bash
+    pip install --upgrade preswald
 
-or 
+    or 
 
-uv pip install --upgrade preswald
-```
-
-</Step>
+    uv pip install --upgrade preswald
+    ```
+  </Step>
 
   <Step title="Set Up Your First Project">
 
-Run these commands to bootstrap your first Preswald app:
+    Run these commands to bootstrap your first Preswald app:
 
-```bash
-preswald init my_project
-cd my_project
-```
+    ```bash
+    preswald init my_project
+    cd my_project
+    ```
 
-This will create a scaffolded project with the following:
+    This will create a scaffolded project with the following:
 
-- **`hello.py`**: A starter Python script to get you going.
-- **`preswald.toml`**: Your app’s configuration settings.
-- **`secrets.toml`**: A secure place for sensitive data.
-- **`.gitignore`**: Pre-configured to exclude sensitive files from version control.
+    - **`hello.py`**: A starter Python script to get you going.
+    - **`preswald.toml`**: Your app’s configuration settings.
+    - **`secrets.toml`**: A secure place for sensitive data.
+    - **`.gitignore`**: Pre-configured to exclude sensitive files from version control.
 
-</Step>
+  </Step>
 
   <Step title="Write Your First App">
 
-Open `hello.py` and edit it with the following content:
+    Open `hello.py` and edit it with the following content:
 
-```python
-from preswald import text
+    ```python
+    from preswald import text
 
-text("# Welcome to Preswald")
-```
+    text("# Welcome to Preswald")
+    ```
 
-#### Run It Locally
+    #### Run It Locally
 
-Launch your app locally with this command:
+    Launch your app locally with this command:
 
-```bash
-preswald run
-```
+    ```bash
+    preswald run
+    ```
 
-Open your browser and navigate to **[http://localhost:8501](http://localhost:8501)**. Your app will be live, ready for you to explore and iterate on.
+    Open your browser and navigate to **[http://localhost:8501](http://localhost:8501)**. Your app will be live, ready for you to explore and iterate on.
 
-</Step>
+  </Step>
 
   <Step title="Deploy Your App">
 
-When you're ready to deploy your app, run this:
+    When you're ready to deploy your app, run the following command:
 
-```bash
-preswald deploy --target structured
-```
-</Step>
+    ```bash
+    preswald deploy --target structured
+    ```
 
-You will be prompted to pass in your GitHub username and Preswald API key. Get the preswald API key from our [cloud console](https://app.preswald.com/). Click on Organization name > Manage > API Keys.   
+  </Step>
+
+  <Step>  
+  
+    You will be prompted to pass in your GitHub username and Preswald API key. Get the preswald API key from our [cloud console](https://app.preswald.com/). Click on your organization name > Manage > API Keys. 
+
+    <Tip>To simplify the deployment process, we're moving away from API keys to one-click deployment soon!</Tip> 
+
+  </Step>
 
 </Steps>
