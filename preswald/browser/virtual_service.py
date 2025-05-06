@@ -41,80 +41,103 @@ class VirtualWebSocket:
         console.log(f"[Communication] is browser mode: {self.is_browser_mode}")
 
     async def send_json(self, data: dict[str, Any]):
-        """Send JSON data to JavaScript frontend"""
+        """
+        Sends a JSON-serializable dictionary to the JavaScript frontend.
+
+        Uses postMessage or handlePythonMessage depending on the environment.
+        Logs only a summary of the data payload when debug logging is enabled.
+        """
         if not self.is_connected:
             logger.error(f"Cannot send message, connection closed for {self.client_id}")
             return
 
-        if IS_PYODIDE:
-            try:
-                import json
+        if not IS_PYODIDE:
+            return
 
-                json_str = json.dumps(data)
-                # Convert Python dict to JavaScript object
-                if self.is_browser_mode:
-                    from js import JSON
+        debug_enabled = logger.isEnabledFor(logging.DEBUG)
+        
+        try:
+            import json
+            from js import JSON
 
-                    js_data = JSON.parse(json_str)
-                    # js_data = to_js(data, dict_converter=Object.fromEntries)
-                    window.parent.postMessage(js_data, "*")
-                    console.log(f"[Python] Sent postMessage: {data}")
-                else:
-                    try:
-                        from js import JSON, handlePythonMessage  # type: ignore
+            json_str = json.dumps(data)
+            js_data = JSON.parse(json_str)
 
-                        js_data = JSON.parse(json_str)
+            if debug_enabled:
+                summary = {
+                    "keys": list(data.keys()),
+                    "types": {k: type(v).__name__ for k, v in data.items()}
+                }
 
-                        handlePythonMessage(self.client_id, js_data)
-                        console.log(f"[Python] Sent to handlePythonMessage: {data}")
-                    except ImportError:
-                        from js import JSON
+            if self.is_browser_mode:
+                from js import self as js_self  # type: ignore
+                js_self.postMessage(js_data)
+                if debug_enabled:
+                    console.debug("[VirtualWebSocket] postMessage (browser mode) summary:", summary)
+            else:
+                try:
+                    from js import handlePythonMessage
+                    handlePythonMessage(self.client_id, js_data)
+                    if debug_enabled:
+                        console.debug("[VirtualWebSocket] handlePythonMessage summary:", summary)
+                except ImportError:
+                    from js import self as js_self
+                    js_self.postMessage(js_data)
+                    if debug_enabled:
+                        console.debug("[VirtualWebSocket] postMessage (fallback) summary:", summary)
 
-                        js_data = JSON.parse(json_str)
-                        window.parent.postMessage(js_data, "*")
-                        console.log(f"[Python] Sent postMessage: {data}")
-            except Exception as e:
-                logger.error(f"Error sending message to JS: {e}")
+        except Exception as e:
+            logger.error(f"Error sending message to JS: {e}")
 
     async def send_bytes(self, data: bytes):
-        """Send binary data to JavaScript frontend"""
+        """
+        Sends binary data to the JavaScript frontend using either `postMessage` or `handlePythonBinaryMessage`.
+
+        Logs a summary of the message (length only) in debug mode to avoid large console output.
+        """
         if not self.is_connected:
             logger.error(f"Cannot send bytes, connection closed for {self.client_id}")
             return
 
-        if IS_PYODIDE:
-            try:
-                array = window.Uint8Array.new(len(data))
-                if self.is_browser_mode:
-                    # Use postMessage for binary data in browser mode
-                    for i, b in enumerate(data):
-                        array[i] = b
-                    window.parent.postMessage(
-                        {"type": "binary_message", "data": array}, "*"
-                    )
-                    console.log("[Python] Sent binary postMessage")
-                else:
-                    # Use handlePythonBinaryMessage for server/Pyodide mode (if needed)
-                    try:
-                        from js import handlePythonBinaryMessage  # type: ignore
+        if not IS_PYODIDE:
+            return
 
-                        for i, b in enumerate(data):
-                            array[i] = b
-                        handlePythonBinaryMessage(self.client_id, array)
-                        console.log("[Python] Sent to handlePythonBinaryMessage")
-                    except ImportError:
-                        logger.warning(
-                            "handlePythonBinaryMessage not available, using postMessage fallback"
-                        )
-                        array = window.Uint8Array.new(len(data))
-                        for i, b in enumerate(data):
-                            array[i] = b
-                        window.parent.postMessage(
-                            {"type": "binary_message", "data": array}, "*"
-                        )
-                        console.log("[Python] Sent binary postMessage fallback")
-            except Exception as e:
-                logger.error(f"Error sending binary message to JS: {e}")
+        debug_enabled = logger.isEnabledFor(logging.DEBUG)
+
+        try:
+            from js import window
+
+            array = window.Uint8Array.new(len(data))
+            for i, b in enumerate(data):
+                array[i] = b
+
+            if debug_enabled:
+                summary = {
+                    "length": len(data),
+                    "first_byte": data[0] if data else None,
+                    "last_byte": data[-1] if data else None,
+                }
+
+            if self.is_browser_mode:
+                from js import self as js_self  # type: ignore
+                js_self.postMessage({"type": "binary_message", "data": array})
+                if debug_enabled:
+                    console.debug("[VirtualWebSocket] postMessage (binary, browser mode) summary:", summary)
+            else:
+                try:
+                    from js import handlePythonBinaryMessage
+                    handlePythonBinaryMessage(self.client_id, array)
+                    if debug_enabled:
+                        console.debug("[VirtualWebSocket] handlePythonBinaryMessage summary:", summary)
+                except ImportError:
+                    from js import self as js_self
+                    js_self.postMessage({"type": "binary_message", "data": array})
+                    if debug_enabled:
+                        logger.warning(f"[{self.client_id}] handlePythonBinaryMessage not available, using postMessage fallback")
+                        console.debug("[VirtualWebSocket] postMessage (binary fallback) summary:", summary)
+
+        except Exception as e:
+            logger.error(f"Error sending binary message to JS: {e}")
 
     async def accept(self):
         """Accept the connection (no-op in virtual implementation)"""
