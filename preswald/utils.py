@@ -7,9 +7,8 @@ import re
 import sys
 from functools import wraps
 from pathlib import Path
+
 import toml
-from importlib.resources import files
-from playwright.sync_api import sync_playwright
 
 from preswald.engine.service import PreswaldService
 from preswald.interfaces.component_return import ComponentReturn
@@ -256,7 +255,7 @@ def with_render_tracking(component_type: str):
                     result.value if isinstance(result, ComponentReturn) else result
                 )
 
-            component['shouldRender'] = service.should_render(component_id, component)
+            component["shouldRender"] = service.should_render(component_id, component)
 
             with service.active_atom(service._workflow._current_atom):
                 if service.should_render(component_id, component):
@@ -289,6 +288,8 @@ def export_app_to_pdf(all_components: list[dict], output_path: str):
     if not ids_to_check:
         print("⚠️ No components found to check before export.")
         return
+
+    from playwright.sync_api import sync_playwright
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
