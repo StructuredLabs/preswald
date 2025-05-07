@@ -141,21 +141,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
                         component_id, atom_name = self.generate_component_and_atom_name(func_name)
 
                     # Lift the call into a new atom definition
-                    atom_call = self.lift_component_call_to_atom(call_node, component_id, atom_name)
-
-                    # Match dependencies to user variable names
-                    dep_atoms = self.dependencies.get(atom_name, [])
-                    final_args = []
-                    for dep_atom in dep_atoms:
-                        for varname, mapped_atom in self.variable_to_atom.items():
-                            if mapped_atom == dep_atom:
-                                final_args.append(ast.Name(id=varname, ctx=ast.Load()))
-                                break
-
-                    if logger.isEnabledFor(logging.DEBUG):
-                         logger.debug(f"[AST] Final call args for lifted atom {atom_name=} {final_args=}")
-
-
+                    self.lift_component_call_to_atom(call_node, component_id, atom_name)
                     continue
 
             # Preserve non-components
