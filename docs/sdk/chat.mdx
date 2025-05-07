@@ -47,6 +47,11 @@ Implemented in `services/openai.js`
 - OpenAI chat completions integration
 - GPT-3.5-turbo implementation
 - Conversation threading support
+- API key can be loaded from secrets.toml project file by adding a [data.openai] field and setting api_key to your API key like so
+```
+[data.openai]
+api_key = "sk-YOUR-KEY"
+```
 
 ## Basic Usage
 
