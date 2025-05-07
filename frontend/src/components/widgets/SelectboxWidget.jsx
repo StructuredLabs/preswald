@@ -8,9 +8,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-const SelectboxWidget = ({ options = [], value, onChange, placeholder = 'Select an option' }) => (
+const SelectboxWidget = ({
+  id,
+  options = [],
+  value,
+  onChange,
+  placeholder = 'Select an option',
+}) => (
   <Select value={value} onValueChange={onChange}>
-    <SelectTrigger className="w-[200px] justify-between" aria-label={placeholder}>
+    <SelectTrigger id={id} className="w-[200px] justify-between" aria-label={placeholder}>
       <SelectValue placeholder={placeholder} />
       <span></span>
     </SelectTrigger>

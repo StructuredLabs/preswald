@@ -10,7 +10,7 @@ const formatNumber = (num) => {
   return num;
 };
 
-const BigNumberCard = ({ label, value, delta, unit }) => {
+const BigNumberCard = ({ id, label, value, delta, unit }) => {
   const deltaNumber = parseFloat(delta);
   const isPositive = deltaNumber >= 0;
 
@@ -18,7 +18,7 @@ const BigNumberCard = ({ label, value, delta, unit }) => {
     typeof delta === 'string' ? delta : `${isPositive ? '+' : ''}${delta}${unit ?? ''}`;
 
   return (
-    <div className="bg-white rounded-xl shadow p-4 w-full max-w-xs">
+    <div id={id} className="bg-white rounded-xl shadow p-4 w-full max-w-xs">
       <div className="text-sm text-gray-500">{label}</div>
       <div className="text-3xl font-bold text-gray-800">
         {formatNumber(value)}

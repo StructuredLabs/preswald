@@ -37,7 +37,7 @@ const CheckboxWidget = ({
   };
 
   return (
-    <div className={cn('checkbox-container', className)}>
+    <div id={id} className={cn('checkbox-container', className)}>
       <Checkbox
         id={id}
         checked={checked}

@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 
 import { cn } from '@/lib/utils';
 
-const JSONViewerWidget = ({ data, title, expanded = true, className }) => {
+const JSONViewerWidget = ({ id, data, title, expanded = true, className }) => {
   const [copied, setCopied] = useState(false);
 
   const theme = {
@@ -43,7 +43,7 @@ const JSONViewerWidget = ({ data, title, expanded = true, className }) => {
   };
 
   return (
-    <Card className={cn('overflow-auto text-sm', className)}>
+    <Card id={id} className={cn('overflow-auto text-sm', className)}>
       <CardContent>
         <div className="flex justify-between items-center mb-2">
           {title && <h3 className="font-semibold">{title}</h3>}

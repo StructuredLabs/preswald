@@ -14,6 +14,7 @@ const TableViewerWidget = ({
   className = '',
   pagination = true,
   paginationPageSize = 20,
+
   props: { rowData: propsRowData = [], columnDefs: propsColumnDefs = [] } = {},
   ...commonProps
 }) => {
@@ -40,7 +41,7 @@ const TableViewerWidget = ({
         hasCard ? 'border border-gray-50 shadow-sm bg-white' : ''
       } ag-theme-alpine ${className} [&_.ag-row-alt]:bg-white`}
     >
-      <div className="h-[500px]">
+      <div id={commonProps.id} className="h-[500px]">
         {data.length > 0 && columns.length > 0 ? (
           <AgGridReact
             columnDefs={columns}

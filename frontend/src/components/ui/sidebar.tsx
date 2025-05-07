@@ -12,6 +12,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { cn } from '@/lib/utils';
 
 const Sidebar = ({
+  id,
   sidebarOpen,
   setSidebarOpen,
   navigation,
@@ -125,6 +126,7 @@ const Sidebar = ({
 
       {/* Desktop Sidebar */}
       <div
+        id={id}
         className={cn(
           'sidebar-desktop',
           isCollapsed ? 'sidebar-desktop-collapsed' : 'sidebar-desktop-expanded'

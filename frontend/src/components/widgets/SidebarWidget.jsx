@@ -11,7 +11,7 @@ const navigation = [
   // Add more navigation items here as needed
 ];
 
-const SidebarWidget = ({ defaultOpen = false, ...props }) => {
+const SidebarWidget = ({ id, defaultOpen = false, ...props }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(!defaultOpen);
   const customBranding = props.branding || {};
@@ -34,6 +34,7 @@ const SidebarWidget = ({ defaultOpen = false, ...props }) => {
       </Button>
 
       <Sidebar
+        id={id}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         isCollapsed={isCollapsed}

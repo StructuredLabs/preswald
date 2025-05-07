@@ -33,7 +33,7 @@ const SliderWidget = ({
   }, [value]);
 
   return (
-    <div className={cn('grid gap-2 w-full max-w-sm mb-4', className)}>
+    <div id={id} className={cn('grid gap-2 w-full max-w-sm mb-4', className)}>
       <div className="flex items-center justify-between">
         <Label
           htmlFor={id}

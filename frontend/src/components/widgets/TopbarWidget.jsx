@@ -2,8 +2,8 @@
 
 import React from 'react';
 
-const TopbarWidget = ({}) => {
-  return <div className="topbar"></div>;
+const TopbarWidget = ({ id }) => {
+  return <div id={id} className="topbar"></div>;
 };
 
 export default TopbarWidget;
