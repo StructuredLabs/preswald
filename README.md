@@ -4,7 +4,8 @@
 
 
 <p align="center">
-    <em>Turn Python scripts into interactive data apps and deploy them anywhere in one command.</em>
+    <em>Create interactive data apps you can open in a browser, run offline, and share like a file.
+    </em>
 </p>
 <p align="center">
     <a href="LICENSE">
@@ -29,7 +30,7 @@
 <img src="https://img.shields.io/badge/Documentation-Read-green?style=for-the-badge" alt="Documentation">
 </a>
 <a href="https://preswald.com/dashboard" target="_blank">
-<img src="https://img.shields.io/badge/Cloud-Get Started-orange?style=for-the-badge" alt="Studio">
+<img src="https://img.shields.io/badge/Studio-Get Started-orange?style=for-the-badge" alt="Studio">
 </a>
 <a href="https://cal.com/amruthagujjar" target="_blank">
 <img src="https://img.shields.io/badge/Book%20a%20Demo-Schedule-red?style=for-the-badge" alt="Book a Demo">
@@ -38,31 +39,35 @@
 
 ## **What is Preswald?**
 
-Preswald is an open-source framework for building **data apps, dashboards, and internal tools** with just Python. It gives you **pre-built UI components** like tables, charts, and forms, so you don’t have to write frontend code. Users can interact with your app, changing inputs, running queries, and updating visualizations, without you needing to manage the UI manually.
+Preswald is a static-site generator for building interactive data apps in Python. It packages compute, data access, and UI into self-contained data apps that run locally in the browser. Built on a WASM runtime with Pyodide and DuckDB, Preswald enables portable, file-based apps that are fast, reactive, and shareable.
 
-Preswald tracks state and dependencies, so computations update only when needed instead of re-running everything from scratch. It uses a **workflow DAG** to manage execution order, making apps more predictable and performant. Preswald lets you **turn Python scripts into shareable, production-ready applications** easily. 
+You can think of Preswald as a lightweight alternative to heavier web app platforms. It provides built-in UI components and reactive state tracking, so you can use it to build dashboards, reports, prototypes, workflows, and notebooks that are reactive, portable, and secure by default.
+
+Preswald is especially useful when:
+
+- You want to bundle logic, UI, and data into a shareable file
+- You need to ship a tool to a stakeholder who shouldn't need to install anything
+- You're working with sensitive data and want full local control
+- You want to give AI systems structured, modifiable tools
 
 ## **Key Features**
 
-- Add UI components to python scripts – Drop in buttons, text inputs, tables, and charts that users can interact with.
-- Stateful execution – Automatically tracks dependencies and updates results when inputs change.
-- Structured computation – Uses a DAG-based execution model to prevent out-of-order runs.
-- Deploy with one command – Run preswald deploy and instantly share your app online.
-- Query and display data – Fetch live data from databases, or local files and display it in a UI.
-- Build interactive reports – Create dashboards where users can change filters and see results update.
-- Run locally or in the cloud – Start your app on your laptop or host it in Preswald Cloud for easy access.
-- Share with a link – No need to send scripts or install dependencies—just share a URL.
-- High-performance GPU charts – Render real-time, interactive charts using fastplotlib, with offscreen GPU acceleration and WebSocket-based streaming to the browser.
+- Code-based. Write apps in Python, not in notebooks or JS frameworks
+- File-first. One command creates a fully-packaged `.html` app
+- Built for computation. Use Pyodide + DuckDB directly in-browser
+- Composable UI. Use prebuilt components like tables, charts, forms
+- Reactive engine. Only re-run what's needed, powered by a DAG of dependencies
+- Local execution. No server. Runs offline, even with large data
+- AI-ready. Apps are fully inspectable and modifiable by agents
 
 <br>
-
 <br>
 
-# **🚀 Getting Started**
+# **Getting Started**
 
 ## **Installation**
 
-First, install Preswald using pip. https://pypi.org/project/preswald/
+https://pypi.org/project/preswald/
 
 ```bash
 pip install preswald
@@ -74,60 +79,38 @@ uv pip install preswald
 
 ![Demo GIF](assets/demo1.gif)
 
-## **👩‍💻 Quick Start**
-
-### **1. Initialize a New Project**
-
-Start your journey with Preswald by initializing a new project:
+## **Quick Start**
 
 ```bash
-preswald init my_project
-cd my_project
+pip install preswald
+preswald init my_app
+cd my_app
+preswald run
 ```
 
-This will create a folder called `my_project` with all the basics you need:
+This will create a folder called `my_app`:
 
-- `hello.py`: Your first Preswald app.
-- `preswald.toml`: Customize your app’s settings and style.
-- `secrets.toml`: Keep your API keys and sensitive information safe.
-- `.gitignore`: Preconfigured to keep `secrets.toml` out of your Git repository.
+```
+my_app/
+├── hello.py           # Your app logic
+├── preswald.toml      # App metadata and config
+├── secrets.toml       # Secrets (e.g. API keys)
+├── data/sample.csv    # Input data files
+├── images/logo.png    # Custom branding
+```
 
-### **2. Write Your First App**
-
-Time to make something magical! Open up `hello.py` and you should see something like this:
+Edit `hello.py` to build your app.
 
 ```python
-from preswald import text, plotly, connect, get_df, table
-import pandas as pd
-import plotly.express as px
+from preswald import text, table, get_df
 
-text("# Welcome to Preswald!")
-text("This is your first app. 🎉")
-
-# Load the CSV
-connect() # load in all sources, which by default is the sample_csv
-df = get_df('sample_csv')
-
-# Create a scatter plot
-fig = px.scatter(df, x='quantity', y='value', text='item',
-                 title='Quantity vs. Value',
-                 labels={'quantity': 'Quantity', 'value': 'Value'})
-
-# Add labels for each point
-fig.update_traces(textposition='top center', marker=dict(size=12, color='lightblue'))
-
-# Style the plot
-fig.update_layout(template='plotly_white')
-
-# Show the plot
-plotly(fig)
-
-# Show the data
+text("# Hello Preswald")
+df = get_df("sample.csv")
 table(df)
+...
 ```
-### **3. Run Your App**
 
-Now the fun part—see it in action! Run your app locally with:
+Now run your app locally with:
 
 ```bash
 preswald run
@@ -141,28 +124,22 @@ This command launches a development server, and Preswald will let you know where
 
 Open your browser, and voilà—your first Preswald app is live!
 
-### **4. Deploy Your App to the Cloud**
-
-Preswald provides its own cloud platform for hosting and sharing your applications. You can authenticate with GitHub, create an organization, and generate an API key at [preswald.com](https://preswald.com). Once set up, deploying is as simple as running:  
+### Export as a Static App
 
 ```bash
-preswald deploy --target structured
+preswald export
 ```
 
-The first time you deploy, you'll be prompted to enter your **GitHub username** and **Preswald API key**. After that, your app will be built, deployed, and accessible online.  
+This command builds your app into a static site inside `dist/`. The folder contains all the files needed to run your app locally or share it.
 
-```
-🌐 App deployed at: https://your-app-name-abc123.preswald.app
-```
+* Works offline in any modern browser
+* Bundles your Python code (via Pyodide), data, and DuckDB queries
+* Preserves app UI, logic, and reactive state
+* Shareable as a file folder or embeddable in hosting platforms
 
-Now your app is live, shareable, and scalable—without any extra setup.
+## **Configuration**
 
-
-## **🔧 Configuration**
-
-Preswald uses `preswald.toml` for project settings and theming. It’s straightforward, and it makes your app look polished.
-
-### **Sample `preswald.toml`:**
+Preswald uses a simple `preswald.toml` file for configuration. This defines the app's metadata, runtime settings, UI branding, and data sources. Here's a sample:
 
 ```
 [project]
@@ -178,14 +155,18 @@ logo = "images/logo.png"
 favicon = "images/favicon.ico"
 primaryColor = "#F89613"
 
-[data.sample_csv]
-type = "csv"
-path = "data/sample.csv"
-
 [logging]
 level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
 format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 ```
+
+## **Use Cases**
+
+- Analyst dashboards. Build data summaries and visualizations. Share as static sites.
+- Interactive reports. Deliver notebooks and reports that update live based on user input. 
+- Data inspection tools. Explore files, logs, or snapshots with quick, purpose-built UIs.
+- Offline kits. Package apps for fieldwork or secure / airgap settings.
+- Experiment panels. Compare runs, track metrics, and present results in standalone interactive apps.
 
 <br>
 
