@@ -14,6 +14,7 @@ import BigNumberWidget from './widgets/BigNumberWidget';
 import ButtonWidget from './widgets/ButtonWidget';
 import ChatWidget from './widgets/ChatWidget';
 import CheckboxWidget from './widgets/CheckboxWidget';
+import CollapsibleWidget from './widgets/CollapsibleWidget';
 import DAGVisualizationWidget from './widgets/DAGVisualizationWidget';
 import DataVisualizationWidget from './widgets/DataVisualizationWidget';
 import FastplotlibWidget from './widgets/FastplotlibWidget';
@@ -78,6 +79,18 @@ const MemoizedComponent = memo(
             defaultOpen={component.defaultopen}
             branding={component.branding}
           />
+        );
+
+      case 'collapsible':
+        return (
+          <CollapsibleWidget
+            key={componentKey}
+            {...props}
+            _label={component.label}
+            _open={component.open}
+          >
+            {props.children}
+          </CollapsibleWidget>
         );
 
       case 'button':

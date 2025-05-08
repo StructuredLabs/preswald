@@ -1,5 +1,6 @@
 # Standard Library
 import base64
+import hashlib
 import io
 import json
 import logging
@@ -189,6 +190,37 @@ def checkbox(label: str, default: bool = False, size: float = 1.0, component_id:
     }
 
     return ComponentReturn(current_value, component)
+
+
+@with_render_tracking("collapsible")
+def collapsible(
+    label: str, open: bool = True, size: float = 1.0, component_id: str | None = None
+) -> ComponentReturn:
+    """Create a collapsible component to group related UI components.
+
+    Args:
+        label: Title/header of the collapsible section
+        open: Whether the section is open by default
+        size: Size of the component relative to container (0.0-1.0)
+
+    Returns:
+        ComponentReturn: Component metadata
+    """
+    component_id = (
+        component_id or f"collapsible-{hashlib.md5(label.encode()).hexdigest()[:8]}"
+    )
+
+    # SAFE ID
+    component = {
+        "type": "collapsible",
+        "id": component_id,
+        "label": label,
+        "open": open,
+        "size": size,
+    }
+
+    logger.debug(f"[collapsible] ID={component_id}, label={label}")
+    return ComponentReturn(component, component)
 
 
 # def fastplotlib(fig: "fplt.Figure", size: float = 1.0) -> str:
@@ -746,6 +778,12 @@ def spinner(
     logger.debug(f"[spinner] ID={component_id}")
     return ComponentReturn(None, component)
 
+
+@with_render_tracking("sidebar")
+def sidebar(
+    defaultopen: bool = False, component_id: str | None = None
+) -> ComponentReturn:
+    """Create a sidebar component."""
 
 @with_render_tracking("sidebar")
 def sidebar(

@@ -4,13 +4,17 @@ icon: "table-cells"
 description: ""
 ---
 
-# Using the `size` Parameter in Components
+# Layout Tools and Techniques
+
+Preswald offers several tools to help you control and organize your application's layout.
+
+## Using the `size` Parameter in Components
 
 The `size` parameter lets you control how much space a component occupies in a row, enabling you to create dynamic and responsive layouts.
 
 ---
 
-## How the `size` Parameter Works
+### How the `size` Parameter Works
 
 - **Default Behavior**: All components have a default `size=1.0`, taking up the full width of the row.
 - **Custom Sizes**: You can specify a `size` less than `1.0` to allow multiple components to share the same row.
@@ -19,9 +23,9 @@ The `size` parameter lets you control how much space a component occupies in a r
 
 ---
 
-## Example: Multiple Components in One Row
+### Example: Multiple Components in One Row
 
-Here’s an example of how to use the `size` parameter to arrange components in a row:
+Here's an example of how to use the `size` parameter to arrange components in a row:
 
 ```python
 from preswald import slider, button
@@ -35,7 +39,35 @@ submit_button = button("Submit", size=0.3)
 threshold_slider = slider("Threshold", min_val=0.0, max_val=100.0, default=50.0, size=0.7)
 ```
 
----
-
 - **Flexible Layouts**: Multiple components with smaller sizes can fit side by side in a single row.
 - **Spacing Management**: Verify the combined sizes of all components in a row add up to `1.0` or less.
+
+---
+
+## Using the `collapsible` Component for Group Organization
+
+The `collapsible` component helps you organize related UI elements into expandable/collapsible sections, improving the overall structure and readability of your application.
+
+### Benefits of Using Collapsible Sections
+
+- **Reduced Visual Clutter**: Hide optional or advanced controls until needed
+- **Logical Grouping**: Group related inputs and outputs
+- **Progressive Disclosure**: Implement step-by-step workflows
+- **Better Mobile Experience**: Improve usability on smaller screens
+
+### Example: Organizing Components with Collapsible
+
+```python
+from preswald import collapsible, slider, text, table
+
+# Main data view (expanded by default)
+collapsible("Data Overview")
+table(my_dataframe)
+
+# Advanced filters section (collapsed by default)
+collapsible("Advanced Filters", open=False)
+text("Adjust parameters to filter the data")
+slider("Threshold", min_val=0, max_val=100, default=50)
+```
+
+See the [`collapsible` documentation](/sdk/collapsible) for more details on its usage and parameters.
