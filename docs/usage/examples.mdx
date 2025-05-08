@@ -22,8 +22,7 @@ Connect to a CSV file and display the data using Preswald's viewer:
 ```python
 from preswald import connect, get_df, table
 
-connect() # reads preswald.toml
-data = get_df("example_data")
+data = get_df("example_data.csv")
 table(data)
 ```
 
@@ -32,8 +31,7 @@ Connect to a JSON file and display the data using Preswald's viewer:
 ```python
 from preswald import connect, get_df, view
 
-connect() # reads preswald.toml
-data = get_df("user_event")
+data = get_df("user_event.csv")
 view(data)
 ```
 

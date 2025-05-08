@@ -116,14 +116,12 @@ except Exception as e:
 
 ## Best Practices
 
-1. Always call `connect()` before using
-2. Always check if source exists in preswald.toml before querying
-3. Use parameterized queries when possible to prevent SQL injection
-4. Consider query performance and data volume
-5. Include appropriate WHERE clauses to limit result sets
-6. Use error handling when executing queries
+1. Always check if source exists in preswald.toml before querying
+2. Use parameterized queries when possible to prevent SQL injection
+3. Consider query performance and data volume
+4. Include appropriate WHERE clauses to limit result sets
+5. Use error handling when executing queries
 
 ## Related Functions
 
-- `connect()`: Must be called before using query
 - `get_df()`: For retrieving entire tables/datasets

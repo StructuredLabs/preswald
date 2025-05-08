@@ -70,11 +70,10 @@ The function includes comprehensive error handling:
 
 ## Best Practices
 
-1. Always call `connect()` before using
-2. Always check if source exists in preswald.toml before calling
-3. For database sources, always provide `table_name`
-4. Use error handling when calling the function
-5. Consider memory limitations when retrieving large datasets
+1. Always check if source exists in preswald.toml before calling
+2. For database sources, always provide `table_name`
+3. Use error handling when calling the function
+4. Consider memory limitations when retrieving large datasets
 
 Example with error handling:
 
@@ -91,5 +90,4 @@ except Exception as e:
 
 ## Related Functions
 
-- `connect()`: Must be called before using get_df
 - `query()`: For custom SQL queries against data sources

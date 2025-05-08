@@ -10,21 +10,20 @@ description: "Turn Python scripts into shareable, interactive data apps."
   alt="Hero Light"
 />
 
-Preswald is an open-source framework for building **data apps, dashboards, and internal tools** with just Python. It gives you **pre-built UI components** like tables, charts, and forms, so you don’t have to write frontend code. Users can interact with your app, changing inputs, running queries, and updating visualizations, without you needing to manage the UI manually.
+Preswald is a static-site generator for building interactive data apps in Python. It packages compute, data access, and UI into self-contained data apps that run locally in the browser. Built on a WASM runtime with Pyodide and DuckDB, Preswald enables portable, file-based apps that are fast, reactive, and shareable.
 
-Preswald tracks state and dependencies, so computations update only when needed instead of re-running everything from scratch. It uses a **workflow DAG** to manage execution order, making apps more predictable and performant. Preswald lets you **turn Python scripts into shareable, production-ready applications** easily.
+You can think of Preswald as a lightweight alternative to heavier web app platforms. It provides built-in UI components and reactive state tracking, so you can use it to build dashboards, reports, prototypes, workflows, and notebooks that are reactive, portable, and secure by default.
 
 ## **Key Features**
 
-- Add UI components to python scripts – Drop in buttons, text inputs, tables, and charts that users can interact with.
-- Stateful execution – Automatically tracks dependencies and updates results when inputs change.
-- Structured computation – Uses a DAG-based execution model to prevent out-of-order runs.
-- Deploy with one command – Run preswald deploy and instantly share your app online.
-- Query and display data – Fetch live data from databases, or local files and display it in a UI.
-- Build interactive reports – Create dashboards where users can change filters and see results update.
-- Run locally or in the cloud – Start your app on your laptop or host it in Preswald Cloud for easy access.
-- Share with a link – No need to send scripts or install dependencies—just share a URL.
-- High-performance GPU charts – Render real-time, interactive charts using fastplotlib, with offscreen GPU acceleration and WebSocket-based streaming to the browser.
+- Code-based development – Write apps in Python, not in notebooks or JS frameworks
+- File-first approach – One command creates a fully-packaged `.html` app
+- Built for computation – Use Pyodide + DuckDB directly in-browser
+- Composable UI – Use prebuilt components like tables, charts, forms
+- Reactive engine – Only re-run what's needed, powered by a DAG of dependencies
+- Local execution – No server. Runs offline, even with large data
+- AI-ready – Apps are fully inspectable and modifiable by agents
+- High-performance GPU charts – Render real-time, interactive charts using fastplotlib, with offscreen GPU acceleration and WebSocket-based streaming to the browser
 
 ## Setting Up
 

@@ -1,80 +1,53 @@
 ---
-title: "preswald export"
+title: preswald export
 icon: "code"
-description: "Export your Preswald components to different formats including PDF."
+description: Build your app into a static site
 ---
 
-# `preswald export`
+The `export` command builds your Preswald app into a static site that can be run locally or shared with others.
 
-The `preswald export` command allows you to export your Preswald components and visualizations to different formats, including PDF.
+## Usage
 
-## Arguments
-
-- **`input_file` (str):**  
-  Path to your component file that you want to export.
-- **`output_file` (str):**  
-  Destination path for the exported file.
-
-## Options
-
-- **`format` (str):**  
-  The export format. Currently supports 'pdf'. Default is 'pdf'.
-- **`output` (str):**  
-  The output file path. Default is 'preswald_report.pdf'.
-
-## Example Usage
-
-Basic export to PDF:
 ```bash
-preswald export --format pdf --output output.pdf hello.py
+preswald export
 ```
 
-## Prerequisites
+## What it does
 
-Before using the export functionality, ensure you have:
+The export command creates a `dist/` directory containing all the files needed to run your app as a static site. This includes:
 
-1. **Playwright Dependencies:**
-```bash
-pip install preswald[playwright]
-playwright install
+- Bundled Python code (via Pyodide)
+- Application data and DuckDB queries
+- UI components and assets
+- All necessary dependencies
+
+## Features
+
+- **Offline Support**: The exported app works offline in any modern browser
+- **Complete Bundle**: Includes all Python code, data, and DuckDB queries
+- **State Preservation**: Maintains app UI, logic, and reactive state
+- **Easy Sharing**: Can be shared as a file folder or embedded in hosting platforms
+
+## Output
+
+The command generates a `dist/` directory with the following structure:
+
+```
+dist/
+├── index.html
+├── assets/
+    └── data/
 ```
 
-2. **Running Server:**
-The export process requires a running Preswald server on port 8501. This can be started with `preswald run`.
+## Use Cases
 
-## Detailed Explanation
+- Deploying to static hosting platforms
+- Sharing your app with others
+- Running the app locally without a development server
+- Creating a standalone version of your application
 
-### 1. **Server Requirements**
+## Notes
 
-The export process requires:
-- A running Preswald server on port 8501
-- No firewall rules blocking access to port 8501
-- No other applications using port 8501
-
-### 2. **Component Requirements**
-
-Your component should:
-- Be properly formatted
-- Render correctly in a browser
-- Have all required data and dependencies accessible
-
-### 3. **Troubleshooting**
-
-Common issues and solutions:
-
-#### Connection Refused Error
-If you see `net::ERR_CONNECTION_REFUSED`:
-- Ensure the Preswald server is running
-- Check port 8501 is available
-- Verify no firewall rules are blocking access
-
-#### Missing Dependencies
-For Playwright-related errors:
-- Install the Playwright optional dependency
-- Install browser dependencies using `playwright install`
-
-### 4. **Best Practices**
-
-- Always test component rendering in browser before export
-- Start the Preswald server before running export
-- Check server logs for troubleshooting 
+- The exported app maintains all functionality of the development version
+- No server-side components are required to run the exported app
+- All data processing happens client-side using Pyodide

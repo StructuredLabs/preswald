@@ -1,7 +1,7 @@
 ---
 title: "Quickstart"
 icon: "bolt"
-description: "Get up and running with the Preswald SDK in under 5 minutes"
+description: "Build interactive data apps that run locally in the browser with Preswald"
 ---
 
 <Steps>
@@ -39,10 +39,12 @@ cd my_project
 
 This will create a scaffolded project with the following:
 
-- **`hello.py`**: A starter Python script to get you going.
-- **`preswald.toml`**: Your app’s configuration settings.
-- **`secrets.toml`**: A secure place for sensitive data.
-- **`.gitignore`**: Pre-configured to exclude sensitive files from version control.
+- **`hello.py`**: Your main Python script where you'll write your app logic
+- **`preswald.toml`**: Configuration for your app's metadata, runtime settings, and branding
+- **`secrets.toml`**: Secure storage for sensitive data like API keys
+- **`data/`**: Directory for your input data files
+- **`images/`**: Directory for custom branding assets
+- **`.gitignore`**: Pre-configured to exclude sensitive files from version control
 
 </Step>
 
@@ -51,10 +53,20 @@ This will create a scaffolded project with the following:
 Open `hello.py` and edit it with the following content:
 
 ```python
-from preswald import text
+from preswald import text, table, get_df
 
+# Add a title
 text("# Welcome to Preswald")
+
+# Load and display data
+df = get_df("data/sample.csv")
+table(df)
 ```
+
+This simple example demonstrates Preswald's key features:
+- Python-based development with built-in UI components
+- Direct data access with DuckDB integration
+- Reactive updates powered by Pyodide in the browser
 
 #### Run It Locally
 
@@ -64,19 +76,26 @@ Launch your app locally with this command:
 preswald run
 ```
 
-Open your browser and navigate to **[http://localhost:8501](http://localhost:8501)**. Your app will be live, ready for you to explore and iterate on.
+Open your browser and navigate to **[http://localhost:8501](http://localhost:8501)**. Your app will run entirely in the browser, with no server required.
 
 </Step>
 
-  <Step title="Deploy Your App">
+  <Step title="Export Your App">
 
-When you're ready to deploy your app, run this:
+When you're ready to share your app, export it as a static site:
 
 ```bash
-preswald deploy --target structured
+preswald export
 ```
-</Step>
 
-You will be prompted to pass in your GitHub username and Preswald API key. Get the preswald API key from our [cloud console](https://preswald.com/) and dashboard. Click on Organization name > Manage > API Keys.   
+This creates a `dist/` folder containing your complete app, including:
+- All Python code (bundled via Pyodide)
+- Data files and DuckDB queries
+- UI components and styling
+- Everything needed to run offline in any modern browser
+
+You can now share this folder directly or host it on any static hosting platform.
+
+</Step>
 
 </Steps>

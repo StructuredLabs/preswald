@@ -18,8 +18,7 @@
             "pages": [
               "introduction",
               "quickstart",
-              "configuration",
-              "coreconcepts"
+              "configuration"
             ]
           },
           {
@@ -28,9 +27,7 @@
               "cli/tutorial",
               "cli/init",
               "cli/run",
-              "cli/deploy",
-              "cli/deployments",
-              "cli/stop"
+              "cli/export"
             ]
           },
           {
@@ -52,13 +49,27 @@
         "tab": "SDK Reference",
         "groups": [
           {
-            "group": "UI",
+            "group": "Data",
+            "pages": [
+              "sdk/get_df",
+              "sdk/query"
+            ]
+          },
+          {
+            "group": "Workflow",
+            "pages": [
+              "sdk/retrypolicy",
+              "sdk/workflow",
+              "sdk/workflow_analyzer"
+            ]
+          },
+          {
+            "group": "Components",
             "pages": [
               "sdk/alert",
               "sdk/button",
               "sdk/checkbox",
               "sdk/chat",
-              "sdk/fastplotlib",
               "sdk/image",
               "sdk/matplotlib",
               "sdk/playground",
@@ -74,22 +85,6 @@
               "sdk/text_input",
               "sdk/topbar",
               "sdk/workflow_dag"
-            ]
-          },
-          {
-            "group": "Data",
-            "pages": [
-              "sdk/connect",
-              "sdk/get_df",
-              "sdk/query"
-            ]
-          },
-          {
-            "group": "Workflow",
-            "pages": [
-              "sdk/retrypolicy",
-              "sdk/workflow",
-              "sdk/workflow_analyzer"
             ]
           },
           {
