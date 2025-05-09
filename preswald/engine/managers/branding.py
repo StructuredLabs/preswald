@@ -28,6 +28,7 @@ class BrandingManager:
             "logo": "/images/logo.png",
             "favicon": f"/images/favicon.ico?timestamp={time.time()}",
             "primaryColor": "#000000",
+            "debug": False,
         }
 
         if script_path:
@@ -46,6 +47,11 @@ class BrandingManager:
                         branding["primaryColor"] = branding_config.get(
                             "primaryColor", branding["primaryColor"]
                         )
+
+                    # Read the debug flag from the [debug] section
+                    if "debug" in config:
+                        branding["debug"] = config["debug"].get("enabled", False)
+
             except Exception as e:
                 logger.error(f"Error loading branding config: {e}")
                 self._ensure_default_assets()
