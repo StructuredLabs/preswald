@@ -119,7 +119,9 @@ class BrandingManager:
             else:
                 logo_path = os.path.join(script_dir, logo)
                 logger.info(f"Looking for logo at: {logo_path}")
-                if not os.path.exists(logo_path):
+                if os.path.exists(logo_path):
+                    branding["logo"] = logo_path # Updating logo_path in branding dict
+                else:
                     self._copy_default_logo()
                     logger.info("Using default logo")
 
@@ -133,7 +135,9 @@ class BrandingManager:
             else:
                 favicon_path = os.path.join(script_dir, favicon)
                 logger.info(f"Looking for favicon at: {favicon_path}")
-                if not os.path.exists(favicon_path):
+                if os.path.exists(favicon_path):
+                    branding["favicon"] = favicon_path # Updating favicon_path in branding dict
+                else:
                     self._copy_default_favicon()
                     logger.info("Using default favicon")
 
