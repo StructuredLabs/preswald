@@ -11,11 +11,20 @@ RUN apt-get update && \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# COPY ./preswald-0.1.52-py3-none-any.whl /app/
+# Define an argument to check if we should use local wheel
+ARG USE_LOCAL_WHEEL=false
+COPY wheel.whl /app/wheel.whl
 
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir --upgrade preswald
-	# pip install --no-cache-dir --upgrade ./preswald-0.1.52-py3-none-any.whl --force-reinstall
+RUN pip install --no-cache-dir --upgrade pip
+
+# Install using the appropriate method
+RUN if [ "$USE_LOCAL_WHEEL" = "true" ] && [ -f /app/wheel.whl ]; then \
+    echo "Installing from local wheel" && \
+    pip install --no-cache-dir --upgrade /app/wheel.whl --force-reinstall; \
+    else \
+    echo "Installing from PyPI" && \
+    pip install --no-cache-dir --upgrade preswald; \
+    fi
 
 FROM python:3.12-slim-bullseye
 
