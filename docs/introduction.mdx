@@ -14,13 +14,15 @@ Preswald is a static-site generator for building interactive data apps in Python
 
 You can think of Preswald as a lightweight alternative to heavier web app platforms. It provides built-in UI components and reactive state tracking, so you can use it to build dashboards, reports, prototypes, workflows, and notebooks that are reactive, portable, and secure by default.
 
+Preswald now includes a fully automatic reactive runtime. This means you can write ordinary Python code, and Preswald will detect dependencies, track state, and trigger only the minimal set of updates needed when your data changes. No need to explicitly define which parts of your script are reactive, it's inferred automatically.
+
 ## **Key Features**
 
 - Code-based development – Write apps in Python, not in notebooks or JS frameworks
 - File-first approach – One command creates a fully-packaged `.html` app
 - Built for computation – Use Pyodide + DuckDB directly in-browser
 - Composable UI – Use prebuilt components like tables, charts, forms
-- Reactive engine – Only re-run what's needed, powered by a DAG of dependencies
+- Reactive engine – Automatically tracks dependencies in your code and re-executes only what's necessary, enabling fast, precise updates
 - Local execution – No server. Runs offline, even with large data
 - AI-ready – Apps are fully inspectable and modifiable by agents
 - High-performance GPU charts – Render real-time, interactive charts using fastplotlib, with offscreen GPU acceleration and WebSocket-based streaming to the browser

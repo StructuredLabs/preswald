@@ -52,6 +52,56 @@ table(data, limit=rows)
 
 ---
 
+## **Automatic Reactivity**
+Preswald automatically detects dependencies between top level expressions and selectively recomputes only the parts of your script that need to update.
+
+```python
+from preswald import slider, text
+
+base = slider("Base", min_val=1, max_val=10, default=2)
+double = base * 2
+text(f"Double: {double}")
+```
+
+You can also include side effects like logging:
+
+```python
+import logging
+from preswald import slider
+
+logger = logging.getLogger(__name__)
+
+val = slider("Level", min_val=0, max_val=5, default=1)
+logger.info(f"Slider moved: {val}")
+```
+
+Preswald will:
+
+   - Lift each top level statement into an atom
+   - Automatically track dependencies like double -> base
+   - Ensure logger.info(...) runs again only when val changes
+
+No decorators or workflow setup required, just plain Python
+
+---
+
+## **Tuple Unpacking + Reactive Consumers**
+
+Preswald also supports tuple unpacking and reactive consumers:
+
+```python
+from preswald import slider, text
+
+def compute_pair(n):
+    return (n, n * 2)
+
+val = slider("Input", min_val=1, max_val=10, default=3)
+a, b = compute_pair(val)
+text(f"a: {a}, b: {b}")
+```
+
+---
+
 ## Learn More
 
 To explore these examples in depth and discover additional use cases, check out the [Preswald Examples](https://github.com/StructuredLabs/preswald/tree/main/examples). You'll find comprehensive guides and example projects to help you make the most of Preswald.
