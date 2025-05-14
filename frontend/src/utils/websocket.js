@@ -1,5 +1,7 @@
 import { decode } from '@msgpack/msgpack';
 
+import { createWorker, disposeWorker } from '../backend/service';
+
 class WebSocketClient {
   constructor() {
     this.socket = null;
@@ -241,7 +243,7 @@ class PostMessageClient {
 
   connect() {
     console.log('[PostMessage] Setting up listener...');
-    window.addEventListener('message', this._handleMessage.bind(this));
+    window.addEventListener('message', this._handleMessage.bind(this)); // This is the real core of the postmessage client
 
     // Assume connected in browser context
     this.isConnected = true;
@@ -373,15 +375,308 @@ class PostMessageClient {
   }
 }
 
+class ComlinkClient {
+  constructor() {
+    console.log('[Client] Initializing ComlinkClient');
+    this.callbacks = new Set();
+    this.componentStates = {};
+    this.isConnected = false;
+    this.pendingUpdates = {};
+    this.worker = null;
+  }
+
+  async connect() {
+    console.log('[Client] Starting connection');
+    try {
+      if (this.isConnected) {
+        console.log('[Client] Already connected');
+        return;
+      }
+
+      console.log('[Client] About to create worker');
+      this.worker = await createWorker();
+      console.log('[Client] Worker created');
+
+      console.log('[Client] About to initialize Pyodide');
+      const result = await this.worker.initializePyodide();
+      if (!result.success) {
+        throw new Error('Failed to initialize Pyodide');
+      }
+
+      this.isConnected = true;
+      console.log('[Client] Connection established');
+      this._notifySubscribers({ type: 'connection_status', connected: true });
+
+      // Run initial script
+      console.log('[Client] Running initial script');
+      const scriptResult = await this.worker.runScript('/project/hello.py');
+      if (!scriptResult.success) {
+        throw new Error('Failed to run initial script');
+      }
+
+      this._handleComponentUpdate(scriptResult.components);
+
+      // Process any pending updates
+      const pendingCount = Object.keys(this.pendingUpdates).length;
+      if (pendingCount > 0) {
+        console.log(`[Client] Processing ${pendingCount} pending updates`);
+        for (const [componentId, value] of Object.entries(this.pendingUpdates)) {
+          await this._sendComponentUpdate(componentId, value);
+        }
+        this.pendingUpdates = {};
+      }
+    } catch (error) {
+      console.error('[Client] Connection error:', error);
+      this.isConnected = false;
+      this._notifySubscribers({
+        type: 'error',
+        content: { message: error.message },
+      });
+      throw error;
+    }
+  }
+
+  _handleComponentUpdate(components) {
+    console.log('[Client] Handling component update:', components);
+    if (components?.rows) {
+      components.rows.forEach((row) => {
+        row.forEach((component) => {
+          if (component.id && 'value' in component) {
+            const oldValue = this.componentStates[component.id];
+            if (oldValue !== component.value) {
+              console.log(`[Client] Component ${component.id} value changed:`, {
+                old: oldValue,
+                new: component.value,
+              });
+              this.componentStates[component.id] = component.value;
+            }
+          }
+        });
+      });
+      this._notifySubscribers({
+        type: 'components',
+        components: components,
+      });
+    }
+  }
+
+  disconnect() {
+    console.log('[Client] Disconnecting');
+    if (this.worker) {
+      this.worker.shutdown();
+      this.worker = null;
+      this.isConnected = false;
+      this._notifySubscribers({ type: 'connection_status', connected: false });
+      console.log('[Client] Disconnected');
+    }
+  }
+
+  subscribe(callback) {
+    console.log('[Client] New subscriber added');
+    this.callbacks.add(callback);
+    return () => {
+      console.log('[Client] Subscriber removed');
+      this.callbacks.delete(callback);
+    };
+  }
+
+  _notifySubscribers(message) {
+    console.log('[Client] Notifying subscribers:', message);
+    this.callbacks.forEach((callback) => {
+      try {
+        callback(message);
+      } catch (error) {
+        console.error('[Client] Error in subscriber callback:', error);
+      }
+    });
+  }
+
+  getComponentState(componentId) {
+    return this.componentStates[componentId];
+  }
+
+  async updateComponentState(componentId, value) {
+    console.log(`[Client] Updating state for component ${componentId}:`, value);
+    if (!this.isConnected || !this.worker) {
+      console.log('[Client] Not connected, queueing update');
+      this.pendingUpdates[componentId] = value;
+      throw new Error('Connection not ready');
+    }
+    return this._sendComponentUpdate(componentId, value);
+  }
+
+  async _sendComponentUpdate(componentId, value) {
+    console.log(`[Client] Sending component update - ${componentId}:`, value);
+    try {
+      const result = await this.worker.updateComponent(componentId, value);
+      if (!result.success) {
+        throw new Error('Component update failed');
+      }
+      this._handleComponentUpdate(result.components);
+      return true;
+    } catch (error) {
+      console.error('[Client] Error updating component:', error);
+      this._notifySubscribers({
+        type: 'error',
+        content: { message: error.message },
+      });
+      throw error;
+    }
+  }
+
+  getConnections() {
+    return [];
+  }
+}
+
+class SyncComlinkClient {
+  constructor() {
+    console.log('[SyncComlinkClient] Initializing');
+    this.callbacks = new Set();
+    this.componentStates = {};
+    this.isConnected = false;
+    this.pendingUpdates = {};
+    this.worker = null;
+    this._initPromise = null;
+  }
+
+  connect() {
+    // Now synchronous
+    console.log('[SyncComlinkClient] Starting connection');
+
+    // Start async initialization but don't wait for it
+    this._initPromise = this._initializeAsync().catch((error) => {
+      console.error('[SyncComlinkClient] Initialization error:', error);
+      this._notifySubscribers({
+        type: 'error',
+        content: { message: error.message },
+      });
+    });
+
+    // Immediately return to match WebSocket/PostMessage behavior
+    return;
+  }
+
+  async _initializeAsync() {
+    try {
+      this.worker = await createWorker();
+      const result = await this.worker.initializePyodide();
+
+      if (!result.success) {
+        throw new Error('Failed to initialize Pyodide');
+      }
+
+      this.isConnected = true;
+      this._notifySubscribers({ type: 'connection_status', connected: true });
+
+      // Process any pending updates that came in while initializing
+      Object.entries(this.pendingUpdates).forEach(([componentId, value]) => {
+        this._processUpdate(componentId, value);
+      });
+      this.pendingUpdates = {};
+    } catch (error) {
+      this.isConnected = false;
+      throw error;
+    }
+  }
+
+  disconnect() {
+    // Synchronous
+    console.log('[SyncComlinkClient] Disconnecting');
+
+    // Start async cleanup but don't wait for it
+    disposeWorker().catch(console.error);
+
+    this.worker = null;
+    this.isConnected = false;
+    this._notifySubscribers({ type: 'connection_status', connected: false });
+    this.callbacks.clear();
+    this.componentStates = {};
+    this.pendingUpdates = {};
+  }
+
+  subscribe(callback) {
+    // Synchronous
+    console.log('[SyncComlinkClient] Adding subscriber');
+    this.callbacks.add(callback);
+    return () => {
+      console.log('[SyncComlinkClient] Removing subscriber');
+      this.callbacks.delete(callback);
+    };
+  }
+
+  _notifySubscribers(message) {
+    // Synchronous
+    console.log('[SyncComlinkClient] Notifying subscribers:', message);
+    this.callbacks.forEach((callback) => {
+      try {
+        callback(message);
+      } catch (error) {
+        console.error('[SyncComlinkClient] Error in subscriber callback:', error);
+      }
+    });
+  }
+
+  getComponentState(componentId) {
+    // Synchronous
+    return this.componentStates[componentId];
+  }
+
+  updateComponentState(componentId, value) {
+    // Synchronous
+    console.log(`[SyncComlinkClient] Updating state for ${componentId}:`, value);
+
+    if (!this.isConnected || !this.worker) {
+      console.log('[SyncComlinkClient] Not connected, queueing update');
+      this.pendingUpdates[componentId] = value;
+      return;
+    }
+
+    // Start async update but don't wait for it
+    this._processUpdate(componentId, value);
+  }
+
+  async _processUpdate(componentId, value) {
+    try {
+      const result = await this.worker.updateComponent(componentId, value);
+      if (!result.success) {
+        throw new Error('Component update failed');
+      }
+
+      this.componentStates[componentId] = value;
+      this._notifySubscribers({
+        type: 'state_update',
+        component_id: componentId,
+        value: value,
+      });
+    } catch (error) {
+      console.error('[SyncComlinkClient] Error updating component:', error);
+      this._notifySubscribers({
+        type: 'error',
+        content: {
+          message: error.message,
+          componentId: componentId,
+        },
+      });
+    }
+  }
+
+  getConnections() {
+    // Synchronous
+    return [];
+  }
+}
+
 export const createCommunicationLayer = () => {
   // Detect environment: server (WebSocket) or browser (PostMessage)
-  const isBrowser = window !== window.top;
+  const isBrowser = window !== window.top; // TODO: find a better way to pass in if we want to use postmessage client
   console.log(
     '[Communication] Detected environment:',
     isBrowser ? 'browser (iframe)' : 'server (top-level)'
   );
 
-  return isBrowser ? new PostMessageClient() : new WebSocketClient();
+  // return isBrowser ? new PostMessageClient() : new WebSocketClient();
+  return new ComlinkClient();
 };
 
 export const comm = createCommunicationLayer();

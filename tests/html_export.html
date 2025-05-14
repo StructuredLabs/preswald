@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Preswald HTML Export</title>
+    <!-- <link rel="stylesheet" href="http://localhost:8000/fe.css" /> -->
+    <script type="module" src="service.js"></script>
+    <script>
+      // Listen for branding message and attach to window
+      window.addEventListener("message", function (event) {
+        if (event.data && event.data.type === "branding") {
+          // Attach branding to window object
+          window.PRESWALD_BRANDING = event.data.branding;
+
+          // Dispatch an event to notify app that branding is available
+          window.dispatchEvent(new CustomEvent("branding-loaded"));
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      importScripts            // ← NOT inside a worker, just top level
+    </script>
+    <!-- <script type="module" src="http://localhost:8000/fe.js"></script> -->
+    <!-- <script>
+      // Send ready signal to parent as soon as possible
+      window.addEventListener("DOMContentLoaded", () => {
+        console.log("Iframe DOM loaded, signaling ready to parent");
+        window.parent.postMessage({ type: "iframe_ready" }, "*");
+      });
+
+      // Also send another ready signal after full load for reliability
+      window.addEventListener("load", () => {
+        console.log("Iframe fully loaded");
+        window.parent.postMessage({ type: "iframe_ready" }, "*");
+      });
+    </script> -->
+
+    <script type="module">
+      import { createWorker } from "./service.js";
+      const worker = createWorker();
+
+      worker.postMessage({ type: "INITIALIZE" });
+
+      worker.addEventListener("message", (event) => {
+        console.log("Ready message", event);
+        if (event.data.type === "TERMINATED") {
+            URL.revokeObjectURL(workerUrl);
+            workerInstance = null;
+        }
+    });
+
+      // worker.postMessage({ type: "LOAD_FILES", data: { files: ["test.py"] } });
+
+      // TODO run initialize and startScript
+    </script>
+  </body>
+</html>

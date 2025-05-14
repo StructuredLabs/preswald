@@ -11,7 +11,7 @@ import './styles.css';
 // Mount the root App component to the DOM
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+  // <React.StrictMode>
+  <App />
+  // </React.StrictMode>
 );

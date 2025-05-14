@@ -40,6 +40,7 @@
     "class-variance-authority": "^0.7.1",
     "classnames": "^2.5.1",
     "clsx": "^2.1.1",
+    "comlink": "^4.4.2",
     "dagre": "^0.8.5",
     "katex": "^0.16.21",
     "lucide-react": "^0.473.0",

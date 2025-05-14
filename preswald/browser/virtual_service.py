@@ -8,10 +8,6 @@ import sys
 from typing import Any
 
 from preswald.engine.base_service import BasePreswaldService
-from preswald.engine.utils import RenderBuffer
-
-from preswald.engine.base_service import BasePreswaldService
-from preswald.engine.utils import RenderBuffer
 
 
 logger = logging.getLogger(__name__)
@@ -55,9 +51,10 @@ class VirtualWebSocket:
             return
 
         debug_enabled = logger.isEnabledFor(logging.DEBUG)
-        
+
         try:
             import json
+
             from js import JSON
 
             json_str = json.dumps(data)
@@ -66,25 +63,36 @@ class VirtualWebSocket:
             if debug_enabled:
                 summary = {
                     "keys": list(data.keys()),
-                    "types": {k: type(v).__name__ for k, v in data.items()}
+                    "types": {k: type(v).__name__ for k, v in data.items()},
                 }
 
             if self.is_browser_mode:
                 from js import self as js_self  # type: ignore
+
                 js_self.postMessage(js_data)
                 if debug_enabled:
-                    console.debug("[VirtualWebSocket] postMessage (browser mode) summary:", summary)
+                    console.debug(
+                        "[VirtualWebSocket] postMessage (browser mode) summary:",
+                        summary,
+                    )
             else:
                 try:
                     from js import handlePythonMessage
+
                     handlePythonMessage(self.client_id, js_data)
                     if debug_enabled:
-                        console.debug("[VirtualWebSocket] handlePythonMessage summary:", summary)
+                        console.debug(
+                            "[VirtualWebSocket] handlePythonMessage summary:", summary
+                        )
                 except ImportError:
                     from js import self as js_self
+
                     js_self.postMessage(js_data)
                     if debug_enabled:
-                        console.debug("[VirtualWebSocket] postMessage (fallback) summary:", summary)
+                        console.debug(
+                            "[VirtualWebSocket] postMessage (fallback) summary:",
+                            summary,
+                        )
 
         except Exception as e:
             logger.error(f"Error sending message to JS: {e}")
@@ -120,21 +128,35 @@ class VirtualWebSocket:
 
             if self.is_browser_mode:
                 from js import self as js_self  # type: ignore
+
                 js_self.postMessage({"type": "binary_message", "data": array})
                 if debug_enabled:
-                    console.debug("[VirtualWebSocket] postMessage (binary, browser mode) summary:", summary)
+                    console.debug(
+                        "[VirtualWebSocket] postMessage (binary, browser mode) summary:",
+                        summary,
+                    )
             else:
                 try:
                     from js import handlePythonBinaryMessage
+
                     handlePythonBinaryMessage(self.client_id, array)
                     if debug_enabled:
-                        console.debug("[VirtualWebSocket] handlePythonBinaryMessage summary:", summary)
+                        console.debug(
+                            "[VirtualWebSocket] handlePythonBinaryMessage summary:",
+                            summary,
+                        )
                 except ImportError:
                     from js import self as js_self
+
                     js_self.postMessage({"type": "binary_message", "data": array})
                     if debug_enabled:
-                        logger.warning(f"[{self.client_id}] handlePythonBinaryMessage not available, using postMessage fallback")
-                        console.debug("[VirtualWebSocket] postMessage (binary fallback) summary:", summary)
+                        logger.warning(
+                            f"[{self.client_id}] handlePythonBinaryMessage not available, using postMessage fallback"
+                        )
+                        console.debug(
+                            "[VirtualWebSocket] postMessage (binary fallback) summary:",
+                            summary,
+                        )
 
         except Exception as e:
             logger.error(f"Error sending binary message to JS: {e}")
