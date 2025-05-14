@@ -1,9 +1,9 @@
-.PHONY: release update-version build-frontend build-wheel build-docker test-iris cleanup-push test-whl test-local test-gcp upload-to-gcs upload-to-pypi
+.PHONY: release update-version build-frontend build-wheel build-docker test-iris cleanup-push test-whl test-local test-gcp upload-to-gcs upload-to-pypi upload-static-to-gcs
 
 # todo: add test-gcp
-pre-release: update-version build-frontend build-wheel build-docker test-iris test-whl test-local upload-to-gcs 
+pre-release: update-version build-frontend build-wheel build-docker test-iris test-whl test-local upload-to-gcs upload-static-to-gcs
 
-release: pre-release cleanup-push upload-to-pypi
+release: update-version build-frontend build-wheel build-docker cleanup-push upload-to-pypi
 
 update-version:
 	@echo "Updating preswald version..."
@@ -135,4 +135,32 @@ upload-to-pypi:
 		exit 1; \
 	}; \
 	echo "Successfully uploaded $$(basename $$latest_wheel) to PyPI"
+
+upload-static-to-gcs:
+	@echo "Uploading static directory to Google Cloud Storage..."
+	@if [ -z "$$PRESWALD_DEPLOYER_DEV_SA" ]; then \
+		echo "Error: PRESWALD_DEPLOYER_DEV_SA environment variable not set"; \
+		exit 1; \
+	fi; \
+	if ! command -v gcloud >/dev/null 2>&1; then \
+		echo "Error: gcloud command not found."; \
+		exit 1; \
+	fi; \
+	if ! command -v gsutil >/dev/null 2>&1; then \
+		echo "Error: gsutil command not found."; \
+		exit 1; \
+	fi; \
+	if [ ! -d "preswald/static" ]; then \
+		echo "Error: preswald/static directory not found. Run 'make build-frontend' first."; \
+		exit 1; \
+	fi; \
+	version=$$(grep "version" pyproject.toml | grep -v "^#" | head -1 | sed -E 's/.*version = "([^"]+)".*/\1/'); \
+	zip_filename="preswald-static-$$version.zip"; \
+	echo "Creating $$zip_filename..."; \
+	(cd preswald && zip -r "../$$zip_filename" static) || { echo "Failed to create zip file"; exit 1; }; \
+	echo "$$PRESWALD_DEPLOYER_DEV_SA" | base64 --decode > /tmp/service-account.json; \
+	gcloud auth activate-service-account --key-file=/tmp/service-account.json || { echo "Failed to authenticate with Google Cloud"; rm -f /tmp/service-account.json "$$zip_filename"; exit 1; }; \
+	gsutil cp "$$zip_filename" gs://preswald_wheels/$$zip_filename || { echo "Failed to upload to Google Cloud Storage"; rm -f /tmp/service-account.json "$$zip_filename"; exit 1; }; \
+	rm -f /tmp/service-account.json "$$zip_filename"; \
+	echo "Successfully uploaded $$zip_filename to gs://preswald_wheels/"
 

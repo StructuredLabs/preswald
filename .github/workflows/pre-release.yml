@@ -34,7 +34,7 @@ jobs:
           pip install -e .
 
       - name: Install bc for version calculations
-        run: sudo apt-get install -y bc
+        run: sudo apt-get install -y bc zip
 
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
@@ -62,7 +62,7 @@ jobs:
             make pre-release
           else
             # Skip tests by running individual targets
-            make update-version build-frontend build-wheel build-docker upload-to-gcs
+            make update-version build-frontend build-wheel build-docker upload-to-gcs upload-static-to-gcs
           fi
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
