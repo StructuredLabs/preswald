@@ -182,3 +182,5 @@ notes.md
 community_gallery/**/data
 **/*/.preswald_deploy/
 node_modules/
+
+preswald-deployer-dev.json

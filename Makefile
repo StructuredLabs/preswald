@@ -1,9 +1,9 @@
-.PHONY: release update-version build-frontend build-wheel build-docker test-iris cleanup-push test-whl test-local test-gcp upload-to-gcs
+.PHONY: release update-version build-frontend build-wheel build-docker test-iris cleanup-push test-whl test-local test-gcp upload-to-gcs upload-to-pypi
 
 # todo: add test-gcp
-pre-release: update-version build-frontend build-wheel build-docker test-iris test-whl test-local upload-to-gcs
+pre-release: update-version build-frontend build-wheel build-docker test-iris test-whl test-local upload-to-gcs 
 
-release: pre-release cleanup-push
+release: pre-release cleanup-push upload-to-pypi
 
 update-version:
 	@echo "Updating preswald version..."
@@ -112,4 +112,27 @@ upload-to-gcs:
 	gcloud auth activate-service-account --key-file=/tmp/service-account.json || { echo "Failed to authenticate with Google Cloud"; rm -f /tmp/service-account.json; exit 1; }; \
 	gsutil cp $$latest_wheel gs://preswald_wheels/$$wheel_filename || { echo "Failed to upload to Google Cloud Storage"; rm -f /tmp/service-account.json; exit 1; }; \
 	rm -f /tmp/service-account.json; \
-	echo "Successfully uploaded $$wheel_filename to gs://preswald_wheels/" 
+	echo "Successfully uploaded $$wheel_filename to gs://preswald_wheels/"
+
+upload-to-pypi:
+	@echo "Uploading wheel to PyPI..."
+	@if ! command -v twine >/dev/null 2>&1; then \
+		echo "Error: twine command not found. Install with: pip install twine"; \
+		exit 1; \
+	fi; \
+	if [ -z "$$PYPI_API_TOKEN" ]; then \
+		echo "Error: PYPI_API_TOKEN environment variable not set"; \
+		exit 1; \
+	fi; \
+	latest_wheel=$$(ls -t dist/preswald-*.whl | head -1); \
+	if [ ! -f "$$latest_wheel" ]; then \
+		echo "Error: No wheel file found in dist/ directory."; \
+		exit 1; \
+	fi; \
+	echo "Uploading $$(basename $$latest_wheel) to PyPI..."; \
+	TWINE_USERNAME=__token__ TWINE_PASSWORD=$$PYPI_API_TOKEN twine upload "$$latest_wheel" || { \
+		echo "Failed to upload to PyPI"; \
+		exit 1; \
+	}; \
+	echo "Successfully uploaded $$(basename $$latest_wheel) to PyPI"
+
