@@ -232,10 +232,6 @@ def generate_stable_id(
     )
     return f"{prefix}-{hashed}"
 
-def export_app_to_pdf(all_components: list[dict], output_path: str):
-    """
-    Export the Preswald app to PDF using fixed-size viewport.
-    Waits for all passed components. Aborts if any remain unrendered.
 
 def generate_stable_atom_name_from_component_id(
     component_id: str, prefix: str = "_auto_atom"
@@ -262,3 +258,103 @@ def generate_stable_atom_name_from_component_id(
         f"[generate_stable_atom_name_from_component_id] Unexpected component_id format {component_id=}"
     )
     return generate_stable_id(prefix)
+
+
+def export_app_to_pdf(all_components: list[dict], output_path: str):
+    """
+    Export the Preswald app to PDF using fixed-size viewport.
+    Waits for all passed components. Aborts if any remain unrendered.
+
+    all_components: list of dicts like [{'id': ..., 'type': ...}, ...]
+    """
+
+    # ✅ Check all passed components (no filtering by type)
+    components_to_check = [comp for comp in all_components if comp.get("id")]
+    ids_to_check = [comp["id"] for comp in components_to_check]
+
+    if not ids_to_check:
+        print("⚠️ No components found to check before export.")
+        return
+
+    from playwright.sync_api import sync_playwright
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1280, "height": 3000})
+
+        print("🌐 Connecting to Preswald app...")
+        page.goto("http://localhost:8501", wait_until="networkidle")
+
+        print(f"🔍 Waiting for {len(ids_to_check)} components to fully render...")
+
+        try:
+            # Wait until all required components are visible
+            page.wait_for_function(
+                """(ids) => ids.every(id => {
+                    const el = document.getElementById(id);
+                    return el && el.offsetWidth > 0 && el.offsetHeight > 0;
+                })""",
+                arg=ids_to_check,
+                timeout=30000,
+            )
+            print("✅ All components rendered!")
+        except Exception:
+            # Find which ones failed to render
+            missing = page.evaluate(
+                """(ids) => ids.filter(id => {
+                    const el = document.getElementById(id);
+                    return !el || el.offsetWidth === 0 || el.offsetHeight === 0;
+                })""",
+                ids_to_check,
+            )
+
+            print("❌ These components did not render in time:")
+            for mid in missing:
+                mtype = next(
+                    (c["type"] for c in components_to_check if c["id"] == mid),
+                    "unknown",
+                )
+                print(f"  - ID: {mid}, Type: {mtype}")
+
+            print("🛑 Aborting PDF export due to incomplete rendering.")
+            browser.close()
+            return
+
+        # Ensure rendering is visually flushed
+        page.evaluate(
+            """() => new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 300)))"""
+        )
+
+        # Add print-safe CSS to avoid breaking visual components across pages
+        page.add_style_tag(
+            content="""
+            .plotly-container,
+            .preswald-component,
+            .component-container,
+            .sidebar-desktop,
+            .plotly-plot-container {
+                break-inside: avoid;
+                page-break-inside: avoid;
+                page-break-after: auto;
+                margin-bottom: 24px;
+            }
+
+            @media print {
+                body {
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                }
+            }
+        """
+        )
+
+        # Emulate screen CSS for full fidelity
+        page.emulate_media(media="screen")
+
+        # Export to PDF
+        page.pdf(
+            path=output_path, width="1280px", height="3000px", print_background=True
+        )
+
+        print(f"📄 PDF successfully saved to: {output_path}")
+        browser.close()
