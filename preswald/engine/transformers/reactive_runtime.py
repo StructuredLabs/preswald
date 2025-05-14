@@ -545,51 +545,52 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
     def _has_runtime_execution(self, body: list[ast.stmt]) -> bool:
         """
-        Determines whether the module already includes a call to `workflow.execute()`.
+        Determines whether the script includes a full runtime bootstrap:
+        an assignment to a workflow instance followed by a call to `execute`.
 
         Specifically, it checks for:
-          - Assignment: `workflow = get_workflow()`
+          - Assignment: `workflow = get_workflow()` or `workflow = Workflow(...)`
           - Execution:  `workflow.execute()`
 
-        This is used to avoid injecting duplicate execution logic during AST transformation.
-        If both assignment and execution are already present, the transformer will skip appending
-        a runtime execution block.
+        This function ensures we do not inject a second runtime bootstrap
+        if the user has already instantiated and executed a workflow manually.
 
         Args:
-            body: List of top level AST statements in the module.
+            body: List of top-level AST statements in the module.
 
         Returns:
             True if both workflow assignment and execution are detected, False otherwise.
         """
-        assigned_workflow = False
-        executed_workflow = False
+
+        assigned_var = None
 
         for stmt in body:
-            # Check for: workflow = get_workflow()
+            # Detect: workflow = get_workflow()
+            # OR:     workflow = Workflow(...)
             if isinstance(stmt, ast.Assign):
                 if (
                     len(stmt.targets) == 1 and
                     isinstance(stmt.targets[0], ast.Name) and
-                    stmt.targets[0].id == "workflow" and
-                    isinstance(stmt.value, ast.Call) and
-                    isinstance(stmt.value.func, ast.Name) and
-                    stmt.value.func.id == "get_workflow"
+                    isinstance(stmt.value, ast.Call)
                 ):
-                    assigned_workflow = True
-                    continue
+                    func = stmt.value.func
+                    if (
+                        isinstance(func, ast.Name) and func.id in {"get_workflow", "Workflow"}
+                    ):
+                        assigned_var = stmt.targets[0].id
 
-            # Check for: workflow.execute()
+            # Detect: workflow.execute()
             if isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Call):
                 call = stmt.value
                 if (
                     isinstance(call.func, ast.Attribute) and
                     isinstance(call.func.value, ast.Name) and
-                    call.func.value.id == "workflow" and
-                    call.func.attr == "execute"
+                    call.func.attr == "execute" and
+                    call.func.value.id == assigned_var
                 ):
-                    executed_workflow = True
+                    return True
 
-        return assigned_workflow and executed_workflow
+        return False
 
     def _build_runtime_imports(self) -> list[ast.stmt]:
         """
@@ -656,12 +657,10 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         1. Assigns stable component IDs and atom names to known Preswald components.
         2. Rewrites top level component calls into reactive atoms.
-
-        This function also:
-        - Preserves original statement order ( not in all cases yet though ).
-        - Injects required runtime imports (`get_workflow`) and execution scaffolding (`workflow = get_workflow(); workflow.execute()`).
-        - Tracks variable to atom dependencies for reactivity.
-        - Returns a fully transformed `ast.Module` with atoms and runtime bootstrapping injected.
+        3. Preserves original statement order ( not in all cases yet though ).
+        4. Injects required runtime imports (`get_workflow`) and execution scaffolding (`workflow = get_workflow(); workflow.execute()`).
+        5. Tracks variable to atom dependencies for reactivity.
+        6. Returns a fully transformed `ast.Module` with atoms and runtime bootstrapping injected.
         """
 
         self._reset()
@@ -707,7 +706,46 @@ class AutoAtomTransformer(ast.NodeTransformer):
         logger.info(f"[AST] Final variable-to-atom map {self.variable_to_atom=}")
 
         # Second pass: lift component calls into reactive atoms
-        new_body = self._lift_top_level_statements(non_import_stmts, component_to_atom_name)
+
+        # Remove workflow bootstrap if already present
+        runtime_bootstrap_stmts = []
+
+        if self._has_runtime_execution(non_import_stmts):
+            filtered_stmts = []
+            for stmt in non_import_stmts:
+                if (
+                    isinstance(stmt, ast.Assign) and
+                    len(stmt.targets) == 1 and
+                    isinstance(stmt.targets[0], ast.Name) and
+                    stmt.targets[0].id == "workflow" and
+                    isinstance(stmt.value, ast.Call)
+                ):
+                    func = stmt.value.func
+                    if (
+                        isinstance(func, ast.Name) and func.id in {"get_workflow", "Workflow"}
+                    ) or (
+                        isinstance(func, ast.Attribute) and func.attr == "Workflow"
+                    ):
+                        runtime_bootstrap_stmts.append(stmt)
+                        continue
+
+                elif (
+                    isinstance(stmt, ast.Expr) and
+                    isinstance(stmt.value, ast.Call) and
+                    isinstance(stmt.value.func, ast.Attribute) and
+                    isinstance(stmt.value.func.value, ast.Name) and
+                    stmt.value.func.value.id == "workflow" and
+                    stmt.value.func.attr == "execute"
+                ):
+                    runtime_bootstrap_stmts.append(stmt)
+                    continue
+
+                filtered_stmts.append(stmt)
+        else:
+            filtered_stmts = non_import_stmts
+            runtime_bootstrap_stmts = []
+
+        new_body = self._lift_top_level_statements(filtered_stmts, component_to_atom_name)
 
         original_len = len(node.body)
         new_len = len(self.generated_atoms + new_body)
@@ -727,7 +765,28 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 case _:
                     logger.info(f"  [{idx}] Other {ast.dump(stmt)}")
 
-        runtime_imports = self._build_runtime_imports()
+        # Check whether get_workflow is already imported
+        has_get_workflow_import = any(
+            isinstance(stmt, ast.ImportFrom) and
+            stmt.module == "preswald" and
+            any(alias.name == "get_workflow" for alias in stmt.names)
+            for stmt in original_imports
+        )
+
+        # Check whether Workflow() is manually constructed
+        uses_workflow_constructor = any(
+            isinstance(stmt, ast.Assign) and
+            isinstance(stmt.value, ast.Call) and (
+                (isinstance(stmt.value.func, ast.Name) and stmt.value.func.id == "Workflow") or
+                (isinstance(stmt.value.func, ast.Attribute) and stmt.value.func.attr == "Workflow")
+            )
+            for stmt in non_import_stmts
+        )
+
+        # Inject the import only if needed
+        should_inject_import = not (has_get_workflow_import or uses_workflow_constructor)
+        runtime_imports = self._build_runtime_imports() if should_inject_import else []
+
         if not self._has_runtime_execution(node.body):
             logger.info('does not have runtime execution')
             runtime_exec = self._build_runtime_execution()
@@ -735,7 +794,15 @@ class AutoAtomTransformer(ast.NodeTransformer):
             logger.info('has runtime execution')
             runtime_exec = []
 
-        node.body = original_imports + runtime_imports + self.generated_atoms + new_body + runtime_exec
+        node.body = (
+            original_imports +
+            runtime_imports +
+            self.generated_atoms +
+            new_body +
+            runtime_bootstrap_stmts +
+            runtime_exec
+        )
+
         logger.info("[AST] Inserted import statements for lifted atoms and workflow execution")
         return node
 
