@@ -180,7 +180,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 self.variable_map = variable_map
                 self.found = False
 
-            def visit_Name(self, node: ast.Name):
+            def visit_Name(self, node: ast.Name): # noqa: N802
                 if isinstance(node.ctx, ast.Load) and node.id in self.variable_map:
                     self.found = True
 
@@ -252,7 +252,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
             None
         """
         class DependencyReplacer(ast.NodeTransformer):
-            def visit_Name(self, node):
+            def visit_Name(self, node): # noqa: N802
                 if isinstance(node.ctx, ast.Load) and node.id in scoped_map:
                     atom = scoped_map[node.id]
                     mapped = param_mapping.get(atom)
@@ -324,7 +324,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         result_var = "__preswald_result__"
         scoped_map = {**self.variable_to_atom, **self._get_variable_map_for_stmt(stmt)}
 
-        if isinstance(stmt.targets[0], (ast.Tuple, ast.List)):
+        if isinstance(stmt.targets[0], ast.Tuple | ast.List):
             component_id, atom_name = self.generate_component_and_atom_name("producer")
             self.tuple_returning_atoms.add(atom_name)
 
@@ -411,17 +411,16 @@ class AutoAtomTransformer(ast.NodeTransformer):
             A new `ast.Expr` with the value replaced by a call to the generated atom function.
         """
         class TupleAwareReplacer(ast.NodeTransformer):
-            def visit_Name(self, node: ast.Name):
+            def visit_Name(self, node: ast.Name): # noqa: N802
                 if isinstance(node.ctx, ast.Load) and node.id in reverse_map:
                     return reverse_map[node.id]
                 return node
 
-        
+
         scoped_map = {**self.variable_to_atom, **self._get_variable_map_for_stmt(stmt)}
         expr = stmt.value
         callsite_deps, dep_names = self._find_unique_dependencies(expr, variable_map=scoped_map)
         component_id, atom_name = self.generate_component_and_atom_name("consumer")
-        param_mapping = self._make_param_mapping(callsite_deps)
 
         # Group variables by originating atom
         atom_to_vars: dict[str, list[str]] = defaultdict(list)
@@ -452,7 +451,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         callsite = self._make_callsite(atom_name, callsite_deps)
         return ast.Expr(value=callsite)
 
-    def _lift_top_level_statements(
+    def _lift_top_level_statements( # noqa: C901
         self,
         body: list[ast.stmt],
         component_metadata: dict[int, tuple[str, str]],
@@ -480,7 +479,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         for stmt in body:
             # Skip imports as they are handled separately
-            if isinstance(stmt, (ast.Import, ast.ImportFrom)):
+            if isinstance(stmt, ast.Import | ast.ImportFrom):
                 continue
 
             call_node = None
@@ -651,7 +650,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         return [workflow_assign, workflow_execute]
 
-    def visit_Module(self, node: ast.Module) -> ast.Module:
+    def visit_Module(self, node: ast.Module) -> ast.Module: # noqa: N802, C901
         """
         Entry point for AST transformation. Performs a structured two pass rewrite of the top level module body:
 
@@ -677,7 +676,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         non_import_stmts = []
 
         for stmt in node.body:
-            if isinstance(stmt, (ast.Import, ast.ImportFrom)):
+            if isinstance(stmt, ast.Import | ast.ImportFrom):
                 original_imports.append(stmt)
             else:
                 non_import_stmts.append(stmt)
@@ -702,7 +701,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
             full_variable_map.update(variable_map)
 
         self.variable_to_atom = full_variable_map
-        self._stmt_variable_maps = dict(zip(node.body, variable_maps))  # store per statement scope
+        self._stmt_variable_maps = dict(zip(node.body, variable_maps, strict=False))  # store per statement scope
 
         logger.info(f"[AST] First pass complete {component_to_atom_name=}")
         logger.info(f"[AST] Final variable-to-atom map {self.variable_to_atom=}")
@@ -767,7 +766,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 self.variable_to_atom = variable_to_atom
                 self.param_mapping = param_mapping
 
-            def visit_Name(self, node: ast.Name) -> ast.AST:
+            def visit_Name(self, node: ast.Name) -> ast.AST: # noqa: N802
                 if not isinstance(node.ctx, ast.Load):
                     return node  # Skip Store/Del contexts
 
@@ -781,17 +780,17 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
                 return node
 
-            def visit_FormattedValue(self, node: ast.FormattedValue) -> ast.FormattedValue:
+            def visit_FormattedValue(self, node: ast.FormattedValue) -> ast.FormattedValue: # noqa: N802
                 node.value = self.visit(node.value)
                 return node
 
-            def visit_JoinedStr(self, node: ast.JoinedStr) -> ast.JoinedStr:
+            def visit_JoinedStr(self, node: ast.JoinedStr) -> ast.JoinedStr: # noqa: N802
                 node.values = [self.visit(value) for value in node.values]
                 return node
 
         return DependencyReplacer(variable_map, param_mapping).visit(call)
 
-    def visit_Call(self, node: ast.Call) -> ast.AST:
+    def visit_Call(self, node: ast.Call) -> ast.AST: # noqa: N802
         """
         Handles function call nodes in the AST and injects reactivity when appropriate.
 
@@ -841,7 +840,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         return node
 
-    def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.FunctionDef:
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.FunctionDef: # noqa: N802
         """
         Visits top level function definitions and lifts them into reactive atoms.
 
@@ -938,12 +937,12 @@ class AutoAtomTransformer(ast.NodeTransformer):
         dep_names: list[str] = []
 
         class Finder(ast.NodeVisitor):
-            def visit_Name(self, name_node: ast.Name):
+            def visit_Name(self, name_node: ast.Name): # noqa: N802
                 if isinstance(name_node.ctx, ast.Load) and name_node.id in variable_map:
                     deps.append(variable_map[name_node.id])
                     dep_names.append(name_node.id)
 
-            def visit_Attribute(self, node: ast.Attribute):
+            def visit_Attribute(self, node: ast.Attribute): # noqa: N802
                 # Match expressions like: `val.method()` where `val` is reactive
                 if isinstance(node.value, ast.Name) and node.value.id in variable_map:
                     deps.append(variable_map[node.value.id])
@@ -1067,7 +1066,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
             if isinstance(stmt, ast.Assign):
                 for target in stmt.targets:
                     assert isinstance(target.ctx, ast.Store), f"Expected Store context, got {type(target.ctx)}"
-                    assert isinstance(target, (ast.Name, ast.Tuple, ast.List)), f"Invalid assignment target: {ast.dump(target)}"
+                    assert isinstance(target, ast.Name |ast.Tuple | ast.List), f"Invalid assignment target: {ast.dump(target)}"
 
         return ast.FunctionDef(
             name=atom_name,
