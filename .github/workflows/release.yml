@@ -1,4 +1,4 @@
-name: Pre-Release Preswald
+name: Release Preswald
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ on:
         type: boolean
 
 jobs:
-  pre-release:
+  release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -50,10 +50,10 @@ jobs:
           auto-update-conda: true
           python-version: "3.12"
 
-      - name: Run pre-release process
+      - name: Run Release process
         run: |
           if [ "${{ inputs.run_tests }}" == "true" ]; then
-            make pre-release
+            make release
           else
             # Skip tests by running individual targets
             make update-version build-frontend build-wheel build-docker upload-to-gcs upload-static-to-gcs
@@ -76,7 +76,7 @@ jobs:
 
       - name: Summary
         run: |
-          echo "## Pre-release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## Release Summary" >> $GITHUB_STEP_SUMMARY
           echo "- Version: ${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
           echo "- Wheel: $(ls -t dist/preswald-*.whl | head -1)" >> $GITHUB_STEP_SUMMARY
           echo "- Docker Image: structuredlabs/preswald:latest" >> $GITHUB_STEP_SUMMARY
