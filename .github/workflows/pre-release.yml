@@ -1,0 +1,88 @@
+name: Pre-Release Preswald
+
+on:
+  push:
+    branches:
+      - cicd
+  workflow_dispatch:
+    inputs:
+      run_tests:
+        description: "Run tests"
+        required: true
+        default: true
+        type: boolean
+  schedule:
+    # Run weekly on Monday at 00:00 UTC
+    - cron: "0 0 * * 1"
+
+jobs:
+  pre-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build setuptools wheel twine
+          pip install -e .
+
+      - name: Install bc for version calculations
+        run: sudo apt-get install -y bc
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          install_components: "gsutil"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Conda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
+          python-version: "3.12"
+
+      - name: Run pre-release process
+        run: |
+          if [ "${{ inputs.run_tests }}" == "true" ]; then
+            make pre-release
+          else
+            # Skip tests by running individual targets
+            make update-version build-frontend build-wheel build-docker upload-to-gcs
+          fi
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          PRESWALD_DEPLOYER_DEV_SA: ${{ secrets.PRESWALD_DEPLOYER_DEV_SA }}
+
+      - name: Upload wheel as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: preswald-wheel
+          path: dist/*.whl
+          if-no-files-found: error
+
+      - name: Get version info
+        id: get_version
+        run: echo "VERSION=$(grep 'version' pyproject.toml | grep -v '^#' | head -1 | sed -E 's/.*version = "([^"]+)".*/\1/')" >> $GITHUB_OUTPUT
+
+      - name: Summary
+        run: |
+          echo "## Pre-release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Version: ${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Wheel: $(ls -t dist/preswald-*.whl | head -1)" >> $GITHUB_STEP_SUMMARY
+          echo "- Docker Image: structuredlabs/preswald:latest" >> $GITHUB_STEP_SUMMARY

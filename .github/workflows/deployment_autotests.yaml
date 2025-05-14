@@ -2,9 +2,6 @@ name: Deployment Autotests
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - cicd
   schedule:
     - cron: "0 0 * * *"
 

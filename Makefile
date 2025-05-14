@@ -43,7 +43,7 @@ build-docker:
 		wheel_exists=true; \
 	fi;
 	@echo "wheel_exists=$$wheel_exists"
-	cd docker && docker buildx build --platform linux/amd64 --pull=false --no-cache \
+	cd docker && docker buildx build --platform linux/amd64 --pull=false --no-cache --load \
 		--build-arg USE_LOCAL_WHEEL=$$wheel_exists \
 		-t preswald -f preswald.Dockerfile .
 	docker tag preswald structuredlabs/preswald-base
