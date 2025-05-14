@@ -62,6 +62,7 @@ jobs:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
           PRESWALD_DEPLOYER_DEV_SA: ${{ secrets.PRESWALD_DEPLOYER_DEV_SA }}
+          PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
 
       - name: Upload wheel as artifact
         uses: actions/upload-artifact@v4
