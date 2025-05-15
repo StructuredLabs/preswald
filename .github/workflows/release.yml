@@ -9,12 +9,19 @@ on:
         default: true
         type: boolean
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -56,7 +63,7 @@ jobs:
             make release
           else
             # Skip tests by running individual targets
-            make update-version build-frontend build-wheel build-docker upload-to-gcs upload-static-to-gcs
+            make update-version build-frontend build-wheel build-docker upload-to-gcs upload-static-to-gcs upload-to-pypi
           fi
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -75,9 +82,54 @@ jobs:
         id: get_version
         run: echo "VERSION=$(grep 'version' pyproject.toml | grep -v '^#' | head -1 | sed -E 's/.*version = "([^"]+)".*/\1/')" >> $GITHUB_OUTPUT
 
+      - name: Configure Git
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+      - name: Commit version change
+        run: |
+          git add pyproject.toml
+          git commit -m "Release v${{ steps.get_version.outputs.VERSION }}"
+          git push origin HEAD:main
+
+      - name: Create and push tag
+        run: |
+          git tag -f v${{ steps.get_version.outputs.VERSION }}
+          git push origin -f v${{ steps.get_version.outputs.VERSION }}
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+        with:
+          tag_name: v${{ steps.get_version.outputs.VERSION }}
+          release_name: Release v${{ steps.get_version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+          body: |
+            ## Preswald v${{ steps.get_version.outputs.VERSION }} Release
+
+            ### Installation
+            ```
+            pip install preswald==${{ steps.get_version.outputs.VERSION }}
+            ```
+
+      - name: Upload wheel to GitHub Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/preswald-${{ steps.get_version.outputs.VERSION }}-py3-none-any.whl
+          asset_name: preswald-${{ steps.get_version.outputs.VERSION }}-py3-none-any.whl
+          asset_content_type: application/octet-stream
+
       - name: Summary
         run: |
           echo "## Release Summary" >> $GITHUB_STEP_SUMMARY
           echo "- Version: ${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
           echo "- Wheel: $(ls -t dist/preswald-*.whl | head -1)" >> $GITHUB_STEP_SUMMARY
-          echo "- Docker Image: structuredlabs/preswald:latest" >> $GITHUB_STEP_SUMMARY
+          echo "- Docker Image: structuredlabs/preswald-base:latest" >> $GITHUB_STEP_SUMMARY
+          echo "- GitHub Release: https://github.com/${{ github.repository }}/releases/tag/v${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
