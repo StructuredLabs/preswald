@@ -10,6 +10,10 @@ from collections.abc import Generator
 from datetime import datetime
 from pathlib import Path
 
+from typing import Optional, Union  
+
+
+
 import requests
 import toml
 
@@ -506,7 +510,9 @@ def deploy(
     script_path: str,
     target: str = "local",
     port: int = 8501,
-) -> str | Generator[dict, None, None]:
+    github_username: Optional[str] = None,
+    api_key: Optional[str] = None,
+) -> Union[str, Generator[dict, None, None]]:
     """
     Deploy a Preswald app.
 
