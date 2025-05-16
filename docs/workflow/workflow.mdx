@@ -184,32 +184,74 @@ No matter how you define dependencies, the reactive runtime ensures that only at
 
 ---
 
-#### 3. Automatic Atom Lifting of Top-Level Components
+#### 3. Automatic Atom Lifting of Top-Level Code
 
-Preswald automatically wraps **top-level UI component calls** (e.g., `slider()`, `text()`, etc.) in workflow atoms, even if you don't explicitly use `@workflow.atom()`.
+Preswald automatically transforms **top-level statements** into workflow atoms — including UI components, assignments, and expressions — even if you don’t explicitly decorate them.
 
-This allows you to write concise, interactive apps without boilerplate:
+This enables you to write plain Python code without worrying about workflow setup. Preswald will:
 
-```python
-from preswald import (
-    get_df,
-    text,
-    slider,
-    table,
-)
+- Detect dependencies across statements
+- Assign stable `component_id`s to UI components
+- Automatically recompute only the parts of your script that need to update
 
-df = get_df("iris_csv")
-val = slider("Pick a number", min_val=0, max_val=10, default=1)
-table(df, limit=val)
-```
+---
 
-These calls are automatically transformed into atoms during script execution. This allows Preswald to:
+##### What Gets Lifted
 
-- Assign stable identifiers and track component state
-- Include them in the dependency graph (DAG)
-- Selectively rerun only the affected parts of the script when state changes
+The following kinds of top-level statements are automatically lifted:
 
-This automatic lifting is how Preswald maintains reactivity even in simple scripts without manual atom definitions.
+1. **UI component calls**
+   These are calls to built-in components like `slider()`, `text()`, `table()`, etc.
+
+   ```python
+   val = slider("Pick a number", min_val=0, max_val=10)
+   text(f"You picked: {val}")
+   ```
+
+2. **Producer assignments**
+   If a top level assignment depends on reactive inputs, it's lifted into an atom.
+
+   ```python
+   base = slider("Base", min_val=1, max_val=10)
+   double = base * 2
+   ```
+
+3. **Consumer expressions**
+   Expressions that use reactive inputs (including logging, print statements, or side-effecting code) are also wrapped in atoms.
+
+   ```python
+   logger.info(f"Double is: {double}")
+   ```
+
+##### Assignment Limitations
+
+Preswald currently supports only simple name based assignments when lifting producers. The following are supported:
+
+   ```python
+   x = y + 1               # simple assignments
+   x += y + 1              # augmented assignments
+   a, b = my_func(z)       # tuple/list unpacking
+   ```
+
+The following patterns are not yet supported and will raise errors during transformation:
+
+    - Attribute assignments
+
+    ```python
+    obj.attr = 42  # Not supported
+    ```
+   - Subscript assignments
+   ```python
+   data["key"] = "value"  # Not supported
+   ```
+   - Starred unpacking
+   ```python
+   a, *rest = items  # Not supported
+   ```
+
+---
+
+By supporting full script lifting and dependency tracking, Preswald allows you to write interactive data apps with clean, minimal Python; no manual decorators required.
 
 ---
 

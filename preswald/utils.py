@@ -186,7 +186,7 @@ def generate_stable_id(
         str: A stable component ID like "text-abc123ef".
     """
     if identifier:
-        hashed = hashlib.md5(identifier.lower().encode()).hexdigest()[:8]
+        hashed = hashlib.md5(identifier.lower().encode()).hexdigest()[:12]
         logger.debug(f"[generate_stable_id] Using provided identifier to generate hash {hashed=}")
         return f"{prefix}-{hashed}"
 
@@ -239,7 +239,8 @@ def generate_stable_id(
 
         callsite_hint = get_callsite_id()
 
-    hashed = hashlib.md5(callsite_hint.encode()).hexdigest()[:8]
+    hashed = hashlib.md5(callsite_hint.encode()).hexdigest()[:12]
+
     logger.debug(f"[generate_stable_id] Using final callsite_hint to generate hash {hashed=} {callsite_hint=}")
     return f"{prefix}-{hashed}"
 
