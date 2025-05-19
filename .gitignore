@@ -184,3 +184,5 @@ community_gallery/**/data
 node_modules/
 
 preswald-deployer-dev.json
+
+.history/

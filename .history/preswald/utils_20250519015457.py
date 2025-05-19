@@ -84,26 +84,6 @@ def read_port_from_config(config_path: str, port: int):
         print(f"Warning: Could not load port config from {config_path}: {e}")
 
 
-def get_timestamp_format(config: dict) -> str:
-    """
-    Get the timestamp format from config or return default.
-
-    Args:
-        config: Logging configuration dictionary
-
-    Returns:
-        str: Timestamp format string
-    """
-    # Default format with millisecond precision
-    default_format = "%Y-%m-%d %H:%M:%S.%f"
-
-    if not config:
-        return default_format
-
-    timestamp_format = config.get("timestamp_format", default_format)
-    return timestamp_format
-
-
 def configure_logging(config_path: str | None = None, level: str | None = None):
     """
     Configure logging globally for the application.
@@ -116,8 +96,6 @@ def configure_logging(config_path: str | None = None, level: str | None = None):
     log_config = {
         "level": "INFO",
         "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        "timestamp_format": "%Y-%m-%d %H:%M:%S.%f",  # Default with millisecond precision
-        "timezone": "UTC",  # Default timezone
     }
 
     # Try to load from config file
@@ -137,19 +115,16 @@ def configure_logging(config_path: str | None = None, level: str | None = None):
     if level is not None:
         log_config["level"] = level
 
-    # Configure logging with custom timestamp format
+    # Configure logging
     logging.basicConfig(
         level=getattr(logging, log_config["level"].upper()),
         format=log_config["format"],
-        datefmt=log_config["timestamp_format"],
         force=True,  # This resets any existing handlers
     )
 
     # Create logger for this module
     logger = logging.getLogger(__name__)
-    logger.debug(
-        f"Logging configured with level {log_config['level']} and timestamp format {log_config['timestamp_format']}"
-    )
+    logger.debug(f"Logging configured with level {log_config['level']}")
 
     return log_config["level"]
 

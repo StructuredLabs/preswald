@@ -6,16 +6,14 @@ repos:
         entry: python -m ruff format
         language: python
         types: [python]
-        exclude: ^(setup\.py|\.history/.*)$
-        additional_dependencies: [ruff]
+        exclude: ^setup\.py$
 
       - id: ruff-lint
         name: ruff (lint)
         entry: python -m ruff check
         language: python
         types: [python]
-        exclude: ^(setup\.py|community_gallery/.*|\.history/.*)$
-        additional_dependencies: [ruff]
+        exclude: ^(setup\.py|community_gallery/.*)$
 
       - id: prettier
         name: prettier

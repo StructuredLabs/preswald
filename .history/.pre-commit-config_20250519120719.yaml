@@ -6,7 +6,7 @@ repos:
         entry: python -m ruff format
         language: python
         types: [python]
-        exclude: ^(setup\.py|\.history/.*)$
+        exclude: ^setup\.py$
         additional_dependencies: [ruff]
 
       - id: ruff-lint
@@ -14,7 +14,7 @@ repos:
         entry: python -m ruff check
         language: python
         types: [python]
-        exclude: ^(setup\.py|community_gallery/.*|\.history/.*)$
+        exclude: ^(setup\.py|community_gallery/.*)$
         additional_dependencies: [ruff]
 
       - id: prettier
