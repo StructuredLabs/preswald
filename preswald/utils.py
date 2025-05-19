@@ -5,6 +5,7 @@ import os
 import random
 import re
 import sys
+from importlib.resources import files as importlib_files
 from pathlib import Path
 
 import toml
@@ -14,6 +15,7 @@ import toml
 logger = logging.getLogger(__name__)
 
 IS_PYODIDE = "pyodide" in sys.modules
+
 
 def read_disable_reactivity(config_path: str) -> bool:
     """
@@ -33,6 +35,7 @@ def read_disable_reactivity(config_path: str) -> bool:
         logger.warning(f"Could not load disable_reactivity from {config_path}: {e}")
     return False
 
+
 def reactivity_explicitly_disabled(config_path: str = "preswald.toml") -> bool:
     """Check if reactivity is disabled in project configuration."""
     try:
@@ -40,6 +43,7 @@ def reactivity_explicitly_disabled(config_path: str = "preswald.toml") -> bool:
     except Exception as e:
         logger.warning(f"[is_app_reactivity_disabled] Failed to read config: {e}")
         return False
+
 
 def read_template(template_name, template_id=None):
     """Read a template file from the package.
@@ -187,7 +191,9 @@ def generate_stable_id(
     """
     if identifier:
         hashed = hashlib.md5(identifier.lower().encode()).hexdigest()[:12]
-        logger.debug(f"[generate_stable_id] Using provided identifier to generate hash {hashed=}")
+        logger.debug(
+            f"[generate_stable_id] Using provided identifier to generate hash {hashed=}"
+        )
         return f"{prefix}-{hashed}"
 
     fallback_callsite = "unknown:0"
@@ -199,10 +205,14 @@ def generate_stable_id(
                 int(lineno)  # Validate it's a number
                 callsite_hint = f"{filename}:{lineno}"
             except ValueError:
-                logger.warning(f"[generate_stable_id] Invalid line number in callsite_hint {callsite_hint=}")
+                logger.warning(
+                    f"[generate_stable_id] Invalid line number in callsite_hint {callsite_hint=}"
+                )
                 callsite_hint = None
         else:
-            logger.warning(f"[generate_stable_id] Invalid callsite_hint format (missing colon) {callsite_hint=}")
+            logger.warning(
+                f"[generate_stable_id] Invalid callsite_hint format (missing colon) {callsite_hint=}"
+            )
             callsite_hint = None
 
     if not callsite_hint:
@@ -218,7 +228,9 @@ def generate_stable_id(
                     if IS_PYODIDE:
                         # In Pyodide: skip anything in /lib/, allow /main.py etc.
                         if not filepath.startswith("/lib/"):
-                            logger.debug(f"[generate_stable_id] [Pyodide] Found user code: {filepath}:{info.lineno}")
+                            logger.debug(
+                                f"[generate_stable_id] [Pyodide] Found user code: {filepath}:{info.lineno}"
+                            )
                             return f"{filepath}:{info.lineno}"
                     else:
                         # In native: skip stdlib, site-packages, and preswald internals
@@ -227,12 +239,16 @@ def generate_stable_id(
                         in_stdlib = filepath.startswith(sys.base_prefix)
 
                         if not (in_preswald_src or in_venv or in_stdlib):
-                            logger.debug(f"[generate_stable_id] Found user code: {filepath}:{info.lineno}")
+                            logger.debug(
+                                f"[generate_stable_id] Found user code: {filepath}:{info.lineno}"
+                            )
                             return f"{filepath}:{info.lineno}"
 
                     frame = frame.f_back
 
-                logger.warning("[generate_stable_id] No valid callsite found, falling back to default")
+                logger.warning(
+                    "[generate_stable_id] No valid callsite found, falling back to default"
+                )
                 return fallback_callsite
             finally:
                 del frame
@@ -241,11 +257,15 @@ def generate_stable_id(
 
     hashed = hashlib.md5(callsite_hint.encode()).hexdigest()[:12]
 
-    logger.debug(f"[generate_stable_id] Using final callsite_hint to generate hash {hashed=} {callsite_hint=}")
+    logger.debug(
+        f"[generate_stable_id] Using final callsite_hint to generate hash {hashed=} {callsite_hint=}"
+    )
     return f"{prefix}-{hashed}"
 
 
-def generate_stable_atom_name_from_component_id(component_id: str, prefix: str = "_auto_atom") -> str:
+def generate_stable_atom_name_from_component_id(
+    component_id: str, prefix: str = "_auto_atom"
+) -> str:
     """
     Convert a stable component ID into a corresponding atom name.
     Normalizes the suffix and replaces hyphens with underscores.
@@ -264,7 +284,9 @@ def generate_stable_atom_name_from_component_id(component_id: str, prefix: str =
         hash_part = component_id.rsplit("-", 1)[-1]
         return f"{prefix}_{hash_part}"
 
-    logger.warning(f"[generate_stable_atom_name_from_component_id] Unexpected component_id format {component_id=}")
+    logger.warning(
+        f"[generate_stable_atom_name_from_component_id] Unexpected component_id format {component_id=}"
+    )
     return generate_stable_id(prefix)
 
 
@@ -366,3 +388,81 @@ def export_app_to_pdf(all_components: list[dict], output_path: str):
 
         print(f"📄 PDF successfully saved to: {output_path}")
         browser.close()
+
+
+def get_boot_script_html(client_type="auto"):
+    """
+    Read the boot script template and wrap it in proper HTML script tags.
+    Returns a tuple of (head_script, body_script) to be injected into index.html.
+
+    Args:
+        client_type (str): The client type to use ("auto", "websocket", "postmessage", "comlink")
+    """
+    try:
+        template_path = importlib_files("preswald").joinpath("browser/boot.js")
+        with template_path.open("r") as f:
+            boot_js = f.read()
+
+        head_script = f"""
+    <script>
+    window.__PRESWALD_CLIENT_TYPE = "{client_type}";
+    </script>
+</head>"""
+
+        body_script = f"""
+    <script type="module">
+    {boot_js}
+    </script>
+  </body>
+</html>"""
+
+        return head_script, body_script
+
+    except Exception as e:
+        logger.error(f"Failed to read boot script template: {e}")
+        raise
+
+
+def serialize_fs(root_dir=".", output_dir=None):
+    """Walk directory and create file entries for project_fs.json
+
+    Args:
+        root_dir (str): The directory to start walking from
+        output_dir (str, optional): Directory to exclude from the snapshot
+
+    Returns:
+        dict: A dictionary mapping file paths to their contents
+        {
+            'path/to/file.py': {'type': 'text', 'content': '...'},
+            'path/to/image.png': {'type': 'binary', 'content': '<base64>'}
+        }
+    """
+    import base64
+
+    result = {}
+    for root, _dirs, files in os.walk(root_dir):
+        # Skip output directory and hidden files/directories
+        # if (output_dir and root.startswith(output_dir)) or any(
+        #     p.startswith(".") for p in root.split(os.sep)
+        # ):
+        #     continue
+
+        for file in files:
+            if file.startswith("."):
+                continue
+
+            full_path = os.path.join(root, file)
+            rel_path = os.path.relpath(full_path, root_dir)
+
+            try:
+                with open(full_path) as f:
+                    content = f.read()
+                result[rel_path] = {"type": "text", "content": content}
+            except UnicodeDecodeError:
+                # If that fails, treat as binary
+                with open(full_path, "rb") as f:
+                    binary_content = f.read()
+                encoded = base64.b64encode(binary_content).decode("ascii")
+                result[rel_path] = {"type": "binary", "content": encoded}
+
+    return result

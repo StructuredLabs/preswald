@@ -1,17 +1,19 @@
 import json
 import os
+import re
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 import click
 
-from preswald.engine.base_service import BasePreswaldService
+# from preswald.engine.base_service import BasePreswaldService
 from preswald.engine.telemetry import TelemetryService
 
 
-service = BasePreswaldService()
-layout = service._layout_manager
+# service = BasePreswaldService()
+# layout = service._layout_manager
 
 
 # Create a temporary directory for IPC
@@ -434,40 +436,162 @@ def tutorial(ctx):
 
 
 @cli.command()
-@click.argument("script", required=True)
-@click.option("--format", type=click.Choice(["pdf"]), required=True)
-@click.option("--output", type=click.Path(), help="Path to the output file.")
-def export(script, format, output):
-    """Export the given Preswald script as a PDF report."""
-    output_path = output or "preswald_report.pdf"
-
-    if not os.path.exists(script):
-        click.echo(f"❌ Script not found: {script}")
+@click.option(
+    "--format",
+    type=click.Choice(["pdf", "html"]),
+    required=True,
+    help="Export format - pdf creates a static report, html creates an interactive web app",
+)
+@click.option("--output", type=click.Path(), help="Path to the output directory")
+@click.option(
+    "--client",
+    type=click.Choice(["auto", "websocket", "postmessage", "comlink"]),
+    default="comlink",
+    help="Communication client to use - auto will choose based on context",
+)
+def export(format, output, client):
+    """Export the current Preswald app as a PDF report or HTML app."""
+    # Check for preswald.toml and get entrypoint
+    config_path = "preswald.toml"
+    if not os.path.exists(config_path):
+        click.echo("Error: preswald.toml not found in current directory. ❌")
+        click.echo("Make sure you're in a Preswald project directory.")
         return
 
-    click.echo(f"📄 Rendering '{script}'...")
+    import tomli
 
-    from preswald.main import render_once
-    from preswald.utils import (
-        export_app_to_pdf,
-    )  # ✅ make sure this is at the top level to avoid E402
+    try:
+        with open(config_path, "rb") as f:
+            config = tomli.load(f)
+        if "project" not in config or "entrypoint" not in config["project"]:
+            click.echo(
+                "Error: entrypoint not defined in preswald.toml under [project] section. ❌"
+            )
+            return
+        script = config["project"]["entrypoint"]
+    except Exception as e:
+        click.echo(f"Error reading preswald.toml: {e} ❌")
+        return
 
-    layout = render_once(script)
+    if not os.path.exists(script):
+        click.echo(f"Error: Entrypoint script '{script}' not found. ❌")
+        return
 
-    click.echo(f"✅ Render complete. Found {len(layout['rows'])} rows of components.")
+    if format == "pdf":
+        output_path = output or "preswald_report.pdf"
+        click.echo(f"📄 Rendering '{script}'...")
 
-    component_ids = []
-    for row in layout["rows"]:
-        for component in row:
-            cid = component.get("id")
-            ctype = component.get("type")
-            if cid and ctype:
-                component_ids.append({"id": cid, "type": ctype})
+        from preswald.main import render_once
+        from preswald.utils import export_app_to_pdf
 
-    # 🔽 Pass the component IDs to the export function
-    export_app_to_pdf(component_ids, output_path)
+        layout = render_once(script)
 
-    click.echo(f"\n✅ Export complete. PDF saved to: {output_path}")
+        click.echo(
+            f"✅ Render complete. Found {len(layout['rows'])} rows of components."
+        )
+
+        component_ids = []
+        for row in layout["rows"]:
+            for component in row:
+                cid = component.get("id")
+                ctype = component.get("type")
+                if cid and ctype:
+                    component_ids.append({"id": cid, "type": ctype})
+
+        # Pass the component IDs to the export function
+        export_app_to_pdf(component_ids, output_path)
+
+        click.echo(f"\n✅ Export complete. PDF saved to: {output_path}")
+
+    elif format == "html":
+        # Create output directory
+        output_dir = output or "preswald_export"
+        os.makedirs(output_dir, exist_ok=True)
+
+        click.echo(f"📦 Exporting '{script}' to HTML...")
+
+        try:
+            # 1. Create project_fs.json by walking current directory
+            from preswald.utils import get_boot_script_html, serialize_fs
+
+            click.echo("📝 Creating project filesystem snapshot...")
+
+            # Get filesystem snapshot and add metadata
+            fs_snapshot = serialize_fs(root_dir=".", output_dir=output_dir)
+            fs_snapshot["__entrypoint__"] = script
+
+            # Write project_fs.json
+            with open(os.path.join(output_dir, "project_fs.json"), "w") as f:
+                json.dump(fs_snapshot, f)
+
+            # 2. Copy static files from preswald installation
+            import shutil
+            from importlib.resources import as_file, files
+
+            with as_file(files("preswald").joinpath("static/index.html")) as path:
+                shutil.copy2(path, os.path.join(output_dir, "index.html"))
+
+            with as_file(files("preswald").joinpath("static/assets")) as path:
+                if os.path.exists(os.path.join(output_dir, "assets")):
+                    shutil.rmtree(os.path.join(output_dir, "assets"))
+                shutil.copytree(path, os.path.join(output_dir, "assets"))
+
+            # 3. Append the boot script to index.html and add branding
+            head_script, body_script = get_boot_script_html(client_type=client)
+
+            # Initialize branding manager
+            from preswald.engine.managers.branding import BrandingManager
+
+            # Set up branding manager with proper paths
+            static_dir = files("preswald") / "static"
+            branding_manager = BrandingManager(static_dir, "images")
+
+            # Get branding configuration
+            branding = branding_manager.get_branding_config_with_data_urls(script)
+
+            # Read the current index.html
+            with open(os.path.join(output_dir, "index.html")) as f:
+                index_content = f.read()
+
+            # Replace title
+            index_content = index_content.replace(
+                "<title>Vite + React</title>", f"<title>{branding['name']}</title>"
+            )
+
+            # Add favicon links
+            favicon_links = f"""    <link rel="icon" type="image/x-icon" href="{branding["favicon"]}" />
+    <link rel="shortcut icon" type="image/x-icon" href="{branding["favicon"]}?timestamp={time.time()}" />"""
+            index_content = re.sub(r'<link[^>]*rel="icon"[^>]*>', "", index_content)
+            index_content = index_content.replace(
+                '<meta charset="UTF-8" />', f'<meta charset="UTF-8" />\n{favicon_links}'
+            )
+
+            # Add branding data and boot script
+            branding_script = (
+                f"<script>window.PRESWALD_BRANDING = {json.dumps(branding)};</script>"
+            )
+            index_content = index_content.replace(
+                "</head>", f"{branding_script}\n{head_script}"
+            )
+
+            # Write back the modified index.html
+            with open(os.path.join(output_dir, "index.html"), "w") as f:
+                f.write(index_content)
+
+            click.echo(f"""
+✨ Export complete! Your interactive HTML app is ready:
+
+   📁 {output_dir}/
+      ├── index.html           # The main HTML file
+      ├── project_fs.json      # Your project files
+      └── assets/             # Required JavaScript and CSS
+
+Note: The app needs to be served via HTTP server - opening index.html directly won't work.
+""")
+
+        except Exception as e:
+            click.echo(f"❌ Export failed: {e!s}")
+            return
 
 
 if __name__ == "__main__":

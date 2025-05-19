@@ -4,10 +4,9 @@ import React, { memo, useEffect } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import { cn } from '@/lib/utils';
-import { comm } from '@/utils/websocket';
-
 // Utilities
 import { createExtractKeyProps } from '@/utils/extractKeyProps';
+import { comm } from '@/utils/websocket';
 
 // Widgets
 import AlertWidget from './widgets/AlertWidget';
@@ -372,7 +371,8 @@ const MemoizedComponent = memo(
       prevProps.component.error === nextProps.component.error &&
       prevProps.index === nextProps.index
     );
-  });
+  }
+);
 
 const DynamicComponents = ({ components, onComponentUpdate }) => {
   useEffect(() => {

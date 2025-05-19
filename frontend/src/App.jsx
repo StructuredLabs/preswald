@@ -16,7 +16,7 @@ const App = () => {
 
   useEffect(() => {
     comm.connect();
-
+    console.log('[App] Connected to comm');
     const unsubscribe = comm.subscribe(handleMessage);
 
     return () => {
@@ -143,12 +143,10 @@ const App = () => {
   };
 
   const updateConnectionStatus = (message) => {
+    console.log('[App] Updating connection status:', message);
     setIsConnected(message.connected);
     setError(message.connected ? null : 'Lost connection. Attempting to reconnect...');
   };
-
-  console.log('[App] Rendering with:', { components, isConnected, error });
-  console.log(window.location.pathname);
 
   return (
     <Router>

@@ -1,5 +1,7 @@
 import { decode } from '@msgpack/msgpack';
 
+import { createWorker } from '../backend/service';
+
 class WebSocketClient {
   constructor() {
     this.socket = null;
@@ -241,7 +243,7 @@ class PostMessageClient {
 
   connect() {
     console.log('[PostMessage] Setting up listener...');
-    window.addEventListener('message', this._handleMessage.bind(this));
+    window.addEventListener('message', this._handleMessage.bind(this)); // This is the real core of the postmessage client
 
     // Assume connected in browser context
     this.isConnected = true;
@@ -373,15 +375,236 @@ class PostMessageClient {
   }
 }
 
+class ComlinkClient {
+  constructor() {
+    console.log('[Client] Initializing ComlinkClient');
+    this.callbacks = new Set();
+    this.componentStates = {};
+    this.isConnected = false;
+    this.pendingUpdates = {};
+    this.worker = null;
+  }
+
+  async connect() {
+    console.log('[Client] Starting connection');
+    try {
+      if (this.isConnected) {
+        console.log('[Client] Already connected');
+        return;
+      }
+
+      console.log('[Client] About to create worker');
+      this.worker = createWorker();
+      console.log('[Client] Worker created');
+
+      console.log('[Client] About to initialize Pyodide');
+      const result = await this.worker.initializePyodide();
+      if (!result.success) {
+        throw new Error('Failed to initialize Pyodide');
+      }
+
+      this.isConnected = true;
+      console.log('[Client] Connection established');
+      this._notifySubscribers({ type: 'connection_status', connected: true });
+
+      console.log('[Client] Loading project fs');
+      const resp = await fetch('project_fs.json');
+      const raw = await resp.json();
+
+      const files = {};
+      for (const [path, entry] of Object.entries(raw)) {
+        if (entry.type === 'text') {
+          files[path] = entry.content;
+        } else if (entry.type === 'binary') {
+          files[path] = Uint8Array.from(atob(entry.content), (c) => c.charCodeAt(0));
+        }
+      }
+
+      await this.worker.loadFilesToFS(files);
+      console.log('[Client] Project fs loaded');
+
+      const scriptResult = await this.worker.runScript(
+        '/project/' + (raw.__entrypoint__ || 'hello.py')
+      );
+
+      if (!scriptResult.success) {
+        throw new Error('Failed to run initial script');
+      }
+
+      this._handleComponentUpdate(scriptResult.components);
+
+      // Process any pending updates
+      const pendingCount = Object.keys(this.pendingUpdates).length;
+      if (pendingCount > 0) {
+        console.log('[Client] Processing pending updates:', pendingCount);
+        for (const [componentId, value] of Object.entries(this.pendingUpdates)) {
+          await this._sendComponentUpdate(componentId, value);
+        }
+        this.pendingUpdates = {};
+      }
+    } catch (error) {
+      console.error('[Client] Connection error:', error);
+      this.isConnected = false;
+      this._notifySubscribers({
+        type: 'error',
+        content: { message: error.message },
+      });
+      throw error;
+    }
+  }
+
+  _handleComponentUpdate(components) {
+    console.log('[Client] Handling component update:', components);
+    if (components?.rows) {
+      components.rows.forEach((row) => {
+        row.forEach((component) => {
+          if (component.id && 'value' in component) {
+            const oldValue = this.componentStates[component.id];
+            if (oldValue !== component.value) {
+              console.log(`[Client] Component ${component.id} value changed:`, {
+                old: oldValue,
+                new: component.value,
+              });
+              this.componentStates[component.id] = component.value;
+            }
+          }
+        });
+      });
+      this._notifySubscribers({
+        type: 'components',
+        components: components,
+      });
+    }
+  }
+
+  disconnect() {
+    console.log('[Client] Disconnecting');
+    if (this.worker) {
+      this.worker.shutdown();
+      this.worker = null;
+      this.isConnected = false;
+      this._notifySubscribers({ type: 'connection_status', connected: false });
+      console.log('[Client] Disconnected');
+    }
+  }
+
+  subscribe(callback) {
+    console.log('[Client] New subscriber added');
+    this.callbacks.add(callback);
+    return () => {
+      console.log('[Client] Subscriber removed');
+      this.callbacks.delete(callback);
+    };
+  }
+
+  _notifySubscribers(message) {
+    console.log('[Client] Notifying subscribers:', message);
+    this.callbacks.forEach((callback) => {
+      try {
+        callback(message);
+      } catch (error) {
+        console.error('[Client] Error in subscriber callback:', error);
+      }
+    });
+  }
+
+  getComponentState(componentId) {
+    return this.componentStates[componentId];
+  }
+
+  async updateComponentState(componentId, value) {
+    console.log(`[Client] Updating state for component ${componentId}:`, value);
+    if (!this.isConnected || !this.worker) {
+      console.log('[Client] Not connected, queueing update');
+      this.pendingUpdates[componentId] = value;
+      throw new Error('Connection not ready');
+    }
+    return this._sendComponentUpdate(componentId, value);
+  }
+
+  async _sendComponentUpdate(componentId, value) {
+    console.log(`[Client] Sending component update - ${componentId}:`, value);
+    try {
+      const result = await this.worker.updateComponent(componentId, value);
+      if (!result.success) {
+        throw new Error('Component update failed');
+      }
+      this._handleComponentUpdate(result.components);
+      return true;
+    } catch (error) {
+      console.error('[Client] Error updating component:', error);
+      this._notifySubscribers({
+        type: 'error',
+        content: { message: error.message },
+      });
+      throw error;
+    }
+  }
+
+  async loadFilesToFS(files) {
+    console.log('[Client] loadFilesToFS', files);
+    if (!this.isConnected || !this.worker) {
+      throw new Error('Connection not ready');
+    }
+    return this.worker.loadFilesToFS(files);
+  }
+
+  async listFilesInDirectory(directoryPath) {
+    console.log('[Client] listFilesInDirectory', directoryPath);
+    if (!this.isConnected || !this.worker) {
+      throw new Error('Connection not ready');
+    }
+    return this.worker.listFilesInDirectory(directoryPath);
+  }
+
+  // 2. run an arbitrary python script ------------
+  async runScript(scriptPath) {
+    console.log('[Client] runScript', scriptPath);
+    if (!this.isConnected || !this.worker) {
+      throw new Error('Connection not ready');
+    }
+    const result = await this.worker.runScript(scriptPath);
+    if (!result.success) {
+      throw new Error('Script execution failed');
+    }
+    this._handleComponentUpdate(result.components);
+    return result;
+  }
+
+  getConnections() {
+    return [];
+  }
+}
+
 export const createCommunicationLayer = () => {
-  // Detect environment: server (WebSocket) or browser (PostMessage)
+  // Check if we have a client type specified in window
+  const clientType = window.__PRESWALD_CLIENT_TYPE || 'auto';
+  console.log('[Communication] Using client type:', clientType);
+
+  // If a specific client type is specified, use it
+  if (clientType === 'websocket') {
+    console.log('[Communication] Using WebSocketClient');
+    return new WebSocketClient();
+  } else if (clientType === 'postmessage') {
+    console.log('[Communication] Using PostMessageClient');
+    return new PostMessageClient();
+  } else if (clientType === 'comlink') {
+    console.log('[Communication] Using ComlinkClient');
+    const client = new ComlinkClient();
+    window.__PRESWALD_COMM = client;
+    window.__PRESWALD_COMM_READY = true;
+    return client;
+  }
+
+  // For 'auto' mode, use the original logic
   const isBrowser = window !== window.top;
   console.log(
-    '[Communication] Detected environment:',
+    '[Communication] Auto-detected environment:',
     isBrowser ? 'browser (iframe)' : 'server (top-level)'
   );
 
   return isBrowser ? new PostMessageClient() : new WebSocketClient();
 };
 
+// Create the communication layer
 export const comm = createCommunicationLayer();
