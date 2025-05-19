@@ -5,6 +5,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import Layout from './components/Layout';
 import LoadingState from './components/LoadingState';
 import Dashboard from './components/pages/Dashboard';
+import EmbedView from './components/pages/EmbedView';
 import { comm } from './utils/websocket';
 
 const App = () => {
@@ -13,8 +14,14 @@ const App = () => {
   const [config, setConfig] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [areComponentsLoading, setAreComponentsLoading] = useState(true);
+  const [isEmbedMode, setIsEmbedMode] = useState(false);
 
   useEffect(() => {
+    // Check if in embed mode (either from URL or from window.EMBED_CONFIG)
+    const isEmbed = window.location.pathname.startsWith('/embed') || 
+                   (window.EMBED_CONFIG && window.EMBED_CONFIG.embed_mode);
+    setIsEmbedMode(isEmbed);
+    
     comm.connect();
 
     const unsubscribe = comm.subscribe(handleMessage);
@@ -147,8 +154,12 @@ const App = () => {
     setError(message.connected ? null : 'Lost connection. Attempting to reconnect...');
   };
 
-  console.log('[App] Rendering with:', { components, isConnected, error });
-  console.log(window.location.pathname);
+  console.log('[App] Rendering with:', { components, isConnected, error, isEmbedMode });
+
+  // If in embed mode, render the EmbedView directly without Layout
+  if (isEmbedMode) {
+    return <EmbedView />;
+  }
 
   return (
     <Router>

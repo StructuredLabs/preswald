@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preswald Component Embedding Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            color: #2c3e50;
+        }
+        .example-container {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .component-container {
+            margin-top: 20px;
+            border: 1px solid #eee;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Preswald Component Embedding Demo</h1>
+    
+    <p>This page demonstrates how to embed Preswald components in external web pages.</p>
+    
+    <div class="example-container">
+        <h2>Embedding a Specific Component</h2>
+        <p>Below is an embedded card component with ID <code>embeddable_card</code>:</p>
+        
+        <div class="component-container">
+            <!-- Replace the URL with your actual server URL -->
+            <iframe 
+                src="http://localhost:8000/embed?component_id=embeddable_card" 
+                width="100%" 
+                height="200" 
+                frameborder="0">
+            </iframe>
+        </div>
+        
+        <p>HTML code:</p>
+        <pre><code>&lt;iframe 
+    src="http://localhost:8000/embed?component_id=embeddable_card" 
+    width="100%" 
+    height="200" 
+    frameborder="0"&gt;
+&lt;/iframe&gt;</code></pre>
+    </div>
+    
+    <div class="example-container">
+        <h2>Embedding a Plot Component</h2>
+        <p>Below is an embedded plot component with ID <code>sample_plot</code>:</p>
+        
+        <div class="component-container">
+            <!-- Replace the URL with your actual server URL -->
+            <iframe 
+                src="http://localhost:8000/embed?component_id=sample_plot" 
+                width="100%" 
+                height="350" 
+                frameborder="0">
+            </iframe>
+        </div>
+        
+        <p>HTML code:</p>
+        <pre><code>&lt;iframe 
+    src="http://localhost:8000/embed?component_id=sample_plot" 
+    width="100%" 
+    height="350" 
+    frameborder="0"&gt;
+&lt;/iframe&gt;</code></pre>
+    </div>
+    
+    <div class="example-container">
+        <h2>Embedding the Entire App</h2>
+        <p>You can also embed the entire application:</p>
+        
+        <div class="component-container">
+            <!-- Replace the URL with your actual server URL -->
+            <iframe 
+                src="http://localhost:8000/embed" 
+                width="100%" 
+                height="500" 
+                frameborder="0">
+            </iframe>
+        </div>
+        
+        <p>HTML code:</p>
+        <pre><code>&lt;iframe 
+    src="http://localhost:8000/embed" 
+    width="100%" 
+    height="500" 
+    frameborder="0"&gt;
+&lt;/iframe&gt;</code></pre>
+    </div>
+    
+    <p><strong>Note:</strong> Make sure the Preswald server is running with the <code>embed_example.py</code> script before viewing this page.</p>
+</body>
+</html> 

@@ -19,10 +19,13 @@ from preswald.utils import reactivity_explicitly_disabled
 logger = logging.getLogger(__name__)
 
 
-def create_app(script_path: str | None = None) -> FastAPI:
+def create_app(script_path: str | None = None, embed: bool = False) -> FastAPI:
     """Create and configure the FastAPI application"""
     app = FastAPI()
     service = PreswaldService.initialize(script_path)
+    
+    # Store embed mode in the service
+    service.embed_mode = embed
 
     if reactivity_explicitly_disabled():
         service.disable_reactivity()
@@ -62,6 +65,24 @@ def _register_static_routes(app: FastAPI):
             return _handle_index_request(app.state.service)
         except Exception as e:
             logger.error(f"Error serving index: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error") from e
+    
+    @app.get("/embed")
+    async def serve_embed_app():
+        """Serve the full app in embed mode"""
+        try:
+            return _handle_embed_request(app.state.service)
+        except Exception as e:
+            logger.error(f"Error serving embed view: {e}")
+            raise HTTPException(status_code=500, detail="Internal server error") from e
+    
+    @app.get("/embed/{component_id}")
+    async def serve_embed_component(component_id: str):
+        """Serve a specific component in embed mode"""
+        try:
+            return _handle_embed_request(app.state.service, component_id)
+        except Exception as e:
+            logger.error(f"Error serving component embed view: {e}")
             raise HTTPException(status_code=500, detail="Internal server error") from e
 
     @app.get("/favicon.ico")
@@ -142,10 +163,10 @@ def render_once(script_path: str) -> dict:
     return service.get_rendered_components()
 
 
-def start_server(script: str | None = None, port: int = 8501):
+def start_server(script: str | None = None, port: int = 8501, embed: bool = False):
     """Start the FastAPI server"""
-    app = create_app(script)
-
+    app = create_app(script, embed=embed)
+    
     config = uvicorn.Config(app, host="0.0.0.0", port=port, loop="asyncio")
     server = uvicorn.Server(config)
 
@@ -163,6 +184,13 @@ def start_server(script: str | None = None, port: int = 8501):
 
     signal.signal(signal.SIGINT, sync_handle_shutdown)
     signal.signal(signal.SIGTERM, sync_handle_shutdown)
+
+    # Log embedding info if in embed mode
+    if embed:
+        embed_url = f"http://localhost:{port}/embed"
+        logger.info(f"🖼️ Running in embed mode - use this URL for embedding: {embed_url}")
+        logger.info("📋 Embed code example:")
+        logger.info(f"<iframe src=\"{embed_url}\" width=\"100%\" height=\"600\" frameborder=\"0\"></iframe>")
 
     try:
         import asyncio
@@ -261,3 +289,60 @@ def _handle_favicon_request(service: PreswaldService) -> HTMLResponse:
     except Exception as e:
         logger.error(f"Error serving index: {e}")
         raise HTTPException(status_code=500, detail="Internal server error") from e
+
+
+def _handle_embed_request(service: PreswaldService, component_id: str | None = None) -> HTMLResponse:
+    """
+    Handle embed requests for full app or specific components.
+    
+    Args:
+        service: The PreswaldService instance
+        component_id: Optional component ID to embed just one component
+        
+    Returns:
+        HTMLResponse with the embedded content
+    """
+    try:
+        # Get the index.html content as a base
+        with open(os.path.join(service.branding_manager.static_dir, "index.html"), "r") as f:
+            html_content = f.read()
+            
+        # Extract branding information
+        branding = {}
+        if hasattr(service, "branding_manager") and service.branding_manager:
+            branding = service.branding_manager.get_branding_config_with_data_urls(
+                service.script_path or ""
+            )
+            
+        # Inject component_id if specified
+        embed_config = {
+            "embed_mode": True,
+            "component_id": component_id
+        }
+        
+        # Inject the embed configuration into the HTML
+        html_content = html_content.replace(
+            "</head>",
+            f"<script>window.EMBED_CONFIG = {json.dumps(embed_config)};</script></head>"
+        )
+        
+        # Inject branding if available
+        if branding:
+            html_content = html_content.replace(
+                "</head>",
+                f"<script>window.PRESWALD_BRANDING = {json.dumps(branding)};</script></head>"
+            )
+        
+        # Add special headers for embedding
+        response = HTMLResponse(content=html_content)
+        
+        # Set headers to allow embedding in iframes
+        response.headers["X-Frame-Options"] = "ALLOWALL"
+        response.headers["Content-Security-Policy"] = "frame-ancestors *"
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error handling embed request: {e}")
+        raise HTTPException(status_code=500, detail="Error serving embedded content") from e

@@ -41,6 +41,7 @@ class BasePreswaldService:
         self._script_path: str | None = None
         self._is_shutting_down: bool = False
         self._render_buffer = RenderBuffer()
+        self._embed_mode: bool = False  # Flag for embed mode
 
         # DAG workflow engine
         self._workflow = Workflow(service=self)
@@ -105,6 +106,17 @@ class BasePreswaldService:
     @property
     def is_reactivity_enabled(self):
         return self._reactivity_enabled
+
+    @property
+    def embed_mode(self) -> bool:
+        """Get the embed mode status."""
+        return self._embed_mode
+
+    @embed_mode.setter
+    def embed_mode(self, value: bool):
+        """Set embed mode status."""
+        self._embed_mode = value
+        logger.info(f"Embed mode set to: {value}")
 
     def _ensure_dummy_atom(self, atom_name: str):
         """
@@ -301,7 +313,26 @@ class BasePreswaldService:
         rows = self._layout_manager.get_layout()
         return {"rows": rows}
 
+    def get_component(self, component_id: str) -> dict | None:
+        """
+        Get a specific component by its ID.
+        
+        Args:
+            component_id: The ID of the component to retrieve
+            
+        Returns:
+            The component dictionary or None if not found
+        """
+        components = self._layout_manager.get_layout()
+        for row in components:
+            for component in row:
+                if component.get("id") == component_id:
+                    return component
+                    
+        return None
+
     def get_workflow(self) -> Workflow:
+        """Get the workflow instance."""
         return self._workflow
 
     async def handle_client_message(self, client_id: str, message: Dict[str, Any]):
