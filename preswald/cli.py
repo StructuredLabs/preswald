@@ -175,7 +175,13 @@ def init(name, template):
     default=False,
     help="Disable automatically opening a new browser tab",
 )
-def run(port, log_level, disable_new_tab):
+@click.option(
+    "--embed",
+    is_flag=True,
+    default=False,
+    help="Run in embed mode (for iframe embedding)",
+)
+def run(port, log_level, disable_new_tab, embed):
     """
     Run a Preswald app from the current directory.
 
@@ -221,6 +227,7 @@ def run(port, log_level, disable_new_tab):
             "port": port,
             "log_level": log_level,
             "disable_new_tab": disable_new_tab,
+            "embed": embed,
         },
     )
 
@@ -233,7 +240,7 @@ def run(port, log_level, disable_new_tab):
 
             webbrowser.open(url)
 
-        start_server(script=script, port=port)
+        start_server(script=script, port=port, embed=embed)
 
     except Exception as e:
         click.echo(f"Error: {e}")
