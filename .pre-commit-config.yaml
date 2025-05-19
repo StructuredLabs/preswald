@@ -3,17 +3,19 @@ repos:
     hooks:
       - id: ruff-format
         name: ruff (format)
-        entry: ruff format
-        language: system
+        entry: python -m ruff format
+        language: python
         types: [python]
-        exclude: ^setup\.py$
+        exclude: ^(setup\.py|\.history/.*)$
+        additional_dependencies: [ruff]
 
       - id: ruff-lint
         name: ruff (lint)
-        entry: ruff check
-        language: system
+        entry: python -m ruff check
+        language: python
         types: [python]
-        exclude: ^(setup\.py|community_gallery/.*)$
+        exclude: ^(setup\.py|community_gallery/.*|\.history/.*)$
+        additional_dependencies: [ruff]
 
       - id: prettier
         name: prettier

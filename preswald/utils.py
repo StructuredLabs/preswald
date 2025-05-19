@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 IS_PYODIDE = "pyodide" in sys.modules
 
+
 def read_disable_reactivity(config_path: str) -> bool:
     """
     Read the --disable-reactivity flag from the TOML config.
@@ -33,6 +34,7 @@ def read_disable_reactivity(config_path: str) -> bool:
         logger.warning(f"Could not load disable_reactivity from {config_path}: {e}")
     return False
 
+
 def reactivity_explicitly_disabled(config_path: str = "preswald.toml") -> bool:
     """Check if reactivity is disabled in project configuration."""
     try:
@@ -40,6 +42,7 @@ def reactivity_explicitly_disabled(config_path: str = "preswald.toml") -> bool:
     except Exception as e:
         logger.warning(f"[is_app_reactivity_disabled] Failed to read config: {e}")
         return False
+
 
 def read_template(template_name, template_id=None):
     """Read a template file from the package.
@@ -81,6 +84,26 @@ def read_port_from_config(config_path: str, port: int):
         print(f"Warning: Could not load port config from {config_path}: {e}")
 
 
+def get_timestamp_format(config: dict) -> str:
+    """
+    Get the timestamp format from config or return default.
+
+    Args:
+        config: Logging configuration dictionary
+
+    Returns:
+        str: Timestamp format string
+    """
+    # Default format with millisecond precision
+    default_format = "%Y-%m-%d %H:%M:%S.%f"
+
+    if not config:
+        return default_format
+
+    timestamp_format = config.get("timestamp_format", default_format)
+    return timestamp_format
+
+
 def configure_logging(config_path: str | None = None, level: str | None = None):
     """
     Configure logging globally for the application.
@@ -93,6 +116,8 @@ def configure_logging(config_path: str | None = None, level: str | None = None):
     log_config = {
         "level": "INFO",
         "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        "timestamp_format": "%Y-%m-%d %H:%M:%S.%f",  # Default with millisecond precision
+        "timezone": "UTC",  # Default timezone
     }
 
     # Try to load from config file
@@ -112,16 +137,19 @@ def configure_logging(config_path: str | None = None, level: str | None = None):
     if level is not None:
         log_config["level"] = level
 
-    # Configure logging
+    # Configure logging with custom timestamp format
     logging.basicConfig(
         level=getattr(logging, log_config["level"].upper()),
         format=log_config["format"],
+        datefmt=log_config["timestamp_format"],
         force=True,  # This resets any existing handlers
     )
 
     # Create logger for this module
     logger = logging.getLogger(__name__)
-    logger.debug(f"Logging configured with level {log_config['level']}")
+    logger.debug(
+        f"Logging configured with level {log_config['level']} and timestamp format {log_config['timestamp_format']}"
+    )
 
     return log_config["level"]
 
@@ -187,7 +215,9 @@ def generate_stable_id(
     """
     if identifier:
         hashed = hashlib.md5(identifier.lower().encode()).hexdigest()[:8]
-        logger.debug(f"[generate_stable_id] Using provided identifier to generate hash {hashed=}")
+        logger.debug(
+            f"[generate_stable_id] Using provided identifier to generate hash {hashed=}"
+        )
         return f"{prefix}-{hashed}"
 
     fallback_callsite = "unknown:0"
@@ -199,10 +229,14 @@ def generate_stable_id(
                 int(lineno)  # Validate it's a number
                 callsite_hint = f"{filename}:{lineno}"
             except ValueError:
-                logger.warning(f"[generate_stable_id] Invalid line number in callsite_hint {callsite_hint=}")
+                logger.warning(
+                    f"[generate_stable_id] Invalid line number in callsite_hint {callsite_hint=}"
+                )
                 callsite_hint = None
         else:
-            logger.warning(f"[generate_stable_id] Invalid callsite_hint format (missing colon) {callsite_hint=}")
+            logger.warning(
+                f"[generate_stable_id] Invalid callsite_hint format (missing colon) {callsite_hint=}"
+            )
             callsite_hint = None
 
     if not callsite_hint:
@@ -218,7 +252,9 @@ def generate_stable_id(
                     if IS_PYODIDE:
                         # In Pyodide: skip anything in /lib/, allow /main.py etc.
                         if not filepath.startswith("/lib/"):
-                            logger.debug(f"[generate_stable_id] [Pyodide] Found user code: {filepath}:{info.lineno}")
+                            logger.debug(
+                                f"[generate_stable_id] [Pyodide] Found user code: {filepath}:{info.lineno}"
+                            )
                             return f"{filepath}:{info.lineno}"
                     else:
                         # In native: skip stdlib, site-packages, and preswald internals
@@ -227,12 +263,16 @@ def generate_stable_id(
                         in_stdlib = filepath.startswith(sys.base_prefix)
 
                         if not (in_preswald_src or in_venv or in_stdlib):
-                            logger.debug(f"[generate_stable_id] Found user code: {filepath}:{info.lineno}")
+                            logger.debug(
+                                f"[generate_stable_id] Found user code: {filepath}:{info.lineno}"
+                            )
                             return f"{filepath}:{info.lineno}"
 
                     frame = frame.f_back
 
-                logger.warning("[generate_stable_id] No valid callsite found, falling back to default")
+                logger.warning(
+                    "[generate_stable_id] No valid callsite found, falling back to default"
+                )
                 return fallback_callsite
             finally:
                 del frame
@@ -240,11 +280,15 @@ def generate_stable_id(
         callsite_hint = get_callsite_id()
 
     hashed = hashlib.md5(callsite_hint.encode()).hexdigest()[:8]
-    logger.debug(f"[generate_stable_id] Using final callsite_hint to generate hash {hashed=} {callsite_hint=}")
+    logger.debug(
+        f"[generate_stable_id] Using final callsite_hint to generate hash {hashed=} {callsite_hint=}"
+    )
     return f"{prefix}-{hashed}"
 
 
-def generate_stable_atom_name_from_component_id(component_id: str, prefix: str = "_auto_atom") -> str:
+def generate_stable_atom_name_from_component_id(
+    component_id: str, prefix: str = "_auto_atom"
+) -> str:
     """
     Convert a stable component ID into a corresponding atom name.
     Normalizes the suffix and replaces hyphens with underscores.
@@ -263,7 +307,9 @@ def generate_stable_atom_name_from_component_id(component_id: str, prefix: str =
         hash_part = component_id.rsplit("-", 1)[-1]
         return f"{prefix}_{hash_part}"
 
-    logger.warning(f"[generate_stable_atom_name_from_component_id] Unexpected component_id format {component_id=}")
+    logger.warning(
+        f"[generate_stable_atom_name_from_component_id] Unexpected component_id format {component_id=}"
+    )
     return generate_stable_id(prefix)
 
 
