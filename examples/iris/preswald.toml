@@ -18,3 +18,6 @@ path = "data/iris.csv"
 [logging]
 level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
 format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+[debug]
+enabled = true

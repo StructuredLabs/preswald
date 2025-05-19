@@ -96,9 +96,22 @@ def _register_websocket_routes(app: FastAPI):
         try:
             await app.state.service.register_client(client_id, websocket)
             try:
-                while not app.state.service._is_shutting_down:
-                    message = await websocket.receive_json()
-                    await app.state.service.handle_client_message(client_id, message)
+                branding = app.state.service.branding_manager.get_branding_config(
+                    app.state.service.script_path
+                )
+                if branding["debug"]:
+                    while not app.state.service._is_shutting_down:
+                        await app.state.service._broadcast_debug_state()
+                        message = await websocket.receive_json()
+                        await app.state.service.handle_client_message(
+                            client_id, message
+                        )
+                else:
+                    while not app.state.service._is_shutting_down:
+                        message = await websocket.receive_json()
+                        await app.state.service.handle_client_message(
+                            client_id, message
+                        )
             except WebSocketDisconnect:
                 logger.info(f"Client disconnected: {client_id}")
             finally:

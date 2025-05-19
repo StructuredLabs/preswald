@@ -51,6 +51,7 @@ class ScriptRunner:
         self._run_count = 0
         self._lock = threading.Lock()
         self._script_globals = {}
+        self._script_locals = {}
 
         from .service import PreswaldService # deferred import to avoid cyclic dependency
         self._service = PreswaldService.get_instance()
@@ -344,10 +345,10 @@ class ScriptRunner:
                 script_dir = os.path.dirname(os.path.realpath(self.script_path))
                 os.chdir(script_dir)
 
-                def compile_and_run(src_code, script_path, script_globals, execution_context):
+                def compile_and_run(src_code, script_path, script_globals, script_locals, execution_context):
                     code = compile(src_code, script_path, "exec")
                     logger.debug(f"[ScriptRunner] Script compiled {script_path=}")
-                    exec(code, script_globals)
+                    exec(code, script_globals, script_locals)
                     logger.debug(f"[ScriptRunner] Script executed {execution_context}")
 
                 try:
@@ -355,10 +356,10 @@ class ScriptRunner:
                         # Attempt reactive transformation
                         tree, _ = transform_source(raw_code, filename=self.script_path)
                         self._script_globals["workflow"] = workflow
-                        compile_and_run(tree, self.script_path, self._script_globals, "(reactive)")
+                        compile_and_run(tree, self.script_path, self._script_globals, self._script_locals, "(reactive)")
                         workflow.execute_relevant_atoms()
                     else:
-                        compile_and_run(raw_code, self.script_path, self._script_globals, "(non-reactive)")
+                        compile_and_run(raw_code, self.script_path, self._script_globals, self._script_locals, "(non-reactive)")
                         workflow.reset() # just to be safe
 
                 except Exception as transform_error:
@@ -377,7 +378,7 @@ class ScriptRunner:
                         "widget_states": self.widget_states,
                     }
 
-                    compile_and_run(raw_code, self.script_path, self._script_globals, "(fallback, non-reactive)")
+                    compile_and_run(raw_code, self.script_path, self._script_globals, self._script_locals, "(fallback, non-reactive)")
 
                 os.chdir(current_working_dir)
 
