@@ -44,7 +44,7 @@ format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 - `title`: Name of the app displayed in the interface.
 - `version`: Version of the app.
 - `port`: Port the app runs on (default is `8501`).
-- `disable_reactivity`: (optional) Set to true to disable Preswald’s reactive runtime. When disabled, Preswald will rerun the entire script on every update instead of selectively recomputing affected parts using its dependency graph (DAG). This can be useful for debugging, performance benchmarking, or in environments where reactivity fallback is expected.
+- `disable_reactivity`: (optional) Set to true to disable Preswald's reactive runtime. When disabled, Preswald will rerun the entire script on every update instead of selectively recomputing affected parts using its dependency graph (DAG). This can be useful for debugging, performance benchmarking, or in environments where reactivity fallback is expected.
 
 ### `[branding]`
 
@@ -197,6 +197,16 @@ The `[logging]` section allows you to control the verbosity and format of logs g
   - `%(name)s`: Name of the logger.
   - `%(levelname)s`: Severity level of the log.
   - `%(message)s`: Log message content.
+- `timestamp_format`: Specifies the format of the timestamp in logs. Uses Python's datetime format codes:
+  - `%Y`: Year with century (e.g., 2024)
+  - `%m`: Month as zero-padded number (01-12)
+  - `%d`: Day as zero-padded number (01-31)
+  - `%H`: Hour (24-hour clock) as zero-padded number (00-23)
+  - `%M`: Minute as zero-padded number (00-59)
+  - `%S`: Second as zero-padded number (00-59)
+  - `%f`: Microseconds as zero-padded number (000000-999999)
+  - `%z`: UTC offset (+HHMM or -HHMM)
+- `timezone`: Specifies the timezone for timestamps (default: "UTC")
 
 ### Example Logging Setup:
 
@@ -204,9 +214,11 @@ The `[logging]` section allows you to control the verbosity and format of logs g
 [logging]
 level = "DEBUG"
 format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+timestamp_format = "%Y-%m-%d %H:%M:%S.%f"  # Includes millisecond precision
+timezone = "UTC"
 ```
 
-This configuration generates detailed logs, including timestamps, logger names, and log messages.
+This configuration generates detailed logs with millisecond precision timestamps in UTC timezone.
 
 ---
 
