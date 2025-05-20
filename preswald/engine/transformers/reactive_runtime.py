@@ -59,6 +59,8 @@ class AutoAtomTransformer(ast.NodeTransformer):
         self.variable_to_atom = {}
         self._used_linenos = set()
         self._artificial_lineno = ARTIFICIAL_LINE_NUMBER_START
+        self.known_components = self._discover_known_components()
+        self.tuple_returning_atoms = set()
 
     def _discover_known_components(self) -> set[str]:
         """
@@ -804,7 +806,12 @@ class AutoAtomTransformer(ast.NodeTransformer):
         logger.info("[AST] Inserted import statements for lifted atoms and workflow execution")
         return node
 
-    def _replace_dep_args(self, call: ast.AST, param_mapping: dict[str, str], variable_map: dict[str, str] | None = None) -> ast.AST:
+    def _replace_dep_args(
+        self,
+        call: ast.AST,
+        param_mapping: dict[str, str],
+        variable_map: dict[str, str] | None = None
+    ) -> ast.AST:
         """
         Rewrites variable references in an AST expression to use parameter names based on dependency mapping.
 
@@ -826,34 +833,56 @@ class AutoAtomTransformer(ast.NodeTransformer):
         """
         variable_map = variable_map or self.variable_to_atom
 
+        # Invert variable_map to allow index lookup
+        atom_to_vars: dict[str, list[str]] = defaultdict(list)
+        for var, atom in variable_map.items():
+            atom_to_vars[atom].append(var)
+
         class DependencyReplacer(ast.NodeTransformer):
-            def __init__(self, variable_to_atom: dict[str, str], param_mapping: dict[str, str]):
+            def __init__(
+                self,
+                variable_to_atom: dict[str, str],
+                param_mapping: dict[str, str],
+                tuple_returning_atoms: set[str]
+            ):
                 self.variable_to_atom = variable_to_atom
                 self.param_mapping = param_mapping
+                self.tuple_returning_atoms = tuple_returning_atoms
 
-            def visit_Name(self, node: ast.Name) -> ast.AST: # noqa: N802
+            def visit_Name(self, node: ast.Name) -> ast.AST:  # noqa: N802
                 if not isinstance(node.ctx, ast.Load):
-                    return node  # Skip Store/Del contexts
+                    return node
 
-                atom = self.variable_to_atom.get(node.id)
-                mapped = self.param_mapping.get(atom)
+                var_name = node.id
+                atom = self.variable_to_atom.get(var_name)
+                param = self.param_mapping.get(atom)
 
-                if mapped:
-                    if logger.isEnabledFor(logging.DEBUG):
-                        logger.debug("[AST] Replacing dependency %s -> %s (from atom=%s)", node.id, mapped, atom)
-                    return ast.Name(id=mapped, ctx=ast.Load())
+                if not atom or not param:
+                    return node
 
-                return node
+                if atom in self.tuple_returning_atoms:
+                    try:
+                        index = atom_to_vars[atom].index(var_name)
+                        return ast.Subscript(
+                            value=ast.Name(id=param, ctx=ast.Load()),
+                            slice=ast.Constant(value=index),
+                            ctx=ast.Load()
+                        )
+                    except ValueError:
+                        logger.warning(f"[AST] Could not determine tuple index for {var_name=} from {atom=}")
+                        return node
+                else:
+                    return ast.Name(id=param, ctx=ast.Load())
 
-            def visit_FormattedValue(self, node: ast.FormattedValue) -> ast.FormattedValue: # noqa: N802
+            def visit_FormattedValue(self, node: ast.FormattedValue) -> ast.FormattedValue:  # noqa: N802
                 node.value = self.visit(node.value)
                 return node
 
-            def visit_JoinedStr(self, node: ast.JoinedStr) -> ast.JoinedStr: # noqa: N802
+            def visit_JoinedStr(self, node: ast.JoinedStr) -> ast.JoinedStr:  # noqa: N802
                 node.values = [self.visit(value) for value in node.values]
                 return node
 
-        return DependencyReplacer(variable_map, param_mapping).visit(call)
+        return DependencyReplacer(variable_map, param_mapping, self.tuple_returning_atoms).visit(call)
 
     def visit_Call(self, node: ast.Call) -> ast.AST: # noqa: N802
         """
@@ -1253,4 +1282,7 @@ def transform_source(source: str, filename: str = "<script>") -> tuple[ast.Modul
         source_code = ast.unparse(new_tree)
         logger.debug("Transformed source code:\n%s", source_code)
 
+    source_code = ast.unparse(new_tree)
+    logger.info("Transformed source code:\n%s", source_code)
+    
     return new_tree, transformer.atoms
