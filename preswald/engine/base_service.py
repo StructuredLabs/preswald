@@ -290,7 +290,10 @@ class BasePreswaldService:
             elif producer != self._current_atom:
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug(f"[DAG] Registering dynamic dependency {self._current_atom=} {producer=}")
-                self._workflow.atoms[self._current_atom].dependencies.add(producer)
+
+                atom = self._workflow.atoms[self._current_atom]
+                if producer not in atom.dependencies and producer in self._workflow.atoms:
+                    atom.dependencies.append(producer)
             else:
                 logger.info(f"[DAG] Producer matches current atom; skipping dependency {self._current_atom=} {component_id=}")
 

@@ -14,6 +14,7 @@ from typing import Any, Optional
 import networkx as nx
 import plotly.graph_objects as go
 
+from preswald.interfaces.component_return import ComponentReturn
 from preswald.interfaces.tracked_value import TrackedValue
 
 
@@ -251,7 +252,13 @@ class Workflow:
                 k for k, v in inspect.signature(raw_func).parameters.items()
                 if v.kind not in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD)
             ]
-            atom_deps = dependencies if dependencies is not None else inferred_deps
+
+            seen = set()
+            ordered_deps = [
+                dep for dep in (dependencies if dependencies is not None else inferred_deps)
+                if not (dep in seen or seen.add(dep))
+            ]
+            atom_deps = ordered_deps
 
             atom = Atom(
                 name=atom_name,
@@ -337,9 +344,12 @@ class Workflow:
     def register_component_producer(self, component_id: str, atom_name: str):
         """Link a component ID to its producing atom for DAG traceability."""
         logger.info(f"[DAG] Registering component producer {component_id=} {atom_name=}")
-        self._component_producers[component_id] = atom_name
-        if self._current_atom:
-            logger.info(f"[DAG] Component registered while atom was active {self._current_atom=}")
+        if atom_name in self.atoms:
+            self._component_producers[component_id] = atom_name
+            if self._current_atom:
+                logger.info(f"[DAG] Component registered while atom was active self._current_atom={self._current_atom}")
+        else:
+            logger.warning(f"[DAG] Skipping producer registration for unknown atom {atom_name=}")
 
     def _get_affected_atoms(self, changed_atoms: set[str]) -> set[str]:
         """
@@ -482,6 +492,16 @@ class Workflow:
                     logger.debug(f"[DAG] Executing atom {atom.name=} {args=}")
 
                 result = atom.func(*args)
+
+                if self._service:
+                    if isinstance(result, ComponentReturn):
+                        logger.info('[DEBUG] - register_component_producer from workflow _execute_inner')
+                        self.register_component_producer(result.component_id, atom.name)
+                    elif isinstance(result, tuple):
+                        for item in result:
+                            if isinstance(item, ComponentReturn):
+                                logger.info('[DEBUG] - register_component_producer from workflow _execute_inner. result is tuple.')
+                                self.register_component_producer(item.component_id, atom.name)
 
                 end_time = time.time()
                 atom_result = AtomResult(
