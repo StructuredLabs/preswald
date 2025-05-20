@@ -1174,7 +1174,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         self.generated_atoms.append(new_func)
 
         # Register its dependencies for future rewrites
-        self.dependencies[atom_name] = callsite_deps
+        self.dependencies[atom_name] = set(callsite_deps)
 
         # Return a call to the new atom, passing in the original variable names
         return self._make_callsite(atom_name, dep_names)
