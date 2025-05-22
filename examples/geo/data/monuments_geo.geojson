@@ -1,0 +1,500 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m001",
+                "name": "Statue of Liberty",
+                "location": "New York, USA",
+                "year_built": 1886,
+                "visitors_per_year": 4300000
+            },
+            "geometry": { "type": "Point", "coordinates": [-74.0445, 40.6892] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m002",
+                "name": "Eiffel Tower",
+                "location": "Paris, France",
+                "year_built": 1889,
+                "visitors_per_year": 7000000
+            },
+            "geometry": { "type": "Point", "coordinates": [2.2945, 48.8584] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m003",
+                "name": "Taj Mahal",
+                "location": "Agra, India",
+                "year_built": 1643,
+                "visitors_per_year": 8000000
+            },
+            "geometry": { "type": "Point", "coordinates": [78.0421, 27.1751] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m004",
+                "name": "Colosseum",
+                "location": "Rome, Italy",
+                "year_built": 80,
+                "visitors_per_year": 7500000
+            },
+            "geometry": { "type": "Point", "coordinates": [12.4922, 41.8902] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m005",
+                "name": "Big Ben",
+                "location": "London, UK",
+                "year_built": 1859,
+                "visitors_per_year": 3000000
+            },
+            "geometry": { "type": "Point", "coordinates": [-0.1246, 51.5007] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m006",
+                "name": "Christ the Redeemer",
+                "location": "Rio de Janeiro, Brazil",
+                "year_built": 1931,
+                "visitors_per_year": 2000000
+            },
+            "geometry": { "type": "Point", "coordinates": [-43.2105, -22.9519] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m007",
+                "name": "Great Wall of China",
+                "location": "Beijing, China",
+                "year_built": -700,
+                "visitors_per_year": 10000000
+            },
+            "geometry": { "type": "Point", "coordinates": [116.5704, 40.4319] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m008",
+                "name": "Sydney Opera House",
+                "location": "Sydney, Australia",
+                "year_built": 1973,
+                "visitors_per_year": 8200000
+            },
+            "geometry": { "type": "Point", "coordinates": [151.2153, -33.8568] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m009",
+                "name": "Petra",
+                "location": "Ma'an, Jordan",
+                "year_built": -300,
+                "visitors_per_year": 1000000
+            },
+            "geometry": { "type": "Point", "coordinates": [35.4444, 30.3285] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m010",
+                "name": "Angkor Wat",
+                "location": "Siem Reap, Cambodia",
+                "year_built": 1150,
+                "visitors_per_year": 2500000
+            },
+            "geometry": { "type": "Point", "coordinates": [103.866986, 13.412469] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m011",
+                "name": "Mount Rushmore",
+                "location": "South Dakota, USA",
+                "year_built": 1941,
+                "visitors_per_year": 2000000
+            },
+            "geometry": { "type": "Point", "coordinates": [-103.4591, 43.8791] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m012",
+                "name": "Acropolis of Athens",
+                "location": "Athens, Greece",
+                "year_built": -447,
+                "visitors_per_year": 2000000
+            },
+            "geometry": { "type": "Point", "coordinates": [23.7266, 37.9715] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m013",
+                "name": "Chichen Itza",
+                "location": "Yucatán, Mexico",
+                "year_built": 600,
+                "visitors_per_year": 2700000
+            },
+            "geometry": { "type": "Point", "coordinates": [-88.5678, 20.6843] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m014",
+                "name": "Machu Picchu",
+                "location": "Cusco Region, Peru",
+                "year_built": 1450,
+                "visitors_per_year": 1500000
+            },
+            "geometry": { "type": "Point", "coordinates": [-72.5450, -13.1631] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m015",
+                "name": "Burj Khalifa",
+                "location": "Dubai, UAE",
+                "year_built": 2010,
+                "visitors_per_year": 6500000
+            },
+            "geometry": { "type": "Point", "coordinates": [55.2744, 25.1972] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m016",
+                "name": "Golden Gate Bridge",
+                "location": "San Francisco, USA",
+                "year_built": 1937,
+                "visitors_per_year": 10000000
+            },
+            "geometry": { "type": "Point", "coordinates": [-122.4783, 37.8199] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m017",
+                "name": "Hagia Sophia",
+                "location": "Istanbul, Turkey",
+                "year_built": 537,
+                "visitors_per_year": 3700000
+            },
+            "geometry": { "type": "Point", "coordinates": [28.9799, 41.0086] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m018",
+                "name": "Brandenburg Gate",
+                "location": "Berlin, Germany",
+                "year_built": 1791,
+                "visitors_per_year": 1200000
+            },
+            "geometry": { "type": "Point", "coordinates": [13.3777, 52.5163] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m019",
+                "name": "Alhambra",
+                "location": "Granada, Spain",
+                "year_built": 1333,
+                "visitors_per_year": 2500000
+            },
+            "geometry": { "type": "Point", "coordinates": [-3.5881, 37.1761] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m020",
+                "name": "Neuschwanstein Castle",
+                "location": "Bavaria, Germany",
+                "year_built": 1886,
+                "visitors_per_year": 1400000
+            },
+            "geometry": { "type": "Point", "coordinates": [10.7498, 47.5576] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m021",
+                "name": "Sagrada Familia",
+                "location": "Barcelona, Spain",
+                "year_built": 1882,
+                "visitors_per_year": 4500000
+            },
+            "geometry": { "type": "Point", "coordinates": [2.1744, 41.4036] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m022",
+                "name": "Tower of London",
+                "location": "London, UK",
+                "year_built": 1078,
+                "visitors_per_year": 3000000
+            },
+            "geometry": { "type": "Point", "coordinates": [-0.0761, 51.5081] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m023",
+                "name": "Versailles Palace",
+                "location": "Versailles, France",
+                "year_built": 1682,
+                "visitors_per_year": 7800000
+            },
+            "geometry": { "type": "Point", "coordinates": [2.1204, 48.8049] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m024",
+                "name": "Edinburgh Castle",
+                "location": "Edinburgh, Scotland",
+                "year_built": 1103,
+                "visitors_per_year": 2200000
+            },
+            "geometry": { "type": "Point", "coordinates": [-3.2005, 55.9486] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m025",
+                "name": "Forbidden City",
+                "location": "Beijing, China",
+                "year_built": 1420,
+                "visitors_per_year": 17000000
+            },
+            "geometry": { "type": "Point", "coordinates": [116.3975, 39.9163] }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "id": "m013",
+                "name": "Red Fort",
+                "location": "Delhi, India",
+                "year_built": 1648,
+                "visitors_per_year": 3000000
+            },
+            "geometry": { "type": "Point", "coordinates": [77.2410, 28.6562] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "m014",
+        "name": "Qutub Minar",
+        "location": "Delhi, India",
+        "year_built": 1192,
+        "visitors_per_year": 2700000
+      },
+      "geometry": { "type": "Point", "coordinates": [77.1855, 28.5244] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "m015",
+        "name": "Gateway of India",
+        "location": "Mumbai, India",
+        "year_built": 1924,
+        "visitors_per_year": 5000000
+      },
+      "geometry": { "type": "Point", "coordinates": [72.8347, 18.9218] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "m016",
+        "name": "Charminar",
+        "location": "Hyderabad, India",
+        "year_built": 1591,
+        "visitors_per_year": 2500000
+      },
+      "geometry": { "type": "Point", "coordinates": [78.4747, 17.3616] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "m017",
+        "name": "Sanchi Stupa",
+        "location": "Madhya Pradesh, India",
+        "year_built": -300,
+        "visitors_per_year": 1500000
+      },
+      "geometry": { "type": "Point", "coordinates": [77.7390, 23.4805] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "m018",
+        "name": "Hawa Mahal",
+        "location": "Jaipur, India",
+        "year_built": 1799,
+        "visitors_per_year": 1800000
+      },
+      "geometry": { "type": "Point", "coordinates": [75.8274, 26.9239] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "m019",
+        "name": "Meenakshi Temple",
+        "location": "Madurai, India",
+        "year_built": 1600,
+        "visitors_per_year": 7000000
+      },
+      "geometry": { "type": "Point", "coordinates": [78.1195, 9.9195] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "m020",
+        "name": "Ajanta Caves",
+        "location": "Maharashtra, India",
+        "year_built": -200,
+        "visitors_per_year": 1100000
+      },
+      "geometry": { "type": "Point", "coordinates": [75.7000, 20.5525] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "m021",
+        "name": "Golconda Fort",
+        "location": "Hyderabad, India",
+        "year_built": 1518,
+        "visitors_per_year": 1900000
+      },
+      "geometry": { "type": "Point", "coordinates": [78.4011, 17.3833] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "m022",
+        "name": "Sun Temple",
+        "location": "Konark, India",
+        "year_built": 1250,
+        "visitors_per_year": 1600000
+      },
+      "geometry": { "type": "Point", "coordinates": [86.0952, 19.8876] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "m023",
+        "name": "Victoria Memorial",
+        "location": "Kolkata, India",
+        "year_built": 1921,
+        "visitors_per_year": 3000000
+      },
+      "geometry": { "type": "Point", "coordinates": [88.3426, 22.5448] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "m024",
+        "name": "Lotus Temple",
+        "location": "Delhi, India",
+        "year_built": 1986,
+        "visitors_per_year": 8000000
+      },
+      "geometry": { "type": "Point", "coordinates": [77.2588, 28.5535] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "m025",
+        "name": "Forbidden City",
+        "location": "Beijing, China",
+        "year_built": 1420,
+        "visitors_per_year": 17000000
+      },
+      "geometry": { "type": "Point", "coordinates": [116.3975, 39.9163] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "m026",
+        "name": "Alhambra",
+        "location": "Granada, Spain",
+        "year_built": 1333,
+        "visitors_per_year": 2600000
+      },
+      "geometry": { "type": "Point", "coordinates": [-3.5881, 37.1760] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "m027",
+        "name": "Stonehenge",
+        "location": "Wiltshire, UK",
+        "year_built": -2500,
+        "visitors_per_year": 1200000
+      },
+      "geometry": { "type": "Point", "coordinates": [-1.8262, 51.1789] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "m028",
+        "name": "Machu Picchu",
+        "location": "Cusco Region, Peru",
+        "year_built": 1450,
+        "visitors_per_year": 1500000
+      },
+      "geometry": { "type": "Point", "coordinates": [-72.5450, -13.1631] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "m029",
+        "name": "Christ Church Cathedral",
+        "location": "Dublin, Ireland",
+        "year_built": 1030,
+        "visitors_per_year": 300000
+      },
+      "geometry": { "type": "Point", "coordinates": [-6.2711, 53.3430] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "m030",
+        "name": "Neuschwanstein Castle",
+        "location": "Bavaria, Germany",
+        "year_built": 1886,
+        "visitors_per_year": 1400000
+      },
+      "geometry": { "type": "Point", "coordinates": [10.7498, 47.5576] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "m031",
+        "name": "Ephesus",
+        "location": "Selçuk, Turkey",
+        "year_built": -1000,
+        "visitors_per_year": 2000000
+      },
+      "geometry": { "type": "Point", "coordinates": [27.3400, 37.9390] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "m032",
+        "name": "Burj Khalifa",
+        "location": "Dubai, UAE",
+        "year_built": 2010,
+        "visitors_per_year": 6000000
+      },
+      "geometry": { "type": "Point", "coordinates": [55.2744, 25.1972] }
+    }
+    ]
+}
