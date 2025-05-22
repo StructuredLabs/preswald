@@ -41,7 +41,7 @@ def get_display_detectors():
     return list(_display_detectors)
 
 # ------------------------------------------------------------------------------
-# Return-value renderers. e.g. df.head() returns HTML
+# Return-value renderers. e.g. df.to_html() returns HTML
 # ------------------------------------------------------------------------------
 _return_renderers = {}  # func name -> { "mimetype": str, "component_type": Optional[str] }
 
