@@ -51,6 +51,8 @@ class AutoAtomTransformer(ast.NodeTransformer):
             self.generated_atoms: list[ast.FunctionDef] = []
             self.tuple_returning_atoms: set[str] = set()
             self.stmt_variable_maps = {}
+            self.tuple_variable_index: dict[str, int] = {}
+            self.atom_return_types: dict[str, str] = {}
 
     def __init__(self, filename: str = "<script>"):
         self.filename = filename
@@ -65,6 +67,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         self._used_linenos = set()
         self._artificial_lineno = ARTIFICIAL_LINE_NUMBER_START
         self._in_function_body = False
+        self.import_aliases = {}
 
     @property
     def _current_frame(self) -> Frame:
@@ -80,12 +83,13 @@ class AutoAtomTransformer(ast.NodeTransformer):
         self._all_function_defs = []
         self._blackbox_lifted_functions: set[str] = set()
 
-        self._frames = [self.Frame()]  # start with global/module frame
+        self._frames = [self.Frame()]
         self.atoms = []
         self._used_linenos = set()
         self._artificial_lineno = ARTIFICIAL_LINE_NUMBER_START
         self.known_components = self._discover_known_components()
         self._in_function_body = False
+        self.import_aliases = {}
 
     def _discover_known_components(self) -> set[str]:
         """
@@ -414,13 +418,16 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         self._blackbox_lifted_functions.add(func_name)
 
-        # Register tuple-returning behavior
+        # Register tuple returning behavior
         self._current_frame.tuple_returning_atoms.add(atom_name)
 
         # Register unpacked variables to this atom
-        for elt in lhs.elts:
+        for index, elt in enumerate(lhs.elts):
             if isinstance(elt, ast.Name):
-                variable_map[elt.id] = atom_name
+                var = elt.id
+                variable_map[var] = atom_name
+                self._current_frame.tuple_variable_index[var] = index
+
         self._current_frame.variable_to_atom.update(variable_map)
 
         # Build: __preswald_result__ = pair(param0, param1, ...)
@@ -531,18 +538,40 @@ class AutoAtomTransformer(ast.NodeTransformer):
             body = [temp_assign, unpack_assign, return_stmt]
             callsite_deps, dep_names = self._find_unique_dependencies(ast.Module(body=body, type_ignores=[]), scoped_map)
             param_mapping = self._make_param_mapping(callsite_deps)
-            patched_expr = [self._replace_dep_args(stmt, param_mapping, variable_map) for stmt in body]
+            patched_expr = [
+                ast.Assign(
+                    targets=[ast.Name(id=result_var, ctx=ast.Store())],
+                    value=self._replace_dep_args(stmt.value, param_mapping)
+                ),
+                unpack_assign,
+                return_stmt,
+            ]
 
             logger.info(f"[AST] Lifted tuple unpacking producer: {atom_name=} {callsite_deps=}")
 
-            for elt in stmt.targets[0].elts:
+            for index, elt in enumerate(stmt.targets[0].elts):
                 if isinstance(elt, ast.Name):
-                    variable_map[elt.id] = atom_name
+                    var = elt.id
+                    logger.info(f"[AST] tuple unpacking: {var=} index={index} atom={atom_name}")
+                    variable_map[var] = atom_name # ensures that while generating the function body (especially patched_expr in consumers), the variables get correctly replaced.
+                    self._current_frame.variable_to_atom[var] = atom_name # ensures future _uses_known_atoms and _find_dependencies see this binding.
+                    self._current_frame.tuple_variable_index[var] = index # tells the transformer where in the returned tuple each variable sits
 
         else:
             component_id, atom_name = self.generate_component_and_atom_name("producer")
             callsite_deps, dep_names = self._find_unique_dependencies(stmt.value, scoped_map)
             logger.info(f"[AST] Lifted producer: {atom_name=} {callsite_deps=}")
+
+            # Track the return type if this is a call to a known constructor
+            # this is so that we can use this type to lookup registered renderables and lift them
+            if isinstance(stmt.value, ast.Call):
+                func = stmt.value.func
+                if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name):
+                    module_name = func.value.id      # e.g. 'pd'
+                    attr_name = func.attr            # e.g. 'DataFrame'
+                    inferred_type = f"{module_name}.{attr_name}"
+                    self._current_frame.atom_return_types[atom_name] = inferred_type
+                    logger.info(f"[AST] Inferred return type for {atom_name=}: {inferred_type}")
 
             param_mapping = self._make_param_mapping(callsite_deps)
             patched_expr = ast.Assign(
@@ -554,7 +583,8 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 if isinstance(target, ast.Name):
                     variable_map[target.id] = atom_name
 
-        self._register_variable_bindings(stmt, atom_name)
+            self._register_variable_bindings(stmt, atom_name)
+
         func = self._build_atom_function(
             atom_name,
             component_id,
@@ -607,15 +637,19 @@ class AutoAtomTransformer(ast.NodeTransformer):
         reverse_map: dict[str, ast.expr] = {}
         for i, atom in enumerate(callsite_deps):
             param_name = f"param{i}"
-            for j, var in enumerate(atom_to_vars[atom]):
+            for var in atom_to_vars[atom]:
                 if atom not in self._current_frame.tuple_returning_atoms:
                     reverse_map[var] = ast.Name(id=param_name, ctx=ast.Load())
                 else:
-                    reverse_map[var] = ast.Subscript(
-                        value=ast.Name(id=param_name, ctx=ast.Load()),
-                        slice=ast.Constant(value=j),
-                        ctx=ast.Load()
-                    )
+                    index = self._current_frame.tuple_variable_index.get(var)
+                    if index is not None:
+                        reverse_map[var] = ast.Subscript(
+                            value=ast.Name(id=param_name, ctx=ast.Load()),
+                            slice=ast.Constant(value=index),
+                            ctx=ast.Load()
+                        )
+                    else:
+                        logger.warning(f"[AST] Missing tuple index for var={var} from atom={atom}")
 
         patched_expr = TupleAwareReplacer().visit(copy.deepcopy(expr))
         ast.fix_missing_locations(patched_expr)
@@ -650,6 +684,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         Returns:
             A list of top level statements that are not lifted, to include in the rewritten module.
         """
+
         logger.info(f"[DEBUG] Lifting statements inside function: {self.current_function.name if self.current_function else '<module>'}")
         logger.info(f"[DEBUG] _lift_statements in {self.current_function.name if self.current_function else '<module>'}")
 
@@ -680,41 +715,78 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 call_node = stmt.value
 
             # Handle known component calls via metadata
-            if call_node and isinstance(call_node.func, ast.Name):
-                func_name = call_node.func.id
+            if call_node:
+                if isinstance(call_node.func, ast.Name):
+                    func_name = call_node.func.id
 
-                if func_name in self.known_components:
-                    logger.info(f"[DEBUG] Attempting to lift known component call '{func_name}' inside {self.current_function.name if self.current_function else '<module>'}")
-                    component_id, atom_name = component_metadata.get(id(call_node), (None, None))
+                    if func_name in self.known_components:
+                        logger.info(f"[DEBUG] Attempting to lift known component call '{func_name}' inside {self.current_function.name if self.current_function else '<module>'}")
+                        component_id, atom_name = component_metadata.get(id(call_node), (None, None))
 
-                    if not atom_name:
-                        # Fallback path in case metadata was not precomputed
-                        if logger.isEnabledFor(logging.DEBUG):
-                            logger.debug(f"[AST] Missing atom mapping for {func_name=}. Regenerating...")
+                        if not atom_name:
+                            # Fallback path in case metadata was not precomputed
+                            if logger.isEnabledFor(logging.DEBUG):
+                                logger.debug(f"[AST] Missing atom mapping for {func_name=}. Regenerating...")
+                            component_id, atom_name = self.generate_component_and_atom_name(func_name)
+
+                        if self._uses_known_atoms(stmt):
+                            self._lift_consumer_stmt(stmt)
+                        else:
+                            self.lift_component_call_to_atom(call_node, component_id, atom_name)
+
+                        continue
+
+                    # Detect stream-based function (like print)
+                    elif func_name in output_stream_calls:
                         component_id, atom_name = self.generate_component_and_atom_name(func_name)
+                        self._lift_output_stream_stmt(stmt, component_id, atom_name, stream=output_stream_calls[func_name])
+                        continue
 
-                    if self._uses_known_atoms(stmt):
-                        self._lift_consumer_stmt(stmt)
-                    else:
-                        self.lift_component_call_to_atom(call_node, component_id, atom_name)
-
-                    continue  # statement handled, skip to next
-
-                # Detect stream-based function (like print)
-                elif func_name in output_stream_calls:
-                    component_id, atom_name = self.generate_component_and_atom_name(func_name)
-                    self._lift_output_stream_stmt(stmt, component_id, atom_name, stream=output_stream_calls[func_name])
-                    continue
-
-                # Detect return-rendering function (e.g. df.head())
-                elif call_node and isinstance(call_node.func, ast.Attribute):
+                # Detect return rendering function (e.g. df.to_html)
+                elif isinstance(call_node.func, ast.Attribute) and isinstance(call_node.func.value, ast.Name):
                     full_func_name = f"{call_node.func.value.id}.{call_node.func.attr}"
                     if full_func_name in return_renderers:
                         mimetype = return_renderers[full_func_name]["mimetype"]
+                        logger.info(f"[AST] Lifting return-renderable: {full_func_name=}; {mimetype=}")
                         if mimetype:
                             component_id, atom_name = self.generate_component_and_atom_name(full_func_name)
                             self._lift_return_renderable_call(stmt, call_node, component_id, atom_name, mimetype)
                             continue
+                        else:
+                            logger.warning(f'[AST] return-renderable is missing a mimetype {full_func_name=}')
+
+                logger.info(f"[AST] Checking attribute call for return-renderable: {ast.dump(call_node.func)}")
+
+                logger.info(f"[AST] import_aliases={self.import_aliases}")
+
+                # Handle return-renderable method based on inferred variable type
+                if isinstance(call_node.func, ast.Attribute) and isinstance(call_node.func.value, ast.Name):
+                    varname = call_node.func.value.id  # e.g. param0
+                    attr = call_node.func.attr         # e.g. to_html
+
+                    atom_name = self._current_frame.variable_to_atom.get(varname)
+                    logger.info(f"[AST] Lookup for variable: {varname=} → {atom_name=}")
+                    if atom_name:
+                        return_type = self._current_frame.atom_return_types.get(atom_name)
+                        if return_type:
+                            canonical_type = self.import_aliases.get(return_type, return_type)
+                            candidate = f"{canonical_type}.{attr}"  # e.g. pandas.DataFrame.to_html
+
+                            # normalize candidate from import aliases
+                            if '.' in candidate:
+                                prefix, suffix = candidate.split('.', 1)
+                                prefix = self.import_aliases.get(prefix, prefix)
+                                candidate = f"{prefix}.{suffix}"
+
+                            logger.info(f"[AST] Trying candidate: {candidate=}, available renderers: {list(return_renderers.keys())}")
+
+                            if candidate in return_renderers:
+                                mimetype = return_renderers[candidate]["mimetype"]
+                                logger.info(f"[AST] Lifting return-renderable by type: {candidate=}; {mimetype=}")
+                                component_id, atom_name = self.generate_component_and_atom_name(candidate)
+                                self._lift_return_renderable_call(stmt, call_node, component_id, atom_name, mimetype)
+                                continue
+
 
             # Handle expression consumers
             if isinstance(stmt, ast.Expr):
@@ -1018,6 +1090,23 @@ class AutoAtomTransformer(ast.NodeTransformer):
             filtered_stmts = non_import_stmts
             runtime_bootstrap_stmts = []
 
+        # import aliases used for renderable registry lookups
+        self.import_aliases = {}
+        for stmt in node.body:
+            if isinstance(stmt, ast.Import):
+                for alias in stmt.names:
+                    if alias.asname:
+                        self.import_aliases[alias.asname] = alias.name
+                    else:
+                        self.import_aliases[alias.name] = alias.name
+            elif isinstance(stmt, ast.ImportFrom):
+                if stmt.module and stmt.names:
+                    for alias in stmt.names:
+                        if alias.asname:
+                            self.import_aliases[alias.asname] = f"{stmt.module}.{alias.name}"
+                        else:
+                            self.import_aliases[alias.name] = f"{stmt.module}.{alias.name}"
+
         new_body = self._lift_statements(filtered_stmts, component_to_atom_name)
 
         # Now visit remaining FunctionDefs unless blackboxed
@@ -1110,21 +1199,18 @@ class AutoAtomTransformer(ast.NodeTransformer):
         """
         variable_map = variable_map or self._current_frame.variable_to_atom
 
-        # Invert variable_map to allow index lookup
-        atom_to_vars: dict[str, list[str]] = defaultdict(list)
-        for var, atom in variable_map.items():
-            atom_to_vars[atom].append(var)
-
         class DependencyReplacer(ast.NodeTransformer):
             def __init__(
                 self,
                 variable_to_atom: dict[str, str],
                 param_mapping: dict[str, str],
-                tuple_returning_atoms: set[str]
+                tuple_returning_atoms: set[str],
+                tuple_variable_index: dict[str, int],
             ):
                 self.variable_to_atom = variable_to_atom
                 self.param_mapping = param_mapping
                 self.tuple_returning_atoms = tuple_returning_atoms
+                self.tuple_variable_index = tuple_variable_index
 
             def visit_Name(self, node: ast.Name) -> ast.AST:  # noqa: N802
                 if not isinstance(node.ctx, ast.Load):
@@ -1139,12 +1225,16 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
                 if atom in self.tuple_returning_atoms:
                     try:
-                        index = atom_to_vars[atom].index(var_name)
-                        return ast.Subscript(
-                            value=ast.Name(id=param, ctx=ast.Load()),
-                            slice=ast.Constant(value=index),
-                            ctx=ast.Load()
-                        )
+                        index = self.tuple_variable_index.get(var_name)
+                        if index is not None:
+                            return ast.Subscript(
+                                value=ast.Name(id=param, ctx=ast.Load()),
+                                slice=ast.Constant(value=index),
+                                ctx=ast.Load()
+                            )
+                        else:
+                            logger.warning(f"[AST] Could not find tuple index for var {var_name} from atom {atom}")
+                            return node
                     except ValueError:
                         logger.warning(f"[AST] Could not determine tuple index for {var_name=} from {atom=}")
                         return node
@@ -1159,7 +1249,12 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 node.values = [self.visit(value) for value in node.values]
                 return node
 
-        return DependencyReplacer(variable_map, param_mapping, self._current_frame.tuple_returning_atoms).visit(call)
+        return DependencyReplacer(
+            variable_map,
+            param_mapping,
+            self._current_frame.tuple_returning_atoms,
+            self._current_frame.tuple_variable_index,
+        ).visit(call)
 
     def visit_Call(self, node: ast.Call) -> ast.AST: # noqa: N802
         """
