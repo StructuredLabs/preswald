@@ -353,19 +353,49 @@ class Workflow:
 
     def _get_affected_atoms(self, changed_atoms: set[str]) -> set[str]:
         """
-        Return the full set of atoms affected by a change to any atom in `changed_atoms`.
+        Computes the full set of atoms that must be recomputed when a given set of atoms change.
+
+        This includes:
+          - All downstream atoms that directly or transitively depend on the changed atoms
+          - All upstream atoms that produced inputs consumed by affected atoms, such as
+            producers of recomputed consumers.
+
+        The traversal ensures that if any atom is recomputed, all consumers of its output
+        are also recomputed, and all producers of its inputs are re-included as well.
+
+        This forward and backward closure ensures correct propagation in the DAG, especially
+        for side effecting calls like `plot()` that mutate objects used by downstream atoms.
+
+        Args:
+            changed_atoms (set[str]): Initial set of atoms known to have changed.
+
+        Returns:
+            set[str]: The full set of atom names that should be recomputed.
         """
-        affected = set(changed_atoms)
+        affected = set()
+        queue = list(changed_atoms)
+        queued = set(queue)
+
         logger.info(f"[DAG] Starting recompute traversal {changed_atoms=}")
 
-        while True:
-            new_affected = {
-                name for name, atom in self.atoms.items()
-                if name not in affected and any(dep in affected for dep in atom.dependencies)
-            }
-            if not new_affected:
-                break
-            affected.update(new_affected)
+        while queue:
+            current = queue.pop()
+            if current in affected:
+                continue
+
+            affected.add(current)
+
+            # forward: find all consumers
+            for atom_name, atom in self.atoms.items():
+                if current in atom.dependencies and atom_name not in queued:
+                    queue.append(atom_name)
+                    queued.add(atom_name)
+
+            # backward: re-run producers of recomputed consumers
+            for dep in self.atoms[current].dependencies:
+                if dep not in queued:
+                    queue.append(dep)
+                    queued.add(dep)
 
         return affected
 
