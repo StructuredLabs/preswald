@@ -466,3 +466,146 @@ def serialize_fs(root_dir=".", output_dir=None):
                 result[rel_path] = {"type": "binary", "content": encoded}
 
     return result
+
+
+def prepare_html_export(
+    script_path: str,
+    output_dir: str,
+    project_root_dir: str,
+    client_type: str = "comlink",
+):
+    """
+    Prepares all necessary files for an HTML export in the specified output_dir.
+
+    Args:
+        script_path (str): Absolute path to the main Preswald script (e.g., /project/app.py or /path/to/user/app.py).
+        output_dir (str): The directory where all export files will be staged.
+        project_root_dir (str): The root directory of the project files (e.g., \".\" for CLI, \"/project\" for Pyodide).
+        client_type (str): The client communication type.
+    """
+    import json
+    import shutil
+    import time
+    from importlib.resources import as_file
+    from importlib.resources import files as pkg_files
+
+    from preswald.engine.managers.branding import BrandingManager
+
+    logger.info(
+        f"Preparing HTML export for '{script_path}' into '{output_dir}' with project root '{project_root_dir}'"
+    )
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    # 1. Create project_fs.json
+    logger.info("Creating project filesystem snapshot...")
+    fs_snapshot = serialize_fs(root_dir=project_root_dir)
+
+    # The entrypoint in project_fs.json should be relative to project_root_dir
+    # If script_path is /project/app.py and project_root_dir is /project, entrypoint is app.py
+    # If script_path is /Users/foo/proj/app.py and project_root_dir is ., entrypoint is app.py (assuming script is in root)
+    # More robustly, make script_path relative to project_root_dir
+    if os.path.isabs(script_path) and os.path.isabs(project_root_dir):
+        # Both absolute, make script_path relative to project_root_dir
+        entrypoint_rel_path = os.path.relpath(script_path, project_root_dir)
+    elif not os.path.isabs(script_path) and not os.path.isabs(project_root_dir):
+        # Both relative (e.g. script_path='app.py', project_root_dir='.')
+        # This case is typical for CLI where cwd is project_root_dir
+        entrypoint_rel_path = script_path
+    else:
+        # Mixed cases, or script_path is already relative as intended.
+        # Default to basename if unsure, but this might be incorrect if script is in a subfolder.
+        logger.warning(
+            f"Ambiguous paths for entrypoint determination: script_path='{script_path}', project_root_dir='{project_root_dir}'. Using basename."
+        )
+        entrypoint_rel_path = os.path.basename(script_path)
+
+    fs_snapshot["__entrypoint__"] = entrypoint_rel_path
+    project_fs_json_path = os.path.join(output_dir, "project_fs.json")
+    with open(project_fs_json_path, "w") as f:
+        json.dump(fs_snapshot, f)
+    logger.info(f"Project filesystem snapshot saved to {project_fs_json_path}")
+
+    # 2. Copy static files from preswald installation
+    preswald_pkg_static_path = pkg_files("preswald") / "static"
+
+    # Copy index.html
+    dest_index_html = os.path.join(output_dir, "index.html")
+    with as_file(preswald_pkg_static_path / "index.html") as src_index_path:
+        shutil.copy2(src_index_path, dest_index_html)
+
+    # Copy assets directory
+    dest_assets_dir = os.path.join(output_dir, "assets")
+    if os.path.exists(dest_assets_dir):
+        shutil.rmtree(dest_assets_dir)
+    with as_file(preswald_pkg_static_path / "assets") as src_assets_path:
+        shutil.copytree(src_assets_path, dest_assets_dir)
+    logger.info(f"Copied Preswald static assets to {output_dir}")
+
+    # 3. Modify index.html (add branding, boot script)
+    head_script, _ = get_boot_script_html(
+        client_type=client_type
+    )  # body_script not used by current logic
+
+    # Initialize branding manager
+    # For BrandingManager, static_dir is the path to package's static files (e.g., .../preswald/static)
+    # branding_dir is the path to user's images (e.g. /project/images or ./images)
+    user_images_dir_name = "images"  # Standard name for user's branding images
+    user_branding_images_path = os.path.join(project_root_dir, user_images_dir_name)
+
+    # BrandingManager needs string paths
+    branding_manager = BrandingManager(
+        str(preswald_pkg_static_path), user_branding_images_path
+    )
+
+    # Get branding configuration. script_path should be the original script path.
+    # BrandingManager's get_branding_config_with_data_urls internally uses os.path.dirname(script_path)
+    # to find preswald.toml. So script_path needs to be the actual path to the script.
+    branding = branding_manager.get_branding_config_with_data_urls(script_path)
+
+    with open(dest_index_html, "r+") as f:
+        index_content = f.read()
+        # Replace title
+        index_content = index_content.replace(
+            "<title>Vite + React</title>", f"<title>{branding['name']}</title>"
+        )
+        # Add favicon links
+        favicon_links = f'''<link rel="icon" type="image/x-icon" href="{branding["favicon"]}" />
+    <link rel="shortcut icon" type="image/x-icon" href="{branding["favicon"]}?timestamp={time.time()}" />'''
+        # Remove existing favicon link(s) more robustly
+        index_content = re.sub(
+            r'<link[^>]*rel=["\\\'](shortcut )?icon["\\\'][^>]*>',
+            "",
+            index_content,
+            flags=re.IGNORECASE,
+        )
+
+        # Add new favicon links. Try to place it after <meta charset...>, or after <head>
+        meta_charset_tag = '<meta charset="UTF-8" />'
+        if meta_charset_tag in index_content:
+            index_content = index_content.replace(
+                meta_charset_tag, f"{meta_charset_tag}\n{favicon_links}"
+            )
+        elif "<head>" in index_content:
+            index_content = index_content.replace("<head>", f"<head>\n{favicon_links}")
+        else:  # Fallback if head or charset not found
+            index_content = favicon_links + "\n" + index_content
+
+        # Add branding data and boot script
+        branding_script_tag = (
+            f"<script>window.PRESWALD_BRANDING = {json.dumps(branding)};</script>"
+        )
+        scripts_to_inject = f"{branding_script_tag}\n{head_script}"
+
+        if "</head>" in index_content:
+            index_content = index_content.replace(
+                "</head>", f"{scripts_to_inject}\n</head>"
+            )
+        else:  # Fallback if </head> not found
+            index_content = index_content + "\n" + scripts_to_inject
+
+        f.seek(0)
+        f.write(index_content)
+        f.truncate()
+    logger.info(f"Modified index.html in {output_dir} with branding and boot scripts.")
+    logger.info(f"HTML export preparation complete in {output_dir}")

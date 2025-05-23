@@ -280,6 +280,52 @@ class PreswaldWorker {
     }
   }
 
+  async exportHtml(scriptPath) {
+    console.log('[Worker] Exporting HTML for script:', scriptPath);
+    if (!this.isInitialized) {
+      throw new Error('Pyodide not initialized');
+    }
+    if (!this.activeScriptPath && !scriptPath) {
+      throw new Error('No active script path provided for export.');
+    }
+
+    // Use provided scriptPath or the active one
+    const pathToExport = scriptPath || this.activeScriptPath;
+
+    try {
+      // Call the Python function exposed on self (window)
+      const result = await self.preswaldExportHtml(pathToExport);
+      // Ensure correct conversion for the nested 'files' dictionary,
+      // which contains Uint8Array values that should be preserved.
+      const resultObj = result.toJs({
+        dict_converter: Object.fromEntries,
+        create_pyproxies: false, // Avoid creating PyProxies for values in the files dict
+      });
+      result.destroy(); // Clean up the PyProxy
+
+      if (!resultObj.success) {
+        throw new Error(resultObj.error || 'HTML export failed');
+      }
+
+      // resultObj.files will be a JS object like:
+      // {
+      //   "index.html": Uint8Array(...),
+      //   "project_fs.json": Uint8Array(...),
+      //   "assets/logo.png": Uint8Array(...),
+      //   "_assets/some_file_component_asset.csv": Uint8Array(...)
+      // }
+      // The keys are relative paths, values are Uint8Arrays (binary content)
+      console.log(
+        '[Worker] HTML export successful, files received:',
+        Object.keys(resultObj.files || {})
+      );
+      return { success: true, files: resultObj.files, message: resultObj.message };
+    } catch (error) {
+      console.error('[Worker] HTML export error:', error);
+      throw error; // Re-throw to be caught by Comlink/caller
+    }
+  }
+
   async shutdown() {
     if (this.pyodide && this.isInitialized) {
       try {

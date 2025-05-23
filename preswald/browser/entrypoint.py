@@ -5,7 +5,10 @@ Python functionality to JavaScript.
 """
 
 import logging
+import os
+import shutil
 import sys
+import tempfile
 from typing import Any
 
 
@@ -138,6 +141,68 @@ async def shutdown():
         return {"success": False, "error": str(e)}
 
 
+async def export_html(script_path: str, client_type: str = "postmessage"):
+    """Export the current Preswald app as an HTML package."""
+    global _service
+    if not _service:
+        # Attempt to initialize if not already
+        init_result = await initialize_preswald(script_path)
+        if not init_result["success"]:
+            return init_result  # Return initialization error
+
+    logger.info(f"Starting HTML export for script: {script_path}")
+    # Pyodide's FS is in-memory, tempfile.mkdtemp() works as expected.
+    temp_export_dir = tempfile.mkdtemp(prefix="preswald_export_")
+    logger.info(f"Created temporary export directory: {temp_export_dir}")
+
+    try:
+        from preswald.utils import prepare_html_export  # Import the utility function
+
+        # Define the project root within Pyodide's virtual filesystem
+        project_root_in_pyodide = "/project"
+
+        # Call the centralized function to prepare all export files in temp_export_dir
+        # script_path here is typically like "/project/app.py"
+        prepare_html_export(
+            script_path=script_path,
+            output_dir=temp_export_dir,
+            project_root_dir=project_root_in_pyodide,
+            client_type=client_type,
+        )
+
+        # After prepare_html_export, collect all files from temp_export_dir into a dictionary
+        exported_files = {}
+        for root, _, files in os.walk(temp_export_dir):
+            for file_name in files:
+                file_path_abs = os.path.join(root, file_name)
+                # Create a relative path for the dictionary keys (e.g., "index.html", "assets/main.js")
+                relative_path = os.path.relpath(file_path_abs, temp_export_dir)
+                try:
+                    with open(file_path_abs, "rb") as f:  # Read as bytes
+                        exported_files[relative_path] = f.read()
+                except Exception as e:
+                    logger.error(f"Error reading file {file_path_abs} for export: {e}")
+                    # Store error message as content (bytes)
+                    exported_files[relative_path] = f"Error reading file: {e}".encode()
+
+        logger.info(
+            f"Collected {len(exported_files)} files from {temp_export_dir} for browser export."
+        )
+        return {
+            "success": True,
+            "files": exported_files,
+            "message": "HTML export generated successfully.",
+        }
+
+    except Exception as e:
+        logger.error(f"Error during HTML export: {e}", exc_info=True)
+        return {"success": False, "error": str(e)}
+    finally:
+        if os.path.exists(temp_export_dir):
+            shutil.rmtree(temp_export_dir)
+            logger.info(f"Cleaned up temporary export directory: {temp_export_dir}")
+
+
 def expose_to_js():
     """Expose Python functions to JavaScript"""
     import asyncio
@@ -160,6 +225,7 @@ def expose_to_js():
     window.preswaldRunScript = wrap_async_function(run_script)
     window.preswaldUpdateComponent = wrap_async_function(update_component)
     window.preswaldShutdown = wrap_async_function(shutdown)
+    window.preswaldExportHtml = wrap_async_function(export_html)  # Expose new function
 
     # Message handling from JS to Python
     def handle_js_message(client_id, message_type, data):

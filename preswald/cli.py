@@ -1,19 +1,12 @@
 import json
 import os
-import re
 import sys
 import tempfile
-import time
 from pathlib import Path
 
 import click
 
-# from preswald.engine.base_service import BasePreswaldService
 from preswald.engine.telemetry import TelemetryService
-
-
-# service = BasePreswaldService()
-# layout = service._layout_manager
 
 
 # Create a temporary directory for IPC
@@ -506,77 +499,26 @@ def export(format, output, client):
     elif format == "html":
         # Create output directory
         output_dir = output or "preswald_export"
-        os.makedirs(output_dir, exist_ok=True)
+        # os.makedirs(output_dir, exist_ok=True) # Handled by prepare_html_export
 
         click.echo(f"📦 Exporting '{script}' to HTML...")
 
         try:
-            # 1. Create project_fs.json by walking current directory
-            from preswald.utils import get_boot_script_html, serialize_fs
-
-            click.echo("📝 Creating project filesystem snapshot...")
-
-            # Get filesystem snapshot and add metadata
-            fs_snapshot = serialize_fs(root_dir=".", output_dir=output_dir)
-            fs_snapshot["__entrypoint__"] = script
-
-            # Write project_fs.json
-            with open(os.path.join(output_dir, "project_fs.json"), "w") as f:
-                json.dump(fs_snapshot, f)
-
-            # 2. Copy static files from preswald installation
-            import shutil
-            from importlib.resources import as_file, files
-
-            with as_file(files("preswald").joinpath("static/index.html")) as path:
-                shutil.copy2(path, os.path.join(output_dir, "index.html"))
-
-            with as_file(files("preswald").joinpath("static/assets")) as path:
-                if os.path.exists(os.path.join(output_dir, "assets")):
-                    shutil.rmtree(os.path.join(output_dir, "assets"))
-                shutil.copytree(path, os.path.join(output_dir, "assets"))
-
-            # 3. Append the boot script to index.html and add branding
-            head_script, body_script = get_boot_script_html(client_type=client)
-
-            # Initialize branding manager
-            from preswald.engine.managers.branding import BrandingManager
-
-            # Set up branding manager with proper paths
-            static_dir = files("preswald") / "static"
-            branding_manager = BrandingManager(static_dir, "images")
-
-            # Get branding configuration
-            branding = branding_manager.get_branding_config_with_data_urls(script)
-
-            # Read the current index.html
-            with open(os.path.join(output_dir, "index.html")) as f:
-                index_content = f.read()
-
-            # Replace title
-            index_content = index_content.replace(
-                "<title>Vite + React</title>", f"<title>{branding['name']}</title>"
+            from preswald.utils import (
+                prepare_html_export,  # Import the new utility function
             )
 
-            # Add favicon links
-            favicon_links = f"""    <link rel="icon" type="image/x-icon" href="{branding["favicon"]}" />
-    <link rel="shortcut icon" type="image/x-icon" href="{branding["favicon"]}?timestamp={time.time()}" />"""
-            index_content = re.sub(r'<link[^>]*rel="icon"[^>]*>', "", index_content)
-            index_content = index_content.replace(
-                '<meta charset="UTF-8" />', f'<meta charset="UTF-8" />\n{favicon_links}'
+            # Call the centralized function for preparing HTML export files
+            # project_root_dir is "." because CLI operates from the current project directory
+            prepare_html_export(
+                script_path=script,
+                output_dir=output_dir,
+                project_root_dir=".",
+                client_type=client,
             )
 
-            # Add branding data and boot script
-            branding_script = (
-                f"<script>window.PRESWALD_BRANDING = {json.dumps(branding)};</script>"
-            )
-            index_content = index_content.replace(
-                "</head>", f"{branding_script}\n{head_script}"
-            )
-
-            # Write back the modified index.html
-            with open(os.path.join(output_dir, "index.html"), "w") as f:
-                f.write(index_content)
+            # The rest of the original logic specific to CLI (e.g. click.echo messages) remains.
+            # No need to duplicate fs_snapshot, static file copying, or index.html modification here.
 
             click.echo(f"""
 ✨ Export complete! Your interactive HTML app is ready:
