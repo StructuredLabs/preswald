@@ -1,0 +1,20 @@
+[project]
+title = "Student Grading Analysis"
+version = "0.1.0"
+port = 8501
+slug = "student-grading-171837"
+entrypoint = "hello.py"
+
+[branding]
+name = "Student Grading Analysis"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#F89613"
+
+[data.Students_Grading_Dataset]
+type = "csv"
+path = "data/Students_Grading_Dataset.csv"
+
+[logging]
+level = "INFO"
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
