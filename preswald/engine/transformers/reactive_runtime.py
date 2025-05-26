@@ -68,6 +68,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         self._artificial_lineno = ARTIFICIAL_LINE_NUMBER_START
         self._in_function_body = False
         self.import_aliases = {}
+        self._module: ast.Module | None = None
 
     @property
     def _current_frame(self) -> Frame:
@@ -90,6 +91,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         self.known_components = self._discover_known_components()
         self._in_function_body = False
         self.import_aliases = {}
+        self._module: ast.Module | None = None
 
     def _discover_known_components(self) -> set[str]:
         """
@@ -271,6 +273,51 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         return unique_callsite_deps, dep_names
 
+    def _finalize_atom_deps(self, func: ast.FunctionDef) -> None:
+        atom_name = func.name
+        if not atom_name:
+            return
+
+        for deco in func.decorator_list:
+            if (
+                isinstance(deco, ast.Call)
+                and isinstance(deco.func, ast.Attribute)
+                and deco.func.attr == "atom"
+            ):
+                for kw in deco.keywords:
+                    if kw.arg == "dependencies" and isinstance(kw.value, ast.List):
+                        extracted = {
+                            elt.value
+                            for elt in kw.value.elts
+                            if isinstance(elt, ast.Constant)
+                        }
+                        self.dependencies[atom_name] = extracted
+                        return
+
+                deps = self.dependencies.get(atom_name)
+                if deps:
+                    logger.info(f"[PATCH] Finalizing dependencies for {atom_name}: {sorted(deps)}")
+                    deco.keywords.append(ast.keyword(
+                        arg="dependencies",
+                        value=ast.List(
+                            elts=[ast.Constant(value=dep) for dep in sorted(deps)],
+                            ctx=ast.Load()
+                        )
+                    ))
+                break
+
+    def _finalize_and_register_atom(
+        self,
+        atom_name: str,
+        component_id: str,
+        callsite_deps: list[str],
+        call_expr: ast.AST | list[ast.stmt]
+    ) -> ast.FunctionDef:
+        func = self._build_atom_function(atom_name, component_id, callsite_deps, call_expr)
+        self._finalize_atom_deps(func)
+        self._current_frame.generated_atoms.append(func)
+        return func
+
     def _should_inline_function(self, func_name: str) -> bool:
         """
         Determines whether a user-defined function should be inlined into the callsite.
@@ -333,8 +380,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         # Register variable binding and lift the new assign into an atom
         self._register_variable_bindings(assign_stmt, atom_name)
         self._current_frame.variable_to_atom[target.id] = atom_name
-        func = self._build_atom_function(atom_name, component_id, callsite_deps, call_expr=assign_stmt)
-        self._current_frame.generated_atoms.append(func)
+        self._finalize_and_register_atom(atom_name, component_id, callsite_deps, assign_stmt)
 
     def _lift_output_stream_stmt(self, stmt: ast.Expr, component_id: str, atom_name: str, stream: str) -> None:
         """
@@ -358,9 +404,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         """)
 
         call_and_return = ast.parse(source).body
-
-        func = self._build_atom_function(atom_name, component_id, callsite_deps, call_expr=call_and_return)
-        self._current_frame.generated_atoms.append(func)
+        self._finalize_and_register_atom(atom_name, component_id, callsite_deps, call_and_return)
 
     def _lift_return_renderable_call(
         self,
@@ -395,8 +439,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
             ]
         )
 
-        func = self._build_atom_function(atom_name, component_id, callsite_deps, call_expr=wrapped_call)
-        self._current_frame.generated_atoms.append(func)
+        self._finalize_and_register_atom(atom_name, component_id, callsite_deps, wrapped_call)
 
     def _lift_blackbox_function_call(
         self,
@@ -458,9 +501,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         body = [temp_assign, unpack_assign, return_stmt]
 
-        func = self._build_atom_function(atom_name, component_id, callsite_deps, body)
-        self._current_frame.generated_atoms.append(func)
-        self.dependencies[atom_name] = set(callsite_deps)
+        self._finalize_and_register_atom(atom_name, component_id, callsite_deps, body)
 
     def _lift_producer_stmt(self, stmt: ast.Assign, pending_assignments: list[ast.Assign], variable_map: dict[str, str]) -> None:
         """
@@ -585,14 +626,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
             self._register_variable_bindings(stmt, atom_name)
 
-        func = self._build_atom_function(
-            atom_name,
-            component_id,
-            callsite_deps,
-            call_expr=patched_expr
-        )
-        self._current_frame.generated_atoms.append(func)
-        self.dependencies[atom_name] = set(callsite_deps)
+        self._finalize_and_register_atom(atom_name, component_id, callsite_deps, patched_expr)
         self._current_frame.variable_to_atom.update(variable_map)
 
     def _lift_consumer_stmt(self, stmt: ast.Expr) -> ast.Expr:
@@ -654,8 +688,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         patched_expr = TupleAwareReplacer().visit(copy.deepcopy(expr))
         ast.fix_missing_locations(patched_expr)
 
-        new_func = self._build_atom_function(atom_name, component_id, callsite_deps, patched_expr)
-        self._current_frame.generated_atoms.append(new_func)
+        new_func = self._finalize_and_register_atom(atom_name, component_id, callsite_deps, patched_expr)
 
         # Return the rewritten expression as a call to the generated atom
         callsite = self._make_callsite(atom_name, callsite_deps)
