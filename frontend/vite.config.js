@@ -4,6 +4,7 @@ import react from "@vitejs/plugin-react";
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: "./",
   build: {
     target: 'esnext',
     outDir: path.join(path.dirname(__dirname), "preswald", "static"),
