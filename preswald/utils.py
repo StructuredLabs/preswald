@@ -6,7 +6,6 @@ import random
 import re
 import sys
 from importlib.resources import files as importlib_files
-from pathlib import Path
 
 import toml
 
@@ -43,35 +42,6 @@ def reactivity_explicitly_disabled(config_path: str = "preswald.toml") -> bool:
     except Exception as e:
         logger.warning(f"[is_app_reactivity_disabled] Failed to read config: {e}")
         return False
-
-
-def read_template(template_name, template_id=None):
-    """Read a template file from the package.
-
-    Args:
-        template_name: Name of the template file without .template extension
-        template_id: Optional template ID (e.g. 'executive-summary'). If not provided, uses 'default'
-    """
-    base_path = Path(__file__).parent / "templates"
-    content = ""
-
-    # First read from common directory
-    common_path = base_path / "common" / f"{template_name}.template"
-    if common_path.exists():
-        content += common_path.read_text()
-
-    # Then read from either template-specific or default directory
-    template_dir = template_id if template_id else "default"
-    template_path = base_path / template_dir / f"{template_name}.template"
-    if template_path.exists():
-        content += template_path.read_text()
-
-    if not content:
-        raise FileNotFoundError(
-            f"Template {template_name} not found in common or {template_dir} directory"
-        )
-
-    return content
 
 
 def read_port_from_config(config_path: str, port: int):

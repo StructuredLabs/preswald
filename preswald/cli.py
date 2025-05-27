@@ -1,8 +1,6 @@
-import json
 import os
 import sys
 import tempfile
-from pathlib import Path
 
 import click
 
@@ -26,78 +24,47 @@ def cli():
     pass
 
 
-def get_available_templates():
-    """Get available templates from templates.json"""
-    try:
-        templates_path = Path(__file__).parent / "templates" / "templates.json"
-        with open(templates_path) as f:
-            return json.load(f)["templates"]
-    except Exception:
-        return []
+def _create_default_init_files(target_dir: str, project_slug: str):
+    """Create default project files in the target directory using templates."""
+    from importlib.resources import as_file, files
 
+    # Read and write hello.py from template
+    with as_file(files("preswald").joinpath("templates/hello.py.template")) as path:
+        with open(path) as f:
+            hello_content = f.read()
+        with open(os.path.join(target_dir, "hello.py"), "w") as f:
+            f.write(hello_content)
 
-def copy_template_files(template_dir, target_dir, project_slug):
-    """Copy files from template directory to target directory, handling special cases."""
-    import shutil
+    # Read and write preswald.toml from template
+    with as_file(
+        files("preswald").joinpath("templates/preswald.toml.template")
+    ) as path:
+        with open(path) as f:
+            toml_content = f.read().format(project_slug=project_slug)
+        with open(os.path.join(target_dir, "preswald.toml"), "w") as f:
+            f.write(toml_content)
 
-    # Ensure data directory exists
-    os.makedirs(os.path.join(target_dir, "data"), exist_ok=True)
+    # Read and write secrets.toml from template
+    with as_file(files("preswald").joinpath("templates/secrets.toml.template")) as path:
+        with open(path) as f:
+            secrets_content = f.read()
+        with open(os.path.join(target_dir, "secrets.toml"), "w") as f:
+            f.write(secrets_content)
 
-    # First copy common files
-    common_dir = Path(__file__).parent / "templates" / "common"
-    if common_dir.exists():
-        for file_path in common_dir.glob("**/*"):
-            if file_path.is_file():
-                rel_path = file_path.relative_to(common_dir)
-                # Remove .template extension from the target filename
-                target_filename = str(rel_path).replace(".template", "")
-                target_path = os.path.join(target_dir, target_filename)
-                os.makedirs(os.path.dirname(target_path), exist_ok=True)
-                shutil.copy2(file_path, target_path)
-
-    # Then copy template-specific files
-    for file_path in template_dir.glob("**/*"):
-        if file_path.is_file():
-            rel_path = file_path.relative_to(template_dir)
-            # Remove .template extension from the target filename
-            target_filename = str(rel_path).replace(".template", "")
-
-            # Handle special cases for data files
-            if target_filename == "sample.csv":
-                target_path = os.path.join(target_dir, "data", "sample.csv")
-            else:
-                target_path = os.path.join(target_dir, target_filename)
-
-            os.makedirs(os.path.dirname(target_path), exist_ok=True)
-            shutil.copy2(file_path, target_path)
-
-            # Update preswald.toml with project slug if it exists
-            if target_filename == "preswald.toml":
-                with open(target_path) as f:
-                    content = f.read()
-                content = content.replace(
-                    'slug = "preswald-project"', f'slug = "{project_slug}"'
-                )
-                with open(target_path, "w") as f:
-                    f.write(content)
+    # Read and write sample.csv from template
+    with as_file(files("preswald").joinpath("templates/sample.csv.template")) as path:
+        with open(path) as f:
+            sample_data = f.read()
+        with open(os.path.join(target_dir, "data", "sample.csv"), "w") as f:
+            f.write(sample_data)
 
 
 @cli.command()
 @click.argument("name", default="preswald_project")
-@click.option(
-    "--template",
-    "-t",
-    help="Template ID to use for initialization",
-    type=click.Choice(
-        [t["id"] for t in get_available_templates()], case_sensitive=False
-    ),
-)
-def init(name, template):
+def init(name):
     """
     Initialize a new Preswald project.
-
-    This creates a directory with boilerplate files like `hello.py` and `preswald.toml`.
-    If a template is specified, it will use the template's files instead of the default ones.
+    Creates a directory with basic project structure.
     """
     from preswald.utils import generate_slug
 
@@ -109,32 +76,18 @@ def init(name, template):
         # Generate a unique slug for the project
         project_slug = generate_slug(name)
 
-        # Copy default branding files from package resources
+        # Copy default branding files
         import shutil
         from importlib.resources import as_file, files
 
-        # Using a context manager to get the actual file path
         with as_file(files("preswald").joinpath("static/favicon.ico")) as path:
             shutil.copy2(path, os.path.join(name, "images", "favicon.ico"))
 
         with as_file(files("preswald").joinpath("static/logo.png")) as path:
             shutil.copy2(path, os.path.join(name, "images", "logo.png"))
 
-        if template:
-            # Initialize from template
-            template_dir = Path(__file__).parent / "templates" / template
-            if not template_dir.exists():
-                click.echo(f"Error: Template directory not found for '{template}' ❌")
-                return
-        else:
-            # Use default template
-            template_dir = Path(__file__).parent / "templates" / "default"
-            if not template_dir.exists():
-                click.echo("Error: Default template directory not found ❌")
-                return
-
-        # Copy template files
-        copy_template_files(template_dir, name, project_slug)
+        # Create basic project files
+        _create_default_init_files(name, project_slug)
 
         # Track initialization
         telemetry.track_command(
@@ -142,14 +95,11 @@ def init(name, template):
             {
                 "project_name": name,
                 "project_slug": project_slug,
-                "template": template or "default",
             },
         )
 
         click.echo(f"Initialized a new Preswald project in '{name}/' 🎉!")
         click.echo(f"Project slug: {project_slug}")
-        if template:
-            click.echo(f"Using template: {template}")
     except Exception as e:
         click.echo(f"Error initializing project: {e} ❌")
 

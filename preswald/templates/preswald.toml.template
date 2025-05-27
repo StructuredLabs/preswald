@@ -2,8 +2,8 @@
 title = "Preswald Project"
 version = "0.1.0"
 port = 8501
-slug = "preswald-project"  
-entrypoint = "hello.py"    
+slug = "{project_slug}"
+entrypoint = "hello.py"
 
 [branding]
 name = "Preswald Project"
@@ -16,5 +16,5 @@ type = "csv"
 path = "data/sample.csv"
 
 [logging]
-level = "INFO"  
-format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+level = "INFO"
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s" 
