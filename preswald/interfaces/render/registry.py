@@ -1,8 +1,13 @@
 import re
+import logging
 from collections import defaultdict
 from typing import Callable, Any, Optional
 
 from preswald.interfaces.component_return import ComponentReturn
+from preswald.engine.transformers.frame_context import FrameContext
+
+logger = logging.getLogger(__name__)
+
 
 # ------------------------------------------------------------------------------
 # Stream-based output registry. e.g. print
@@ -24,7 +29,7 @@ _display_methods = defaultdict(set)
 def register_display_method(cls: type, method_name: str):
     """Register a method name for a given class that should trigger auto-display."""
     _display_methods[cls].add(method_name)
-
+    
 def get_display_methods():
     return dict(_display_methods)
 
@@ -79,6 +84,66 @@ def build_component_return_from_value(value: Any, mimetype: str, component_id: s
     return generic(value, mimetype=mimetype, component_id=component_id)
 
 # ------------------------------------------------------------------------------
+# Display renderers
+# ------------------------------------------------------------------------------
+_display_renderers = {}
+def register_display_renderer(func_name: str, renderer: Callable[[str], ComponentReturn]):
+    _display_renderers[func_name] = renderer
+
+def get_display_renderers():
+    return dict(_display_renderers)
+
+#
+# special case display logic
+#
+
+def display_matplotlib_figure_show(fig, component_id: str):
+    from preswald.interfaces.components import generic
+    from io import BytesIO
+    import base64
+
+    buf = BytesIO()
+    fig.savefig(buf, format="png")
+    buf.seek(0)
+    img_data = base64.b64encode(buf.read()).decode("ascii")
+    data_uri = f"data:image/png;base64,{img_data}"
+
+    return generic(data_uri, mimetype="image/png", component_id=component_id)
+
+def display_matplotlib_show(component_id: str):
+    from preswald.interfaces.components import generic
+    import matplotlib.pyplot as plt
+    from io import BytesIO
+    import base64
+
+    fig = plt.gcf()
+    buf = BytesIO()
+    fig.savefig(buf, format="png")
+    buf.seek(0)
+    img_data = base64.b64encode(buf.read()).decode("ascii")
+
+    # Wrap in a data URI
+    data_uri = f"data:image/png;base64,{img_data}"
+
+    # fig.savefig(buf, format="svg")
+    # svg_data = buf.getvalue().decode("utf-8")
+    # return generic(svg_data, mimetype="image/svg+xml", component_id=component_id)
+
+    return generic(data_uri, mimetype="image/png", component_id=component_id)
+
+# ------------------------------------------------------------------------------
+# Dependency Resolvers
+# ------------------------------------------------------------------------------
+_display_dependency_resolvers = {}
+
+def register_display_dependency_resolver(func_name: str, resolver: Callable[[FrameContext], list[str]]):
+    """Register a function that determines extra dependencies for a given display call."""
+    _display_dependency_resolvers[func_name] = resolver
+
+def get_display_dependency_resolvers():
+    return dict(_display_dependency_resolvers)
+
+# ------------------------------------------------------------------------------
 # Mimetype-to-widget registry (generic dispatch)
 # ------------------------------------------------------------------------------
 _mimetype_to_component_type = {}
@@ -107,13 +172,24 @@ def get_mimetype_component_type_map():
 # Preloaded registry (can later be sourced from config)
 # ------------------------------------------------------------------------------
 try:
+    logger.info(f'[DEBUG] pre-registring display methods')
     import matplotlib.pyplot as plt
+    from matplotlib.figure import Figure
     import plotly.graph_objects as go
 
     register_display_method(go.Figure, "show")     # Plotly
-    register_display_method(plt.Figure, "show")    # Matplotlib object
-    register_display_method(plt, "show")           # pyplot.show()
+    register_display_method(Figure, "show")
+    register_display_renderer("matplotlib.figure.Figure.show", display_matplotlib_figure_show)
 
+
+    register_display_detector(lambda call: (
+        isinstance(call.func, ast.Attribute)
+        and call.func.attr == "show"
+        and isinstance(call.func.value, ast.Name)
+        and call.func.value.id == "plt"
+    ))
+    register_display_renderer("matplotlib.pyplot.show", display_matplotlib_show)
+    
     register_output_stream_function("print", stream="stdout")
 
     # Register basic mimetype renderers
