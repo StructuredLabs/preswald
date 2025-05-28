@@ -265,6 +265,40 @@ def checkbox(label: str, default: bool = False, size: float = 1.0, component_id:
 #     return component_id
 
 
+@with_render_tracking("generic")
+def generic(content, mimetype: str, component_id: str | None = None, **kwargs) -> ComponentReturn:
+    """
+    A generic rendering fallback that upgrades known mimetypes into rich components.
+
+    If the mimetype is recognized, this function dynamically calls the mapped Preswald component.
+    Otherwise, it returns a minimal generic component that just displays the raw value.
+    """
+    from preswald.interfaces.render.registry import get_component_type_for_mimetype
+    from preswald import interfaces
+
+    logger.debug(f"[generic] Rendering {mimetype=} with id={component_id}")
+
+    component_type = get_component_type_for_mimetype(mimetype)
+
+    if component_type:
+        component_fn = getattr(interfaces.components, component_type, None)
+        if callable(component_fn):
+            return component_fn(content, component_id=component_id, mimetype=mimetype, **kwargs)
+        else:
+            logger.warning(f"[generic] No such component function: {component_type=} for {mimetype=}")
+
+    # Fallback to generic if no match or unsupported
+    fallback_component = {
+        "type": "generic",
+        "id": component_id,
+        "mimetype": mimetype,
+        "value": content,
+        **kwargs,
+    }
+
+    return ComponentReturn(content, fallback_component)
+
+
 @with_render_tracking("image")
 def image(src, alt="Image", size=1.0, component_id: str | None = None, **kwargs) -> ComponentReturn:
     """Create an image component.
