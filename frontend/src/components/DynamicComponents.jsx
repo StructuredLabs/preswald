@@ -30,6 +30,7 @@ import SpinnerWidget from './widgets/SpinnerWidget';
 import TableViewerWidget from './widgets/TableViewerWidget';
 import TextInputWidget from './widgets/TextInputWidget';
 import TopbarWidget from './widgets/TopbarWidget';
+import GenericWidget from './widgets/GenericWidget';
 import UnknownWidget from './widgets/UnknownWidget';
 
 const extractKeyProps = createExtractKeyProps();
@@ -348,6 +349,17 @@ const MemoizedComponent = memo(
 
       case 'separator':
         return <SeparatorWidget key={componentKey} id={componentId} />;
+
+      case 'generic':
+        return (
+          <GenericWidget
+            key={componentKey}
+            {...props}
+            value={component.value}
+            mimetype={component.mimetype || 'text/plain'}
+            id={componentId}
+          />
+        );
 
       default:
         console.warn(`[DynamicComponents] Unknown component type: ${component.type}`);

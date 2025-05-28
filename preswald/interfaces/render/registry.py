@@ -23,6 +23,19 @@ def get_output_stream_calls():
     return dict(_output_stream_calls)
 
 # ------------------------------------------------------------------------------
+# Tuple return type registry
+# ------------------------------------------------------------------------------
+_tuple_return_types = {}  # function name -> tuple of type strings
+
+def register_tuple_return(func_name: str, return_types: tuple[str, ...]):
+    """Register the return types of a tuple-returning function."""
+    _tuple_return_types[func_name] = return_types
+
+def get_tuple_return_types():
+    return dict(_tuple_return_types)
+
+
+# ------------------------------------------------------------------------------
 # Method-based output registry. e.g. fig.show
 # ------------------------------------------------------------------------------
 _display_methods = defaultdict(set)
@@ -88,8 +101,27 @@ def build_component_return_from_value(value: Any, mimetype: str, component_id: s
 # Display renderers
 # ------------------------------------------------------------------------------
 _display_renderers = {}
-def register_display_renderer(func_name: str, renderer: Callable[[str], ComponentReturn]):
+
+def register_display_renderer(
+    func_name: str,
+    renderer: Callable[[str], ComponentReturn],
+    *,
+    source_function: Optional[str] = None,
+    return_types: Optional[tuple[str, ...]] = None
+):
+    """
+    Register a renderer for a displayable function or method.
+
+    Args:
+        func_name: Fully qualified function name (e.g. "matplotlib.figure.Figure.show")
+        renderer: Callable that takes a component_id and returns a ComponentReturn
+        source_function: Optional function name (e.g. "matplotlib.pyplot.subplots") that produces the values
+        return_types: Optional tuple of types returned by source_function if it returns multiple values
+    """
     _display_renderers[func_name] = renderer
+    if source_function and return_types:
+        register_tuple_return(source_function, return_types)
+
 
 def get_display_renderers():
     return dict(_display_renderers)
@@ -111,26 +143,51 @@ def display_matplotlib_figure_show(fig, component_id: str):
 
     return generic(data_uri, mimetype="image/png", component_id=component_id)
 
+# def display_matplotlib_show(component_id: str):
+#     from preswald.interfaces.components import generic
+#     import matplotlib.pyplot as plt
+#     from io import BytesIO
+#     import base64
+
+#     fig = plt.gcf()
+#     buf = BytesIO()
+#     fig.savefig(buf, format="png")
+#     buf.seek(0)
+#     img_data = base64.b64encode(buf.read()).decode("ascii")
+
+#     # Wrap in a data URI
+#     data_uri = f"data:image/png;base64,{img_data}"
+
+#     # fig.savefig(buf, format="svg")
+#     # svg_data = buf.getvalue().decode("utf-8")
+#     # return generic(svg_data, mimetype="image/svg+xml", component_id=component_id)
+
+#     return generic(data_uri, mimetype="image/png", component_id=component_id)
 def display_matplotlib_show(component_id: str):
     from preswald.interfaces.components import generic
     import matplotlib.pyplot as plt
+    from matplotlib._pylab_helpers import Gcf
     from io import BytesIO
     import base64
 
-    fig = plt.gcf()
-    buf = BytesIO()
-    fig.savefig(buf, format="png")
-    buf.seek(0)
-    img_data = base64.b64encode(buf.read()).decode("ascii")
+    components = []
+    identifiers=[]
+    # Iterate over all figure managers
+    for i, manager in enumerate(Gcf.get_all_fig_managers()):
+        fig = manager.canvas.figure
+        buf = BytesIO()
+        fig.savefig(buf, format="png")
+        buf.seek(0)
+        img_data = base64.b64encode(buf.read()).decode("ascii")
+        data_uri = f"data:image/png;base64,{img_data}"
+        html_output = f'<img src="{data_uri}" style="max-width:100%; display:block; margin-bottom:1em;" />'
+        identifier = f'{component_id}_{i}'
+        components.append(generic(html_output, mimetype="text/html", identifier=identifier))
+        identifiers.append(identifier)
 
-    # Wrap in a data URI
-    data_uri = f"data:image/png;base64,{img_data}"
-
-    # fig.savefig(buf, format="svg")
-    # svg_data = buf.getvalue().decode("utf-8")
-    # return generic(svg_data, mimetype="image/svg+xml", component_id=component_id)
-
-    return generic(data_uri, mimetype="image/png", component_id=component_id)
+    plt.close('all')
+    logger.info(f'[DEBUG] display_matplotlib_show - returning {len(components)} with {identifiers=}')
+    return tuple(components)
 
 # ------------------------------------------------------------------------------
 # Dependency Resolvers
@@ -178,11 +235,13 @@ try:
     from matplotlib.figure import Figure
     import plotly.graph_objects as go
 
+    # Register common display methods and renderers
     register_display_method(go.Figure, "show")     # Plotly
+
     register_display_method(Figure, "show")
     register_display_renderer("matplotlib.figure.Figure.show", display_matplotlib_figure_show)
 
-
+    # Register common display detectors and renderers
     register_display_detector(lambda call: (
         isinstance(call.func, ast.Attribute)
         and call.func.attr == "show"
@@ -191,13 +250,21 @@ try:
     ))
     register_display_renderer("matplotlib.pyplot.show", display_matplotlib_show)
 
-    register_output_stream_function("print", stream="stdout")
+    # Register common tuple return types by common import names
+    register_tuple_return("plt.subplots", ("matplotlib.figure.Figure", "matplotlib.axes._axes.Axes"))
 
     # Register basic mimetype renderers
     register_mimetype_component_type("text/plain", "text")  # maps to MarkdownRendererWidget
-    register_mimetype_component_type("text/html", "text")   # maps to MarkdownRendererWidget
+    #register_mimetype_component_type("text/html", "text")   # maps to MarkdownRendererWidget
     register_mimetype_component_type("application/json", "json_viewer")
     register_mimetype_component_type("image/png", "image")
+
+    # Register return renderers
+    register_return_renderer("pandas.DataFrame.to_html", mimetype="text/html")
+    register_return_renderer("pandas.DataFrame.head", mimetype="text/html")
+
+    # register output stream functions
+    register_output_stream_function("print", stream="stdout")
 except ImportError:
     pass  # Skip preload if dependencies aren't installed
 

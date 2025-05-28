@@ -15,6 +15,7 @@ from preswald.interfaces.render.registry import (
     get_display_renderers,
     get_display_dependency_resolvers,
     get_display_detectors,
+    get_tuple_return_types,
     register_return_renderer,
     register_output_stream_function,
     register_display_method,
@@ -200,8 +201,8 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         This method checks whether the given AST statement references any variable
         that maps to an existing atom. This is used to determine whether a statement
-        should be lifted into a reactive atom (e.g., consumer expressions or augmented
-        assignments with reactive inputs).
+        should be lifted into a reactive atom, such as consumer expressions or augmented
+        assignments with reactive inputs.
 
         Args:
             stmt (ast.stmt): The statement to inspect.
@@ -564,31 +565,14 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name):
                     module_name = func.value.id      # e.g. 'plt'
                     attr_name = func.attr            # e.g. 'subplots'
-                    # inferred_type = f"{module_name}.{attr_name}"
-                    # self._current_frame.atom_return_types[atom_name] = inferred_type
-
-                    # TODO: this is temporarly hard coded just to prove that the plan will work
-                    # Must derive this once everything else is working
-                    if module_name == "plt" and attr_name == "subplots":
-                        self._current_frame.atom_return_types[atom_name] = (
-                            "matplotlib.figure.Figure",
-                            "matplotlib.axes._axes.Axes",
-                        )
-
-                    known_tuple_returns = {
-                        "plt.subplots": (
-                            "matplotlib.figure.Figure",
-                            "matplotlib.axes._axes.Axes",
-                        ),
-                        # Add more known return types here as needed
-                    }
 
                     full_func_name = f"{module_name}.{attr_name}"
+                    known_tuple_returns = get_tuple_return_types()
                     if full_func_name in known_tuple_returns:
                         self._current_frame.atom_return_types[atom_name] = known_tuple_returns[full_func_name]
-
-                    logger.info(f"[AST] Inferred return type for {atom_name=}: {self._current_frame.atom_return_types[atom_name]}")
-
+                        logger.info(f"[AST] Inferred return type for {atom_name=}: {self._current_frame.atom_return_types[atom_name]}")
+                    else:
+                        logger.warning(f"[AST] Unable to Infer return type for {atom_name=}; {full_func_name=}; {known_tuple_returns=}")
 
             temp_assign = ast.Assign(
                 targets=[ast.Name(id=result_var, ctx=ast.Store())],
@@ -864,7 +848,13 @@ class AutoAtomTransformer(ast.NodeTransformer):
                     expected = f"{cls.__module__}.{cls.__name__}.{attr}"
                     logger.info(f'[DEBUG] _maybe_lift_display_renderer_from_expr - try display route {atom_name=}; {return_type=}; {expected=}')
                 else:
-                    logger.warning(f'[DEBUG] _maybe_lift_display_renderer_from_expr - atom name not found in return types {atom_name=} {self._current_frame.atom_return_types=}')
+                    logger.warning(
+                        f"[AST] Could not determine the return type for variable '{varname}' "
+                        f"used in a display method '{attr}()'. "
+                        "If this variable comes from a function that returns multiple values, for example: `a, b = some_func()`, "
+                        "you must call `register_tuple_return('module.func', ('TypeA', 'TypeB'))` before that function call "
+                        "so we can track dependencies correctly."
+                    )
 
         if return_type:
             candidate = f"{return_type}.{attr}"
@@ -948,26 +938,39 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 isinstance(stmt, ast.Expr)
                 and isinstance(stmt.value, ast.Call)
                 and isinstance(stmt.value.func, ast.Name)
-                and stmt.value.func.id == "register_display_dependency_resolver"
                 and len(stmt.value.args) == 2
                 and isinstance(stmt.value.args[0], ast.Constant)
-                and isinstance(stmt.value.args[1], ast.Lambda)
             ):
-                func_name_node = stmt.value.args[0]
-                resolver_node = stmt.value.args[1]
 
-                try:
-                    func_name = func_name_node.value  # e.g. "matplotlib.pyplot.show"
-                    lambda_code = ast.Expression(body=resolver_node)
-                    compiled = compile(lambda_code, filename="<resolver>", mode="eval")
-                    resolver_fn = eval(compiled, {"__builtins__": __builtins__})  # Only eval the lambda
-                    register_display_dependency_resolver(func_name, resolver_fn)  # Call actual registrar
-                    logger.info(f"[AST] Registered display dependency resolver for {func_name=}")
-                except Exception as e:
-                    logger.warning(f"[AST] Failed to register resolver: {e}")
+                if (stmt.value.func.id == "register_display_dependency_resolver"
+                    and isinstance(stmt.value.args[1], ast.Lambda)):
 
-                continue  # Skip adding this stmt to new_body
+                    func_name_node = stmt.value.args[0]
+                    resolver_node = stmt.value.args[1]
 
+                    try:
+                        func_name = func_name_node.value  # e.g. "matplotlib.pyplot.show"
+                        lambda_code = ast.Expression(body=resolver_node)
+                        compiled = compile(lambda_code, filename="<resolver>", mode="eval")
+                        resolver_fn = eval(compiled, {"__builtins__": __builtins__})  # only eval the lambda
+                        register_display_dependency_resolver(func_name, resolver_fn)  # then call actual registrar
+                        logger.info(f"[AST] Registered display dependency resolver for {func_name=}")
+                    except Exception as e:
+                        logger.warning(f"[AST] Failed to register resolver: {e}")
+
+                    continue
+
+                elif (stmt.value.func.id == "register_tuple_return"
+                    and isinstance(stmt.value.args[1], ast.Tuple)):
+                    try:
+                        func_name = stmt.value.args[0].value
+                        return_types = tuple(elt.value for elt in stmt.value.args[1].elts if isinstance(elt, ast.Constant))
+                        from preswald.interfaces.render.registry import register_tuple_return
+                        register_tuple_return(func_name, return_types)
+                        logger.info(f"[AST] Registered tuple return: {func_name=} -> {return_types=}")
+                    except Exception as e:
+                        logger.warning(f"[AST] Failed to register tuple return: {e}")
+                    continue
 
             call_node = None
             if isinstance(stmt, ast.Assign) and isinstance(stmt.value, ast.Call):
@@ -1038,7 +1041,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
                     attr = call_node.func.attr         # e.g. to_html
 
                     atom_name = self._current_frame.variable_to_atom.get(varname)
-                    logger.info(f"[AST] Lookup for variable: {varname=} → {atom_name=}")
+                    logger.info(f"[AST] Lookup for variable: {varname=} -> {atom_name=}")
                     if atom_name:
                         return_type = self._current_frame.atom_return_types.get(atom_name)
                         if return_type:
@@ -1908,7 +1911,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         Unlike other code paths that may use real source line numbers when available,
         this method always uses a synthetic callsite hint derived from the filename and
         an artificial line number counter. This ensures unique and deterministic naming
-        for inline calls discovered during traversal (e.g., inside `visit_Call` or fallback logic).
+        for inline calls discovered during traversal.
 
         Args:
             func_name: The name of the original component function
