@@ -233,10 +233,10 @@ try:
     logger.info(f'[DEBUG] pre-registring display methods')
     import matplotlib.pyplot as plt
     from matplotlib.figure import Figure
-    import plotly.graph_objects as go
+    #import plotly.graph_objects as go
 
     # Register common display methods and renderers
-    register_display_method(go.Figure, "show")     # Plotly
+    #register_display_method(go.Figure, "show")     # Plotly
 
     register_display_method(Figure, "show")
     register_display_renderer("matplotlib.figure.Figure.show", display_matplotlib_figure_show)
