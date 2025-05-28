@@ -1,3 +1,4 @@
+import ast
 import re
 import logging
 from collections import defaultdict
@@ -29,7 +30,7 @@ _display_methods = defaultdict(set)
 def register_display_method(cls: type, method_name: str):
     """Register a method name for a given class that should trigger auto-display."""
     _display_methods[cls].add(method_name)
-    
+
 def get_display_methods():
     return dict(_display_methods)
 
@@ -189,7 +190,7 @@ try:
         and call.func.value.id == "plt"
     ))
     register_display_renderer("matplotlib.pyplot.show", display_matplotlib_show)
-    
+
     register_output_stream_function("print", stream="stdout")
 
     # Register basic mimetype renderers

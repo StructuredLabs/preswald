@@ -14,10 +14,12 @@ from preswald.interfaces.render.registry import (
     get_display_methods,
     get_display_renderers,
     get_display_dependency_resolvers,
+    get_display_detectors,
     register_return_renderer,
     register_output_stream_function,
     register_display_method,
     register_mimetype_component_type,
+    register_display_dependency_resolver,
 )
 from preswald.utils import (
     generate_stable_atom_name_from_component_id,
@@ -754,7 +756,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
             atom_name = generate_stable_atom_name_from_component_id(component_id)
 
         logger.info(f'[DEBUG] in _try_lift_display_renderer component id and atom name generated for {renderer_fn.__name__=} {component_id=} {atom_name=}')
-        dependencies = dependencies or []
+
         call_node = stmt.value if isinstance(stmt, ast.Expr) else stmt.value if isinstance(stmt, ast.Assign) else None
         if not isinstance(call_node, ast.Call):
             logger.warning(f"[DEBUG] Statement does not contain a valid call: {stmt}")
@@ -768,10 +770,12 @@ class AutoAtomTransformer(ast.NodeTransformer):
         variable_map = self._current_frame.variable_to_atom
 
         receiver_node = getattr(call_node.func, "value", None)
-        callsite_deps, dep_names = (
-            self._find_dependencies(receiver_node, variable_map)
-            if receiver_node else ([], [])
-        )
+        callsite_deps = dependencies
+        if not callsite_deps:
+            callsite_deps, dep_names = (
+                self._find_dependencies(receiver_node, variable_map)
+                if receiver_node else ([], [])
+            )
         param_mapping = self._make_param_mapping(callsite_deps)
 
         renderer_args = []
@@ -860,7 +864,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
                     expected = f"{cls.__module__}.{cls.__name__}.{attr}"
                     logger.info(f'[DEBUG] _maybe_lift_display_renderer_from_expr - try display route {atom_name=}; {return_type=}; {expected=}')
                 else:
-                    return False
+                    logger.warning(f'[DEBUG] _maybe_lift_display_renderer_from_expr - atom name not found in return types {atom_name=} {self._current_frame.atom_return_types=}')
 
         if return_type:
             candidate = f"{return_type}.{attr}"
@@ -870,10 +874,20 @@ class AutoAtomTransformer(ast.NodeTransformer):
         renderer = get_display_renderers().get(candidate)
         if renderer:
             atom_name = self._current_frame.variable_to_atom.get(varname)
-            if atom_name is None:
+            if atom_name:
+                return self._try_lift_display_renderer(candidate=candidate, stmt=stmt, dependencies=[atom_name])
+            else:
                 logger.warning(f"[AST] Display renderer fallback: unknown dependency for varname={varname}")
-                return False
-            return self._try_lift_display_renderer(candidate=candidate, stmt=stmt, dependencies=[atom_name])
+
+        # check detectors
+        for detector in get_display_detectors():
+            logger.info(f'[DEBUG] _maybe_lift_display_renderer_from_expr - applying detector to {call_node=}')
+            if detector(call_node):
+                candidate = f"{self.import_aliases.get(varname, varname)}.{attr}"
+                resolver = get_display_dependency_resolvers().get(candidate)
+                deps = resolver(self._current_frame) if resolver else []
+                logger.info(f'[DEBUG] _maybe_lift_display_renderer_from_expr - detected candidate {resolver=}; {candidate=}; {stmt=}; {deps=}')
+                return self._try_lift_display_renderer(candidate=candidate, stmt=stmt, dependencies=deps)
 
         logger.info(f'[DEBUG] _maybe_lift_display_renderer_from_expr - nothing handled, returning False {candidate=}')
 
@@ -928,6 +942,32 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
             logger.info(f"[DEBUG] variable_map for stmt: {stmt} -> {stmt_variable_maps.get(stmt)}")
             logger.info(f"[DEBUG] Examining stmt: {ast.dump(stmt)}")
+
+            # Handle in script resolver registrations, such as register_display_dependency_resolver
+            if (
+                isinstance(stmt, ast.Expr)
+                and isinstance(stmt.value, ast.Call)
+                and isinstance(stmt.value.func, ast.Name)
+                and stmt.value.func.id == "register_display_dependency_resolver"
+                and len(stmt.value.args) == 2
+                and isinstance(stmt.value.args[0], ast.Constant)
+                and isinstance(stmt.value.args[1], ast.Lambda)
+            ):
+                func_name_node = stmt.value.args[0]
+                resolver_node = stmt.value.args[1]
+
+                try:
+                    func_name = func_name_node.value  # e.g. "matplotlib.pyplot.show"
+                    lambda_code = ast.Expression(body=resolver_node)
+                    compiled = compile(lambda_code, filename="<resolver>", mode="eval")
+                    resolver_fn = eval(compiled, {"__builtins__": __builtins__})  # Only eval the lambda
+                    register_display_dependency_resolver(func_name, resolver_fn)  # Call actual registrar
+                    logger.info(f"[AST] Registered display dependency resolver for {func_name=}")
+                except Exception as e:
+                    logger.warning(f"[AST] Failed to register resolver: {e}")
+
+                continue  # Skip adding this stmt to new_body
+
 
             call_node = None
             if isinstance(stmt, ast.Assign) and isinstance(stmt.value, ast.Call):
@@ -987,25 +1027,6 @@ class AutoAtomTransformer(ast.NodeTransformer):
                             component_id, atom_name = self.generate_component_and_atom_name(full_func_name)
                             self._lift_return_renderable_call(stmt, call_node, component_id, atom_name, mimetype)
                             continue
-
-                        # # --- Return-renderer (e.g. df.to_html)
-                        # if full_func_name in return_renderers:
-                        #     mimetype = return_renderers[full_func_name]["mimetype"]
-                        #     logger.info(f"[AST] Lifting return-renderable: {full_func_name=}; {mimetype=}")
-                        #     component_id, atom_name = self.generate_component_and_atom_name(full_func_name)
-                        #     self._lift_return_renderable_call(stmt, call_node, component_id, atom_name, mimetype)
-                        #     continue
-
-                        # # --- Display renderer fallback (e.g. matplotlib.pyplot.show)
-                        # candidate = f"{self.import_aliases.get(varname, varname)}.{attr}" if varname else attr
-                        # resolver_fn = dependency_resolvers.get(candidate)
-                        # dependencies = resolver_fn(self._current_frame) if resolver_fn else []
-                        # logger.info(f'[DEBUG] before candidate in display_renderers branch {candidate=}; {display_renderers=}')
-                        # if candidate in display_renderers:
-                        #     logger.info(f"[AST] Lifting display renderer for: {candidate}")
-                        #     self._try_lift_display_renderer(candidate=candidate, stmt=stmt, dependencies=dependencies)
-                        #     continue
-
 
                 logger.info(f"[AST] Checking attribute call for return-renderable: {ast.dump(call_node.func)}")
 
