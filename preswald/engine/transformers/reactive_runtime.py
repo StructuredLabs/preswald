@@ -1397,9 +1397,11 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 if stmt.name not in self._blackbox_lifted_functions:
                     self.visit(stmt)
 
-        return assigned_workflow and executed_workflow
+        original_len = len(node.body)
+        new_len = len(self._current_frame.generated_atoms + new_body)
 
-    def _build_runtime_imports(self) -> list[ast.stmt]:
+        logger.info(f"[AST] Generated atom functions {len(self._current_frame.generated_atoms)=}")
+        logger.info(f"[AST] Final module rewrite complete {original_len=} -> {new_len=}")
 
         logger.info("[AST] Final transformed module structure:")
         for idx, stmt in enumerate(self._current_frame.generated_atoms + new_body):
