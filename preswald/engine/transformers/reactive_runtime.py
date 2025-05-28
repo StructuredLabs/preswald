@@ -747,11 +747,9 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         new_body = self._lift_top_level_statements(filtered_stmts, component_to_atom_name)
 
-        original_len = len(node.body)
-        new_len = len(self.generated_atoms + new_body)
+        return assigned_workflow and executed_workflow
 
-        logger.info(f"[AST] Generated atom functions {len(self.generated_atoms)=}")
-        logger.info(f"[AST] Final module rewrite complete {original_len=} -> {new_len=}")
+    def _build_runtime_imports(self) -> list[ast.stmt]:
 
         logger.info("[AST] Final transformed module structure:")
         for idx, stmt in enumerate(self.generated_atoms + new_body):

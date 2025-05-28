@@ -6,7 +6,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 // Utilities
 import { createExtractKeyProps } from '@/utils/extractKeyProps';
-import { comm } from '@/utils/websocket';
 
 // Widgets
 import AlertWidget from './widgets/AlertWidget';
@@ -16,7 +15,7 @@ import ChatWidget from './widgets/ChatWidget';
 import CheckboxWidget from './widgets/CheckboxWidget';
 import DAGVisualizationWidget from './widgets/DAGVisualizationWidget';
 import DataVisualizationWidget from './widgets/DataVisualizationWidget';
-import FastplotlibWidget from './widgets/FastplotlibWidget';
+//import FastplotlibWidget from './widgets/FastplotlibWidget';
 import ImageWidget from './widgets/ImageWidget';
 import JSONViewerWidget from './widgets/JSONViewerWidget';
 import MarkdownRendererWidget from './widgets/MarkdownRendererWidget';
@@ -313,21 +312,21 @@ const MemoizedComponent = memo(
           />
         );
 
-      case 'fastplotlib_component':
-        const { className, data, config, label, src } = component;
-        return (
-          <FastplotlibWidget
-            key={componentKey}
-            {...props}
-            data={component.data}
-            config={component.config}
-            src={src}
-            label={label}
-            className={className}
-            clientId={comm.clientId}
-            id={componentId}
-          />
-        );
+      // case 'fastplotlib_component':
+      //   const { className, data, config, label, src } = component;
+      //   return (
+      //     <FastplotlibWidget
+      //       key={componentKey}
+      //       {...props}
+      //       data={component.data}
+      //       config={component.config}
+      //       src={src}
+      //       label={label}
+      //       className={className}
+      //       clientId={comm.clientId}
+      //       id={componentId}
+      //     />
+      //   );
 
       case 'playground':
         return (
