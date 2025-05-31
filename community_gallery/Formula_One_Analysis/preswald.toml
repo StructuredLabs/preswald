@@ -1,0 +1,20 @@
+[project]
+title = "Preswald Project"
+version = "0.1.0"
+port = 8501
+slug = "my-example-project-678312"  # Required: Unique identifier for your project
+entrypoint = "hello.py"    # Required: Main script to run when executing preswald run
+
+[branding]
+name = "Preswald Project"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#F89613"
+
+[data.full_results_with_names]
+type = "csv"
+path = "data/full_results_with_names.csv"
+
+[logging]
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
