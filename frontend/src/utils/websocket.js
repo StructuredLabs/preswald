@@ -408,7 +408,8 @@ class ComlinkClient {
       this._notifySubscribers({ type: 'connection_status', connected: true });
 
       console.log('[Client] Loading project fs');
-      const resp = await fetch('project_fs.json');
+      const resp = await fetch('project_fs.json', { cache: 'no-cache' });
+
       const raw = await resp.json();
 
       const files = {};
