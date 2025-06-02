@@ -1180,39 +1180,6 @@ class AutoAtomTransformer(ast.NodeTransformer):
         ]
         return imports
 
-    def _has_backend_config(self, body: list[ast.stmt]) -> bool:
-        for stmt in body:
-            if isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Call):
-                call = stmt.value
-                if (
-                    isinstance(call.func, ast.Attribute) and
-                    isinstance(call.func.value, ast.Name) and
-                    call.func.value.id == "matplotlib" and
-                    call.func.attr == "use"
-                ):
-                    return True
-        return False
-
-    def _build_backend_config(self) -> list[ast.stmt]:
-        """
-        Injects:
-            import matplotlib
-            matplotlib.use("agg")
-        """
-        import_stmt = ast.Import(names=[ast.alias(name="matplotlib", asname=None)])
-        use_stmt = ast.Expr(
-            value=ast.Call(
-                func=ast.Attribute(
-                    value=ast.Name(id="matplotlib", ctx=ast.Load()),
-                    attr="use",
-                    ctx=ast.Load(),
-                ),
-                args=[ast.Constant(value="agg")],
-                keywords=[],
-            )
-        )
-        return [import_stmt, use_stmt]
-
     def _build_runtime_execution(self) -> list[ast.stmt]:
         """
         Builds the AST statements required to run a Preswald script.
@@ -1465,10 +1432,6 @@ class AutoAtomTransformer(ast.NodeTransformer):
             )
             for stmt in non_import_stmts
         )
-
-        # Check if user has explicitly set the backend
-        inject_backend = not self._has_backend_config(node.body)
-        backend_config = self._build_backend_config() if inject_backend else []
 
         # Inject the import only if needed
         should_inject_import = not (has_get_workflow_import or uses_workflow_constructor)

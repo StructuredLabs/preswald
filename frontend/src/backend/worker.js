@@ -47,6 +47,15 @@ class PreswaldWorker {
                 os.chdir('/project')
             `);
 
+      // Inject matplotlibrc file to set backend
+      console.log('[Worker] Configuring matplotlib');
+      await this.pyodide.loadPackage("matplotlib");
+      await this.pyodide.runPythonAsync(`
+        with open("/matplotlibrc", "w") as f:
+          f.write("backend: agg\\n")
+        import matplotlib
+        matplotlib.use("agg")`);
+
       // Install required packages
       console.log('[Worker] Installing required packages');
       await this.pyodide.loadPackage('micropip');
