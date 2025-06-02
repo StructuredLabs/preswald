@@ -1445,7 +1445,6 @@ class AutoAtomTransformer(ast.NodeTransformer):
             runtime_exec = []
 
         node.body = (
-            backend_config +
             original_imports +
             runtime_imports +
             self._current_frame.generated_atoms +
