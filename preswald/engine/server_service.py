@@ -82,3 +82,20 @@ class ServerPreswaldService(BasePreswaldService):
         except Exception as e:
             logger.error(f"Error broadcasting connections: {e}")
             # Don't raise the exception to prevent disrupting the main flow
+
+    async def _broadcast_debug_state(self):
+        """Broadcast debug state snapshots to all clients"""
+        try:
+            state_snapshot = self.get_state_snapshot()
+
+            # Broadcast the state snapshot to all connected WebSocket clients
+            for websocket in self.websocket_connections.values():
+                await websocket.send_json(
+                    {
+                        "type": "__debug__",
+                        "payload": state_snapshot,
+                    }
+                )
+            logger.info("[Debug] Debug state broadcasted to all clients")
+        except Exception as e:
+            logger.error(f"Error broadcasting debug state: {e}")

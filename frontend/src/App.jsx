@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { BrowserRouter as Router } from 'react-router-dom';
+
+import DebugPanel from '@/components/common/DebugPanel';
 
 import Layout from './components/Layout';
 import LoadingState from './components/LoadingState';
@@ -13,6 +15,7 @@ const App = () => {
   const [config, setConfig] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [areComponentsLoading, setAreComponentsLoading] = useState(true);
+  const [debugMode, setDebugMode] = useState(false);
 
   useEffect(() => {
     comm.connect();
@@ -38,6 +41,32 @@ const App = () => {
     return () => document.removeEventListener('visibilitychange', updateTitle);
   }, [config]);
 
+  useEffect(() => {
+    fetch('/api/config')
+      .then((res) => res.text())
+      .then((htmlText) => {
+        //parse html text for debug flag
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlText, 'text/html');
+
+        const scripts = Array.from(doc.scripts);
+
+        for (let script of scripts) {
+          if (script.textContent.includes('window.PRESWALD_BRANDING')) {
+            const match = script.textContent.match(/window\.PRESWALD_BRANDING\s*=\s*(\{.*\});/s);
+            if (match && match[1]) {
+              const brandingConfig = JSON.parse(match[1]);
+              setDebugMode(brandingConfig?.debug || false);
+              return;
+            }
+          }
+        }
+
+        throw new Error('PRESWALD_BRANDING not found');
+      })
+      .catch((err) => console.error('Error fetching config:', err));
+  }, []);
+
   const handleMessage = (message) => {
     console.log('[App] Received message:', message);
 
@@ -58,6 +87,7 @@ const App = () => {
 
       case 'config':
         setConfig(message.config);
+        setDebugMode(message.config?.debug || false);
         break;
 
       case 'initial_state':
@@ -160,6 +190,7 @@ const App = () => {
             handleComponentUpdate={handleComponentUpdate}
           />
         )}
+        {debugMode && <DebugPanel />}
       </Layout>
     </Router>
   );

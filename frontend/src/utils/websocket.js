@@ -65,6 +65,7 @@ class WebSocketClient {
         try {
           if (typeof event.data === 'string') {
             // Normal text message — parse as JSON
+            // Normal text message — parse as JSON
             const data = JSON.parse(event.data);
             console.log('[WebSocket] JSON Message received:', {
               ...data,
@@ -106,6 +107,11 @@ class WebSocketClient {
               case 'connections_update':
                 this.connections = data.connections || [];
                 console.log('[WebSocket] Connections updated:', this.connections);
+                break;
+
+              case '__debug__':
+                window.__DEBUG_STATE__ = data.payload;
+                console.log('[WebSocket] Debug state updated:', window.__DEBUG_STATE__);
                 break;
             }
 

@@ -1,10 +1,11 @@
 import logging
 import os
 import time
+import types
 from collections.abc import Callable
-from threading import Lock
-from typing import Any, Callable, Dict, Optional
 from contextlib import contextmanager
+from threading import Lock
+from typing import Any
 
 from preswald.engine.runner import ScriptRunner
 from preswald.engine.utils import (
@@ -13,8 +14,9 @@ from preswald.engine.utils import (
     compress_data,
     optimize_plotly_data,
 )
-from preswald.interfaces.workflow import Workflow, Atom
 from preswald.interfaces.component_return import ComponentReturn
+from preswald.interfaces.workflow import Atom, Workflow
+
 from .managers.data import DataManager
 from .managers.layout import LayoutManager
 
@@ -88,6 +90,65 @@ class BasePreswaldService:
                 cls._instance._script_path = script_path
                 cls._instance._initialize_data_manager(script_path)
         return cls._instance
+
+    @classmethod
+    def get_tracked_variables(cls):
+        """Aggregate variables from all active ScriptRunner instances."""
+        tracked_variables = []
+        for runner in cls.get_instance().script_runners.values():
+            local_vars = runner._script_locals
+            for key, value in local_vars.items():
+                if not isinstance(value, types.ModuleType) and not isinstance(
+                    value, types.FunctionType
+                ):
+                    tracked_variables.append({"name": key, "value": str(value)})
+        return tracked_variables
+
+    @classmethod
+    def get_state_snapshot(cls):
+        """Get all info about the current state of the instance for the debug panel."""
+        try:
+            instance = cls.get_instance()
+
+            # Get components hierarchy
+            components = instance.get_rendered_components()
+            components_cleaned = []
+            rows = components.get("rows", [])
+            for row in rows:
+                for component in row:
+                    component_id = component.get("id")
+                    if not component_id:
+                        continue
+                    else:
+                        components_cleaned.append(
+                            {
+                                "id": component_id,
+                                "type": component.get("type"),
+                                "state": cls.get_instance()._component_states.get(
+                                    component_id
+                                ),
+                            }
+                        )
+
+            # Get tracked variables
+            workflow_variables = [
+                instance._workflow.context.variables if instance._workflow else None
+            ]
+
+            script_variables = instance.get_tracked_variables()
+            variables = script_variables + workflow_variables
+
+            # Get errors
+            errors = instance.error_log if hasattr(instance, "error_log") else []
+
+            return {
+                "components": components_cleaned,
+                "variables": variables,
+                "errors": errors,
+            }
+        except Exception as e:
+            logger.error(f"Error generating state snapshot: {e}", exc_info=True)
+            return {"components": {}, "variables": {}, "errors": [{"message": str(e)}]}
 
     @property
     def script_path(self) -> str | None:
@@ -307,7 +368,7 @@ class BasePreswaldService:
     def get_workflow(self) -> Workflow:
         return self._workflow
 
-    async def handle_client_message(self, client_id: str, message: Dict[str, Any]):
+    async def handle_client_message(self, client_id: str, message: dict[str, Any]):
         """Process incoming messages from clients"""
         start_time = time.time()
         try:
