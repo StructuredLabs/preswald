@@ -7,19 +7,12 @@ from preswald import (
     chat,
     # fastplotlib,
     get_df,
-    plotly,
     sidebar,
     table,
     text,
 )
 
-
 sidebar()
-
-# from preswald.engine.service import PreswaldService
-
-
-# service = service = PreswaldService.get_instance()
 
 # Report Title
 text(
@@ -42,7 +35,7 @@ fig1 = px.scatter(
     labels={"sepal.length": "Sepal Length", "sepal.width": "Sepal Width"},
 )
 fig1.update_layout(template="plotly_white")
-plotly(fig1)
+fig1.show()
 
 # 2. Histogram of Sepal Length
 text(
@@ -52,7 +45,7 @@ fig3 = px.histogram(
     df, x="sepal.length", color="variety", title="Distribution of Sepal Length"
 )
 fig3.update_layout(template="plotly_white")
-plotly(fig3)
+fig3.show()
 
 # 3. Box plot of Sepal Width by Species
 text(
@@ -66,7 +59,7 @@ fig5 = px.box(
     title="Sepal Width Distribution by Species",
 )
 fig5.update_layout(template="plotly_white")
-plotly(fig5)
+fig5.show()
 
 # 4. Violin plot of Sepal Length by Species
 text(
@@ -80,7 +73,7 @@ fig7 = px.violin(
     title="Sepal Length Distribution by Species",
 )
 fig7.update_layout(template="plotly_white")
-plotly(fig7)
+fig7.show()
 
 # 5. Density contour plot - Sepal Length vs Petal Length
 text(
@@ -94,7 +87,7 @@ fig10 = px.density_contour(
     title="Density Contour of Sepal Length vs Petal Length",
 )
 fig10.update_layout(template="plotly_white")
-plotly(fig10)
+fig10.show()
 
 # # 6. Fastplotlib Examples
 #
