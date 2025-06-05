@@ -15,7 +15,7 @@ from preswald.interfaces.render.registry import (
     get_display_renderers,
     get_display_dependency_resolvers,
     get_display_detectors,
-    get_tuple_return_types,
+    get_return_type_hint,
     register_return_renderer,
     register_output_stream_function,
     register_display_method,
@@ -326,6 +326,31 @@ class AutoAtomTransformer(ast.NodeTransformer):
         """
         return False
 
+    def _infer_and_register_return_type(self, call_node: ast.Call, atom_name: str) -> None:
+        """
+        Attempt to infer and register the return type of a function call for use in
+        display/render detection. Supports both single and tuple return types.
+
+        Updates `self._current_frame.atom_return_types` if successful.
+
+        Args:
+            call_node: The rhs call node from the producer assignment.
+            atom_name: The name of the atom being registered.
+        """
+        func = call_node.func
+        if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name):
+            module = func.value.id
+            attr = func.attr
+            func_name = f"{module}.{attr}"
+
+            hint = get_return_type_hint(func_name)
+            inferred = hint if hint else func_name
+
+            self._current_frame.atom_return_types[atom_name] = inferred
+            logger.debug(f"[AST] Inferred return type for %s -> %s", atom_name, inferred)
+        else:
+            logger.warning(f"[AST] Could not resolve return type hint for {ast.dump(call_node)}")
+
     def _lift_augassign_stmt(self, stmt: ast.AugAssign) -> None:
         """
         Lifts an augmented assignment statement (e.g. `counter += val`) into a reactive atom function.
@@ -444,6 +469,54 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         self._finalize_and_register_atom(atom_name, component_id, callsite_deps, wrapped_call)
 
+    def _lift_side_effect_stmt(self, stmt: ast.Expr) -> None:
+        """
+        Lifts a method call that causes a side effect, such as `fig.show()`, into a reactive atom.
+
+        This is used when a method is invoked on a previously declared variable that already maps
+        to a reactive atom. The method itself is treated as a consumer style side effect and reruns
+        whenever the original producer atom changes.
+
+        Example:
+            fig = px.scatter(...)
+            fig.show()  # This will be lifted into its own atom that depends on the `fig` producer atom.
+
+        Conditions for lifting:
+        - The expression must be a method call.
+        - The method receiver (`fig`) must be a variable already registered in `variable_to_atom`.
+        - Only direct `ast.Name` receivers are supported; complex receivers are ignored, for example: `get_fig().show()`.
+
+        This function:
+        - Generates a new component ID and atom name for the side effect.
+        - Wraps the call in an atom with a dependency on the original variable.
+        - Registers the new atom to rerun when dependencies change.
+
+        Args:
+            stmt: An `ast.Expr` node representing a top level method call expression.
+
+        Returns:
+            None. The new atom is registered internally.
+        """
+
+        receiver = stmt.value.func.value
+        if not isinstance(receiver, ast.Name):
+            return  # Not supported fallback
+
+        varname = receiver.id
+        atom_name = self._current_frame.variable_to_atom.get(varname)
+        if not atom_name:
+            return
+
+        component_id, new_atom_name = self.generate_component_and_atom_name("sideeffect")
+        deps = [atom_name]
+        param_mapping = self._make_param_mapping(deps)
+        patched_stmt = self._replace_dep_args(stmt.value, param_mapping)
+
+        # wrap in return None
+        atom_body = [ast.Expr(value=patched_stmt), ast.Return(value=ast.Constant(value=None))]
+        self._finalize_and_register_atom(new_atom_name, component_id, deps, atom_body)
+        logger.info('[AST] lifted side effect statement into atom %s -> %s', component_id, new_atom_name)
+
     def _lift_blackbox_function_call(
         self,
         stmt: ast.Assign,
@@ -561,18 +634,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
             # Attempt to infer return type for the leftmost variable (assumed to be the primary return object)
             if isinstance(stmt.value, ast.Call):
-                func = stmt.value.func
-                if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name):
-                    module_name = func.value.id      # e.g. 'plt'
-                    attr_name = func.attr            # e.g. 'subplots'
-
-                    full_func_name = f"{module_name}.{attr_name}"
-                    known_tuple_returns = get_tuple_return_types()
-                    if full_func_name in known_tuple_returns:
-                        self._current_frame.atom_return_types[atom_name] = known_tuple_returns[full_func_name]
-                        logger.info(f"[AST] Inferred return type for {atom_name=}: {self._current_frame.atom_return_types[atom_name]}")
-                    else:
-                        logger.warning(f"[AST] Unable to Infer return type for {atom_name=}; {full_func_name=}; {known_tuple_returns=}")
+                self._infer_and_register_return_type(stmt.value, atom_name)
 
             temp_assign = ast.Assign(
                 targets=[ast.Name(id=result_var, ctx=ast.Store())],
@@ -630,13 +692,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
             # Track the return type if this is a call to a known constructor
             # this is so that we can use this type to lookup registered renderables and lift them
             if isinstance(stmt.value, ast.Call):
-                func = stmt.value.func
-                if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name):
-                    module_name = func.value.id      # e.g. 'pd'
-                    attr_name = func.attr            # e.g. 'DataFrame'
-                    inferred_type = f"{module_name}.{attr_name}"
-                    self._current_frame.atom_return_types[atom_name] = inferred_type
-                    logger.info(f"[AST] Inferred return type for {atom_name=}: {inferred_type}")
+                self._infer_and_register_return_type(stmt.value, atom_name)
 
             param_mapping = self._make_param_mapping(callsite_deps)
             patched_expr = ast.Assign(
@@ -1063,33 +1119,40 @@ class AutoAtomTransformer(ast.NodeTransformer):
                                 self._lift_return_renderable_call(stmt, call_node, component_id, atom_name, mimetype)
                                 continue
 
-
-            # Handle expression consumers
+            # Handle expression consumers and side effects
             if isinstance(stmt, ast.Expr):
                 if isinstance(stmt.value, ast.Call):
                     call_node = stmt.value
                     if self._maybe_lift_display_renderer_from_expr(stmt, call_node):
                         continue
 
-                # Fallback: check if it's a consumer
+                # Case 1: consumer of reactive values, for example: text(f"{x}")
                 if self._uses_known_atoms(stmt):
                     self._lift_consumer_stmt(stmt)
-                else:
-                    new_body.append(stmt)
+                    continue
+
+                # Case 2: side effectful method on a reactive object, such as fig.update_layout(...)
+                if (
+                    isinstance(stmt.value, ast.Call)
+                    and isinstance(stmt.value.func, ast.Attribute)
+                    and isinstance(stmt.value.func.value, ast.Name)
+                    and stmt.value.func.value.id in self._current_frame.variable_to_atom
+                ):
+                    logger.info('[DEBUG] going to call _lift_side_effect_stmt for %s', stmt.value.func.value.id)
+                    self._lift_side_effect_stmt(stmt)
+                    continue
+
+                # Fallback: preserve as-is
+                new_body.append(stmt)
 
             # Handle producer assignments
             elif isinstance(stmt, ast.Assign):
                 variable_map = stmt_variable_maps.get(stmt, self._current_frame.variable_to_atom)
-                if self._uses_known_atoms(stmt, variable_map):
+                if isinstance(stmt.targets[0], ast.Name) and isinstance(stmt.value, ast.Call):
                     self._lift_producer_stmt(stmt, pending_assignments, variable_map)
+                    continue
                 else:
-                    # Fallback: check if any future statement uses this variable reactively
-                    for future_stmt in body:
-                        if self._uses_known_atoms(future_stmt, {**variable_map, **self._current_frame.variable_to_atom}):
-                            self._lift_producer_stmt(stmt, pending_assignments, variable_map)
-                            break
-                    else:
-                        new_body.append(stmt)
+                    new_body.append(stmt)
 
             # Handle augmented assignments, such as `x += val`
             elif isinstance(stmt, ast.AugAssign):
