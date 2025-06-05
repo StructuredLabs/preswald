@@ -4,13 +4,16 @@ import logging
 import re
 import zlib
 from datetime import date, datetime
-from typing import Any
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 import msgpack
 import numpy as np
 
 
 logger = logging.getLogger(__name__)
+
+# Compiled regex pattern for matching SHA-256 hashes
+HASH_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 
 
 class PreswaldJSONEncoder(json.JSONEncoder):
@@ -196,24 +199,23 @@ class RenderBuffer:
     Used by services to avoid redundant component reruns and frontend updates.
     """
 
-    HASH_PATTERN = re.compile(r"^[0-9a-f]{64}$")
-
     def __init__(self):
-        self._state_cache: dict[str, str] = {}
+        self._cache: Dict[str, str] = {}
+        self._dirty: Set[str] = set()
 
     def has_changed(self, component_id: str, new_value: Any) -> bool:
         """Check if the new hash differs from the cached one."""
         new_clean = clean_nan_values(new_value)
 
-        if component_id not in self._state_cache:
+        if component_id not in self._cache:
             return True  # always render the first time
 
-        old_clean = clean_nan_values(self._state_cache[component_id])
+        old_clean = clean_nan_values(self._cache[component_id])
         return new_clean != old_clean
 
     def update(self, component_id: str, new_value: Any):
         """Update the cached hash value."""
-        self._state_cache[component_id] = self._ensure_hash(new_value)
+        self._cache[component_id] = self._ensure_hash(new_value)
 
     def should_render(self, component_id: str, new_value: Any) -> bool:
         """
@@ -224,7 +226,7 @@ class RenderBuffer:
 
     def _ensure_hash(self, value: Any) -> str:
         """Convert value to SHA256 hash. Accepts either a hash string or a hashable object."""
-        if isinstance(value, str) and self.HASH_PATTERN.match(value):
+        if isinstance(value, str) and HASH_PATTERN.match(value):
             return value  # already a hash
         try:
             cleaned = clean_nan_values(value)
