@@ -13,6 +13,7 @@ from .components import (
     image,
     json_viewer,
     matplotlib,
+    mosaic,
     playground,
     plotly,
     progress,

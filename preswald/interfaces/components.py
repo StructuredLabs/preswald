@@ -167,6 +167,49 @@ def chat(source: str, table: str | None = None, component_id: str | None = None,
         },
     }
 
+    if service.should_render(component_id, component):
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(f"Created component: {component}")
+        service.append_component(component)
+    else:
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                f"No changes detected. skipping append for component {component}"
+            )
+    return component
+
+
+def mosaic(
+    label: str,
+    spec: dict,
+    size: float = 1.0,
+) -> str:
+    """Render a Mosaic visualization based on a Vega-Lite-compatible spec"""
+
+    service = PreswaldService.get_instance()
+    component_id = generate_stable_id("mosaic")
+    logger.debug(f"Creating mosaic component with id {component_id}, spec: {spec}")
+    component = {
+        "type": "mosaic",
+        "id": component_id,
+        "label": label,
+        "spec": spec,
+        "size": size,
+    }
+    if service.should_render(component_id, component):
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(f"Created component: {component}")
+        service.append_component(component)
+    else:
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                f"No changes detected. skipping append for component {component}"
+            )
+
+    return f"Mosaic: {label}"
+
+
+def checkbox(label: str, default: bool = False, size: float = 1.0) -> bool:
     return ComponentReturn(component, component)
 
 @with_render_tracking("checkbox")

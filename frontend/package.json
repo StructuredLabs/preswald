@@ -64,6 +64,9 @@
     "remark-slug": "^7.0.1",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
+    "vega": "^6.1.2",
+    "vega-embed": "^7.0.2",
+    "vega-lite": "^6.1.0",
     "use-debounce": "^10.0.4"
   },
   "devDependencies": {
