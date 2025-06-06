@@ -1,11 +1,25 @@
 import ast
-import re
+import base64
+import inspect
 import logging
+import re
 from collections import defaultdict
-from typing import Callable, Any, Optional
+from collections.abc import Callable
+from types import ModuleType
+from typing import (
+    Any,
+    get_args,
+    get_origin,
+)
 
-from preswald.interfaces.component_return import ComponentReturn
+import matplotlib.pyplot as plt
+import plotly.express as px
+from matplotlib.figure import Figure as MatplotlibFigure
+from plotly.graph_objs import Figure as PlotlyFigure
+
 from preswald.engine.transformers.frame_context import FrameContext
+from preswald.interfaces.component_return import ComponentReturn
+
 
 logger = logging.getLogger(__name__)
 
@@ -23,17 +37,90 @@ def get_output_stream_calls():
     return dict(_output_stream_calls)
 
 # ------------------------------------------------------------------------------
-# Tuple return type registry
+# return type hint registry
 # ------------------------------------------------------------------------------
-_tuple_return_types = {}  # function name -> tuple of type strings
+_return_type_hints = {}  # func_name -> str or tuple of str
 
-def register_tuple_return(func_name: str, return_types: tuple[str, ...]):
-    """Register the return types of a tuple-returning function."""
-    _tuple_return_types[func_name] = return_types
+def register_return_type_hint(func_name: str, return_type: str | tuple[str, ...]):
+    """Register the expected return type(s) of a function or method."""
+    logger.debug('[registry] register return type hint for %s -> %s', func_name, return_type)
+    _return_type_hints[func_name] = return_type
 
-def get_tuple_return_types():
-    return dict(_tuple_return_types)
 
+def get_return_type_hint(func_name: str) -> str | tuple[str, ...] | None:
+    return _return_type_hints.get(func_name)
+
+
+def is_returning(func: Callable[..., Any], return_type: type[Any]) -> bool:
+    try:
+        sig = inspect.signature(func)
+        annotation = sig.return_annotation
+
+        if annotation is inspect.Signature.empty:
+            return False
+
+        # Direct type match
+        if annotation is return_type:
+            return True
+
+        # string match, such as 'Figure'
+        if isinstance(annotation, str):
+            if return_type.__name__ in annotation:
+                return True
+            return False
+
+        # handle generic annotations like tuple[Figure, Any]
+        origin = get_origin(annotation)
+        if origin is tuple:
+            return any(
+                arg is return_type or
+                (isinstance(arg, type) and arg.__name__ == return_type.__name__)
+                for arg in get_args(annotation)
+            )
+
+        return False
+    except Exception:
+        return False
+
+
+def auto_register_return_hints(
+    module: ModuleType,
+    prefix: str,
+    return_type: type
+) -> None:
+    """
+    Automatically registers return type hints for all public functions in a module
+    that return a specific type or include that type in a tuple return annotation.
+
+    This utility is used to support automatic inference of reactive return values,
+    such as figures produced by plotting libraries like matplotlib or plotly.
+
+    For each matching function:
+    - The fully qualified function name, such as 'plt.subplots', is used as the key.
+    - The fully qualified return type name, such as 'matplotlib.figure.Figure', is used as the value.
+
+    The check supports:
+    - Direct returns: `def foo() -> Figure`
+    - Tuple returns: `def bar() -> tuple[Figure, Any]`
+    - String-based annotations: `-> 'Figure'`
+
+    Args:
+        module: The imported module to scan, such as `matplotlib.pyplot` or `plotly.express`.
+        prefix: A string prefix to prepend to the function name in the registry key. This is
+                the module import alias, such as 'plt' or 'px'.
+        return_type: The target return type, such as `matplotlib.figure.Figure`, to match.
+
+    Returns:
+        None. Matching functions are registered in the return type hint registry.
+    """
+    full_type_name = f"{return_type.__module__}.{return_type.__name__}"
+
+    for name, obj in vars(module).items():
+        if name.startswith("_") or not callable(obj):
+            continue
+
+        if is_returning(obj, return_type):
+            register_return_type_hint(f"{prefix}.{name}", full_type_name)
 
 # ------------------------------------------------------------------------------
 # Method-based output registry. e.g. fig.show
@@ -90,7 +177,7 @@ def register_return_renderer(func_name: str, *, mimetype: str, component_type: s
 def get_return_renderers():
     return dict(_return_renderers)
 
-def get_component_type_for_function(func_name: str) -> Optional[str]:
+def get_component_type_for_function(func_name: str) -> str | None:
     return _return_renderers.get(func_name, {}).get("component_type")
 
 def build_component_return_from_value(value: Any, mimetype: str, component_id: str) -> ComponentReturn:
@@ -106,8 +193,8 @@ def register_display_renderer(
     func_name: str,
     renderer: Callable[[str], ComponentReturn],
     *,
-    source_function: Optional[str] = None,
-    return_types: Optional[tuple[str, ...]] = None
+    source_function: str | None = None,
+    return_types: tuple[str, ...] | None = None
 ):
     """
     Register a renderer for a displayable function or method.
@@ -120,7 +207,7 @@ def register_display_renderer(
     """
     _display_renderers[func_name] = renderer
     if source_function and return_types:
-        register_tuple_return(source_function, return_types)
+        register_return_type_hint(source_function, return_types)
 
 
 def get_display_renderers():
@@ -131,9 +218,9 @@ def get_display_renderers():
 #
 
 def display_matplotlib_figure_show(fig, component_id: str):
-    from preswald.interfaces.components import generic
     from io import BytesIO
-    import base64
+
+    from preswald.interfaces.components import generic
 
     buf = BytesIO()
     fig.savefig(buf, format="png")
@@ -143,32 +230,12 @@ def display_matplotlib_figure_show(fig, component_id: str):
 
     return generic(data_uri, mimetype="image/png", component_id=component_id)
 
-# def display_matplotlib_show(component_id: str):
-#     from preswald.interfaces.components import generic
-#     import matplotlib.pyplot as plt
-#     from io import BytesIO
-#     import base64
-
-#     fig = plt.gcf()
-#     buf = BytesIO()
-#     fig.savefig(buf, format="png")
-#     buf.seek(0)
-#     img_data = base64.b64encode(buf.read()).decode("ascii")
-
-#     # Wrap in a data URI
-#     data_uri = f"data:image/png;base64,{img_data}"
-
-#     # fig.savefig(buf, format="svg")
-#     # svg_data = buf.getvalue().decode("utf-8")
-#     # return generic(svg_data, mimetype="image/svg+xml", component_id=component_id)
-
-#     return generic(data_uri, mimetype="image/png", component_id=component_id)
 def display_matplotlib_show(component_id: str):
-    from preswald.interfaces.components import generic
-    import matplotlib.pyplot as plt
-    from matplotlib._pylab_helpers import Gcf
     from io import BytesIO
-    import base64
+
+    from matplotlib._pylab_helpers import Gcf
+
+    from preswald.interfaces.components import generic
 
     components = []
     identifiers=[]
@@ -189,6 +256,18 @@ def display_matplotlib_show(component_id: str):
     logger.info(f'[DEBUG] display_matplotlib_show - returning {len(components)} with {identifiers=}')
     return tuple(components)
 
+def display_plotly_figure_show(fig, component_id=None):
+    logger.debug('[DEBUG] display_plotly_figure_show for %s', component_id)
+    try:
+
+        html_bytes = fig.to_html(include_plotlyjs="cdn", full_html=True).encode("utf-8")
+        data_uri = f"data:text/html;base64,{base64.b64encode(html_bytes).decode()}"
+        html = f'<iframe src="{data_uri}" style="width:100%; height:500px; border:none;"></iframe>'
+        return build_component_return_from_value(html, mimetype="text/html", component_id=component_id)
+    except Exception as e:
+        logger.exception(f"[registry] Failed to convert plotly figure to HTML: {e}")
+        raise
+
 # ------------------------------------------------------------------------------
 # Dependency Resolvers
 # ------------------------------------------------------------------------------
@@ -206,7 +285,7 @@ def get_display_dependency_resolvers():
 # ------------------------------------------------------------------------------
 _mimetype_to_component_type = {}
 
-def register_mimetype_component_type(mimetype: str, component_type: Optional[str] = None):
+def register_mimetype_component_type(mimetype: str, component_type: str | None = None):
     """
     Register a component type string to handle a given mimetype.
 
@@ -217,10 +296,10 @@ def register_mimetype_component_type(mimetype: str, component_type: Optional[str
     _mimetype_to_component_type[mimetype] = component_type or "generic"
 
 
-def get_component_type_for_mimetype(mimetype: str) -> Optional[str]:
+def get_component_type_for_mimetype(mimetype: str) -> str | None:
     return _mimetype_to_component_type.get(mimetype)
 
-def get_mimetype_for_function(func_name: str) -> Optional[str]:
+def get_mimetype_for_function(func_name: str) -> str | None:
     return _return_renderers.get(func_name, {}).get("mimetype")
 
 def get_mimetype_component_type_map():
@@ -230,16 +309,13 @@ def get_mimetype_component_type_map():
 # Preloaded registry (can later be sourced from config)
 # ------------------------------------------------------------------------------
 try:
-    logger.info(f'[DEBUG] pre-registring display methods')
-    import matplotlib.pyplot as plt
-    from matplotlib.figure import Figure
-    #import plotly.graph_objects as go
-
+    logger.info('[DEBUG] pre-registring display methods')
     # Register common display methods and renderers
-    #register_display_method(go.Figure, "show")     # Plotly
-
-    register_display_method(Figure, "show")
+    register_display_method(MatplotlibFigure, "show")
     register_display_renderer("matplotlib.figure.Figure.show", display_matplotlib_figure_show)
+
+    register_display_method(PlotlyFigure, "show")
+    register_display_renderer("plotly.graph_objs._figure.Figure.show", display_plotly_figure_show)
 
     # Register common display detectors and renderers
     register_display_detector(lambda call: (
@@ -251,11 +327,12 @@ try:
     register_display_renderer("matplotlib.pyplot.show", display_matplotlib_show)
 
     # Register common tuple return types by common import names
-    register_tuple_return("plt.subplots", ("matplotlib.figure.Figure", "matplotlib.axes._axes.Axes"))
+    auto_register_return_hints(plt, "plt", MatplotlibFigure)
+    auto_register_return_hints(px, "px", PlotlyFigure)
+
 
     # Register basic mimetype renderers
     register_mimetype_component_type("text/plain", "text")  # maps to MarkdownRendererWidget
-    #register_mimetype_component_type("text/html", "text")   # maps to MarkdownRendererWidget
     register_mimetype_component_type("application/json", "json_viewer")
     register_mimetype_component_type("image/png", "image")
 

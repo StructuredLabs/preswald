@@ -1,7 +1,7 @@
 import pandas as pd
 import plotly.express as px
 
-from preswald import get_df, plotly, slider, table, text
+from preswald import get_df, slider, table, text
 
 
 # Title
@@ -62,7 +62,6 @@ table(filtered_data)
 # Summary statistics
 text(f"### Total Earthquakes with Magnitude ≥ {min_magnitude}: {len(filtered_data)}")
 
-
 # Interactive map using Plotly
 text("## Earthquake Locations")
 fig_map = px.scatter_geo(
@@ -74,13 +73,13 @@ fig_map = px.scatter_geo(
     hover_name="ID",
     title="Earthquake Map",
 )
-plotly(fig_map)
+fig_map.show()
 
 # Magnitude distribution
 fig_hist = px.histogram(
     filtered_data, x="Magnitude", nbins=20, title="Distribution of Magnitudes"
 )
-plotly(fig_hist)
+fig_hist.show()
 
 # Depth vs. Magnitude scatter plot
 fig_scatter = px.scatter(
@@ -91,4 +90,4 @@ fig_scatter = px.scatter(
     title="Depth vs Magnitude",
     labels={"Depth": "Depth (km)", "Magnitude": "Magnitude"},
 )
-plotly(fig_scatter)
+fig_scatter.show()
