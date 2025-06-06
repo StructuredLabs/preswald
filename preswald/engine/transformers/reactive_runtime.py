@@ -1,32 +1,32 @@
 import ast
-import inspect
 import copy
+import inspect
 import logging
 import textwrap
 from collections import defaultdict
 
+from preswald.engine.transformers.frame_context import FrameContext as Frame
 from preswald.interfaces import components
 from preswald.interfaces.render.registry import (
-    build_component_return_from_value,
-    get_output_stream_calls,
     get_component_type_for_mimetype,
-    get_return_renderers,
-    get_display_methods,
-    get_display_renderers,
     get_display_dependency_resolvers,
     get_display_detectors,
+    get_display_methods,
+    get_display_renderers,
+    get_output_stream_calls,
+    get_return_renderers,
     get_return_type_hint,
-    register_return_renderer,
-    register_output_stream_function,
+    register_display_dependency_resolver,
     register_display_method,
     register_mimetype_component_type,
-    register_display_dependency_resolver,
+    register_output_stream_function,
+    register_return_renderer,
 )
 from preswald.utils import (
     generate_stable_atom_name_from_component_id,
     generate_stable_id,
 )
-from preswald.engine.transformers.frame_context import FrameContext as Frame
+
 
 logger = logging.getLogger(__name__)
 
@@ -132,7 +132,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 self.known_components = known_components
                 self.found = False
 
-            def visit_Call(self, node: ast.Call):
+            def visit_Call(self, node: ast.Call):  # noqa: N802
                 if isinstance(node.func, ast.Name) and node.func.id in self.known_components:
                     self.found = True
                 elif isinstance(node.func, ast.Attribute):
@@ -394,12 +394,12 @@ class AutoAtomTransformer(ast.NodeTransformer):
             inferred = hint if hint else func_name
 
             self._current_frame.atom_return_types[atom_name] = inferred
-            logger.debug(f"[AST] Inferred return type for %s -> %s", atom_name, inferred)
+            logger.debug("[AST] Inferred return type for %s -> %s", atom_name, inferred)
         else:
             if logger.isEnabledFor(logging.DEBUG):
                 logger.warning(f"[AST] Could not resolve return type hint for {ast.dump(call_node)}")
             else:
-                logger.warning(f"[AST] Could not resolve return type hint")
+                logger.warning("[AST] Could not resolve return type hint")
 
     def _is_undecorated(self, node: ast.FunctionDef) -> bool:
         """Return True if function has no @workflow.atom(...) decorator."""
@@ -701,7 +701,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         if isinstance(stmt, ast.Assign):
             lhs = stmt.targets[0]
 
-            if isinstance(lhs, (ast.Tuple, ast.List)):
+            if isinstance(lhs, ast.Tuple | ast.List):
                 self._current_frame.tuple_returning_atoms.add(atom_name)
 
                 for index, elt in enumerate(lhs.elts):
@@ -971,14 +971,14 @@ class AutoAtomTransformer(ast.NodeTransformer):
         patched_expr = TupleAwareReplacer().visit(copy.deepcopy(expr))
         ast.fix_missing_locations(patched_expr)
 
-        new_func = self._finalize_and_register_atom(atom_name, component_id, callsite_deps, patched_expr)
+        self._finalize_and_register_atom(atom_name, component_id, callsite_deps, patched_expr)
 
         # Return the rewritten expression as a call to the generated atom
         callsite = self._make_callsite(atom_name, callsite_deps)
         return ast.Expr(value=callsite)
 
     def _try_lift_display_renderer(
-            self, *, candidate: str, stmt: ast.stmt, component_id: str | None = None, dependencies: list[str] = None
+            self, *, candidate: str, stmt: ast.stmt, component_id: str | None = None, dependencies: list[str] | None = None
         ) -> bool:
         logger.debug(f"[DEBUG] Attempting to lift display renderer: {candidate=}, {component_id=}, {dependencies=}")
 
@@ -1015,7 +1015,6 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 self._find_unique_dependencies(receiver_node, variable_map)
                 if receiver_node else ([], [])
             )
-        param_mapping = self._make_param_mapping(callsite_deps)
 
         renderer_args = []
         for i, param in enumerate(sig.parameters.values()):
@@ -1053,7 +1052,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
     def _maybe_lift_display_renderer_from_expr(self, stmt: ast.Expr, call_node: ast.Call) -> bool:
         logger.debug(f'[DEBUG] _maybe_lift_display_renderer_from_expr - {stmt=}; {call_node=}')
         if not isinstance(call_node.func, ast.Attribute):
-            logger.debug(f'[DEBUG] _maybe_lift_display_renderer_from_expr - returning because call_node.func is not an instance of attribute')
+            logger.debug('[DEBUG] _maybe_lift_display_renderer_from_expr - returning because call_node.func is not an instance of attribute')
             return False
 
         attr = call_node.func.attr
@@ -1156,8 +1155,6 @@ class AutoAtomTransformer(ast.NodeTransformer):
         return_renderers = {} if self._in_function_body else get_return_renderers()
         output_stream_calls = {} if self._in_function_body else get_output_stream_calls()
         display_methods = {} if self._in_function_body else get_display_methods()
-        display_renderers = {} if self._in_function_body else get_display_renderers()
-        dependency_resolvers = {} if self._in_function_body else get_display_dependency_resolvers()
 
         stmt_variable_maps, _ = self._generate_stmt_variable_maps(body, component_metadata)
 
@@ -1221,7 +1218,9 @@ class AutoAtomTransformer(ast.NodeTransformer):
                     try:
                         func_name = stmt.value.args[0].value
                         return_types = tuple(elt.value for elt in stmt.value.args[1].elts if isinstance(elt, ast.Constant))
-                        from preswald.interfaces.render.registry import register_tuple_return
+                        from preswald.interfaces.render.registry import (
+                            register_tuple_return,
+                        )
                         register_tuple_return(func_name, return_types)
                         logger.debug(f"[AST] Registered tuple return: {func_name=} -> {return_types=}")
                     except Exception as e:
@@ -1347,7 +1346,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
             elif isinstance(stmt, ast.Assign):
                 logger.warning(f"[TRACE] About to lift producer statement: {ast.dump(stmt)}")
                 variable_map = stmt_variable_maps.get(stmt, self._current_frame.variable_to_atom)
-                if isinstance(stmt.targets[0], (ast.Name, ast.Tuple, ast.List, ast.Subscript)) and isinstance(stmt.value, ast.expr):
+                if isinstance(stmt.targets[0], ast.Name | ast.Tuple | ast.List | ast.Subscript) and isinstance(stmt.value, ast.expr):
                     self._lift_producer_stmt(stmt, pending_assignments, variable_map)
                     continue
                 else:
@@ -1499,13 +1498,6 @@ class AutoAtomTransformer(ast.NodeTransformer):
           - register_mimetype_component_type(...)
         """
 
-        from preswald.interfaces.render.registry import (
-            register_return_renderer,
-            register_output_stream_function,
-            register_display_method,
-            register_mimetype_component_type,
-            get_component_type_for_mimetype,
-        )
 
         known_registrars = {
             "register_return_renderer": register_return_renderer,
@@ -1550,7 +1542,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
             except Exception as e:
                 logger.warning(f"[AST] Failed to statically evaluate {func_name} call: {e}")
 
-    def visit_Import(self, node: ast.Import) -> ast.Import:
+    def visit_Import(self, node: ast.Import) -> ast.Import: # noqa: N802
         for alias in node.names:
             if alias.name == "preswald":
                 asname = alias.asname or alias.name
@@ -1869,7 +1861,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         return node
 
-    def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.FunctionDef:
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.FunctionDef: # noqa: N802
         self._all_function_defs.append(node)
 
         if not self._is_top_level(node) and not self._should_inline_function(node.name):
@@ -1880,7 +1872,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
             logger.debug(f"[AST] Skipping visit to '{node.name}' because it was already blackbox lifted")
             return node
 
-        # Only lift and traverse if it’s top level or should inline
+        # Only lift and traverse if its top level or should inline
         self._in_function_body = True
         prev_function = self.current_function
         self.current_function = node
@@ -2112,7 +2104,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         # Append appropriate return statement
         if isinstance(return_target, str):
             body.append(ast.Return(value=ast.Name(id=return_target, ctx=ast.Load())))
-        elif isinstance(return_target, (list, tuple)):
+        elif isinstance(return_target, list | tuple):
             body.append(ast.Return(value=ast.Tuple(
                 elts=[ast.Name(id=name, ctx=ast.Load()) for name in return_target],
                 ctx=ast.Load()
@@ -2129,7 +2121,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
             if isinstance(stmt, ast.Assign):
                 for target in stmt.targets:
                     assert isinstance(target.ctx, ast.Store), f"Expected Store context, got {type(target.ctx)}"
-                    assert isinstance(target, (ast.Name, ast.Tuple, ast.List, ast.Subscript)), f"Invalid assignment target: {ast.dump(target)}"
+                    assert isinstance(target, ast.Name | ast.Tuple | ast.List | ast.Subscript), f"Invalid assignment target: {ast.dump(target)}"
 
         return ast.FunctionDef(
             name=atom_name,

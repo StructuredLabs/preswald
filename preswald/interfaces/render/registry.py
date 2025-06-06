@@ -1,21 +1,25 @@
 import ast
 import base64
-import re
-import logging
 import inspect
-from inspect import signature
+import logging
+import re
+from collections import defaultdict
+from collections.abc import Callable
+from types import ModuleType
+from typing import (
+    Any,
+    get_args,
+    get_origin,
+)
 
 import matplotlib.pyplot as plt
-from matplotlib.figure import Figure as MatplotlibFigure
 import plotly.express as px
+from matplotlib.figure import Figure as MatplotlibFigure
 from plotly.graph_objs import Figure as PlotlyFigure
 
-from collections import defaultdict
-from typing import Callable, Any, Optional, Union, Mapping, Sequence, Type, get_args, get_origin
-from types import ModuleType
-
-from preswald.interfaces.component_return import ComponentReturn
 from preswald.engine.transformers.frame_context import FrameContext
+from preswald.interfaces.component_return import ComponentReturn
+
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +51,7 @@ def get_return_type_hint(func_name: str) -> str | tuple[str, ...] | None:
     return _return_type_hints.get(func_name)
 
 
-def is_returning(func: Callable[..., Any], return_type: Type[Any]) -> bool:
+def is_returning(func: Callable[..., Any], return_type: type[Any]) -> bool:
     try:
         sig = inspect.signature(func)
         annotation = sig.return_annotation
@@ -82,7 +86,7 @@ def is_returning(func: Callable[..., Any], return_type: Type[Any]) -> bool:
 def auto_register_return_hints(
     module: ModuleType,
     prefix: str,
-    return_type: Type
+    return_type: type
 ) -> None:
     """
     Automatically registers return type hints for all public functions in a module
@@ -173,7 +177,7 @@ def register_return_renderer(func_name: str, *, mimetype: str, component_type: s
 def get_return_renderers():
     return dict(_return_renderers)
 
-def get_component_type_for_function(func_name: str) -> Optional[str]:
+def get_component_type_for_function(func_name: str) -> str | None:
     return _return_renderers.get(func_name, {}).get("component_type")
 
 def build_component_return_from_value(value: Any, mimetype: str, component_id: str) -> ComponentReturn:
@@ -189,8 +193,8 @@ def register_display_renderer(
     func_name: str,
     renderer: Callable[[str], ComponentReturn],
     *,
-    source_function: Optional[str] = None,
-    return_types: Optional[tuple[str, ...]] = None
+    source_function: str | None = None,
+    return_types: tuple[str, ...] | None = None
 ):
     """
     Register a renderer for a displayable function or method.
@@ -203,7 +207,7 @@ def register_display_renderer(
     """
     _display_renderers[func_name] = renderer
     if source_function and return_types:
-        register_return_type_hint_return(source_function, return_types)
+        register_return_type_hint(source_function, return_types)
 
 
 def get_display_renderers():
@@ -214,8 +218,9 @@ def get_display_renderers():
 #
 
 def display_matplotlib_figure_show(fig, component_id: str):
-    from preswald.interfaces.components import generic
     from io import BytesIO
+
+    from preswald.interfaces.components import generic
 
     buf = BytesIO()
     fig.savefig(buf, format="png")
@@ -226,9 +231,11 @@ def display_matplotlib_figure_show(fig, component_id: str):
     return generic(data_uri, mimetype="image/png", component_id=component_id)
 
 def display_matplotlib_show(component_id: str):
-    from preswald.interfaces.components import generic
-    from matplotlib._pylab_helpers import Gcf
     from io import BytesIO
+
+    from matplotlib._pylab_helpers import Gcf
+
+    from preswald.interfaces.components import generic
 
     components = []
     identifiers=[]
@@ -278,7 +285,7 @@ def get_display_dependency_resolvers():
 # ------------------------------------------------------------------------------
 _mimetype_to_component_type = {}
 
-def register_mimetype_component_type(mimetype: str, component_type: Optional[str] = None):
+def register_mimetype_component_type(mimetype: str, component_type: str | None = None):
     """
     Register a component type string to handle a given mimetype.
 
@@ -289,10 +296,10 @@ def register_mimetype_component_type(mimetype: str, component_type: Optional[str
     _mimetype_to_component_type[mimetype] = component_type or "generic"
 
 
-def get_component_type_for_mimetype(mimetype: str) -> Optional[str]:
+def get_component_type_for_mimetype(mimetype: str) -> str | None:
     return _mimetype_to_component_type.get(mimetype)
 
-def get_mimetype_for_function(func_name: str) -> Optional[str]:
+def get_mimetype_for_function(func_name: str) -> str | None:
     return _return_renderers.get(func_name, {}).get("mimetype")
 
 def get_mimetype_component_type_map():
@@ -302,7 +309,7 @@ def get_mimetype_component_type_map():
 # Preloaded registry (can later be sourced from config)
 # ------------------------------------------------------------------------------
 try:
-    logger.info(f'[DEBUG] pre-registring display methods')
+    logger.info('[DEBUG] pre-registring display methods')
     # Register common display methods and renderers
     register_display_method(MatplotlibFigure, "show")
     register_display_renderer("matplotlib.figure.Figure.show", display_matplotlib_figure_show)
