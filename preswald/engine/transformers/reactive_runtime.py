@@ -1163,7 +1163,6 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         logger.info(f'[DEBUG] {return_renderers=} {output_stream_calls}')
 
-
         new_body = []
         pending_assignments = []
 
@@ -1252,7 +1251,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
                     if self._uses_known_atoms(stmt):
                         self._lift_consumer_stmt(stmt)
                     else:
-                        self.lift_component_call_to_atom(call_node, component_id, atom_name)
+                        self.lift_component_call_to_atom(call_node, component_id, atom_name, variable_map)
 
                     continue
 
@@ -1847,7 +1846,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
             component_id, atom_name = self.generate_component_and_atom_name(func_name)
             if logger.isEnabledFor(logging.INFO):
                 logger.info("[AST] Lifting inline component call %s -> %s", func_name, atom_name)
-            return self.lift_component_call_to_atom(node, component_id, atom_name)
+            return self.lift_component_call_to_atom(node, component_id, atom_name, self._current_frame.variable_to_atom)
 
         # Case 2: Call to a top level atom lifted function
         for fn in self._all_function_defs:
@@ -2188,7 +2187,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
             keywords=[]
         )
 
-    def lift_component_call_to_atom(self, node: ast.Call, component_id: str, atom_name: str, *, return_target: str | None = None,) -> ast.Call:
+    def lift_component_call_to_atom(self, node: ast.Call, component_id: str, atom_name: str, variable_map: dict[str, str], *, return_target: str | None = None,) -> ast.Call:
         """
         Wrap a component call into an auto-generated atom function.
 
@@ -2206,7 +2205,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
             ast.Call: A new call to the generated atom function with resolved arguments.
         """
 
-        callsite_deps, dep_names = self._find_unique_dependencies(node)
+        callsite_deps, dep_names = self._find_unique_dependencies(node, variable_map)
         patched_call = self._patch_callsite(node, callsite_deps, component_id)
 
         # Generate the atom function that wraps the patched call
