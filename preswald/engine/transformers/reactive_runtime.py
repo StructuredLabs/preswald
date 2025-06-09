@@ -67,6 +67,8 @@ class AutoAtomTransformer(ast.NodeTransformer):
         self._artificial_lineno = ARTIFICIAL_LINE_NUMBER_START
         self._in_function_body = False
         self.import_aliases = {}
+        self.name_aliases: dict[str, str] = {}
+        self._variable_class_map = {}
         self._module: ast.Module | None = None
         self._used_display_renderer_fns: set[str] = set()
 
@@ -92,34 +94,47 @@ class AutoAtomTransformer(ast.NodeTransformer):
         self.known_components = self._discover_known_components()
         self._in_function_body = False
         self.import_aliases = {}
+        self._name_aliases: dict[str, str] = {}
+        self._variable_class_map = {}
         self._module: ast.Module | None = None
         self._used_display_renderer_fns: set[str] = set()
 
     def _discover_known_components(self) -> set[str]:
         """
-        Returns a set of known component names (both bare and module-qualified)
-        for matching during AST traversal.
+        Returns a set of known component names (bare and module-qualified)
+        based on known component registry and user imported names.
         """
         known_components = set()
+
         for name in dir(components):
             obj = getattr(components, name, None)
             if getattr(obj, "_preswald_component_type", None) is not None:
                 known_components.add(name)
-                known_components.add(f'preswald.{name}')
         return known_components
 
     def _is_known_component_call(self, call_node: ast.Call) -> bool:
         if isinstance(call_node.func, ast.Name):
-            return call_node.func.id in self.known_components
-
+            func_id = call_node.func.id
+            return (
+                func_id in self.known_components
+                or func_id in self._name_aliases.values()
+            )
         elif isinstance(call_node.func, ast.Attribute):
             receiver = call_node.func.value
             attr = call_node.func.attr
+
             if isinstance(receiver, ast.Name):
-                modname = self.import_aliases.get(receiver.id)
+                alias = receiver.id
+
+                # Case 1: exact alias matches known preswald import
+                modname = self.import_aliases.get(alias)
                 if modname:
-                    fq_name = f"{modname}.{attr}"
-                    return fq_name in self.known_components
+                    if modname == "preswald":
+                        return attr in self.known_components
+
+                    # fallback to check that modname is from preswald
+                    if modname.startswith("preswald"):
+                        return attr in self.known_components
 
         return False
 
@@ -1098,10 +1113,13 @@ class AutoAtomTransformer(ast.NodeTransformer):
                         "so we can track dependencies correctly."
                     )
 
-        if return_type:
-            candidate = f"{return_type}.{attr}"
+        if varname in self._variable_class_map:
+            candidate = f"{self._variable_class_map[varname]}.{attr}"
+            logger.debug(f"[registry] resolved display renderer candidate from class map: {candidate}")
         else:
-            candidate = f"{self.import_aliases.get(varname, varname)}.{attr}"
+            fallback_base = self.import_aliases.get(varname, varname)
+            candidate = f"{fallback_base}.{attr}"
+            logger.debug(f"[registry] resolved fallback display renderer candidate: {candidate}")
 
         renderer = get_display_renderers().get(candidate)
         if renderer:
@@ -1318,11 +1336,6 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
             # Handle expression consumers and side effects
             if isinstance(stmt, ast.Expr):
-                if isinstance(stmt.value, ast.Call):
-                    call_node = stmt.value
-                    if self._maybe_lift_display_renderer_from_expr(stmt, call_node):
-                        continue
-
                 # Case 1: consumer of reactive values, for example: text(f"{x}")
                 if self._uses_known_atoms(stmt):
                     self._lift_consumer_stmt(stmt)
@@ -1338,6 +1351,12 @@ class AutoAtomTransformer(ast.NodeTransformer):
                     logger.debug('[DEBUG] going to call _lift_side_effect_stmt for %s', stmt.value.func.value.id)
                     self._lift_side_effect_stmt(stmt)
                     continue
+
+                # case 3: display renderers
+                if isinstance(stmt.value, ast.Call):
+                    call_node = stmt.value
+                    if self._maybe_lift_display_renderer_from_expr(stmt, call_node):
+                        continue
 
                 # Fallback: preserve as-is
                 new_body.append(stmt)
@@ -1543,10 +1562,45 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 logger.warning(f"[AST] Failed to statically evaluate {func_name} call: {e}")
 
     def visit_Import(self, node: ast.Import) -> ast.Import: # noqa: N802
+        """
+        Tracks `import preswald` statements and any aliases used.
+
+        If the import includes an alias, such as `import preswald as p`, the alias is
+        recorded in `self.import_aliases` with the value `"preswald"`. This allows
+        later analysis to resolve namespaced component calls like `p.text(...)`.
+
+        Args:
+            node: An `ast.Import` node representing a top level import statement.
+
+        Returns:
+            The original `ast.Import` node, unmodified.
+        """
         for alias in node.names:
             if alias.name == "preswald":
                 asname = alias.asname or alias.name
                 self.import_aliases[asname] = "preswald"
+        return node
+
+    def visit_ImportFrom(self, node: ast.ImportFrom) -> ast.AST:
+        """
+        Tracks `from preswald.interfaces.components import ...` aliases.
+
+        For each imported component from `preswald.interfaces.components`, this function
+        records the name alias used in `self._name_aliases`, allowing later resolution
+        of aliased calls.
+
+        Args:
+            node: An `ast.ImportFrom` node representing a top-level `from ... import ...` statement.
+
+        Returns:
+            The original `ast.ImportFrom` node, unmodified.
+        """
+        if node.module == "preswald.interfaces.components":
+            for alias in node.names:
+                actual = alias.name
+                asname = alias.asname or actual
+                if actual in self.known_components:
+                    self._name_aliases[actual] = asname
         return node
 
     def visit_Module(self, node: ast.Module) -> ast.Module: # noqa: N802, C901
@@ -1658,6 +1712,8 @@ class AutoAtomTransformer(ast.NodeTransformer):
                             self.import_aliases[alias.asname] = f"{stmt.module}.{alias.name}"
                         else:
                             self.import_aliases[alias.name] = f"{stmt.module}.{alias.name}"
+
+        self.generic_visit(node)
 
         new_body = self._lift_statements(filtered_stmts, component_to_atom_name)
 
@@ -1810,6 +1866,24 @@ class AutoAtomTransformer(ast.NodeTransformer):
             self._current_frame.tuple_variable_index,
         ).visit(call)
 
+    def visit_Assign(self, node: ast.Assign) -> ast.AST:
+        # Only support simple single target assignments for now
+        if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
+            varname = node.targets[0].id
+
+            # Detect constructor call: fig = go.Figure()
+            if isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Attribute):
+                attr = node.value.func.attr  # such as "Figure"
+                base = node.value.func.value  # such as ast.Name(id='go')
+                if isinstance(base, ast.Name):
+                    base_name = base.id  # such as "go"
+                    full_base = self.import_aliases.get(base_name, base_name)  # resolves to full module, such as "plotly.graph_objects"
+
+                    fqcn = f"{full_base}.{attr}"  # such as "plotly.graph_objects.Figure"
+                    self._variable_class_map[varname] = fqcn
+
+        return self.generic_visit(node)
+
     def visit_Call(self, node: ast.Call) -> ast.AST: # noqa: N802
         """
         Handles function call nodes in the AST and injects reactivity when appropriate.
@@ -1832,13 +1906,24 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         func_name = node.func.id
 
-        # Case 1: Inline Preswald component call
+        # should not be lifting known component calls here
         if self._is_known_component_call(node):
-            func_name = self._get_call_func_name(node)
-            component_id, atom_name = self.generate_component_and_atom_name(func_name)
-            if logger.isEnabledFor(logging.INFO):
-                logger.debug("[AST] Lifting inline component call %s -> %s", func_name, atom_name)
-            return self.lift_component_call_to_atom(node, component_id, atom_name, self._current_frame.variable_to_atom)
+            # We no longer lift component calls from within visit_Call. All such lifting is handled in _lift_statements()
+            # This block exists purely as a sanity check to catch unexpected component calls that weren't lifted.
+
+            # Try to guess the name this call would have been lifted into
+            guessed_atom_name = self._get_call_func_name(node)
+            if guessed_atom_name not in self.dependencies:
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug(
+                        "[AST] visit_Call saw a known component call not lifted by _lift_statements: %s",
+                        ast.unparse(node) if hasattr(ast, "unparse") else ast.dump(node)
+                    )
+                else:
+                    logger.warning(
+                        "[AST] visit_Call saw a known component call not lifted by _lift_statements: %s",
+                        guessed_atom_name
+                    )
 
         # Case 2: Call to a top level atom lifted function
         for fn in self._all_function_defs:

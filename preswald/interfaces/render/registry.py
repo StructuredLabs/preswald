@@ -1,5 +1,6 @@
 import ast
 import base64
+import importlib
 import inspect
 import logging
 import re
@@ -13,9 +14,13 @@ from typing import (
 )
 
 import matplotlib.pyplot as plt
-import plotly.express as px
 from matplotlib.figure import Figure as MatplotlibFigure
-from plotly.graph_objs import Figure as PlotlyFigure
+
+import plotly
+import plotly.express as px
+import plotly.graph_objects as go
+import plotly.subplots as sp
+from plotly.graph_objects import Figure as PlotlyFigure
 
 from preswald.engine.transformers.frame_context import FrameContext
 from preswald.interfaces.component_return import ComponentReturn
@@ -85,7 +90,6 @@ def is_returning(func: Callable[..., Any], return_type: type[Any]) -> bool:
 
 def auto_register_return_hints(
     module: ModuleType,
-    prefix: str,
     return_type: type
 ) -> None:
     """
@@ -106,8 +110,6 @@ def auto_register_return_hints(
 
     Args:
         module: The imported module to scan, such as `matplotlib.pyplot` or `plotly.express`.
-        prefix: A string prefix to prepend to the function name in the registry key. This is
-                the module import alias, such as 'plt' or 'px'.
         return_type: The target return type, such as `matplotlib.figure.Figure`, to match.
 
     Returns:
@@ -120,7 +122,7 @@ def auto_register_return_hints(
             continue
 
         if is_returning(obj, return_type):
-            register_return_type_hint(f"{prefix}.{name}", full_type_name)
+            register_return_type_hint(f"{module.__name__}.{name}", full_type_name)
 
 # ------------------------------------------------------------------------------
 # Method-based output registry. e.g. fig.show
@@ -208,6 +210,8 @@ def register_display_renderer(
     _display_renderers[func_name] = renderer
     if source_function and return_types:
         register_return_type_hint(source_function, return_types)
+    else:
+        logger.warning(f'[registry] source_function not in return_types {source_function=} {return_types=}')
 
 
 def get_display_renderers():
@@ -253,11 +257,10 @@ def display_matplotlib_show(component_id: str):
         identifiers.append(identifier)
 
     plt.close('all')
-    logger.info(f'[DEBUG] display_matplotlib_show - returning {len(components)} with {identifiers=}')
+    logger.debug(f'[DEBUG] display_matplotlib_show - returning {len(components)} with {identifiers=}')
     return tuple(components)
 
 def display_plotly_figure_show(fig, component_id=None):
-    logger.debug('[DEBUG] display_plotly_figure_show for %s', component_id)
     try:
 
         html_bytes = fig.to_html(include_plotlyjs="cdn", full_html=True).encode("utf-8")
@@ -306,44 +309,118 @@ def get_mimetype_component_type_map():
     return dict(_mimetype_to_component_type)
 
 # ------------------------------------------------------------------------------
+# Plotly Submodule Discovery
+# ------------------------------------------------------------------------------
+
+def get_plotly_submodules():
+    """
+    Return a list of all submodules under the top level `plotly` module.
+
+    This is used for static inspection and registration of display renderers
+    or return based heuristics, such as `plotly.graph_objects.Figure.show`.
+
+    Returns:
+        A list of `ModuleType` objects representing plotly submodules.
+    """
+    submodules = []
+    for attr in dir(plotly):
+        try:
+            val = getattr(plotly, attr)
+            if isinstance(val, ModuleType) and val.__name__.startswith("plotly."):
+                submodules.append(val)
+        except Exception:
+            continue
+    return submodules
+
+# ------------------------------------------------------------------------------
 # Preloaded registry (can later be sourced from config)
 # ------------------------------------------------------------------------------
+import time
+
+
+t0 = time.perf_counter()
 try:
-    logger.info('[DEBUG] pre-registring display methods')
-    # Register common display methods and renderers
+    logger.info('[DEBUG] pre-registering display methods')
+
+    # --- Matplotlib Registration ---
     register_display_method(MatplotlibFigure, "show")
-    register_display_renderer("matplotlib.figure.Figure.show", display_matplotlib_figure_show)
 
-    register_display_method(PlotlyFigure, "show")
-    register_display_renderer("plotly.graph_objs._figure.Figure.show", display_plotly_figure_show)
+    register_display_renderer(
+        f"{MatplotlibFigure.__module__}.{MatplotlibFigure.__qualname__}.show",
+        display_matplotlib_figure_show,
+        source_function="*",  # wild card to enable return type linkage
+        return_types=(f"{MatplotlibFigure.__module__}.{MatplotlibFigure.__qualname__}",)
+    )
 
-    # Register common display detectors and renderers
     register_display_detector(lambda call: (
         isinstance(call.func, ast.Attribute)
         and call.func.attr == "show"
         and isinstance(call.func.value, ast.Name)
         and call.func.value.id == "plt"
     ))
-    register_display_renderer("matplotlib.pyplot.show", display_matplotlib_show)
 
-    # Register common tuple return types by common import names
-    auto_register_return_hints(plt, "plt", MatplotlibFigure)
-    auto_register_return_hints(px, "px", PlotlyFigure)
+    register_display_renderer(
+        "matplotlib.pyplot.show",
+        display_matplotlib_show,
+        source_function="*",
+        return_types=(f"{MatplotlibFigure.__module__}.{MatplotlibFigure.__qualname__}",)
+    )
 
+    auto_register_return_hints(plt, MatplotlibFigure)
 
-    # Register basic mimetype renderers
-    register_mimetype_component_type("text/plain", "text")  # maps to MarkdownRendererWidget
+    # --- Plotly Registration ---
+    register_display_method(PlotlyFigure, "show")
+
+    full_show_name = f"{PlotlyFigure.__module__}.{PlotlyFigure.__qualname__}.show"
+    return_type_str = f"{PlotlyFigure.__module__}.{PlotlyFigure.__qualname__}"
+
+    register_display_renderer(
+        full_show_name,
+        display_plotly_figure_show,
+        source_function="*",
+        return_types=(return_type_str,)
+    )
+
+    register_display_renderer(
+        "plotly.graph_objects.Figure.show",
+        display_plotly_figure_show,
+        source_function="*",
+        return_types=("plotly.graph_objs._figure.Figure",)
+    )
+
+    # Define all known Plotly Figure types
+    DEFAULT_PLOTLY_MODULES = [
+        "plotly.subplots",
+        "plotly.express",
+        "plotly.graph_objects",
+        "plotly.graph_objs"
+    ]
+
+    # Register return hints across common namespaces
+    t_sub = time.perf_counter()
+    modules = [importlib.import_module(mod) for mod in DEFAULT_PLOTLY_MODULES]
+    for mod in modules:
+        auto_register_return_hints(mod, PlotlyFigure)
+    t_sub_done = time.perf_counter()
+    logger.info(f"[registry] get_plotly_submodules + registration took {(t_sub_done - t_sub):.3f}s")
+
+    # --- Mimetype registry ---
+    register_mimetype_component_type("text/plain", "text")
     register_mimetype_component_type("application/json", "json_viewer")
     register_mimetype_component_type("image/png", "image")
 
-    # Register return renderers
+    # --- Return renderers ---
     register_return_renderer("pandas.DataFrame.to_html", mimetype="text/html")
     register_return_renderer("pandas.DataFrame.head", mimetype="text/html")
 
-    # register output stream functions
+    # --- Output stream functions ---
     register_output_stream_function("print", stream="stdout")
+
 except ImportError:
-    pass  # Skip preload if dependencies aren't installed
+    logger.warning("[registry] skipping pre-registration due to missing libraries")
+finally:
+    t1 = time.perf_counter()
+    logger.info(f"[registry] full pre-registration completed in {(t1 - t0):.3f}s")
 
 # Placeholder for user-registered return-rendering functions
 # register_return_renderer("pandas.DataFrame.head", mimetype="text/html")
