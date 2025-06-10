@@ -403,7 +403,8 @@ class AutoAtomTransformer(ast.NodeTransformer):
         if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name):
             module = func.value.id
             attr = func.attr
-            func_name = f"{module}.{attr}"
+            canonical_module = self.import_aliases.get(module, module)
+            func_name = f"{canonical_module}.{attr}"
 
             hint = get_return_type_hint(func_name)
             inferred = hint if hint else func_name
@@ -1085,14 +1086,14 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         logger.debug(f'[DEBUG] _maybe_lift_display_renderer_from_expr - {receiver=}; {attr=}; {varname=}')
 
+        atom_name = self._current_frame.variable_to_atom.get(varname)
+        return_types = self._current_frame.atom_return_types.get(atom_name)
+
         # Try display method route
         return_type = None
         for cls, methods in get_display_methods().items():
             if attr in methods:
-                atom_name = self._current_frame.variable_to_atom.get(varname)
                 if atom_name in self._current_frame.atom_return_types:
-                    return_types = self._current_frame.atom_return_types.get(atom_name)
-
                     if isinstance(return_types, tuple):
                         index_map = self._current_frame.tuple_unpacked_names.get(atom_name)
                         if not index_map or varname not in index_map:
@@ -1113,11 +1114,13 @@ class AutoAtomTransformer(ast.NodeTransformer):
                         "so we can track dependencies correctly."
                     )
 
-        if varname in self._variable_class_map:
-            candidate = f"{self._variable_class_map[varname]}.{attr}"
-            logger.debug(f"[registry] resolved display renderer candidate from class map: {candidate}")
+        return_type = self._current_frame.atom_return_types.get(atom_name)
+
+        if return_type:
+            candidate = f"{return_type}.{attr}"
+            logger.debug(f"[registry] resolved display renderer candidate from return type: {candidate}")
         else:
-            fallback_base = self.import_aliases.get(varname, varname)
+            fallback_base = self._variable_class_map.get(varname) or self.import_aliases.get(varname, varname)
             candidate = f"{fallback_base}.{attr}"
             logger.debug(f"[registry] resolved fallback display renderer candidate: {candidate}")
 
@@ -1272,6 +1275,21 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
                     continue
 
+                # handle return renderables
+                if isinstance(call_node.func, ast.Attribute):
+                    attr = call_node.func.attr
+                    receiver = call_node.func.value
+                    if isinstance(receiver, ast.Name):
+                        varname = receiver.id
+                        full_func_name = f"{varname}.{attr}"
+
+                        if full_func_name in return_renderers:
+                            mimetype = return_renderers[full_func_name]["mimetype"]
+                            logger.debug(f"[AST] Lifting return-renderable: {full_func_name=}; {mimetype=}")
+                            component_id, atom_name = self.generate_component_and_atom_name(full_func_name)
+                            self._lift_return_renderable_call(stmt, call_node, component_id, atom_name, mimetype)
+                            continue
+
                 if isinstance(call_node.func, ast.Name):
                     func_name = call_node.func.id
 
@@ -1280,27 +1298,6 @@ class AutoAtomTransformer(ast.NodeTransformer):
                         component_id, atom_name = self.generate_component_and_atom_name(func_name)
                         self._lift_output_stream_stmt(stmt, component_id, atom_name, stream=output_stream_calls[func_name])
                         continue
-
-                    elif isinstance(call_node.func, ast.Attribute):
-                        attr = call_node.func.attr
-                        receiver = call_node.func.value
-                        varname = None
-
-                        # Accept both direct names and subscript patterns like param0[0]
-                        if isinstance(receiver, ast.Name):
-                            varname = receiver.id
-                        else:
-                            logger.debug(f"[DEBUG] Skipping .{attr} call with unsupported receiver: {ast.dump(receiver)}")
-
-                        full_func_name = f"{varname}.{attr}" if varname else attr
-
-                        # --- Return-renderer (e.g. df.to_html)
-                        if full_func_name in return_renderers:
-                            mimetype = return_renderers[full_func_name]["mimetype"]
-                            logger.debug(f"[AST] Lifting return-renderable: {full_func_name=}; {mimetype=}")
-                            component_id, atom_name = self.generate_component_and_atom_name(full_func_name)
-                            self._lift_return_renderable_call(stmt, call_node, component_id, atom_name, mimetype)
-                            continue
 
                 logger.debug(f"[AST] Checking attribute call for return-renderable: {ast.dump(call_node.func)}")
 
@@ -1336,10 +1333,12 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
             # Handle expression consumers and side effects
             if isinstance(stmt, ast.Expr):
-                # Case 1: consumer of reactive values, for example: text(f"{x}")
-                if self._uses_known_atoms(stmt):
-                    self._lift_consumer_stmt(stmt)
-                    continue
+
+                # case 1: display renderers ( must be first )
+                if isinstance(stmt.value, ast.Call):
+                    call_node = stmt.value
+                    if self._maybe_lift_display_renderer_from_expr(stmt, call_node):
+                        continue
 
                 # Case 2: side effectful method on a reactive object, such as fig.update_layout(...)
                 if (
@@ -1352,11 +1351,10 @@ class AutoAtomTransformer(ast.NodeTransformer):
                     self._lift_side_effect_stmt(stmt)
                     continue
 
-                # case 3: display renderers
-                if isinstance(stmt.value, ast.Call):
-                    call_node = stmt.value
-                    if self._maybe_lift_display_renderer_from_expr(stmt, call_node):
-                        continue
+                # Case 3: consumer of reactive values, for example: text(f"{x}")
+                if self._uses_known_atoms(stmt):
+                    self._lift_consumer_stmt(stmt)
+                    continue
 
                 # Fallback: preserve as-is
                 new_body.append(stmt)
