@@ -641,51 +641,71 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
     def _lift_side_effect_stmt(self, stmt: ast.Expr) -> None:
         """
-        Lifts a method call that causes a side effect, such as `fig.show()`, into a reactive atom.
+        Lifts a method call that causes a side effect into a reactive atom.
 
-        This is used when a method is invoked on a previously declared variable that already maps
-        to a reactive atom. The method itself is treated as a consumer style side effect and reruns
-        whenever the original producer atom changes.
+        This is used when an expression produces side effects and depends on one or more reactive variables.
+        The resulting atom will rerun whenever any of its dependencies change, ensuring side effects are re-applied.
 
         Example:
-            fig = px.scatter(...)
-            fig.show()  # This will be lifted into its own atom that depends on the `fig` producer atom.
+            fig, ax = plt.subplots()
+            ax.plot([0, 1, 2], [n**2, (n+1)**2, (n+2)**2])  # This gets lifted into an atom depending on both ax and n
 
-        Conditions for lifting:
-        - The expression must be a method call.
-        - The method receiver (`fig`) must be a variable already registered in `variable_to_atom`.
-        - Only direct `ast.Name` receivers are supported; complex receivers are ignored, for example: `get_fig().show()`.
+        Supported patterns:
+        - Method calls such as `obj.method(...)` where `obj` or arguments are reactive
+        - Tuple returning atoms and param mapping are fully supported
+        - Only direct variable references (`ast.Name`) are rewritten; complex expressions are passed through as is
 
         This function:
-        - Generates a new component ID and atom name for the side effect.
-        - Wraps the call in an atom with a dependency on the original variable.
-        - Registers the new atom to rerun when dependencies change.
+        - Locates all dependency variables from the method call
+        - Constructs a reactive atom that re-invokes the method on change
+        - Registers the atom with correctly mapped parameters for replaying the side effect
 
         Args:
-            stmt: An `ast.Expr` node representing a top level method call expression.
+            stmt: An `ast.Expr` node representing the top level method call.
 
         Returns:
-            None. The new atom is registered internally.
+            None. The generated atom is registered internally.
         """
 
         receiver = stmt.value.func.value
         if not isinstance(receiver, ast.Name):
-            return  # Not supported fallback
-
-        varname = receiver.id
-        atom_name = self._current_frame.variable_to_atom.get(varname)
-        if not atom_name:
             return
 
-        component_id, new_atom_name = self.generate_component_and_atom_name("sideeffect")
-        deps = [atom_name]
-        param_mapping = self._make_param_mapping(deps)
-        patched_stmt = self._replace_dep_args(stmt.value, param_mapping)
+        scoped_map = {**self._current_frame.variable_to_atom, **self._get_variable_map_for_stmt(stmt)}
+        callsite_deps, dep_names = self._find_unique_dependencies(stmt.value, variable_map=scoped_map)
+        if not callsite_deps:
+            return
 
-        # wrap in return None
-        atom_body = [ast.Expr(value=patched_stmt), ast.Return(value=ast.Constant(value=None))]
-        self._finalize_and_register_atom(new_atom_name, component_id, deps, atom_body)
-        logger.info('[AST] lifted side effect statement into atom %s -> %s', component_id, new_atom_name)
+        atom_to_vars = defaultdict(list)
+        for var in dep_names:
+            atom_to_vars[scoped_map[var]].append(var)
+
+        reverse_map = {}
+        for i, atom in enumerate(callsite_deps):
+            param_name = f"param{i}"
+            for var in atom_to_vars[atom]:
+                if atom not in self._current_frame.tuple_returning_atoms:
+                    reverse_map[var] = ast.Name(id=param_name, ctx=ast.Load())
+                else:
+                    index = self._current_frame.tuple_variable_index.get(var)
+                    if index is not None:
+                        reverse_map[var] = ast.Subscript(
+                            value=ast.Name(id=param_name, ctx=ast.Load()),
+                            slice=ast.Constant(value=index),
+                            ctx=ast.Load(),
+                        )
+
+        class Replacer(ast.NodeTransformer):
+            def visit_Name(self, node: ast.Name):
+                return reverse_map.get(node.id, node)
+
+        patched_call = Replacer().visit(copy.deepcopy(stmt.value))
+        ast.fix_missing_locations(patched_call)
+
+        component_id, atom_name = self.generate_component_and_atom_name("sideeffect")
+        atom_body = [ast.Expr(value=patched_call)]
+        self._finalize_and_register_atom(atom_name, component_id, callsite_deps, atom_body)
+        logger.debug('[AST] lifted side effect statement into atom %s -> %s', component_id, atom_name)
 
     def _lift_blackbox_function_call(
         self,
