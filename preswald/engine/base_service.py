@@ -15,6 +15,7 @@ from preswald.engine.utils import (
 )
 from preswald.interfaces.workflow import Workflow, Atom
 from preswald.interfaces.component_return import ComponentReturn
+from preswald.interfaces.render.error_registry import get_errors, clear_errors
 from .managers.data import DataManager
 from .managers.layout import LayoutManager
 
@@ -303,6 +304,12 @@ class BasePreswaldService:
         """Get all rendered components"""
         rows = self._layout_manager.get_layout()
         return {"rows": rows}
+
+    def get_errors(self, type: str | None = None, filename: str | None = None):
+        return get_errors(type=type, filename=filename)
+
+    def clear_errors(self, type: str | None = None):
+        return clear_errors(type=type)
 
     def get_workflow(self) -> Workflow:
         return self._workflow

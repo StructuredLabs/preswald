@@ -137,7 +137,7 @@ class ScriptRunner:
             return
 
         if not self._service.is_reactivity_enabled:
-            logger.info("[ScriptRunner] Reactivity disabled — rerunning entire script with updated widget state")
+            logger.info("[ScriptRunner] Reactivity disabled. Rerunning entire script with updated widget state")
             return await self.run_script()
 
         try:
@@ -171,7 +171,7 @@ class ScriptRunner:
                     workflow.context.set_variable(producer_atom, new_value)
 
             if not changed_atoms and not affected_atoms:
-                logger.warning("[ScriptRunner] No atoms affected — falling back to full script rerun")
+                logger.warning("[ScriptRunner] No atoms affected. Falling back to full script rerun")
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug(f"[ScriptRunner] changed_atoms = {changed_atoms}, component_ids = {changed_component_ids}")
 
@@ -324,6 +324,7 @@ class ScriptRunner:
         # Ensure we run the script from a clear state
         workflow = self._service.get_workflow()
         workflow.reset()
+        self._service.clear_errors()
 
         logger.info(f"[ScriptRunner] Starting script execution {self.script_path=} {self._run_count=}")
 
@@ -355,8 +356,9 @@ class ScriptRunner:
                         # Attempt reactive transformation
                         tree, _ = transform_source(raw_code, filename=self.script_path)
                         self._script_globals["workflow"] = workflow
-                        compile_and_run(tree, self.script_path, self._script_globals, "(reactive)")
-                        workflow.execute_relevant_atoms()
+                        if tree:
+                            compile_and_run(tree, self.script_path, self._script_globals, "(reactive)")
+                            workflow.execute_relevant_atoms()
                     else:
                         compile_and_run(raw_code, self.script_path, self._script_globals, "(non-reactive)")
                         workflow.reset() # just to be safe
@@ -364,7 +366,7 @@ class ScriptRunner:
                 except Exception as transform_error:
                     if logger.isEnabledFor(logging.WARNING):
                         logger.warning(
-                            "[ScriptRunner] AST transform or reactive execution failed — falling back to full script rerun\n%s",
+                            "[ScriptRunner] AST transform or reactive execution failed. Falling back to full script rerun\n%s",
                             traceback.format_exc()
                         )
 
@@ -400,8 +402,15 @@ class ScriptRunner:
                         logger.warning(f"[ScriptRunner] No producer atom found {component_id=}")
                         continue
 
-            if components:
-                await self.send_message({"type": "components", "components": components})
+            errors = self._service.get_errors(type="ast_transform", filename=self.script_path)
+            message_type = "errors:result" if len(errors) else "components"
+
+            if (components and row_count) or len(errors):
+                await self.send_message({
+                    "type": message_type,
+                    "errors": errors or [],
+                    "components": components or []
+                })
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug(f"[ScriptRunner] Components sent to frontend {components=}")
             workflow.debug_print_dag()

@@ -22,6 +22,7 @@ from preswald.interfaces.render.registry import (
     register_output_stream_function,
     register_return_renderer,
 )
+from preswald.interfaces.render.error_registry import register_error
 from preswald.utils import (
     generate_stable_atom_name_from_component_id,
     generate_stable_id,
@@ -1235,12 +1236,29 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 and len(stmt.value.args) == 2
                 and isinstance(stmt.value.args[0], ast.Constant)
             ):
-
-                if (stmt.value.func.id == "register_display_dependency_resolver"
-                    and isinstance(stmt.value.args[1], ast.Lambda)):
-
+                if (stmt.value.func.id == "register_display_dependency_resolver"):
                     func_name_node = stmt.value.args[0]
                     resolver_node = stmt.value.args[1]
+
+                    # Validate argument type before attempting compilation
+                    if not isinstance(resolver_node, ast.Lambda):
+                        source_text = ast.unparse(stmt)
+                        lineno = self._get_stable_lineno(stmt.value, "register_display_dependency_resolver")
+
+                        register_error(
+                            type="ast_transform",
+                            filename=self.filename,
+                            lineno=lineno,
+                            message="Second argument to register_display_dependency_resolver must be a lambda expression.",
+                            source=source_text,
+                            component_id=None,
+                            atom_name=None,
+                        )
+
+                        logger.warning("[AST] register_display_dependency_resolver: expected lambda as second argument")
+                        continue
+
+                    logger.info('[DEBUG] inside register_display_dependency_resolver gaurd')
 
                     try:
                         func_name = func_name_node.value  # e.g. "matplotlib.pyplot.show"
@@ -1250,6 +1268,17 @@ class AutoAtomTransformer(ast.NodeTransformer):
                         register_display_dependency_resolver(func_name, resolver_fn)  # then call actual registrar
                         logger.debug(f"[AST] Registered display dependency resolver for {func_name=}")
                     except Exception as e:
+                        source_text = ast.unparse(stmt)
+                        lineno = self._get_stable_lineno(stmt.value, "register_display_dependency_resolver")
+                        register_error(
+                            type="ast_transform",
+                            filename=self.filename,
+                            lineno=lineno,
+                            message=str(e),
+                            source=source_text,
+                            component_id=None,
+                            atom_name=None,
+                        )
                         logger.warning(f"[AST] Failed to register resolver: {e}")
 
                     continue
@@ -1935,7 +1964,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug(
                         "[AST] visit_Call saw a known component call not lifted by _lift_statements: %s",
-                        ast.unparse(node) if hasattr(ast, "unparse") else ast.dump(node)
+                        ast.unparse(node)
                     )
                 else:
                     logger.warning(
@@ -2412,16 +2441,30 @@ def transform_source(source: str, filename: str = "<script>") -> tuple[ast.Modul
             - The transformed AST module
             - A list of generated atom names
     """
-    tree = ast.parse(source, filename=filename)
-    annotate_parents(tree)
+    try:
+        tree = ast.parse(source, filename=filename)
+        annotate_parents(tree)
 
-    transformer = AutoAtomTransformer(filename=filename)
-    new_tree = transformer.visit(tree)
+        transformer = AutoAtomTransformer(filename=filename)
+        new_tree = transformer.visit(tree)
 
-    ast.fix_missing_locations(new_tree)
+        ast.fix_missing_locations(new_tree)
 
-    if logger.isEnabledFor(logging.DEBUG):
-        source_code = ast.unparse(new_tree)
-        logger.debug("Transformed source code:\n%s", source_code)
+        if logger.isEnabledFor(logging.DEBUG):
+            source_code = ast.unparse(new_tree)
+            logger.debug("Transformed source code:\n%s", source_code)
 
-    return new_tree, transformer.atoms
+        return new_tree, transformer.atoms
+
+    except SyntaxError as syntax_error:
+        register_error(
+            type="ast_transform",
+            filename=filename,
+            lineno=syntax_error.lineno or 0,
+            message=str(syntax_error),
+            source=source,
+            component_id=None,
+            atom_name=None,
+        )
+        logger.warning(f"[AST] Syntax error during transform: {syntax_error}")
+        return None, []

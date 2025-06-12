@@ -2,11 +2,12 @@ import React from 'react';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
+import { ErrorsReport } from '../ErrorsReport'
 import DynamicComponents from '../DynamicComponents';
 import LoadingState from '../LoadingState';
 
-const Dashboard = ({ components, error, handleComponentUpdate }) => {
-  console.log('[Dashboard] Rendering with:', { components, error });
+const Dashboard = ({ components, error, transformErrors, handleComponentUpdate }) => {
+  console.log('[Dashboard] Rendering with:', { components, error, transformErrors });
 
   const isValidComponents =
     components &&
@@ -15,34 +16,45 @@ const Dashboard = ({ components, error, handleComponentUpdate }) => {
     components.rows.every((row) => Array.isArray(row));
 
   const renderContent = () => {
-    if (error) {
-      return (
-        <Alert variant="destructive" className="dashboard-error">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      );
-    }
+    const showTransformErrorBanner = transformErrors && transformErrors.length > 0;
 
-    if (!isValidComponents) {
-      return (
-        <div className="dashboard-loading-container">
-          <LoadingState
-            isConnected={true}
-            customText={!components ? 'Loading components' : 'Invalid components data'}
-          />
-        </div>
-      );
+    const errorFragment = showTransformErrorBanner ? (
+      <div className="dashboard-error-fragment">
+        <ErrorsReport errors={transformErrors} />
+      </div>
+    ) : null;
+
+    const emptyWrapperClass = showTransformErrorBanner
+      ? 'dashboard-empty-with-errors' : 'dashboard-empty';
+
+    if (error || !isValidComponents) {
+      const alertMessage = error ?? 'Invalid components data'
+        return (
+          <div className={`${emptyWrapperClass}`}>
+            <Alert variant="destructive" className="dashboard-error">
+              <AlertDescription>{alertMessage}</AlertDescription>
+            </Alert>
+
+            {errorFragment}
+          </div>
+        )
     }
 
     if (components.rows.length === 0) {
       return (
-        <div className="dashboard-empty">
+        <div className={`${emptyWrapperClass}`}>
+          {errorFragment}
           <p className="dashboard-empty-text">No components to display</p>
         </div>
-      );
+      )
     }
 
-    return <DynamicComponents components={components} onComponentUpdate={handleComponentUpdate} />;
+    return (
+      <>
+        {errorFragment}
+        <DynamicComponents components={components} onComponentUpdate={handleComponentUpdate} />
+      </>
+    )
   };
 
   return <div className="dashboard-container">{renderContent()}</div>;
