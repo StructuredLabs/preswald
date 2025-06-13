@@ -7,6 +7,7 @@ from collections import defaultdict
 
 from preswald.engine.transformers.frame_context import FrameContext as Frame
 from preswald.interfaces import components
+from preswald.interfaces.render.error_registry import register_error
 from preswald.interfaces.render.registry import (
     get_component_type_for_mimetype,
     get_display_dependency_resolvers,
@@ -22,7 +23,6 @@ from preswald.interfaces.render.registry import (
     register_output_stream_function,
     register_return_renderer,
 )
-from preswald.interfaces.render.error_registry import register_error
 from preswald.utils import (
     generate_stable_atom_name_from_component_id,
     generate_stable_id,
@@ -130,7 +130,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         if node is not None:
             try:
                 source = ast.unparse(node)
-            except Exception:
+            except Exception as e:
                 logger.debug(f"[AST] Failed to unparse node, falling back to ast.dump: {e}")
                 source = ast.dump(node)
         else:
@@ -813,7 +813,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
                             )
 
             class Replacer(ast.NodeTransformer):
-                def visit_Name(self, node: ast.Name):
+                def visit_Name(self, node: ast.Name): # noqa: N802
                     return reverse_map.get(node.id, node)
 
             patched_call = Replacer().visit(copy.deepcopy(stmt.value))
@@ -1876,7 +1876,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 self.import_aliases[asname] = "preswald"
         return node
 
-    def visit_ImportFrom(self, node: ast.ImportFrom) -> ast.AST:
+    def visit_ImportFrom(self, node: ast.ImportFrom) -> ast.AST: # noqa: N802
         """
         Tracks `from preswald.interfaces.components import ...` aliases.
 
