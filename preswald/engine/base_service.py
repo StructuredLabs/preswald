@@ -311,6 +311,9 @@ class BasePreswaldService:
     def clear_errors(self, type: str | None = None):
         return clear_errors(type=type)
 
+    def has_errors(self, type: str | None = None, filename: str | None = None):
+        return len(get_errors(type=type, filename=filename))
+
     def get_workflow(self) -> Workflow:
         return self._workflow
 

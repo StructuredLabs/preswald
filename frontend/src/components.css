@@ -836,3 +836,21 @@
   border-radius: 1px;
   transition: background-color 0.2s ease;
 }
+
+/* Error Report */
+.error-report-container {
+  @apply overflow-y-auto transition-[max-height] duration-300 ease-in-out;
+  max-height: 10rem;
+}
+
+.error-report-container.expanded {
+   max-height: 80vh; /* Limit to 80% of the viewport height */
+}
+
+.error-report-list {
+  @apply list-disc list-inside space-y-1;
+}
+
+.error-report-toggle {
+  @apply text-xs text-muted-foreground hover:underline mt-2 cursor-pointer;
+}

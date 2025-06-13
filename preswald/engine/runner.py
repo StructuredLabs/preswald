@@ -378,8 +378,12 @@ class ScriptRunner:
                         "workflow": workflow,
                         "widget_states": self.widget_states,
                     }
-
-                    compile_and_run(raw_code, self.script_path, self._script_globals, "(fallback, non-reactive)")
+                    try:
+                        compile_and_run(raw_code, self.script_path, self._script_globals, "(fallback, non-reactive)")
+                    except Exception as e:
+                        logger.error('[ScriptRunner] Full script rerun fallback failed', traceback.format_exc() );
+                        if not self._service.has_errors():
+                            raise e
 
                 os.chdir(current_working_dir)
 
