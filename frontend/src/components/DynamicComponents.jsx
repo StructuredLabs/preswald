@@ -1,3 +1,11 @@
+/**
+ * Dynamic Components Registry
+ *
+ * @modified Topgyal Gurung - 2025-06-12
+ * @description Added support for new widget types:
+ *              - SmartInsightsDashboard ('smart_insights')
+ *              - LiveDataDashboard ('live_dashboard')
+ */
 import React, { memo, useEffect } from 'react';
 
 // UI components
@@ -15,9 +23,11 @@ import ChatWidget from './widgets/ChatWidget';
 import CheckboxWidget from './widgets/CheckboxWidget';
 import DAGVisualizationWidget from './widgets/DAGVisualizationWidget';
 import DataVisualizationWidget from './widgets/DataVisualizationWidget';
+import GenericWidget from './widgets/GenericWidget';
 //import FastplotlibWidget from './widgets/FastplotlibWidget';
 import ImageWidget from './widgets/ImageWidget';
 import JSONViewerWidget from './widgets/JSONViewerWidget';
+import LiveDataDashboard from './widgets/LiveDataDashboard';
 import MarkdownRendererWidget from './widgets/MarkdownRendererWidget';
 import MatplotlibWidget from './widgets/MatplotlibWidget';
 import PlaygroundWidget from './widgets/PlaygroundWidget';
@@ -26,11 +36,11 @@ import SelectboxWidget from './widgets/SelectboxWidget';
 import SeparatorWidget from './widgets/SeparatorWidget';
 import SidebarWidget from './widgets/SidebarWidget';
 import SliderWidget from './widgets/SliderWidget';
+import SmartInsightsDashboard from './widgets/SmartInsightsDashboard';
 import SpinnerWidget from './widgets/SpinnerWidget';
 import TableViewerWidget from './widgets/TableViewerWidget';
 import TextInputWidget from './widgets/TextInputWidget';
 import TopbarWidget from './widgets/TopbarWidget';
-import GenericWidget from './widgets/GenericWidget';
 import UnknownWidget from './widgets/UnknownWidget';
 
 const extractKeyProps = createExtractKeyProps();
@@ -349,6 +359,32 @@ const MemoizedComponent = memo(
 
       case 'separator':
         return <SeparatorWidget key={componentKey} id={componentId} />;
+
+      case 'smart_insights':
+        return (
+          <SmartInsightsDashboard
+            key={componentKey}
+            {...props}
+            data={component.data || []}
+            title={component.title || 'Smart Data Insights'}
+            autoRefresh={component.autoRefresh}
+            refreshInterval={component.refreshInterval}
+            id={componentId}
+          />
+        );
+
+      case 'live_dashboard':
+        return (
+          <LiveDataDashboard
+            key={componentKey}
+            {...props}
+            title={component.title || 'Live Data Dashboard'}
+            updateInterval={component.updateInterval || 1000}
+            maxDataPoints={component.maxDataPoints || 50}
+            metrics={component.metrics || ['sales', 'users', 'revenue', 'performance']}
+            id={componentId}
+          />
+        );
 
       case 'generic':
         return (

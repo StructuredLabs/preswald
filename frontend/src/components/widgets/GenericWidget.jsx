@@ -10,39 +10,19 @@ const GenericWidget = ({ id, value, mimetype = 'text/plain' }) => {
 
     if (cleanMime.startsWith('image/')) {
       return (
-        <img
-          src={value}
-          alt="rendered image"
-          className="rounded-lg shadow max-w-full mx-auto"
-        />
+        <img src={value} alt="rendered image" className="rounded-lg shadow max-w-full mx-auto" />
       );
     }
 
     if (cleanMime === 'text/html') {
-      return (
-        <div
-          className="prose max-w-none"
-          dangerouslySetInnerHTML={{ __html: value }}
-        />
-      );
+      return <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: value }} />;
     }
 
     if (cleanMime === 'application/pdf') {
-      return (
-        <iframe
-          src={value}
-          title="PDF viewer"
-          className="w-full h-[600px] border rounded"
-        />
-      );
+      return <iframe src={value} title="PDF viewer" className="w-full h-[600px] border rounded" />;
     }
 
-    if ([
-      'text/plain',
-      'application/json',
-      'text/csv',
-      'text/markdown'
-    ].includes(cleanMime)) {
+    if (['text/plain', 'application/json', 'text/csv', 'text/markdown'].includes(cleanMime)) {
       return (
         <pre className="text-sm text-gray-800 whitespace-pre-wrap p-2 bg-gray-100 rounded">
           {value}
