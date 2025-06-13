@@ -14,12 +14,8 @@ from typing import (
 )
 
 import matplotlib.pyplot as plt
-from matplotlib.figure import Figure as MatplotlibFigure
-
 import plotly
-import plotly.express as px
-import plotly.graph_objects as go
-import plotly.subplots as sp
+from matplotlib.figure import Figure as MatplotlibFigure
 from plotly.graph_objects import Figure as PlotlyFigure
 
 from preswald.engine.transformers.frame_context import FrameContext
@@ -335,7 +331,7 @@ def get_plotly_submodules():
 # ------------------------------------------------------------------------------
 # Preloaded registry (can later be sourced from config)
 # ------------------------------------------------------------------------------
-import time
+import time  # noqa: E402
 
 
 t0 = time.perf_counter()

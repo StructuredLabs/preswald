@@ -10,6 +10,7 @@ import { comm } from './utils/websocket';
 const App = () => {
   const [components, setComponents] = useState({ rows: [] });
   const [error, setError] = useState(null);
+  const [transformErrors, setTransformErrors] = useState([]);
   const [config, setConfig] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [areComponentsLoading, setAreComponentsLoading] = useState(true);
@@ -50,6 +51,10 @@ const App = () => {
 
       case 'error':
         handleError(message.content);
+        break;
+
+      case 'errors:result':
+        handleTransformErrors(message.errors, message.components);
         break;
 
       case 'connection_status':
@@ -123,6 +128,15 @@ const App = () => {
     }
   };
 
+  const handleTransformErrors = (errorContents, components = null) => {
+    console.error('[App] Received transform errors:', {errorContents, components});
+    setAreComponentsLoading(false);
+    setTransformErrors(errorContents || []);
+    if (components) {
+      refreshComponentsList(components);
+    }
+  };
+
   const handleComponentUpdate = (componentId, value) => {
     try {
       comm.updateComponentState(componentId, value);
@@ -157,6 +171,7 @@ const App = () => {
           <Dashboard
             components={components}
             error={error}
+            transformErrors={transformErrors}
             handleComponentUpdate={handleComponentUpdate}
           />
         )}
