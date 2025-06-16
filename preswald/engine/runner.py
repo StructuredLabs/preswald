@@ -213,8 +213,15 @@ class ScriptRunner:
             components = self._service.get_rendered_components()
             logger.info(f"[ScriptRunner] Rendered {len(components)} components (rerun)")
 
-            if components:
-                await self.send_message({"type": "components", "components": components})
+            errors = self._service.get_errors(filename=self.script_path)
+            message_type = "errors:result" if len(errors) else "components"
+
+            if len(components) or len(errors):
+                await self.send_message({
+                    "type": message_type,
+                    "errors": errors or [],
+                    "components": components or []
+                })
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug(f"[ScriptRunner] Sent components to frontend {components=}")
                 else:

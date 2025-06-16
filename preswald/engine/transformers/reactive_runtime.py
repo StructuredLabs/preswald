@@ -2478,13 +2478,26 @@ class AutoAtomTransformer(ast.NodeTransformer):
         # Create function parameters: (param0, param1, ...)
         args_ast = self._make_param_args(callsite_deps)
 
+        callsite_metadata = self._build_callsite_metadata(callsite_node, self.filename)
+        decorator = self._create_workflow_atom_decorator(
+            atom_name,
+            callsite_deps,
+            callsite_metadata=callsite_metadata
+        )
+
         # Normalize call_expr into a body list
         if isinstance(call_expr, list):
             body = call_expr
         elif isinstance(call_expr, ast.Assign) or isinstance(call_expr, ast.Expr):
             body = [call_expr]
         elif isinstance(call_expr, ast.Call):
-            body = [ast.Expr(value=call_expr)]
+            return_stmt = ast.Return(value=call_expr)
+            return ast.FunctionDef(
+                name=atom_name,
+                args=args_ast,
+                body=[return_stmt],
+                decorator_list=[decorator],
+            )
         else:
             self._safe_register_error(
                 node=call_expr,
@@ -2493,13 +2506,6 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 atom_name=atom_name,
             )
             return None
-
-        callsite_metadata = self._build_callsite_metadata(callsite_node, self.filename)
-        decorator = self._create_workflow_atom_decorator(
-            atom_name,
-            callsite_deps,
-            callsite_metadata=callsite_metadata
-        )
 
         # Append appropriate return statement
         if isinstance(return_target, str):
