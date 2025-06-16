@@ -79,7 +79,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         self._used_display_renderer_fns: set[str] = set()
 
         try:
-            with open(filename, "r") as f:
+            with open(filename) as f:
                 self._source_lines = f.readlines()
         except Exception as e:
             logger.warning(f"[AST] Could not read source lines for file {filename}: {e}")

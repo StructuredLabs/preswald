@@ -1,5 +1,6 @@
-from threading import Lock
 import os
+from threading import Lock
+
 
 """
 Provides a simple in-memory registry for collecting and retrieving structured
