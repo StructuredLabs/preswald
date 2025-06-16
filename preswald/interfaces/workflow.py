@@ -176,21 +176,27 @@ class Atom:
 
                 # if callsite source was not provided, attempt to
                 # capture this info where the atom was defined
-                if not callsite_source and callsite_filename:
-                    try:
-                        with open(callsite_filename, 'r') as f:
-                            lines = f.readlines()
-                            lineno = callsite_lineno or 0
-                            callsite_source = lines[lineno - 1].strip() if 0 < lineno <= len(lines) else ""
-                            self.callsite_metadata['callsite_source'] = callsite_source
+                #
+                # TODO(preswald): Centralize source line buffering per filename in the service layer.
+                # This would allow both the AST transformer and Atom class to fetch source snippets
+                # without reopening the file. Until then, skip this fallback to avoid redundant I/O.
+                #
+                # if not callsite_source and callsite_filename:
+                #     try:
+                #         with open(callsite_filename, 'r') as f:
+                #             lines = f.readlines()
+                #             lineno = callsite_lineno or 0
+                #             callsite_source = lines[lineno - 1].strip() if 0 < lineno <= len(lines) else ""
+                #             self.callsite_metadata['callsite_source'] = callsite_source
 
-                    except Exception:
-                        pass
+                #     except Exception:
+                #         pass
 
                 register_error(
                     type="runtime",
                     filename=callsite_filename or "<unknown>",
                     lineno=callsite_lineno or 0,
+                    source=callsite_source or "",
                     message=str(e),
                     atom_name=self.name,
                 )
