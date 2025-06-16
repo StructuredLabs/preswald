@@ -483,8 +483,9 @@ class AutoAtomTransformer(ast.NodeTransformer):
             callsite_node: ast.AST | None = None,
         ) -> ast.FunctionDef:
         func = self._build_atom_function(atom_name, component_id, callsite_deps, call_expr, return_target=return_target, callsite_node=callsite_node)
-        self._finalize_atom_deps(func)
-        self._current_frame.generated_atoms.append(func)
+        if func is not None:
+            self._finalize_atom_deps(func)
+            self._current_frame.generated_atoms.append(func)
         return func
 
     def _should_inline_function(self, func_name: str) -> bool:
@@ -2482,6 +2483,8 @@ class AutoAtomTransformer(ast.NodeTransformer):
             body = call_expr
         elif isinstance(call_expr, ast.Assign) or isinstance(call_expr, ast.Expr):
             body = [call_expr]
+        elif isinstance(call_expr, ast.Call):
+            body = [ast.Expr(value=call_expr)]
         else:
             self._safe_register_error(
                 node=call_expr,
