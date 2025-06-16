@@ -60,6 +60,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
     def __init__(self, filename: str = "<script>"):
         self.filename = filename
+        self._source_lines = []
         self.current_function = None
         self.dependencies = {}
         self.known_components = self._discover_known_components()
@@ -76,6 +77,12 @@ class AutoAtomTransformer(ast.NodeTransformer):
         self._variable_class_map = {}
         self._module: ast.Module | None = None
         self._used_display_renderer_fns: set[str] = set()
+
+        try:
+            with open(filename, "r") as f:
+                self._source_lines = f.readlines()
+        except Exception as e:
+            logger.warning(f"[AST] Could not read source lines for file {filename}: {e}")
 
     @property
     def _current_frame(self) -> Frame:
@@ -2694,13 +2701,9 @@ class AutoAtomTransformer(ast.NodeTransformer):
         lineno = getattr(node, "lineno", None)
         source = ""
 
-        if filename and lineno:
-            try:
-                with open(filename, "r") as f:
-                    lines = f.readlines()
-                    source = lines[lineno - 1].strip() if 0 < lineno <= len(lines) else ""
-            except Exception:
-                pass
+        if lineno and self._source_lines:
+            if 0 < lineno <= len(self._source_lines):
+                source = self._source_lines[lineno - 1].strip()
 
         return {
             "callsite_filename": filename,
