@@ -5,9 +5,9 @@ import os
 import random
 import re
 import sys
-from importlib.resources import files as importlib_files
-
 import toml
+
+from importlib.resources import files as importlib_files
 
 
 # Configure logging
@@ -141,6 +141,55 @@ def generate_slug(base_name: str) -> str:
     return slug
 
 
+def get_user_code_callsite(exc: BaseException | None = None, fallback: str = "unknown:0") -> tuple[str, int]:
+    """
+    Attempts to find the callsite of user code.
+
+    If an exception is provided, uses its traceback to find the origin of the error.
+    Otherwise, falls back to inspecting the current frame.
+
+    Returns:
+        A tuple (filename, lineno) pointing to the first user code location.
+    """
+    preswald_src_dir = os.path.abspath(os.path.join(__file__, ".."))
+
+    def is_user_code(filepath: str) -> bool:
+        return not (
+            filepath.startswith(preswald_src_dir)
+            or ".venv" in filepath
+            or "site-packages" in filepath
+            or filepath.startswith(sys.base_prefix)
+        )
+
+    if exc and exc.__traceback__:
+        tb = exc.__traceback__
+        while tb:
+            filename = os.path.abspath(tb.tb_frame.f_code.co_filename)
+            lineno = tb.tb_lineno
+            if is_user_code(filename):
+                return filename, lineno
+            tb = tb.tb_next
+
+    frame = inspect.currentframe()
+    try:
+        while frame:
+            info = inspect.getframeinfo(frame)
+            filepath = os.path.abspath(info.filename)
+
+            if "pyodide" in sys.modules:
+                if not filepath.startswith("/lib/"):
+                    return filepath, info.lineno
+            elif is_user_code(filepath):
+                return filepath, info.lineno
+
+            frame = frame.f_back
+
+    finally:
+        del frame
+
+    return fallback, 0
+
+
 def generate_stable_id(
     prefix: str = "component",
     identifier: str | None = None,
@@ -186,44 +235,8 @@ def generate_stable_id(
             callsite_hint = None
 
     if not callsite_hint:
-        preswald_src_dir = os.path.abspath(os.path.join(__file__, ".."))
-
-        def get_callsite_id():
-            frame = inspect.currentframe()
-            try:
-                while frame:
-                    info = inspect.getframeinfo(frame)
-                    filepath = os.path.abspath(info.filename)
-
-                    if IS_PYODIDE:
-                        # In Pyodide: skip anything in /lib/, allow /main.py etc.
-                        if not filepath.startswith("/lib/"):
-                            logger.debug(
-                                f"[generate_stable_id] [Pyodide] Found user code: {filepath}:{info.lineno}"
-                            )
-                            return f"{filepath}:{info.lineno}"
-                    else:
-                        # In native: skip stdlib, site-packages, and preswald internals
-                        in_preswald_src = filepath.startswith(preswald_src_dir)
-                        in_venv = ".venv" in filepath or "site-packages" in filepath
-                        in_stdlib = filepath.startswith(sys.base_prefix)
-
-                        if not (in_preswald_src or in_venv or in_stdlib):
-                            logger.debug(
-                                f"[generate_stable_id] Found user code: {filepath}:{info.lineno}"
-                            )
-                            return f"{filepath}:{info.lineno}"
-
-                    frame = frame.f_back
-
-                logger.warning(
-                    "[generate_stable_id] No valid callsite found, falling back to default"
-                )
-                return fallback_callsite
-            finally:
-                del frame
-
-        callsite_hint = get_callsite_id()
+        filepath, lineno = get_user_code_callsite()
+        callsite_hint = f"{filepath}:{lineno}"
 
     hashed = hashlib.md5(callsite_hint.encode()).hexdigest()[:12]
 

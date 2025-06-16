@@ -36,6 +36,7 @@ const ErrorsReport = ({ errors }) => {
             {errors.map((err, idx) => (
               <li key={idx}>
                 <strong>{err.filename}:{err.lineno}</strong> - {err.message}
+                {err.count > 1 ? ` (x${err.count})` : null}
               </li>
             ))}
           </ul>

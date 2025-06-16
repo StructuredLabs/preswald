@@ -1,8 +1,7 @@
 from threading import Lock
+import os
 
 """
-error_registry.py
-
 Provides a simple in-memory registry for collecting and retrieving structured
 errors during different phases of script processing.
 
@@ -14,71 +13,88 @@ This registry is used to:
 All functions operate on a global in memory list with thread safety.
 """
 
-# Global in-memory registry and associated lock
-_error_registry = []
-_registry_lock = Lock()
+
+class ErrorRegistry:
+    _instance = None
+    _lock = Lock()
+
+    def __init__(self):
+        self._errors_by_key = {}
+        self._lock = Lock()
+
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = cls()
+        return cls._instance
+
+    def _make_key(self, err: dict) -> tuple:
+        return (
+            err["type"],
+            os.path.abspath(err["filename"]),
+            err["lineno"],
+            err["message"],
+            err.get("atom_name"),
+        )
+
+    def register(self, **kwargs):
+        with self._lock:
+            key = self._make_key(kwargs)
+            if key in self._errors_by_key:
+                self._errors_by_key[key]["count"] += 1
+            else:
+                self._errors_by_key[key] = {
+                    **kwargs,
+                    "source": kwargs.get("source", ""),
+                    "component_id": kwargs.get("component_id"),
+                    "atom_name": kwargs.get("atom_name"),
+                    "count": 1,
+                }
+
+    def get_errors(self, type=None, filename=None) -> list[dict]:
+        with self._lock:
+            return [
+                e for e in self._errors_by_key.values()
+                if (type is None or e["type"] == type)
+                and (filename is None or os.path.samefile(e["filename"], filename))
+            ]
+
+    def clear_errors(self, type=None):
+        with self._lock:
+            if type:
+                self._errors_by_key = {
+                    k: v for k, v in self._errors_by_key.items() if v["type"] != type
+                }
+            else:
+                self._errors_by_key.clear()
+
+
+_registry = ErrorRegistry.get_instance()
 
 def register_error(
     *,
-    type: str,             # examples: "ast_transform", "runtime", "render"
-    filename: str,         # Filename or script path associated with the error
-    lineno: int,           # Line number where the error occurred
-    message: str,          # Error message
-    source: str = "",      # Source code snippet or context
-    component_id: str | None = None,  # Optional component ID if error is linked to a specific component
-    atom_name: str | None = None      # Optional atom name if error is linked to a reactive atom
+    type: str,
+    filename: str,
+    lineno: int,
+    message: str,
+    source: str = "",
+    component_id: str | None = None,
+    atom_name: str | None = None,
 ):
-    """
-    Register a new structured error.
-
-    Args:
-        type: A string categorizing the error, such as "ast_transform", "runtime".
-        filename: The script or file in which the error occurred.
-        lineno: The line number where the error was detected.
-        message: A human-readable description of the error.
-        source: Optional source code excerpt or context around the error.
-        component_id: Optional ID of the UI component associated with this error.
-        atom_name: Optional name of the reactive atom associated with this error.
-    """
-    with _registry_lock:
-        _error_registry.append({
-            "type": type,
-            "filename": filename,
-            "lineno": lineno,
-            "message": message,
-            "source": source,
-            "component_id": component_id,
-            "atom_name": atom_name,
-        })
+    _registry.register(
+        type=type,
+        filename=filename,
+        lineno=lineno,
+        message=message,
+        source=source,
+        component_id=component_id,
+        atom_name=atom_name,
+    )
 
 def get_errors(type: str | None = None, filename: str | None = None):
-    """
-    Retrieve all registered errors, optionally filtered by type and/or filename.
-
-    Args:
-        type: Optional error type to filter by, such as "ast_transform".
-        filename: Optional filename to filter by.
-
-    Returns:
-        A list of matching error dicts.
-    """
-    with _registry_lock:
-        return [
-            err for err in _error_registry
-            if (type is None or err["type"] == type)
-            and (filename is None or err["filename"] == filename)
-        ]
+    return _registry.get_errors(type=type, filename=filename)
 
 def clear_errors(type: str | None = None):
-    """
-    Clear errors from the registry.
-
-    Args:
-        type: Optional type of errors to clear. If omitted, all errors are removed.
-    """
-    global _error_registry
-    with _registry_lock:
-        if type:
-            _error_registry = [e for e in _error_registry if e["type"] != type]
-        else:
-            _error_registry = []
+    _registry.clear_errors(type=type)

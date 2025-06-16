@@ -406,7 +406,7 @@ class ScriptRunner:
                         logger.warning(f"[ScriptRunner] No producer atom found {component_id=}")
                         continue
 
-            errors = self._service.get_errors(type="ast_transform", filename=self.script_path)
+            errors = self._service.get_errors(filename=self.script_path)
             message_type = "errors:result" if len(errors) else "components"
 
             if (components and row_count) or len(errors):

@@ -86,7 +86,7 @@ class BasePreswaldService:
         if cls._instance is None:
             cls._instance = cls()
             if script_path:
-                cls._instance._script_path = script_path
+                cls._instance._script_path = os.path.abspath(script_path)
                 cls._instance._initialize_data_manager(script_path)
         return cls._instance
 
@@ -100,7 +100,7 @@ class BasePreswaldService:
         if not os.path.exists(path):
             raise FileNotFoundError(f"Script not found: {path}")
 
-        self._script_path = path
+        self._script_path = os.path.abspath(path)
         self._initialize_data_manager(path)
 
     @property

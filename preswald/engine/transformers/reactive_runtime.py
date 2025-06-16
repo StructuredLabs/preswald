@@ -472,9 +472,10 @@ class AutoAtomTransformer(ast.NodeTransformer):
             callsite_deps: list[str],
             call_expr: ast.AST | list[ast.stmt],
             *,
-            return_target: str | list[str] | tuple[str, ...] | ast.expr | None = None
+            return_target: str | list[str] | tuple[str, ...] | ast.expr | None = None,
+            callsite_node: ast.AST | None = None,
         ) -> ast.FunctionDef:
-        func = self._build_atom_function(atom_name, component_id, callsite_deps, call_expr, return_target=return_target)
+        func = self._build_atom_function(atom_name, component_id, callsite_deps, call_expr, return_target=return_target, callsite_node=callsite_node)
         self._finalize_atom_deps(func)
         self._current_frame.generated_atoms.append(func)
         return func
@@ -647,7 +648,8 @@ class AutoAtomTransformer(ast.NodeTransformer):
             component_id,
             callsite_deps,
             assign_stmt,
-            return_target=ast.Name(id=target.id, ctx=ast.Load())
+            return_target=ast.Name(id=target.id, ctx=ast.Load()),
+            callsite_node=stmt
         )
 
     def _lift_output_stream_stmt(self, stmt: ast.Expr, component_id: str, atom_name: str, stream: str) -> None:
@@ -690,7 +692,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         try:
             call_and_return = ast.parse(source).body
-            self._finalize_and_register_atom(atom_name, component_id, callsite_deps, call_and_return)
+            self._finalize_and_register_atom(atom_name, component_id, callsite_deps, call_and_return, callsite_node=stmt)
         except SyntaxError as e:
             self._safe_register_error(
                 lineno=self._get_stable_lineno(stmt, "output stream code generation"),
@@ -743,7 +745,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
             ]
         )
 
-        self._finalize_and_register_atom(atom_name, component_id, callsite_deps, wrapped_call)
+        self._finalize_and_register_atom(atom_name, component_id, callsite_deps, wrapped_call, callsite_node=stmt)
 
     def _lift_side_effect_stmt(self, stmt: ast.Expr) -> None:
         """
@@ -821,7 +823,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
             component_id, atom_name = self.generate_component_and_atom_name("sideeffect", stmt)
             atom_body = [ast.Expr(value=patched_call)]
-            self._finalize_and_register_atom(atom_name, component_id, callsite_deps, atom_body)
+            self._finalize_and_register_atom(atom_name, component_id, callsite_deps, atom_body, callsite_node=stmt)
             logger.debug('[AST] lifted side effect statement into atom %s -> %s', component_id, atom_name)
 
         except Exception as e:
@@ -838,7 +840,6 @@ class AutoAtomTransformer(ast.NodeTransformer):
         scoped_map: dict[str, str],
         variable_map: dict[str, str],
     ) -> None:
-        logger.debug('[DEBUG] enter _lift_blackbox_function_call')
 
         component_id, atom_name = self.generate_component_and_atom_name(func_name, stmt)
 
@@ -934,7 +935,8 @@ class AutoAtomTransformer(ast.NodeTransformer):
             component_id,
             callsite_deps,
             body,
-            return_target=return_target
+            return_target=return_target,
+            callsite_node=stmt
         )
 
     def _lift_producer_stmt(self, stmt: ast.Assign, pending_assignments: list[ast.Assign], variable_map: dict[str, str]) -> None:
@@ -973,7 +975,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         return_target: str | list[str] | None = None
         if isinstance(stmt.targets[0], ast.Tuple | ast.List):
-            component_id, atom_name = self.generate_component_and_atom_name("producer")
+            component_id, atom_name = self.generate_component_and_atom_name("producer", stmt)
             self._current_frame.tuple_returning_atoms.add(atom_name)
 
             unpacked_vars = [
@@ -1095,7 +1097,8 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 component_id,
                 deps,
                 [patched_stmt],
-                return_target=return_target
+                return_target=return_target,
+                callsite_node=stmt
             )
             logger.info("[AST] lifted subscript assignment into atom %s -> %s", component_id, new_atom_name)
             return
@@ -1135,7 +1138,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
             self._register_variable_bindings(stmt, atom_name)
             logger.debug(f"[AST] Lifted producer: {atom_name=} {callsite_deps=}")
 
-        self._finalize_and_register_atom(atom_name, component_id, callsite_deps, patched_expr, return_target=return_target)
+        self._finalize_and_register_atom(atom_name, component_id, callsite_deps, patched_expr, return_target=return_target, callsite_node=stmt)
         self._current_frame.variable_to_atom.update(variable_map)
 
     def _lift_consumer_stmt(self, stmt: ast.Expr, *, component_id: str | None = None, atom_name: str | None = None) -> ast.Expr:
@@ -1215,7 +1218,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         patched_expr = TupleAwareReplacer().visit(copy.deepcopy(expr))
         ast.fix_missing_locations(patched_expr)
 
-        self._finalize_and_register_atom(atom_name, component_id, callsite_deps, patched_expr)
+        self._finalize_and_register_atom(atom_name, component_id, callsite_deps, patched_expr, callsite_node=stmt)
 
         # Return the rewritten expression as a call to the generated atom
         callsite = self._make_callsite(atom_name, callsite_deps)
@@ -1330,7 +1333,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
             ],
         )
 
-        self._finalize_and_register_atom(atom_name, component_id, callsite_deps, renderer_call)
+        self._finalize_and_register_atom(atom_name, component_id, callsite_deps, renderer_call, callsite_node=stmt)
 
         #logger.debug(f"[DEBUG] Replacing .show call with call to: {renderer_fn.__name__}({object_arg=}, {component_id=})")
 
@@ -1677,7 +1680,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         if logger.isEnabledFor(logging.DEBUG):
             logger.debug(f"[AST] Unable to resolve function name for call: {ast.dump(call)}")
         else:
-            logger.warning(f"[AST] Unable to resolve function name for call. Enable debug logging for ast dump.")
+            logger.warning("[AST] Unable to resolve function name for call. Enable debug logging for ast dump.")
         return "<unknown>"
 
     def _has_runtime_execution(self, body: list[ast.stmt]) -> bool:
@@ -2163,7 +2166,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
             self._current_frame.tuple_variable_index,
         ).visit(call)
 
-    def visit_Assign(self, node: ast.Assign) -> ast.AST:
+    def visit_Assign(self, node: ast.Assign) -> ast.AST: # noqa: N802
         # Only support simple single target assignments for now
         if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
             varname = node.targets[0].id
@@ -2265,9 +2268,10 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 return node
 
             # Attach atom decorator
-            callsite_hint = f"{self.filename}:{getattr(node, 'lineno', 0)}"
-            atom_name = generate_stable_id("_auto_atom", callsite_hint=callsite_hint)
-            decorator = self._create_workflow_atom_decorator(atom_name, callsite_deps=[])
+            callsite_metadata = self._build_callsite_metadata(node, self.filename)
+            atom_name = generate_stable_id("_auto_atom", callsite_hint=callsite_metadata["callsite_hint"])
+            decorator = self._create_workflow_atom_decorator(atom_name, callsite_deps=[], callsite_metadata=callsite_metadata)
+
             node.decorator_list.insert(0, decorator)
             node.generated_atom_name = atom_name
             self.atoms.append(atom_name)
@@ -2441,47 +2445,51 @@ class AutoAtomTransformer(ast.NodeTransformer):
         callsite_deps: list[str],
         call_expr: ast.AST | list[ast.stmt],
         *,
-        return_target: str | list[str] | tuple[str, ...] | ast.expr | None = None
+        return_target: str | list[str] | tuple[str, ...] | ast.expr | None = None,
+        callsite_node: ast.AST | None = None,
     ) -> ast.FunctionDef:
         """
         Constructs a reactive atom function from a lifted expression or component call.
 
         The generated function will:
         - Accept `param0`, `param1`, ... as arguments for each reactive dependency
-        - Wrap the user expression(s) in a function body
-        - Return the computed value (or specified `return_target`)
-        - Be decorated with `@workflow.atom(name=..., dependencies=[...])`
+        - Wrap the normalized expression(s) in a function body
+        - Return the computed value, using `return_target` if provided, or appending a default return otherwise
+        - Attach the @workflow.atom(...) decorator with name, dependencies, and callsite metadata
 
         Supports:
         - Named assignments: `x = ...`
         - Subscript assignments: `param0["col"] = ...`
         - Blocks of statements: `list[ast.stmt]`
-        - Raw expressions: a value to directly `return`
+        - Single expressions wrapped as `ast.Expr`
         - Explicit return override via `return_target`
+
+        Any other AST node types passed as `call_expr` will result in a safe transformation error.
         """
 
         # Create function parameters: (param0, param1, ...)
         args_ast = self._make_param_args(callsite_deps)
 
-        # Build decorator
-        decorator = self._create_workflow_atom_decorator(atom_name, callsite_deps)
-
-        # Build function body
+        # Normalize call_expr into a body list
         if isinstance(call_expr, list):
             body = call_expr
-        elif isinstance(call_expr, ast.Assign):
-            body = [call_expr]
-        elif isinstance(call_expr, ast.Expr):
+        elif isinstance(call_expr, ast.Assign) or isinstance(call_expr, ast.Expr):
             body = [call_expr]
         else:
-            # e.g. raw expression to return directly
-            return_stmt = ast.Return(value=call_expr)
-            return ast.FunctionDef(
-                name=atom_name,
-                args=args_ast,
-                body=[return_stmt],
-                decorator_list=[decorator],
+            self._safe_register_error(
+                node=call_expr,
+                message=f"Unexpected AST node type in _build_atom_function: {type(call_expr).__name__}",
+                component_id=component_id,
+                atom_name=atom_name,
             )
+            return None
+
+        callsite_metadata = self._build_callsite_metadata(callsite_node, self.filename)
+        decorator = self._create_workflow_atom_decorator(
+            atom_name,
+            callsite_deps,
+            callsite_metadata=callsite_metadata
+        )
 
         # Append appropriate return statement
         if isinstance(return_target, str):
@@ -2512,16 +2520,24 @@ class AutoAtomTransformer(ast.NodeTransformer):
             decorator_list=[decorator],
         )
 
-    def _create_workflow_atom_decorator(self, atom_name: str, callsite_deps: list[str]) -> ast.Call:
+    def _create_workflow_atom_decorator(self, atom_name: str, callsite_deps: list[str], callsite_metadata: dict | None = None) -> ast.Call:
         """
         Constructs a decorator expression for @workflow.atom(...).
+
+        Includes metadata such as the atom's name, its dependency list, and optionally,
+        source level callsite information (filename, line number, and source line).
+
+        The `callsite_metadata` is propagated into the atom definition to enable more
+        precise runtime error handling, allowing the workflow engine to report
+        meaningful context when atom execution fails.
 
         Args:
             atom_name: The name to assign to the reactive atom.
             callsite_deps: A list of atom names this atom depends on.
+            callsite_metadata: Optional dictionary with source information, such as filename, lineno, source
 
         Returns:
-            An `ast.Call` node representing the decorator.
+            An `ast.Call` node representing the fully parameterized decorator.
         """
 
         keywords = [ast.keyword(arg="name", value=ast.Constant(value=atom_name))]
@@ -2534,6 +2550,17 @@ class AutoAtomTransformer(ast.NodeTransformer):
                     value=ast.List(
                         elts=[ast.Constant(value=dep) for dep in unique_deps],
                         ctx=ast.Load(),
+                    ),
+                )
+            )
+
+        if callsite_metadata is not None:
+            keywords.append(
+                ast.keyword(
+                    arg="callsite_metadata",
+                    value=ast.Dict(
+                        keys=[ast.Constant(value=k) for k in callsite_metadata],
+                        values=[ast.Constant(value=v) for v in callsite_metadata.values()],
                     ),
                 )
             )
@@ -2583,7 +2610,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         patched_call = self._patch_callsite(node, callsite_deps, component_id)
 
         # Generate the atom function that wraps the patched call
-        new_func = self._build_atom_function(atom_name, component_id, callsite_deps, patched_call, return_target=return_target)
+        new_func = self._build_atom_function(atom_name, component_id, callsite_deps, patched_call, return_target=return_target, callsite_node=node)
 
         self._current_frame.generated_atoms.append(new_func)
 
@@ -2656,6 +2683,31 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         logger.debug(f"[AST] Generated names {func_name=} {callsite_hint=} {component_id=} {atom_name=}")
         return component_id, atom_name
+
+    def _build_callsite_metadata(self, node: ast.AST, filename: str) -> dict:
+        """
+        Constructs callsite metadata (filename, lineno, source) for a given AST node.
+
+        Returns:
+            A dict with keys: callsite_filename, callsite_lineno, callsite_source
+        """
+        lineno = getattr(node, "lineno", None)
+        source = ""
+
+        if filename and lineno:
+            try:
+                with open(filename, "r") as f:
+                    lines = f.readlines()
+                    source = lines[lineno - 1].strip() if 0 < lineno <= len(lines) else ""
+            except Exception:
+                pass
+
+        return {
+            "callsite_filename": filename,
+            "callsite_lineno": lineno,
+            "callsite_source": source,
+            "callsite_hint": f"{filename}:{lineno}" if filename and lineno else None,
+        }
 
 
 def annotate_parents(tree: ast.AST) -> ast.AST:

@@ -14,8 +14,10 @@ from typing import Any, Optional
 import networkx as nx
 import plotly.graph_objects as go
 
+from preswald.utils import get_user_code_callsite
 from preswald.interfaces.component_return import ComponentReturn
 from preswald.interfaces.tracked_value import TrackedValue
+from preswald.interfaces.render.error_registry import register_error
 
 
 logger = logging.getLogger(__name__)
@@ -134,6 +136,8 @@ class Atom:
     dependencies: list[str] = field(default_factory=list)
     retry_policy: RetryPolicy | None = None
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    callsite_metadata: dict[str, Any] = field(default_factory=dict)
+
     force_recompute: bool = False  # Flag to force recomputation regardless of cache
 
     def __post_init__(self):
@@ -158,6 +162,39 @@ class Atom:
                 logger.error(
                     f"Atom {self.name} failed with error: {e!s}", exc_info=True
                 )
+
+                callsite_filename = self.callsite_metadata.get('callsite_filename')
+                callsite_lineno = self.callsite_metadata.get('callsite_lineno')
+                callsite_source = self.callsite_metadata.get('callsite_source')
+                # if callsite info was not provided, attempt to
+                # capture this info where the atom is defined
+                if not callsite_filename or not callsite_lineno:
+                    callsite_filename, callsite_lineno = get_user_code_callsite(e)
+                    self.callsite_metadata['callsite_filename'] = callsite_filename
+                    self.callsite_metadata['callsite_lineno'] = callsite_lineno
+
+
+                # if callsite source was not provided, attempt to
+                # capture this info where the atom was defined
+                if not callsite_source and callsite_filename:
+                    try:
+                        with open(callsite_filename, 'r') as f:
+                            lines = f.readlines()
+                            lineno = callsite_lineno or 0
+                            callsite_source = lines[lineno - 1].strip() if 0 < lineno <= len(lines) else ""
+                            self.callsite_metadata['callsite_source'] = callsite_source
+
+                    except Exception:
+                        pass
+
+                register_error(
+                    type="runtime",
+                    filename=callsite_filename or "<unknown>",
+                    lineno=callsite_lineno or 0,
+                    message=str(e),
+                    atom_name=self.name,
+                )
+
                 raise
             finally:
                 end_time = time.time()
@@ -215,6 +252,7 @@ class Workflow:
         retry_policy: RetryPolicy | None = None,
         force_recompute: bool = False,
         name: str | None = None,
+        callsite_metadata: dict[str, Any] | None = None,
     ):
         """
         Decorator to manually register a function as a reactive atom in the workflow.
@@ -267,6 +305,7 @@ class Workflow:
                 dependencies=list(atom_deps),
                 retry_policy=retry_policy or self.default_retry_policy,
                 force_recompute=force_recompute,
+                callsite_metadata=callsite_metadata or {},
             )
             self.atoms[atom_name] = atom
 
