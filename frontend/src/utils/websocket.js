@@ -1,25 +1,251 @@
+import { createWorker } from '../backend/service';
 import { decode } from '@msgpack/msgpack';
 
-import { createWorker } from '../backend/service';
+/**
+ * Core interface for all Preswald communication clients
+ * Provides a unified API across WebSocket, PostMessage, and Comlink transports
+ */
+class IPreswaldCommunicator {
+  /**
+   * Connection lifecycle management
+   */
+  async connect(config = {}) {
+    throw new Error('connect() must be implemented by subclass');
+  }
 
-class WebSocketClient {
+  async disconnect() {
+    throw new Error('disconnect() must be implemented by subclass');
+  }
+
+  /**
+   * State management operations
+   */
+  getComponentState(componentId) {
+    throw new Error('getComponentState() must be implemented by subclass');
+  }
+
+  async updateComponentState(componentId, value) {
+    throw new Error('updateComponentState() must be implemented by subclass');
+  }
+
+  /**
+   * Subscription management
+   */
+  subscribe(callback) {
+    throw new Error('subscribe() must be implemented by subclass');
+  }
+
+  /**
+   * Bulk operations for efficiency (optional, with fallback)
+   */
+  async bulkStateUpdate(updates) {
+    // Default implementation using individual updates
+    const results = [];
+    for (const [componentId, value] of updates) {
+      try {
+        await this.updateComponentState(componentId, value);
+        results.push({ componentId, success: true });
+      } catch (error) {
+        results.push({ componentId, success: false, error: error.message });
+      }
+    }
+    return { results, totalProcessed: results.length };
+  }
+
+  /**
+   * Connection health monitoring
+   */
+  getConnectionMetrics() {
+    return {
+      isConnected: this.isConnected || false,
+      transport: this.constructor.name,
+      lastActivity: this.lastActivity || 0,
+      pendingUpdates: Object.keys(this.pendingUpdates || {}).length
+    };
+  }
+
+  /**
+   * Legacy compatibility methods - preserved for backwards compatibility
+   */
+  getConnections() {
+    return this.connections || [];
+  }
+}
+
+/**
+ * Base implementation providing common functionality for all transport types
+ * Handles state management, subscription management, and error handling
+ */
+class BaseCommunicationClient extends IPreswaldCommunicator {
   constructor() {
-    this.socket = null;
+    super();
     this.callbacks = new Set();
+    this.componentStates = {};
+    this.isConnected = false;
+    this.pendingUpdates = {};
+    this.lastActivity = 0;
+    this.connections = [];
+
+    // Performance tracking
+    this.metrics = {
+      messagesReceived: 0,
+      messagesSent: 0,
+      errors: 0,
+      lastLatency: 0
+    };
+  }
+
+  /**
+   * Common subscription management
+   */
+  subscribe(callback) {
+    if (typeof callback !== 'function') {
+      throw new Error('Callback must be a function');
+    }
+
+    this.callbacks.add(callback);
+    console.log(`[${this.constructor.name}] Subscriber added, total: ${this.callbacks.size}`);
+
+    return () => {
+      this.callbacks.delete(callback);
+      console.log(`[${this.constructor.name}] Subscriber removed, total: ${this.callbacks.size}`);
+    };
+  }
+
+  /**
+   * Common notification system with error handling
+   */
+  _notifySubscribers(message) {
+    this.lastActivity = performance.now();
+    this.metrics.messagesReceived++;
+
+    this.callbacks.forEach((callback) => {
+      try {
+        callback(message);
+      } catch (error) {
+        console.error(`[${this.constructor.name}] Error in subscriber callback:`, error);
+        this.metrics.errors++;
+      }
+    });
+  }
+
+  /**
+   * Common state management
+   */
+  getComponentState(componentId) {
+    if (!componentId || typeof componentId !== 'string') {
+      console.warn(`[${this.constructor.name}] Invalid componentId:`, componentId);
+      return undefined;
+    }
+    return this.componentStates[componentId];
+  }
+
+  /**
+   * Enhanced bulk update with optimizations
+   */
+  async bulkStateUpdate(updates) {
+    if (!updates || typeof updates[Symbol.iterator] !== 'function') {
+      throw new Error('Updates must be iterable (Map, Array, etc.)');
+    }
+
+    const startTime = performance.now();
+    const results = [];
+    let successCount = 0;
+
+    try {
+      for (const [componentId, value] of updates) {
+        try {
+          await this.updateComponentState(componentId, value);
+          results.push({ componentId, success: true });
+          successCount++;
+        } catch (error) {
+          results.push({ componentId, success: false, error: error.message });
+          console.error(`[${this.constructor.name}] Bulk update failed for ${componentId}:`, error);
+        }
+      }
+    } catch (error) {
+      console.error(`[${this.constructor.name}] Bulk update iteration failed:`, error);
+      throw error;
+    }
+
+    const duration = performance.now() - startTime;
+    console.log(`[${this.constructor.name}] Bulk update completed: ${successCount}/${results.length} in ${duration.toFixed(2)}ms`);
+
+    return {
+      results,
+      totalProcessed: results.length,
+      successCount,
+      duration
+    };
+  }
+
+  /**
+   * Enhanced connection metrics
+   */
+  getConnectionMetrics() {
+    return {
+      isConnected: this.isConnected,
+      transport: this.constructor.name,
+      lastActivity: this.lastActivity,
+      pendingUpdates: Object.keys(this.pendingUpdates).length,
+      metrics: { ...this.metrics },
+      uptime: this.connectTime ? performance.now() - this.connectTime : 0
+    };
+  }
+
+  /**
+   * Common error handling
+   */
+  _handleError(error, context = '') {
+    this.metrics.errors++;
+    const errorMessage = `[${this.constructor.name}] ${context ? context + ': ' : ''}${error.message}`;
+    console.error(errorMessage, error);
+
+    this._notifySubscribers({
+      type: 'error',
+      content: { message: error.message, context }
+    });
+  }
+
+  /**
+   * Common connection state management
+   */
+  _setConnected(connected) {
+    const wasConnected = this.isConnected;
+    this.isConnected = connected;
+
+    if (connected && !wasConnected) {
+      this.connectTime = performance.now();
+      console.log(`[${this.constructor.name}] Connection established`);
+    } else if (!connected && wasConnected) {
+      console.log(`[${this.constructor.name}] Connection lost`);
+    }
+
+    this._notifySubscribers({
+      type: 'connection_status',
+      connected,
+      timestamp: performance.now()
+    });
+  }
+}
+
+class WebSocketClient extends BaseCommunicationClient {
+  constructor() {
+    super();
+    this.socket = null;
     this.clientId = Math.random().toString(36).substring(7);
     this.isConnecting = false;
-    this.componentStates = {};
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
     this.reconnectDelay = 1000;
-    this.connections = [];
-    this.pendingUpdates = {}; // Only store latest value for each component
+    // Note: callbacks, componentStates, isConnected, pendingUpdates, connections 
+    // are now inherited from BaseCommunicationClient
   }
 
-  connect() {
+  async connect(config = {}) {
     if (this.isConnecting || (this.socket && this.socket.readyState === WebSocket.OPEN)) {
       console.log('[WebSocket] Already connected or connecting');
-      return;
+      return { success: true, message: 'Already connected' };
     }
 
     this.isConnecting = true;
@@ -30,138 +256,147 @@ class WebSocketClient {
       const wsUrl = `${protocol}//${window.location.host}/ws/${this.clientId}`;
       this.socket = new WebSocket(wsUrl);
 
-      this.socket.onopen = () => {
-        console.log('[WebSocket] Connected successfully');
-        this.isConnecting = false;
-        this.reconnectAttempts = 0;
-        this.reconnectDelay = 1000;
+      return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          this.isConnecting = false;
+          reject(new Error('Connection timeout'));
+        }, config.timeout || 10000);
 
-        Object.entries(this.pendingUpdates).forEach(([componentId, value]) => {
-          this._sendComponentUpdate(componentId, value);
-        });
-        this.pendingUpdates = {};
+        this.socket.onopen = () => {
+          clearTimeout(timeout);
+          console.log('[WebSocket] Connected successfully');
+          this.isConnecting = false;
+          this.reconnectAttempts = 0;
+          this.reconnectDelay = 1000;
 
-        this._notifySubscribers({ type: 'connection_status', connected: true });
-      };
-
-      this.socket.onclose = (event) => {
-        console.log('[WebSocket] Connection closed:', event);
-        this.isConnecting = false;
-        this.socket = null;
-        this._notifySubscribers({ type: 'connection_status', connected: false });
-        this._handleReconnect();
-      };
-
-      this.socket.onerror = (error) => {
-        console.error('[WebSocket] Error:', error);
-        this.isConnecting = false;
-        this._notifySubscribers({
-          type: 'error',
-          content: { message: 'WebSocket connection error' },
-        });
-      };
-
-      this.socket.onmessage = async (event) => {
-        try {
-          if (typeof event.data === 'string') {
-            // Normal text message — parse as JSON
-            const data = JSON.parse(event.data);
-            console.log('[WebSocket] JSON Message received:', {
-              ...data,
-              timestamp: new Date().toISOString(),
-            });
-
-            switch (data.type) {
-              case 'initial_state':
-                this.componentStates = { ...data.states };
-                console.log('[WebSocket] Initial states loaded:', this.componentStates);
-                break;
-
-              case 'state_update':
-                if (data.component_id) {
-                  this.componentStates[data.component_id] = data.value;
-                }
-                console.log('[WebSocket] Component state updated:', {
-                  componentId: data.component_id,
-                  value: data.value,
-                });
-                break;
-
-              case 'components':
-                if (data.components?.rows) {
-                  data.components.rows.forEach((row) => {
-                    row.forEach((component) => {
-                      if (component.id && 'value' in component) {
-                        this.componentStates[component.id] = component.value;
-                        console.log('[WebSocket] Component state updated:', {
-                          componentId: component.id,
-                          value: component.value,
-                        });
-                      }
-                    });
-                  });
-                }
-                break;
-
-              case 'connections_update':
-                this.connections = data.connections || [];
-                console.log('[WebSocket] Connections updated:', this.connections);
-                break;
-            }
-
-            this._notifySubscribers(data);
-          } else if (event.data instanceof Blob) {
-            const buffer = await event.data.arrayBuffer();
-            const decoded = decode(new Uint8Array(buffer));
-
-            if (decoded?.type === 'image_update' && decoded.format === 'png') {
-              const { component_id, data: binaryData, label } = decoded;
-
-              // Convert image data (Uint8Array) to base64
-              const base64 = `data:image/png;base64,${btoa(
-                new Uint8Array(binaryData).reduce(
-                  (data, byte) => data + String.fromCharCode(byte),
-                  ''
-                )
-              )}`;
-
-              // Update state and notify
-              this.componentStates[component_id] = base64;
-              this._notifySubscribers({
-                type: 'image_update',
-                component_id,
-                value: base64,
-                label,
-              });
-            } else {
-              console.warn('[WebSocket] Unknown binary message format:', decoded);
-            }
-          } else {
-            console.warn('[WebSocket] Unrecognized message format:', event.data);
-          }
-        } catch (error) {
-          console.error('[WebSocket] Error processing message:', error);
-          this._notifySubscribers({
-            type: 'error',
-            content: { message: 'Error processing server message' },
+          // Process pending updates
+          Object.entries(this.pendingUpdates).forEach(([componentId, value]) => {
+            this._sendComponentUpdate(componentId, value);
           });
-        }
-      };
+          this.pendingUpdates = {};
+
+          this._setConnected(true);
+          resolve({ success: true, message: 'Connected successfully' });
+        };
+
+        this.socket.onclose = (event) => {
+          clearTimeout(timeout);
+          console.log('[WebSocket] Connection closed:', event);
+          this.isConnecting = false;
+          this.socket = null;
+          this._setConnected(false);
+          this._handleReconnect();
+          if (this.isConnecting) {
+            reject(new Error('Connection closed during setup'));
+          }
+        };
+
+        this.socket.onerror = (error) => {
+          clearTimeout(timeout);
+          console.error('[WebSocket] Error:', error);
+          this.isConnecting = false;
+          this._handleError(error, 'Connection error');
+          reject(new Error('WebSocket connection error'));
+        };
+
+        this.socket.onmessage = async (event) => {
+          try {
+            if (typeof event.data === 'string') {
+              // Normal text message — parse as JSON
+              const data = JSON.parse(event.data);
+              console.log('[WebSocket] JSON Message received:', {
+                ...data,
+                timestamp: new Date().toISOString(),
+              });
+
+              switch (data.type) {
+                case 'initial_state':
+                  this.componentStates = { ...data.states };
+                  console.log('[WebSocket] Initial states loaded:', this.componentStates);
+                  break;
+
+                case 'state_update':
+                  if (data.component_id) {
+                    this.componentStates[data.component_id] = data.value;
+                  }
+                  console.log('[WebSocket] Component state updated:', {
+                    componentId: data.component_id,
+                    value: data.value,
+                  });
+                  break;
+
+                case 'components':
+                  if (data.components?.rows) {
+                    data.components.rows.forEach((row) => {
+                      row.forEach((component) => {
+                        if (component.id && 'value' in component) {
+                          this.componentStates[component.id] = component.value;
+                          console.log('[WebSocket] Component state updated:', {
+                            componentId: component.id,
+                            value: component.value,
+                          });
+                        }
+                      });
+                    });
+                  }
+                  break;
+
+                case 'connections_update':
+                  this.connections = data.connections || [];
+                  console.log('[WebSocket] Connections updated:', this.connections);
+                  break;
+              }
+
+              this._notifySubscribers(data);
+            } else if (event.data instanceof Blob) {
+              const buffer = await event.data.arrayBuffer();
+              const decoded = decode(new Uint8Array(buffer));
+
+              if (decoded?.type === 'image_update' && decoded.format === 'png') {
+                const { component_id, data: binaryData, label } = decoded;
+
+                // Convert image data (Uint8Array) to base64
+                const base64 = `data:image/png;base64,${btoa(
+                  new Uint8Array(binaryData).reduce(
+                    (data, byte) => data + String.fromCharCode(byte),
+                    ''
+                  )
+                )}`;
+
+                // Update state and notify
+                this.componentStates[component_id] = base64;
+                this._notifySubscribers({
+                  type: 'image_update',
+                  component_id,
+                  value: base64,
+                  label,
+                });
+              } else {
+                console.warn('[WebSocket] Unknown binary message format:', decoded);
+              }
+            } else {
+              console.warn('[WebSocket] Unrecognized message format:', event.data);
+            }
+          } catch (error) {
+            console.error('[WebSocket] Error processing message:', error);
+            this._handleError(error, 'Message processing');
+          }
+        };
+      });
     } catch (error) {
       console.error('[WebSocket] Error creating connection:', error);
       this.isConnecting = false;
-      this._notifySubscribers({
-        type: 'error',
-        content: { message: 'Failed to create WebSocket connection' },
-      });
+      this._handleError(error, 'Connection creation');
+      return { success: false, message: error.message };
     }
   }
 
-  disconnect() {
+  async disconnect() {
     if (this.socket) {
       console.log('[WebSocket] Disconnecting...');
       this.socket.close();
       this.socket = null;
+      this._setConnected(false);
     }
   }
 
@@ -189,30 +424,14 @@ class WebSocketClient {
     }, delay);
   }
 
-  subscribe(callback) {
-    this.callbacks.add(callback);
-    return () => this.callbacks.delete(callback);
-  }
+  // subscribe, _notifySubscribers, getComponentState are inherited from BaseCommunicationClient
 
-  _notifySubscribers(message) {
-    this.callbacks.forEach((callback) => {
-      try {
-        callback(message);
-      } catch (error) {
-        console.error('[WebSocket] Error in subscriber callback:', error);
-      }
-    });
-  }
-
-  getComponentState(componentId) {
-    return this.componentStates[componentId];
-  }
-
-  updateComponentState(componentId, value) {
+  async updateComponentState(componentId, value) {
     if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
-      this.pendingUpdates.set(componentId, value);
+      this.pendingUpdates[componentId] = value;
       throw new Error('WebSocket connection not open');
     }
+    this.metrics.messagesSent++;
     return this._sendComponentUpdate(componentId, value);
   }
 
@@ -233,21 +452,19 @@ class WebSocketClient {
   }
 }
 
-class PostMessageClient {
+class PostMessageClient extends BaseCommunicationClient {
   constructor() {
-    this.callbacks = new Set();
-    this.componentStates = {};
-    this.isConnected = false;
-    this.pendingUpdates = {};
+    super();
+    // Note: callbacks, componentStates, isConnected, pendingUpdates
+    // are now inherited from BaseCommunicationClient
   }
 
-  connect() {
+  async connect(config = {}) {
     console.log('[PostMessage] Setting up listener...');
-    window.addEventListener('message', this._handleMessage.bind(this)); // This is the real core of the postmessage client
+    window.addEventListener('message', this._handleMessage.bind(this));
 
     // Assume connected in browser context
-    this.isConnected = true;
-    this._notifySubscribers({ type: 'connection_status', connected: true });
+    this._setConnected(true);
     console.log('[PostMessage] Connected successfully');
 
     // Send pending updates
@@ -255,13 +472,14 @@ class PostMessageClient {
       this._sendComponentUpdate(componentId, value);
     });
     this.pendingUpdates = {};
+
+    return { success: true, message: 'PostMessage connected successfully' };
   }
 
-  disconnect() {
+  async disconnect() {
     console.log('[PostMessage] Disconnecting...');
     window.removeEventListener('message', this._handleMessage.bind(this));
-    this.isConnected = false;
-    this._notifySubscribers({ type: 'connection_status', connected: false });
+    this._setConnected(false);
   }
 
   _handleMessage(event) {
@@ -326,30 +544,14 @@ class PostMessageClient {
     }
   }
 
-  subscribe(callback) {
-    this.callbacks.add(callback);
-    return () => this.callbacks.delete(callback);
-  }
+  // subscribe, _notifySubscribers, getComponentState are inherited from BaseCommunicationClient
 
-  _notifySubscribers(message) {
-    this.callbacks.forEach((callback) => {
-      try {
-        callback(message);
-      } catch (error) {
-        console.error('[PostMessage] Error in subscriber callback:', error);
-      }
-    });
-  }
-
-  getComponentState(componentId) {
-    return this.componentStates[componentId];
-  }
-
-  updateComponentState(componentId, value) {
+  async updateComponentState(componentId, value) {
     if (!this.isConnected) {
-      this.pendingUpdates.set(componentId, value);
+      this.pendingUpdates[componentId] = value;
       throw new Error('PostMessage connection not ready');
     }
+    this.metrics.messagesSent++;
     return this._sendComponentUpdate(componentId, value);
   }
 
@@ -370,19 +572,16 @@ class PostMessageClient {
     }
   }
 
-  getConnections() {
-    return [];
-  }
+  // getConnections is inherited from BaseCommunicationClient
 }
 
-class ComlinkClient {
+class ComlinkClient extends BaseCommunicationClient {
   constructor() {
+    super();
     console.log('[Client] Initializing ComlinkClient');
-    this.callbacks = new Set();
-    this.componentStates = {};
-    this.isConnected = false;
-    this.pendingUpdates = {};
     this.worker = null;
+    // Note: callbacks, componentStates, isConnected, pendingUpdates
+    // are now inherited from BaseCommunicationClient
   }
 
   async connect() {
@@ -478,40 +677,17 @@ class ComlinkClient {
     }
   }
 
-  disconnect() {
+  async disconnect() {
     console.log('[Client] Disconnecting');
     if (this.worker) {
       this.worker.shutdown();
       this.worker = null;
-      this.isConnected = false;
-      this._notifySubscribers({ type: 'connection_status', connected: false });
+      this._setConnected(false);
       console.log('[Client] Disconnected');
     }
   }
 
-  subscribe(callback) {
-    console.log('[Client] New subscriber added');
-    this.callbacks.add(callback);
-    return () => {
-      console.log('[Client] Subscriber removed');
-      this.callbacks.delete(callback);
-    };
-  }
-
-  _notifySubscribers(message) {
-    console.log('[Client] Notifying subscribers:', message);
-    this.callbacks.forEach((callback) => {
-      try {
-        callback(message);
-      } catch (error) {
-        console.error('[Client] Error in subscriber callback:', error);
-      }
-    });
-  }
-
-  getComponentState(componentId) {
-    return this.componentStates[componentId];
-  }
+  // subscribe, _notifySubscribers, getComponentState are inherited from BaseCommunicationClient
 
   async updateComponentState(componentId, value) {
     console.log(`[Client] Updating state for component ${componentId}:`, value);
@@ -577,35 +753,57 @@ class ComlinkClient {
   }
 }
 
-export const createCommunicationLayer = () => {
-  // Check if we have a client type specified in window
-  const clientType = window.__PRESWALD_CLIENT_TYPE || 'auto';
+/**
+ * Factory function to create the appropriate communication client
+ * Returns a unified IPreswaldCommunicator interface regardless of transport type
+ * 
+ * @param {Object} config - Optional configuration for the communicator
+ * @returns {IPreswaldCommunicator} - Unified communication interface
+ */
+export const createCommunicationLayer = (config = {}) => {
+  // Check if we have a client type specified in window or config
+  const clientType = config.transport || window.__PRESWALD_CLIENT_TYPE || 'auto';
   console.log('[Communication] Using client type:', clientType);
+
+  let client;
 
   // If a specific client type is specified, use it
   if (clientType === 'websocket') {
-    console.log('[Communication] Using WebSocketClient');
-    return new WebSocketClient();
+    console.log('[Communication] Creating WebSocketClient');
+    client = new WebSocketClient();
   } else if (clientType === 'postmessage') {
-    console.log('[Communication] Using PostMessageClient');
-    return new PostMessageClient();
+    console.log('[Communication] Creating PostMessageClient');
+    client = new PostMessageClient();
   } else if (clientType === 'comlink') {
-    console.log('[Communication] Using ComlinkClient');
-    const client = new ComlinkClient();
+    console.log('[Communication] Creating ComlinkClient');
+    client = new ComlinkClient();
     window.__PRESWALD_COMM = client;
     window.__PRESWALD_COMM_READY = true;
-    return client;
+  } else {
+    // For 'auto' mode, use environment detection
+    const isBrowser = window !== window.top;
+    console.log(
+      '[Communication] Auto-detected environment:',
+      isBrowser ? 'browser (iframe)' : 'server (top-level)'
+    );
+
+    client = isBrowser ? new PostMessageClient() : new WebSocketClient();
   }
 
-  // For 'auto' mode, use the original logic
-  const isBrowser = window !== window.top;
-  console.log(
-    '[Communication] Auto-detected environment:',
-    isBrowser ? 'browser (iframe)' : 'server (top-level)'
-  );
+  // Validate that client implements the interface
+  if (!(client instanceof IPreswaldCommunicator)) {
+    throw new Error('Created client does not implement IPreswaldCommunicator interface');
+  }
 
-  return isBrowser ? new PostMessageClient() : new WebSocketClient();
+  console.log(`[Communication] Created ${client.constructor.name} successfully`);
+  return client;
 };
+
+/**
+ * Legacy export - maintain backwards compatibility
+ * @deprecated Use createCommunicationLayer() directly
+ */
+export const createCommunicator = createCommunicationLayer;
 
 // Create the communication layer
 export const comm = createCommunicationLayer();
