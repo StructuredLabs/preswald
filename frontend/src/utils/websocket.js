@@ -2,6 +2,227 @@ import { createWorker } from '../backend/service';
 import { decode } from '@msgpack/msgpack';
 
 /**
+ * Message types used throughout the Preswald communication system
+ */
+const MessageType = {
+  STATE_UPDATE: 'state_update',
+  COMPONENT_RENDER: 'component_render',
+  COMPONENT_UPDATE: 'component_update',
+  COMPONENTS: 'components',
+  ERROR: 'error',
+  HEARTBEAT: 'heartbeat',
+  BULK_UPDATE: 'bulk_update',
+  CONNECTION_STATUS: 'connection_status',
+  INITIAL_STATE: 'initial_state',
+  CONNECTIONS_UPDATE: 'connections_update',
+  IMAGE_UPDATE: 'image_update',
+  ERRORS_RESULT: 'errors:result',
+  CONFIG: 'config'
+};
+
+/**
+ * MessageEncoder with JSON protocol and optional compression
+ * Provides consistent message formatting across all transport types
+ */
+class MessageEncoder {
+  static messageIdCounter = 0;
+  static COMPRESSION_THRESHOLD = 1024; // bytes
+  static COMPRESSION_PREFIX = 'compressed:';
+
+  /**
+   * Encodes a message with metadata and optional compression
+   * @param {string} type - Message type from MessageType enum
+   * @param {any} payload - Message payload (JSON-serializable)
+   * @param {Object} options - Encoding options
+   * @returns {string} - Encoded message string
+   */
+  static encode(type, payload, options = {}) {
+    const {
+      compressed = false,
+      forceCompression = false,
+      preserveOriginalFormat = false
+    } = options;
+
+    // Handle backwards compatibility - if payload already has type, preserve it
+    if (preserveOriginalFormat && payload && typeof payload === 'object' && payload.type) {
+      const jsonString = JSON.stringify(payload);
+      return this._applyCompression(jsonString, compressed, forceCompression);
+    }
+
+    // Create standardized message structure
+    const message = {
+      type,
+      payload,
+      metadata: {
+        messageId: ++this.messageIdCounter,
+        timestamp: performance.now(),
+        ...(compressed && { compressed: true })
+      }
+    };
+
+    const jsonString = JSON.stringify(message);
+    return this._applyCompression(jsonString, compressed, forceCompression);
+  }
+
+  /**
+   * Decodes a message string back to object format
+   * @param {string} messageString - Encoded message string
+   * @returns {Object} - Decoded message object
+   */
+  static decode(messageString) {
+    if (!messageString || typeof messageString !== 'string') {
+      throw new Error('Invalid message string provided');
+    }
+
+    try {
+      let decodedString = messageString;
+
+      // Handle compressed messages
+      if (messageString.startsWith(this.COMPRESSION_PREFIX)) {
+        decodedString = this._decompressMessage(messageString);
+      }
+
+      const parsed = JSON.parse(decodedString);
+
+      // Validate message structure
+      if (!this._isValidMessage(parsed)) {
+        // Handle legacy format - if it's a direct object with type, return as-is
+        if (parsed && typeof parsed === 'object' && parsed.type) {
+          return parsed;
+        }
+        throw new Error('Invalid message structure');
+      }
+
+      return parsed;
+    } catch (error) {
+      throw new Error(`Failed to decode message: ${error.message}`);
+    }
+  }
+
+  /**
+   * Encodes a message in legacy format for backwards compatibility
+   * @param {Object} legacyMessage - Message in original format
+   * @returns {string} - JSON string
+   */
+  static encodeLegacy(legacyMessage) {
+    if (!legacyMessage || typeof legacyMessage !== 'object') {
+      throw new Error('Invalid legacy message object');
+    }
+
+    const jsonString = JSON.stringify(legacyMessage);
+
+    // Apply compression if message is large
+    if (jsonString.length > this.COMPRESSION_THRESHOLD) {
+      return this._applyCompression(jsonString, true, false);
+    }
+
+    return jsonString;
+  }
+
+  /**
+   * Creates a standardized error message
+   * @param {string} message - Error message
+   * @param {string} context - Error context
+   * @returns {string} - Encoded error message
+   */
+  static encodeError(message, context = '') {
+    return this.encode(MessageType.ERROR, {
+      message,
+      context,
+      timestamp: Date.now()
+    });
+  }
+
+  /**
+   * Creates a standardized state update message
+   * @param {string} componentId - Component identifier
+   * @param {any} value - New component value
+   * @returns {string} - Encoded state update message
+   */
+  static encodeStateUpdate(componentId, value) {
+    return this.encode(MessageType.STATE_UPDATE, {
+      component_id: componentId,
+      value
+    });
+  }
+
+  /**
+   * Creates a standardized bulk update message
+   * @param {Map|Object} updates - Component updates
+   * @returns {string} - Encoded bulk update message
+   */
+  static encodeBulkUpdate(updates) {
+    const payload = updates instanceof Map ? Object.fromEntries(updates) : updates;
+    return this.encode(MessageType.BULK_UPDATE, {
+      states: payload
+    }, { compressed: Object.keys(payload).length > 10 });
+  }
+
+  /**
+   * Applies compression if conditions are met
+   * @private
+   */
+  static _applyCompression(jsonString, compressed, forceCompression) {
+    if (forceCompression || (compressed && jsonString.length > this.COMPRESSION_THRESHOLD)) {
+      return this._compressMessage(jsonString);
+    }
+    return jsonString;
+  }
+
+  /**
+   * base64 encoding
+   * TODO: bring compression lib
+   * @private
+   */
+  static _compressMessage(jsonString) {
+    try {
+      return this.COMPRESSION_PREFIX + btoa(jsonString);
+    } catch (error) {
+      console.warn('[MessageEncoder] Compression failed, using uncompressed:', error);
+      return jsonString;
+    }
+  }
+
+  /**
+   * Decompresses a base64-encoded message
+   * @private
+   */
+  static _decompressMessage(compressedString) {
+    try {
+      return atob(compressedString.replace(this.COMPRESSION_PREFIX, ''));
+    } catch (error) {
+      throw new Error(`Decompression failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Validates message structure
+   * @private
+   */
+  static _isValidMessage(parsed) {
+    return parsed &&
+      typeof parsed === 'object' &&
+      typeof parsed.type === 'string' &&
+      parsed.hasOwnProperty('payload') &&
+      parsed.metadata &&
+      typeof parsed.metadata.messageId === 'number' &&
+      typeof parsed.metadata.timestamp === 'number';
+  }
+
+  /**
+   * Gets encoding statistics for monitoring
+   * @returns {Object} - Encoding statistics
+   */
+  static getStats() {
+    return {
+      totalMessages: this.messageIdCounter,
+      compressionThreshold: this.COMPRESSION_THRESHOLD,
+      supportedTypes: Object.values(MessageType)
+    };
+  }
+}
+
+/**
  * Core interface for all Preswald communication clients
  * Provides a unified API across WebSocket, PostMessage, and Comlink transports
  */
@@ -141,7 +362,7 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
   }
 
   /**
-   * Enhanced bulk update with optimizations
+   * Enhanced bulk update with optimizations and MessageEncoder support
    */
   async bulkStateUpdate(updates) {
     if (!updates || typeof updates[Symbol.iterator] !== 'function') {
@@ -149,6 +370,49 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
     }
 
     const startTime = performance.now();
+    const results = [];
+    let successCount = 0;
+
+    // Check if the transport supports native bulk updates
+    if (this._sendBulkUpdate && typeof this._sendBulkUpdate === 'function') {
+      try {
+        const bulkResult = await this._sendBulkUpdate(updates);
+        if (bulkResult.success) {
+          // Update local state for all successful updates
+          for (const [componentId, value] of updates) {
+            this.componentStates[componentId] = value;
+            results.push({ componentId, success: true });
+            successCount++;
+          }
+        } else {
+          throw new Error('Bulk update failed on transport level');
+        }
+      } catch (error) {
+        console.warn(`[${this.constructor.name}] Bulk update failed, falling back to individual updates:`, error);
+        // Fall back to individual updates
+        return this._fallbackBulkUpdate(updates, startTime);
+      }
+    } else {
+      // Fall back to individual updates
+      return this._fallbackBulkUpdate(updates, startTime);
+    }
+
+    const duration = performance.now() - startTime;
+    console.log(`[${this.constructor.name}] Bulk update completed: ${successCount}/${results.length} in ${duration.toFixed(2)}ms`);
+
+    return {
+      results,
+      totalProcessed: results.length,
+      successCount,
+      duration
+    };
+  }
+
+  /**
+   * Fallback bulk update using individual updates
+   * @private
+   */
+  async _fallbackBulkUpdate(updates, startTime) {
     const results = [];
     let successCount = 0;
 
@@ -169,7 +433,7 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
     }
 
     const duration = performance.now() - startTime;
-    console.log(`[${this.constructor.name}] Bulk update completed: ${successCount}/${results.length} in ${duration.toFixed(2)}ms`);
+    console.log(`[${this.constructor.name}] Fallback bulk update completed: ${successCount}/${results.length} in ${duration.toFixed(2)}ms`);
 
     return {
       results,
@@ -180,7 +444,7 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
   }
 
   /**
-   * Enhanced connection metrics
+   * Enhanced connection metrics with MessageEncoder statistics
    */
   getConnectionMetrics() {
     return {
@@ -189,22 +453,31 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
       lastActivity: this.lastActivity,
       pendingUpdates: Object.keys(this.pendingUpdates).length,
       metrics: { ...this.metrics },
-      uptime: this.connectTime ? performance.now() - this.connectTime : 0
+      uptime: this.connectTime ? performance.now() - this.connectTime : 0,
+      messageEncoder: MessageEncoder.getStats()
     };
   }
 
   /**
-   * Common error handling
-   */
+ * Enhanced error handling with MessageEncoder support
+ */
   _handleError(error, context = '') {
     this.metrics.errors++;
     const errorMessage = `[${this.constructor.name}] ${context ? context + ': ' : ''}${error.message}`;
     console.error(errorMessage, error);
 
-    this._notifySubscribers({
+    // Create standardized error message
+    const errorPayload = {
       type: 'error',
-      content: { message: error.message, context }
-    });
+      content: {
+        message: error.message,
+        context,
+        timestamp: performance.now(),
+        transport: this.constructor.name
+      }
+    };
+
+    this._notifySubscribers(errorPayload);
   }
 
   /**
@@ -302,9 +575,21 @@ class WebSocketClient extends BaseCommunicationClient {
         this.socket.onmessage = async (event) => {
           try {
             if (typeof event.data === 'string') {
-              // Normal text message — parse as JSON
-              const data = JSON.parse(event.data);
-              console.log('[WebSocket] JSON Message received:', {
+              // Use MessageEncoder for consistent parsing with fallback to legacy
+              let data;
+              try {
+                data = MessageEncoder.decode(event.data);
+                // If it's a new format message, extract payload
+                if (data.metadata && data.payload) {
+                  data = { ...data.payload, type: data.type };
+                }
+              } catch (decodeError) {
+                // Fallback to legacy JSON parsing for backwards compatibility
+                console.warn('[WebSocket] Using legacy JSON parsing:', decodeError.message);
+                data = JSON.parse(event.data);
+              }
+
+              console.log('[WebSocket] Message received:', {
                 ...data,
                 timestamp: new Date().toISOString(),
               });
@@ -438,11 +723,43 @@ class WebSocketClient extends BaseCommunicationClient {
   _sendComponentUpdate(componentId, value) {
     const message = { type: 'component_update', states: { [componentId]: value } };
     try {
-      this.socket.send(JSON.stringify(message));
+      // Use MessageEncoder for consistent formatting, with legacy fallback
+      let encodedMessage;
+      try {
+        encodedMessage = MessageEncoder.encodeLegacy(message);
+      } catch (encodeError) {
+        console.warn('[WebSocket] Using legacy JSON encoding:', encodeError.message);
+        encodedMessage = JSON.stringify(message);
+      }
+
+      this.socket.send(encodedMessage);
       this.componentStates[componentId] = value;
       console.log('[WebSocket] Sent component update:', message);
     } catch (error) {
       console.error('[WebSocket] Error sending component update:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Native bulk update implementation for WebSocket transport
+   * @private
+   */
+  async _sendBulkUpdate(updates) {
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+      throw new Error('WebSocket connection not open');
+    }
+
+    try {
+      // Use MessageEncoder for efficient bulk updates
+      const encodedMessage = MessageEncoder.encodeBulkUpdate(updates);
+      this.socket.send(encodedMessage);
+      this.metrics.messagesSent++;
+
+      console.log(`[WebSocket] Sent bulk update for ${updates instanceof Map ? updates.size : Object.keys(updates).length} components`);
+      return { success: true };
+    } catch (error) {
+      console.error('[WebSocket] Error sending bulk update:', error);
       throw error;
     }
   }
@@ -487,8 +804,22 @@ class PostMessageClient extends BaseCommunicationClient {
 
     let data;
     try {
-      // Handle both string and object messages
-      data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+      // Handle both string and object messages with MessageEncoder support
+      if (typeof event.data === 'string') {
+        try {
+          data = MessageEncoder.decode(event.data);
+          // If it's a new format message, extract payload
+          if (data.metadata && data.payload) {
+            data = { ...data.payload, type: data.type };
+          }
+        } catch (decodeError) {
+          // Fallback to legacy JSON parsing
+          console.warn('[PostMessage] Using legacy JSON parsing:', decodeError.message);
+          data = JSON.parse(event.data);
+        }
+      } else {
+        data = event.data;
+      }
     } catch (error) {
       console.error('[PostMessage] Error parsing message:', error);
       return;
@@ -557,14 +888,22 @@ class PostMessageClient extends BaseCommunicationClient {
 
   _sendComponentUpdate(componentId, value) {
     if (window.parent) {
-      window.parent.postMessage(
-        {
-          type: 'component_update',
-          id: componentId,
-          value,
-        },
-        '*'
-      );
+      const message = {
+        type: 'component_update',
+        id: componentId,
+        value,
+      };
+
+      // Use MessageEncoder for consistent formatting, with legacy fallback
+      let encodedMessage;
+      try {
+        encodedMessage = MessageEncoder.encodeLegacy(message);
+      } catch (encodeError) {
+        console.warn('[PostMessage] Using legacy format:', encodeError.message);
+        encodedMessage = message;
+      }
+
+      window.parent.postMessage(encodedMessage, '*');
       this.componentStates[componentId] = value;
       console.log('[PostMessage] Sent component update:', { id: componentId, value });
     } else {
@@ -807,3 +1146,9 @@ export const createCommunicator = createCommunicationLayer;
 
 // Create the communication layer
 export const comm = createCommunicationLayer();
+
+/**
+ * Export MessageEncoder for external use and testing
+ * Allows applications to use standardized message formatting
+ */
+export { MessageEncoder, MessageType };
