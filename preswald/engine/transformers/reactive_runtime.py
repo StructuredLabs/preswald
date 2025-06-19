@@ -1539,6 +1539,16 @@ class AutoAtomTransformer(ast.NodeTransformer):
                             logger.debug(f"[AST] Missing atom mapping for {full_func_name=}. Regenerating...")
                         component_id, atom_name = self.generate_component_and_atom_name(full_func_name, stmt)
 
+                    # Inject component_id into the call AST node if not already present
+                    if isinstance(call_node, ast.Call):
+                        already_has_id = any(kw.arg == "component_id" for kw in call_node.keywords)
+                        if not already_has_id:
+                            call_node.keywords.append(ast.keyword(
+                                arg="component_id",
+                                value=ast.Constant(value=component_id)
+                            ))
+                            logger.debug(f"[AST] Injected component_id='{component_id}' into call '{full_func_name}'")
+
                     if self._uses_known_atoms(stmt):
                         self._lift_consumer_stmt(stmt)
                     else:
