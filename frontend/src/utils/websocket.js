@@ -1093,49 +1093,208 @@ class ComlinkClient extends BaseCommunicationClient {
 }
 
 /**
- * Factory function to create the appropriate communication client
- * Returns a unified IPreswaldCommunicator interface regardless of transport type
+ * Transport types available for communication
+ */
+const TransportType = {
+  WEBSOCKET: 'websocket',
+  POST_MESSAGE: 'postmessage',
+  COMLINK: 'comlink',
+  AUTO: 'auto'
+};
+
+class TransportSelector {
+  static selectOptimalTransport(config = {}) {
+    const requestedTransport = config.transport || window.__PRESWALD_CLIENT_TYPE || TransportType.AUTO;
+
+    // If specific transport requested, validate and return
+    if (requestedTransport !== TransportType.AUTO) {
+      return this.validateTransport(requestedTransport, config);
+    }
+
+    // Auto-detection logic with enhanced environment analysis
+    const environment = this.detectEnvironment();
+    const optimalTransport = this.selectForEnvironment(environment, config);
+
+    console.log('[TransportSelector] Environment detected:', environment);
+    console.log('[TransportSelector] Selected transport:', optimalTransport);
+
+    return optimalTransport;
+  }
+
+  static detectEnvironment() {
+    const environment = {
+      isIframe: window !== window.top,
+      hasWebSocket: typeof WebSocket !== 'undefined',
+      hasWorkers: typeof Worker !== 'undefined',
+      hasPostMessage: typeof window.postMessage === 'function',
+      isSecureContext: window.isSecureContext,
+      userAgent: navigator.userAgent,
+      connectionType: navigator.connection?.effectiveType || 'unknown'
+    };
+
+    // Additional environment checks
+    environment.isEmbedded = environment.isIframe || window.location !== window.parent.location;
+    environment.supportsModules = 'noModule' in HTMLScriptElement.prototype;
+    environment.isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    return environment;
+  }
+
+  static selectForEnvironment(environment, config) {
+    // Priority-based selection with fallbacks
+    if (environment.isEmbedded && environment.hasPostMessage) {
+      return TransportType.POST_MESSAGE;
+    }
+
+    if (environment.hasWebSocket && !environment.isEmbedded) {
+      return TransportType.WEBSOCKET;
+    }
+
+    if (environment.hasWorkers && config.enableWorkers !== false) {
+      return TransportType.COMLINK;
+    }
+
+    // Fallback to PostMessage if available
+    if (environment.hasPostMessage) {
+      return TransportType.POST_MESSAGE;
+    }
+
+    // Last resort fallback
+    console.warn('[TransportSelector] No optimal transport found, defaulting to WebSocket');
+    return TransportType.WEBSOCKET;
+  }
+
+  static validateTransport(transport, config) {
+    const environment = this.detectEnvironment();
+
+    switch (transport) {
+      case TransportType.WEBSOCKET:
+        if (!environment.hasWebSocket) {
+          throw new Error('WebSocket transport not supported in this environment');
+        }
+        break;
+      case TransportType.POST_MESSAGE:
+        if (!environment.hasPostMessage) {
+          throw new Error('PostMessage transport not supported in this environment');
+        }
+        break;
+      case TransportType.COMLINK:
+        if (!environment.hasWorkers) {
+          throw new Error('Comlink transport requires Web Worker support');
+        }
+        break;
+      default:
+        throw new Error(`Unknown transport type: ${transport}`);
+    }
+
+    return transport;
+  }
+}
+
+/**
+ * Enhanced factory function to create the appropriate communication client
+ * Includes optimized transport selection with environment detection
  * 
- * @param {Object} config - Optional configuration for the communicator
- * @returns {IPreswaldCommunicator} - Unified communication interface
+ * @param {Object} config - Configuration for the communicator
+ * @param {string} config.transport - Transport type ('websocket', 'postmessage', 'comlink', 'auto')
+ * @param {number} config.connectionTimeout - Connection timeout in ms (default: 10000)
+ * @param {boolean} config.enableWorkers - Allow worker-based transports (default: true)
+ * @returns {IPreswaldCommunicator} - Enhanced communication interface
  */
 export const createCommunicationLayer = (config = {}) => {
-  // Check if we have a client type specified in window or config
-  const clientType = config.transport || window.__PRESWALD_CLIENT_TYPE || 'auto';
-  console.log('[Communication] Using client type:', clientType);
+  const startTime = performance.now();
 
-  let client;
+  try {
+    // Enhanced configuration with defaults
+    const enhancedConfig = {
+      transport: TransportType.AUTO,
+      connectionTimeout: 10000,
+      enableWorkers: true,
+      retryAttempts: 3,
+      retryDelay: 1000,
+      ...config
+    };
 
-  // If a specific client type is specified, use it
-  if (clientType === 'websocket') {
-    console.log('[Communication] Creating WebSocketClient');
-    client = new WebSocketClient();
-  } else if (clientType === 'postmessage') {
-    console.log('[Communication] Creating PostMessageClient');
-    client = new PostMessageClient();
-  } else if (clientType === 'comlink') {
-    console.log('[Communication] Creating ComlinkClient');
-    client = new ComlinkClient();
-    window.__PRESWALD_COMM = client;
-    window.__PRESWALD_COMM_READY = true;
-  } else {
-    // For 'auto' mode, use environment detection
-    const isBrowser = window !== window.top;
-    console.log(
-      '[Communication] Auto-detected environment:',
-      isBrowser ? 'browser (iframe)' : 'server (top-level)'
-    );
+    console.log('[CommunicationFactory] Creating communicator with config:', enhancedConfig);
 
-    client = isBrowser ? new PostMessageClient() : new WebSocketClient();
+    // Select optimal transport
+    const selectedTransport = TransportSelector.selectOptimalTransport(enhancedConfig);
+    console.log('[CommunicationFactory] Selected transport:', selectedTransport);
+
+    // Create the appropriate client
+    const client = createTransportClient(selectedTransport, enhancedConfig);
+
+    // Validate interface compliance
+    if (!(client instanceof IPreswaldCommunicator)) {
+      throw new Error(`Created client does not implement IPreswaldCommunicator interface`);
+    }
+
+    // Set global references for legacy compatibility
+    if (selectedTransport === TransportType.COMLINK) {
+      window.__PRESWALD_COMM = client;
+      window.__PRESWALD_COMM_READY = true;
+    }
+
+    const creationTime = performance.now() - startTime;
+    console.log(`[CommunicationFactory] Created ${client.constructor.name} in ${creationTime.toFixed(2)}ms`);
+
+    return client;
+
+  } catch (error) {
+    console.error('[CommunicationFactory] Failed to create communication layer:', error);
+
+    // Attempt fallback to basic WebSocket client
+    try {
+      console.log('[CommunicationFactory] Attempting fallback to WebSocket...');
+      const fallbackClient = new WebSocketClient();
+      console.warn('[CommunicationFactory] Using fallback WebSocket client');
+      return fallbackClient;
+    } catch (fallbackError) {
+      console.error('[CommunicationFactory] Fallback also failed:', fallbackError);
+      throw new Error(`Failed to create communication layer: ${error.message}`);
+    }
   }
+};
 
-  // Validate that client implements the interface
-  if (!(client instanceof IPreswaldCommunicator)) {
-    throw new Error('Created client does not implement IPreswaldCommunicator interface');
+/**
+ * Creates the appropriate transport client based on type
+ * @private
+ */
+function createTransportClient(transportType, config) {
+  switch (transportType) {
+    case TransportType.WEBSOCKET:
+      return new WebSocketClient();
+    case TransportType.POST_MESSAGE:
+      return new PostMessageClient();
+    case TransportType.COMLINK:
+      return new ComlinkClient();
+    default:
+      throw new Error(`Unsupported transport type: ${transportType}`);
   }
+}
 
-  console.log(`[Communication] Created ${client.constructor.name} successfully`);
-  return client;
+/**
+ * Utility function to get optimal transport for current environment
+ * Useful for debugging and configuration
+ */
+export const getOptimalTransport = (config = {}) => {
+  return TransportSelector.selectOptimalTransport(config);
+};
+
+/**
+ * Utility function to detect current environment capabilities
+ * Useful for debugging and feature detection
+ */
+export const detectEnvironment = () => {
+  return TransportSelector.detectEnvironment();
+};
+
+/**
+ * Create a communication layer with specific transport (bypasses auto-detection)
+ * Useful for testing and specific deployment scenarios
+ */
+export const createCommunicationLayerWithTransport = (transport, config = {}) => {
+  return createCommunicationLayer({ ...config, transport });
 };
 
 /**
@@ -1148,7 +1307,11 @@ export const createCommunicator = createCommunicationLayer;
 export const comm = createCommunicationLayer();
 
 /**
- * Export MessageEncoder for external use and testing
- * Allows applications to use standardized message formatting
+ * Export MessageEncoder and enhanced communication types for external use
+ * Allows applications to use standardized message formatting and transport selection
  */
-export { MessageEncoder, MessageType };
+export {
+  MessageEncoder,
+  MessageType,
+  TransportType
+};
