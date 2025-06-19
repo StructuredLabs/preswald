@@ -49,7 +49,7 @@ class PreswaldWorker {
 
       // Inject matplotlibrc file to set backend
       console.log('[Worker] Configuring matplotlib');
-      await this.pyodide.loadPackage("matplotlib");
+      await this.pyodide.loadPackage('matplotlib');
       await this.pyodide.runPythonAsync(`
         with open("/matplotlibrc", "w") as f:
           f.write("backend: agg\\n")
