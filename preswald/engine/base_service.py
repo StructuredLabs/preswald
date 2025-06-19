@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import time
@@ -325,6 +326,8 @@ class BasePreswaldService:
 
             if msg_type == "component_update":
                 await self._handle_component_update(client_id, message)
+            elif msg_type == "bulk_update":
+                await self._handle_bulk_component_update(client_id, message)
             else:
                 logger.warning(f"Unknown message type: {msg_type}")
 
@@ -411,6 +414,59 @@ class BasePreswaldService:
                     except Exception as e:
                         logger.error(f"Error broadcasting to {client_id}: {e}")
 
+    async def _broadcast_bulk_state_updates(
+        self, states: dict[str, Any], exclude_client: str | None = None
+    ):
+        """Broadcast bulk state updates to all clients except the sender (optimized for bulk operations)"""
+        
+        if not states:
+            return
+
+        # Prepare bulk update message with compression
+        processed_states = {}
+        for component_id, value in states.items():
+            if isinstance(value, dict) and "data" in value and "layout" in value:
+                value = optimize_plotly_data(value)
+            processed_states[component_id] = value
+
+        # Single bulk message instead of individual messages
+        bulk_message = {
+            "type": "bulk_update",
+            "states": processed_states,
+            "count": len(processed_states),
+            "compressed": True,
+        }
+
+        # Compress the entire bulk message for better network efficiency
+        compressed_bulk_message = compress_data(bulk_message)
+
+        # Broadcast to all clients except sender
+        broadcast_tasks = []
+        for client_id, websocket in self.websocket_connections.items():
+            if client_id != exclude_client:
+                broadcast_tasks.append(self._send_bulk_message(websocket, compressed_bulk_message, client_id))
+
+        # Send all broadcasts concurrently for better performance
+        if broadcast_tasks:
+            results = await asyncio.gather(*broadcast_tasks, return_exceptions=True)
+            
+            # Log any errors
+            for i, result in enumerate(results):
+                if isinstance(result, Exception):
+                    client_ids = [cid for cid in self.websocket_connections.keys() if cid != exclude_client]
+                    if i < len(client_ids):
+                        logger.error(f"Error broadcasting bulk update to {client_ids[i]}: {result}")
+
+        logger.info(f"[BULK_BROADCAST] Sent bulk update with {len(processed_states)} states to {len(broadcast_tasks)} clients")
+
+    async def _send_bulk_message(self, websocket, compressed_message: bytes, client_id: str):
+        """Send compressed bulk message to a specific websocket"""
+        try:
+            await websocket.send_bytes(compressed_message)
+        except Exception as e:
+            logger.error(f"Error sending bulk message to {client_id}: {e}")
+            raise  # Re-raise for gather() to catch
+
     async def _handle_component_update(self, client_id: str, message: dict[str, Any]):
         """Handle component state update messages"""
         states = message.get("states", {})
@@ -435,6 +491,115 @@ class BasePreswaldService:
 
         # Broadcast updates to other clients
         await self._broadcast_state_updates(changed_states, exclude_client=client_id)
+
+    async def _handle_bulk_component_update(self, client_id: str, message: dict[str, Any]):
+        """Handle bulk component state update messages with production-ready optimized processing"""
+        start_time = time.time()
+        
+        states = message.get("states", {})
+        if not states:
+            await self._send_error(client_id, "Bulk update missing states")
+            raise ValueError("Bulk update missing states")
+
+        # Production safety: validate bulk update size
+        max_bulk_size = 1000  # Production limit for bulk operations
+        if len(states) > max_bulk_size:
+            error_msg = f"Bulk update size {len(states)} exceeds maximum {max_bulk_size}"
+            logger.error(f"[BULK_UPDATE] {error_msg}")
+            await self._send_error(client_id, error_msg)
+            raise ValueError(error_msg)
+
+        logger.info(f"[BULK_UPDATE] Processing {len(states)} state updates for client {client_id}")
+
+        # Enhanced batch change detection with performance monitoring
+        changed_states = {}
+        validation_errors = []
+        change_detection_start = time.time()
+        
+        with self._lock:
+            for component_id, new_value in states.items():
+                # Production safety: validate component ID
+                if not isinstance(component_id, str) or not component_id.strip():
+                    validation_errors.append(f"Invalid component ID: {component_id}")
+                    continue
+                    
+                try:
+                    if self.should_render(component_id, new_value):
+                        changed_states[component_id] = new_value
+                except Exception as e:
+                    validation_errors.append(f"Error validating {component_id}: {str(e)}")
+                    logger.error(f"[BULK_UPDATE] Validation error for {component_id}: {e}")
+
+        change_detection_time = time.time() - change_detection_start
+
+        # Report validation errors if any
+        if validation_errors:
+            error_summary = f"Bulk update validation errors: {len(validation_errors)} components failed"
+            logger.warning(f"[BULK_UPDATE] {error_summary}: {validation_errors[:5]}")  # Log first 5 errors
+            # Continue processing valid states rather than failing entirely
+
+        if not changed_states:
+            logger.info("[BULK_UPDATE] No actual state changes detected. Skipping rerun.")
+            # Send acknowledgment even if no changes
+            await self._send_bulk_update_ack(client_id, len(states), 0, processing_time=time.time() - start_time)
+            return
+
+        logger.info(f"[BULK_UPDATE] {len(changed_states)}/{len(states)} states actually changed (change detection: {change_detection_time:.3f}s)")
+
+        # Atomic bulk update with error handling
+        update_start = time.time()
+        try:
+            self._update_component_states(changed_states)
+            update_time = time.time() - update_start
+            logger.info(f"[BULK_UPDATE] State update completed in {update_time:.3f}s")
+        except Exception as e:
+            logger.error(f"[BULK_UPDATE] Failed to update component states: {e}")
+            await self._send_error(client_id, f"Failed to update component states: {str(e)}")
+            raise
+
+        # Enhanced script rerun with timeout protection
+        rerun_start = time.time()
+        runner = self.script_runners.get(client_id)
+        if runner:
+            try:
+                # Production safety: timeout for script reruns to prevent hanging
+                await asyncio.wait_for(runner.rerun(changed_states), timeout=30.0)
+                rerun_time = time.time() - rerun_start
+                logger.info(f"[BULK_UPDATE] Script rerun completed in {rerun_time:.3f}s")
+            except asyncio.TimeoutError:
+                logger.error(f"[BULK_UPDATE] Script rerun timed out for client {client_id}")
+                await self._send_error(client_id, "Script rerun timed out")
+                raise
+            except Exception as e:
+                logger.error(f"[BULK_UPDATE] Script rerun failed for client {client_id}: {e}")
+                await self._send_error(client_id, f"Script rerun failed: {str(e)}")
+                raise
+        else:
+            logger.warning(f"[BULK_UPDATE] No script runner found for client {client_id}")
+
+        # Enhanced bulk broadcast with error resilience
+        broadcast_start = time.time()
+        try:
+            await self._broadcast_bulk_state_updates(changed_states, exclude_client=client_id)
+            broadcast_time = time.time() - broadcast_start
+            logger.info(f"[BULK_UPDATE] Broadcast completed in {broadcast_time:.3f}s")
+        except Exception as e:
+            # Log but don't fail the entire operation if broadcast fails
+            logger.error(f"[BULK_UPDATE] Broadcast failed: {e}")
+
+        # Send success acknowledgment with detailed metrics
+        total_processing_time = time.time() - start_time
+        await self._send_bulk_update_ack(
+            client_id, 
+            len(states), 
+            len(changed_states), 
+            processing_time=total_processing_time,
+            validation_errors=len(validation_errors)
+        )
+        
+        # Enhanced performance logging for production monitoring
+        logger.info(f"[BULK_UPDATE] Completed in {total_processing_time:.3f}s for {len(changed_states)} changes")
+        logger.info(f"[BULK_UPDATE] Performance breakdown - Change detection: {change_detection_time:.3f}s, State update: {update_time:.3f}s, Script rerun: {rerun_time:.3f}s, Broadcast: {broadcast_time:.3f}s")
 
     def connect_data_manager(self):
         """Connect the data manager"""
@@ -479,6 +644,25 @@ class BasePreswaldService:
                 )
             except Exception as e:
                 logger.error(f"Error sending error message: {e}")
+
+    async def _send_bulk_update_ack(self, client_id: str, total_count: int, changed_count: int, 
+                                   processing_time: float, validation_errors: int = 0):
+        """Send bulk update acknowledgment with performance metrics to client"""
+        if websocket := self.websocket_connections.get(client_id):
+            try:
+                ack_message = {
+                    "type": "bulk_update_ack",
+                    "total_count": total_count,
+                    "changed_count": changed_count,
+                    "processing_time": round(processing_time, 3),
+                    "validation_errors": validation_errors,
+                    "success": True,
+                    "timestamp": time.time()
+                }
+                await websocket.send_json(ack_message)
+                logger.debug(f"[BULK_UPDATE] Sent acknowledgment to {client_id}: {ack_message}")
+            except Exception as e:
+                logger.error(f"Error sending bulk update acknowledgment: {e}")
 
     async def _send_initial_states(self, websocket: Any):
         """Send initial component states to a new client"""

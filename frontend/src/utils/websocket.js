@@ -12,6 +12,7 @@ const MessageType = {
   ERROR: 'error',
   HEARTBEAT: 'heartbeat',
   BULK_UPDATE: 'bulk_update',
+  BULK_UPDATE_ACK: 'bulk_update_ack',
   CONNECTION_STATUS: 'connection_status',
   INITIAL_STATE: 'initial_state',
   CONNECTIONS_UPDATE: 'connections_update',
@@ -223,6 +224,420 @@ class MessageEncoder {
 }
 
 /**
+ * Component State Manager for bulk operations
+ * Provides efficient state management with change detection, bulk processing,
+ * and performance optimizations for high-volume state updates
+ */
+class ComponentStateManager {
+  constructor(config = {}) {
+    // Core state storage - using Map for O(1) operations
+    this.stateMap = new Map();
+    this.subscribers = new Map(); // componentId -> Set<callback>
+    this.globalSubscribers = new Set(); // Global state change listeners
+
+    // Performance tracking
+    this.metrics = {
+      totalUpdates: 0,
+      bulkUpdates: 0,
+      changeDetections: 0,
+      lastBulkSize: 0,
+      lastBulkDuration: 0
+    };
+
+    // Configuration
+    this.config = {
+      maxBulkSize: 1000,
+      enableMetrics: true,
+      deepCompareDepth: 3,
+      ...config
+    };
+
+    // Change detection optimizations
+    this.lastBulkUpdate = 0;
+    this.pendingUpdates = new Map();
+    this.batchTimeout = null;
+  }
+
+  /**
+   * Get component state with O(1) lookup
+   * @param {string} componentId - Component identifier
+   * @param {any} defaultValue - Default value if not found
+   * @returns {any} - Component state value
+   */
+  getState(componentId) {
+    if (!componentId || typeof componentId !== 'string') {
+      console.warn('[ComponentStateManager] Invalid componentId:', componentId);
+      return undefined;
+    }
+
+    const state = this.stateMap.get(componentId);
+    return state ? state.value : undefined;
+  }
+
+  /**
+   * Set component state with change detection
+   * @param {string} componentId - Component identifier  
+   * @param {any} value - New value
+   * @returns {boolean} - True if state actually changed
+   */
+  setState(componentId, value) {
+    if (!componentId || typeof componentId !== 'string') {
+      throw new Error('Invalid componentId provided');
+    }
+
+    const startTime = performance.now();
+    const currentState = this.stateMap.get(componentId);
+    const hasChanged = this._hasStateChanged(currentState?.value, value);
+
+    if (hasChanged) {
+      const newState = {
+        value,
+        version: (currentState?.version || 0) + 1,
+        lastModified: startTime,
+        componentId
+      };
+
+      this.stateMap.set(componentId, newState);
+      this.metrics.totalUpdates++;
+
+      // Notify subscribers
+      this._notifyStateChange(componentId, value, currentState?.value);
+
+      if (this.config.enableMetrics) {
+        this.metrics.changeDetections++;
+      }
+    }
+
+    return hasChanged;
+  }
+
+  /**
+   * Bulk state update with optimized processing
+   * @param {Map|Object|Array} updates - Bulk updates in various formats
+   * @returns {Object} - Results with metrics and change summary
+   */
+  bulkSetState(updates) {
+    const startTime = performance.now();
+
+    // Normalize updates to Map format for consistent processing
+    const updateMap = this._normalizeUpdates(updates);
+
+    if (updateMap.size === 0) {
+      return {
+        success: true,
+        changedCount: 0,
+        totalCount: 0,
+        duration: 0,
+        changes: new Map()
+      };
+    }
+
+    if (updateMap.size > this.config.maxBulkSize) {
+      throw new Error(`Bulk update size ${updateMap.size} exceeds maximum ${this.config.maxBulkSize}`);
+    }
+
+    // Process all updates and track changes
+    const changes = new Map();
+    const notifications = [];
+    let changedCount = 0;
+
+    try {
+      // Batch process all updates
+      for (const [componentId, value] of updateMap) {
+        const currentState = this.stateMap.get(componentId);
+        const hasChanged = this._hasStateChanged(currentState?.value, value);
+
+        if (hasChanged) {
+          const newState = {
+            value,
+            version: (currentState?.version || 0) + 1,
+            lastModified: startTime,
+            componentId
+          };
+
+          this.stateMap.set(componentId, newState);
+          changes.set(componentId, {
+            oldValue: currentState?.value,
+            newValue: value,
+            version: newState.version
+          });
+
+          notifications.push({
+            componentId,
+            newValue: value,
+            oldValue: currentState?.value
+          });
+
+          changedCount++;
+        }
+      }
+
+      // Batch notify all changes at once for better performance
+      if (notifications.length > 0) {
+        this._batchNotifyChanges(notifications);
+      }
+
+      const duration = performance.now() - startTime;
+
+      // Update metrics
+      if (this.config.enableMetrics) {
+        this.metrics.bulkUpdates++;
+        this.metrics.totalUpdates += changedCount;
+        this.metrics.lastBulkSize = updateMap.size;
+        this.metrics.lastBulkDuration = duration;
+      }
+
+      console.log(`[ComponentStateManager] Bulk update completed: ${changedCount}/${updateMap.size} changed in ${duration.toFixed(2)}ms`);
+
+      return {
+        success: true,
+        changedCount,
+        totalCount: updateMap.size,
+        duration,
+        changes
+      };
+
+    } catch (error) {
+      console.error('[ComponentStateManager] Bulk update failed:', error);
+      throw new Error(`Bulk state update failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Subscribe to state changes for specific component
+   * @param {string} componentId - Component to watch
+   * @param {Function} callback - Change notification callback
+   * @returns {Function} - Unsubscribe function
+   */
+  subscribe(componentId, callback) {
+    if (!this.subscribers.has(componentId)) {
+      this.subscribers.set(componentId, new Set());
+    }
+
+    this.subscribers.get(componentId).add(callback);
+
+    return () => {
+      const componentSubscribers = this.subscribers.get(componentId);
+      if (componentSubscribers) {
+        componentSubscribers.delete(callback);
+        if (componentSubscribers.size === 0) {
+          this.subscribers.delete(componentId);
+        }
+      }
+    };
+  }
+
+  /**
+   * Subscribe to all state changes globally
+   * @param {Function} callback - Global change notification callback
+   * @returns {Function} - Unsubscribe function
+   */
+  subscribeGlobal(callback) {
+    this.globalSubscribers.add(callback);
+
+    return () => {
+      this.globalSubscribers.delete(callback);
+    };
+  }
+
+  /**
+   * Get all current states as a Map
+   * @returns {Map} - All component states
+   */
+  getAllStates() {
+    const result = new Map();
+    for (const [componentId, state] of this.stateMap) {
+      result.set(componentId, state.value);
+    }
+    return result;
+  }
+
+  /**
+   * Get performance metrics
+   * @returns {Object} - Current metrics
+   */
+  getMetrics() {
+    return {
+      ...this.metrics,
+      totalComponents: this.stateMap.size,
+      subscriberCount: this.subscribers.size,
+      globalSubscriberCount: this.globalSubscribers.size
+    };
+  }
+
+  /**
+   * Clear all states and reset manager
+   */
+  reset() {
+    this.stateMap.clear();
+    this.subscribers.clear();
+    this.globalSubscribers.clear();
+    this.pendingUpdates.clear();
+
+    if (this.batchTimeout) {
+      clearTimeout(this.batchTimeout);
+      this.batchTimeout = null;
+    }
+
+    // Reset metrics
+    this.metrics = {
+      totalUpdates: 0,
+      bulkUpdates: 0,
+      changeDetections: 0,
+      lastBulkSize: 0,
+      lastBulkDuration: 0
+    };
+  }
+
+  /**
+   * Normalize various update formats to Map
+   * @private
+   */
+  _normalizeUpdates(updates) {
+    if (updates instanceof Map) {
+      return updates;
+    }
+
+    if (Array.isArray(updates)) {
+      // Assume array of [componentId, value] tuples
+      return new Map(updates);
+    }
+
+    if (updates && typeof updates === 'object') {
+      return new Map(Object.entries(updates));
+    }
+
+    throw new Error('Updates must be Map, Object, or Array format');
+  }
+
+  /**
+   * Efficient change detection with configurable depth
+   * @private
+   */
+  _hasStateChanged(oldValue, newValue) {
+    // Fast equality check
+    if (oldValue === newValue) return false;
+
+    // Null/undefined checks
+    if (oldValue == null || newValue == null) return oldValue !== newValue;
+
+    // Type mismatch
+    if (typeof oldValue !== typeof newValue) return true;
+
+    // Primitive types
+    if (typeof oldValue !== 'object') return oldValue !== newValue;
+
+    // Deep comparison for objects (with depth limit for performance)
+    return !this._deepEqual(oldValue, newValue, this.config.deepCompareDepth);
+  }
+
+  /**
+   * Deep equality check with depth limit
+   * @private
+   */
+  _deepEqual(obj1, obj2, maxDepth = 3) {
+    if (maxDepth <= 0) return obj1 === obj2;
+
+    if (obj1 === obj2) return true;
+    if (obj1 == null || obj2 == null) return obj1 === obj2;
+    if (typeof obj1 !== 'object' || typeof obj2 !== 'object') return obj1 === obj2;
+
+    const keys1 = Object.keys(obj1);
+    const keys2 = Object.keys(obj2);
+
+    if (keys1.length !== keys2.length) return false;
+
+    for (const key of keys1) {
+      if (!keys2.includes(key)) return false;
+      if (!this._deepEqual(obj1[key], obj2[key], maxDepth - 1)) return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Notify subscribers of state change
+   * @private
+   */
+  _notifyStateChange(componentId, newValue, oldValue) {
+    // Notify component-specific subscribers
+    const componentSubscribers = this.subscribers.get(componentId);
+    if (componentSubscribers) {
+      for (const callback of componentSubscribers) {
+        try {
+          callback(componentId, newValue, oldValue);
+        } catch (error) {
+          console.error(`[ComponentStateManager] Subscriber error for ${componentId}:`, error);
+        }
+      }
+    }
+
+    // Notify global subscribers
+    for (const callback of this.globalSubscribers) {
+      try {
+        callback(componentId, newValue, oldValue);
+      } catch (error) {
+        console.error('[ComponentStateManager] Global subscriber error:', error);
+      }
+    }
+  }
+
+  /**
+   * Batch notify multiple changes for better performance
+   * @private
+   */
+  _batchNotifyChanges(notifications) {
+    // Group notifications by subscriber for efficiency
+    const componentNotifications = new Map();
+    const globalNotifications = [];
+
+    // Prepare component-specific notifications
+    for (const notification of notifications) {
+      const { componentId } = notification;
+      const subscribers = this.subscribers.get(componentId);
+
+      if (subscribers) {
+        if (!componentNotifications.has(componentId)) {
+          componentNotifications.set(componentId, []);
+        }
+        componentNotifications.get(componentId).push(notification);
+      }
+
+      globalNotifications.push(notification);
+    }
+
+    // Send component-specific batch notifications
+    for (const [componentId, componentNotifs] of componentNotifications) {
+      const subscribers = this.subscribers.get(componentId);
+      if (subscribers) {
+        for (const callback of subscribers) {
+          try {
+            // Send all changes for this component at once
+            for (const notif of componentNotifs) {
+              callback(notif.componentId, notif.newValue, notif.oldValue);
+            }
+          } catch (error) {
+            console.error(`[ComponentStateManager] Batch subscriber error for ${componentId}:`, error);
+          }
+        }
+      }
+    }
+
+    // Send global batch notifications
+    for (const callback of this.globalSubscribers) {
+      try {
+        // Send all changes at once
+        for (const notif of globalNotifications) {
+          callback(notif.componentId, notif.newValue, notif.oldValue);
+        }
+      } catch (error) {
+        console.error('[ComponentStateManager] Global batch subscriber error:', error);
+      }
+    }
+  }
+}
+
+/**
  * Core interface for all Preswald communication clients
  * Provides a unified API across WebSocket, PostMessage, and Comlink transports
  */
@@ -301,19 +716,36 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
   constructor() {
     super();
     this.callbacks = new Set();
-    this.componentStates = {};
+    this.componentStates = {}; // Legacy compatibility - will be deprecated
     this.isConnected = false;
     this.pendingUpdates = {};
     this.lastActivity = 0;
     this.connections = [];
 
-    // Performance tracking
+    // Initialize ComponentStateManager for enhanced bulk operations
+    this.stateManager = new ComponentStateManager({
+      maxBulkSize: 1000,
+      enableMetrics: true,
+      deepCompareDepth: 3
+    });
+
+    // Enhanced performance tracking for bulk operations
     this.metrics = {
       messagesReceived: 0,
       messagesSent: 0,
       errors: 0,
-      lastLatency: 0
+      lastLatency: 0,
+      bulkUpdatesProcessed: 0,
+      lastBulkProcessed: 0,
+      lastBulkChanged: 0,
+      totalBulkChanges: 0,
+      avgBulkProcessingTime: 0
     };
+
+    // Subscribe to state manager changes to maintain legacy compatibility
+    this.stateManager.subscribeGlobal((componentId, newValue, oldValue) => {
+      this.componentStates[componentId] = newValue;
+    });
   }
 
   /**
@@ -351,18 +783,23 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
   }
 
   /**
-   * Common state management
+   * Enhanced state management with ComponentStateManager
    */
   getComponentState(componentId) {
     if (!componentId || typeof componentId !== 'string') {
       console.warn(`[${this.constructor.name}] Invalid componentId:`, componentId);
       return undefined;
     }
-    return this.componentStates[componentId];
+
+    // Use ComponentStateManager for enhanced performance
+    const value = this.stateManager.getState(componentId);
+
+    // Fallback to legacy componentStates for backwards compatibility
+    return value !== undefined ? value : this.componentStates[componentId];
   }
 
   /**
-   * Enhanced bulk update with optimizations and MessageEncoder support
+   * Enhanced bulk update with ComponentStateManager and MessageEncoder support
    */
   async bulkStateUpdate(updates) {
     if (!updates || typeof updates[Symbol.iterator] !== 'function') {
@@ -370,42 +807,71 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
     }
 
     const startTime = performance.now();
-    const results = [];
-    let successCount = 0;
 
-    // Check if the transport supports native bulk updates
-    if (this._sendBulkUpdate && typeof this._sendBulkUpdate === 'function') {
-      try {
-        const bulkResult = await this._sendBulkUpdate(updates);
-        if (bulkResult.success) {
-          // Update local state for all successful updates
-          for (const [componentId, value] of updates) {
-            this.componentStates[componentId] = value;
-            results.push({ componentId, success: true });
-            successCount++;
-          }
-        } else {
-          throw new Error('Bulk update failed on transport level');
-        }
-      } catch (error) {
-        console.warn(`[${this.constructor.name}] Bulk update failed, falling back to individual updates:`, error);
-        // Fall back to individual updates
-        return this._fallbackBulkUpdate(updates, startTime);
+    try {
+      // Use ComponentStateManager for efficient local state management
+      const stateResult = this.stateManager.bulkSetState(updates);
+
+      if (stateResult.changedCount === 0) {
+        console.log(`[${this.constructor.name}] No state changes detected in bulk update`);
+        return {
+          results: [],
+          totalProcessed: stateResult.totalCount,
+          successCount: 0,
+          duration: stateResult.duration,
+          localChanges: stateResult.changedCount
+        };
       }
-    } else {
-      // Fall back to individual updates
-      return this._fallbackBulkUpdate(updates, startTime);
+
+      // Only send updates for changed states to reduce network traffic
+      const changedUpdates = new Map();
+      for (const [componentId, changeInfo] of stateResult.changes) {
+        changedUpdates.set(componentId, changeInfo.newValue);
+      }
+
+      const results = [];
+      let successCount = 0;
+
+      // Check if the transport supports native bulk updates
+      if (this._sendBulkUpdate && typeof this._sendBulkUpdate === 'function') {
+        try {
+          const bulkResult = await this._sendBulkUpdate(changedUpdates);
+          if (bulkResult.success) {
+            // All changes were successfully sent
+            for (const componentId of changedUpdates.keys()) {
+              results.push({ componentId, success: true });
+              successCount++;
+            }
+          } else {
+            throw new Error('Bulk update failed on transport level');
+          }
+        } catch (error) {
+          console.warn(`[${this.constructor.name}] Bulk update failed, falling back to individual updates:`, error);
+          // Fall back to individual updates
+          return this._fallbackBulkUpdate(changedUpdates, startTime);
+        }
+      } else {
+        // Fall back to individual updates
+        return this._fallbackBulkUpdate(changedUpdates, startTime);
+      }
+
+      const duration = performance.now() - startTime;
+      console.log(`[${this.constructor.name}] Bulk update completed: ${successCount}/${changedUpdates.size} network updates (${stateResult.changedCount}/${stateResult.totalCount} local changes) in ${duration.toFixed(2)}ms`);
+
+      return {
+        results,
+        totalProcessed: stateResult.totalCount,
+        successCount,
+        duration,
+        localChanges: stateResult.changedCount,
+        networkUpdates: changedUpdates.size,
+        stateManagerMetrics: this.stateManager.getMetrics()
+      };
+
+    } catch (error) {
+      console.error(`[${this.constructor.name}] Enhanced bulk update failed:`, error);
+      throw error;
     }
-
-    const duration = performance.now() - startTime;
-    console.log(`[${this.constructor.name}] Bulk update completed: ${successCount}/${results.length} in ${duration.toFixed(2)}ms`);
-
-    return {
-      results,
-      totalProcessed: results.length,
-      successCount,
-      duration
-    };
   }
 
   /**
@@ -444,7 +910,7 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
   }
 
   /**
-   * Enhanced connection metrics with MessageEncoder statistics
+   * Enhanced connection metrics with ComponentStateManager, MessageEncoder, and bulk operation statistics
    */
   getConnectionMetrics() {
     return {
@@ -454,7 +920,17 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
       pendingUpdates: Object.keys(this.pendingUpdates).length,
       metrics: { ...this.metrics },
       uptime: this.connectTime ? performance.now() - this.connectTime : 0,
-      messageEncoder: MessageEncoder.getStats()
+      messageEncoder: MessageEncoder.getStats(),
+      stateManager: this.stateManager.getMetrics(),
+      bulkOperations: {
+        totalBulkUpdates: this.metrics.bulkUpdatesProcessed,
+        totalBulkChanges: this.metrics.totalBulkChanges,
+        avgProcessingTime: this.metrics.avgBulkProcessingTime,
+        lastBulkSize: this.metrics.lastBulkProcessed,
+        lastBulkChanges: this.metrics.lastBulkChanged,
+        bulkEfficiency: this.metrics.lastBulkProcessed > 0 ?
+          (this.metrics.lastBulkChanged / this.metrics.lastBulkProcessed * 100).toFixed(1) + '%' : 'N/A'
+      }
     };
   }
 
@@ -596,33 +1072,83 @@ class WebSocketClient extends BaseCommunicationClient {
 
               switch (data.type) {
                 case 'initial_state':
+                  // Use ComponentStateManager for bulk initial state loading
+                  if (data.states) {
+                    this.stateManager.bulkSetState(data.states);
+                    console.log('[WebSocket] Initial states loaded via ComponentStateManager:', Object.keys(data.states).length, 'components');
+                  }
+                  // Legacy compatibility
                   this.componentStates = { ...data.states };
-                  console.log('[WebSocket] Initial states loaded:', this.componentStates);
                   break;
 
                 case 'state_update':
                   if (data.component_id) {
-                    this.componentStates[data.component_id] = data.value;
+                    // Use ComponentStateManager for individual updates
+                    this.stateManager.setState(data.component_id, data.value);
+                    console.log('[WebSocket] Component state updated:', {
+                      componentId: data.component_id,
+                      value: data.value,
+                    });
                   }
-                  console.log('[WebSocket] Component state updated:', {
-                    componentId: data.component_id,
-                    value: data.value,
+                  break;
+
+                case 'bulk_update':
+                  if (data.states) {
+                    // Handle bulk updates efficiently
+                    const bulkResult = this.stateManager.bulkSetState(data.states);
+                    console.log('[WebSocket] Bulk state update processed:', {
+                      totalCount: bulkResult.totalCount,
+                      changedCount: bulkResult.changedCount,
+                      duration: bulkResult.duration
+                    });
+                  }
+                  break;
+
+                case 'bulk_update_ack':
+                  // Handle server acknowledgment of bulk updates
+                  console.log('[WebSocket] Bulk update acknowledged by server:', {
+                    totalCount: data.total_count,
+                    changedCount: data.changed_count,
+                    processingTime: data.processing_time,
+                    validationErrors: data.validation_errors,
+                    success: data.success
                   });
+
+                  // Update connection metrics with server performance data
+                  if (this.metrics) {
+                    this.metrics.lastLatency = data.processing_time * 1000; // Convert to ms
+                    this.metrics.lastBulkProcessed = data.total_count;
+                    this.metrics.lastBulkChanged = data.changed_count;
+                    this.metrics.bulkUpdatesProcessed++;
+                    this.metrics.totalBulkChanges += data.changed_count;
+
+                    // Calculate rolling average of bulk processing times
+                    const currentAvg = this.metrics.avgBulkProcessingTime;
+                    const count = this.metrics.bulkUpdatesProcessed;
+                    this.metrics.avgBulkProcessingTime = ((currentAvg * (count - 1)) + (data.processing_time * 1000)) / count;
+                  }
                   break;
 
                 case 'components':
                   if (data.components?.rows) {
+                    // Extract state updates from component data for bulk processing
+                    const stateUpdates = new Map();
                     data.components.rows.forEach((row) => {
                       row.forEach((component) => {
                         if (component.id && 'value' in component) {
-                          this.componentStates[component.id] = component.value;
-                          console.log('[WebSocket] Component state updated:', {
-                            componentId: component.id,
-                            value: component.value,
-                          });
+                          stateUpdates.set(component.id, component.value);
                         }
                       });
                     });
+
+                    if (stateUpdates.size > 0) {
+                      const bulkResult = this.stateManager.bulkSetState(stateUpdates);
+                      console.log('[WebSocket] Component states bulk updated:', {
+                        totalCount: bulkResult.totalCount,
+                        changedCount: bulkResult.changedCount,
+                        duration: bulkResult.duration
+                      });
+                    }
                   }
                   break;
 
@@ -836,35 +1362,87 @@ class PostMessageClient extends BaseCommunicationClient {
         break;
 
       case 'initial_state':
+        // Use ComponentStateManager for bulk initial state loading
+        if (data.states) {
+          this.stateManager.bulkSetState(data.states);
+          console.log('[PostMessage] Initial states loaded via ComponentStateManager:', Object.keys(data.states).length, 'components');
+        }
+        // Legacy compatibility
         this.componentStates = { ...data.states };
-        console.log('[PostMessage] Initial states loaded:', this.componentStates);
         this._notifySubscribers(data);
         break;
 
       case 'state_update':
         if (data.component_id) {
-          this.componentStates[data.component_id] = data.value;
+          // Use ComponentStateManager for individual updates
+          this.stateManager.setState(data.component_id, data.value);
+          console.log('[PostMessage] Component state updated:', {
+            componentId: data.component_id,
+            value: data.value,
+          });
         }
-        console.log('[PostMessage] Component state updated:', {
-          componentId: data.component_id,
-          value: data.value,
+        this._notifySubscribers(data);
+        break;
+
+      case 'bulk_update':
+        if (data.states) {
+          // Handle bulk updates efficiently
+          const bulkResult = this.stateManager.bulkSetState(data.states);
+          console.log('[PostMessage] Bulk state update processed:', {
+            totalCount: bulkResult.totalCount,
+            changedCount: bulkResult.changedCount,
+            duration: bulkResult.duration
+          });
+        }
+        this._notifySubscribers(data);
+        break;
+
+      case 'bulk_update_ack':
+        // Handle server acknowledgment of bulk updates
+        console.log('[PostMessage] Bulk update acknowledged by server:', {
+          totalCount: data.total_count,
+          changedCount: data.changed_count,
+          processingTime: data.processing_time,
+          validationErrors: data.validation_errors,
+          success: data.success
         });
+
+        // Update connection metrics with server performance data
+        if (this.metrics) {
+          this.metrics.lastLatency = data.processing_time * 1000; // Convert to ms
+          this.metrics.lastBulkProcessed = data.total_count;
+          this.metrics.lastBulkChanged = data.changed_count;
+          this.metrics.bulkUpdatesProcessed++;
+          this.metrics.totalBulkChanges += data.changed_count;
+
+          // Calculate rolling average of bulk processing times
+          const currentAvg = this.metrics.avgBulkProcessingTime;
+          const count = this.metrics.bulkUpdatesProcessed;
+          this.metrics.avgBulkProcessingTime = ((currentAvg * (count - 1)) + (data.processing_time * 1000)) / count;
+        }
         this._notifySubscribers(data);
         break;
 
       case 'components':
         if (data.components && data.components.rows) {
+          // Extract state updates from component data for bulk processing
+          const stateUpdates = new Map();
           data.components.rows.forEach((row) => {
             row.forEach((component) => {
               if (component.id && 'value' in component) {
-                this.componentStates[component.id] = component.value;
-                console.log('[PostMessage] Component state updated:', {
-                  componentId: component.id,
-                  value: component.value,
-                });
+                stateUpdates.set(component.id, component.value);
               }
             });
           });
+
+          if (stateUpdates.size > 0) {
+            const bulkResult = this.stateManager.bulkSetState(stateUpdates);
+            console.log('[PostMessage] Component states bulk updated:', {
+              totalCount: bulkResult.totalCount,
+              changedCount: bulkResult.changedCount,
+              duration: bulkResult.duration
+            });
+          }
         }
         this._notifySubscribers(data);
         break;
@@ -995,20 +1573,25 @@ class ComlinkClient extends BaseCommunicationClient {
   _handleComponentUpdate(components) {
     console.log('[Client] Handling component update:', components);
     if (components?.rows) {
+      // Extract state updates from component data for bulk processing
+      const stateUpdates = new Map();
       components.rows.forEach((row) => {
         row.forEach((component) => {
           if (component.id && 'value' in component) {
-            const oldValue = this.componentStates[component.id];
-            if (oldValue !== component.value) {
-              console.log(`[Client] Component ${component.id} value changed:`, {
-                old: oldValue,
-                new: component.value,
-              });
-              this.componentStates[component.id] = component.value;
-            }
+            stateUpdates.set(component.id, component.value);
           }
         });
       });
+
+      if (stateUpdates.size > 0) {
+        const bulkResult = this.stateManager.bulkSetState(stateUpdates);
+        console.log('[Client] Component states bulk updated:', {
+          totalCount: bulkResult.totalCount,
+          changedCount: bulkResult.changedCount,
+          duration: bulkResult.duration
+        });
+      }
+
       this._notifySubscribers({
         type: 'components',
         components: components,
@@ -1307,11 +1890,12 @@ export const createCommunicator = createCommunicationLayer;
 export const comm = createCommunicationLayer();
 
 /**
- * Export MessageEncoder and enhanced communication types for external use
- * Allows applications to use standardized message formatting and transport selection
+ * Export MessageEncoder, ComponentStateManager and enhanced communication types for external use
+ * Allows applications to use standardized message formatting, bulk state management, and transport selection
  */
 export {
   MessageEncoder,
+  ComponentStateManager,
   MessageType,
   TransportType
 };
