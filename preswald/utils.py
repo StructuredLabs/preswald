@@ -154,11 +154,12 @@ def get_user_code_callsite(exc: BaseException | None = None, fallback: str = "un
     preswald_src_dir = os.path.abspath(os.path.join(__file__, ".."))
 
     def is_user_code(filepath: str) -> bool:
+        filepath = os.path.abspath(filepath)
         return not (
             filepath.startswith(preswald_src_dir)
-            or ".venv" in filepath
-            or "site-packages" in filepath
+            or filepath.startswith(sys.prefix)
             or filepath.startswith(sys.base_prefix)
+            or "site-packages" in filepath
         )
 
     if exc and exc.__traceback__:
