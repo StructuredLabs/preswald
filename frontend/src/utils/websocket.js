@@ -910,10 +910,10 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
   }
 
   /**
-   * Enhanced connection metrics with ComponentStateManager, MessageEncoder, and bulk operation statistics
-   */
+ * Enhanced connection metrics with ComponentStateManager, MessageEncoder, bulk operations, and transport optimization statistics
+ */
   getConnectionMetrics() {
-    return {
+    const baseMetrics = {
       isConnected: this.isConnected,
       transport: this.constructor.name,
       lastActivity: this.lastActivity,
@@ -932,6 +932,35 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
           (this.metrics.lastBulkChanged / this.metrics.lastBulkProcessed * 100).toFixed(1) + '%' : 'N/A'
       }
     };
+
+    // Add transport-specific optimization metrics
+    if (this.constructor.name === 'WebSocketClient') {
+      baseMetrics.transportOptimization = {
+        batchingEnabled: this.batchingEnabled,
+        queuedMessages: this.messageQueue.length,
+        maxQueueSize: this.maxQueueSize,
+        batchSize: this.batchSize,
+        batchDelay: this.batchDelay,
+        compression: {
+          messagesCompressed: this.compressionStats.messagesCompressed,
+          avgCompressionRatio: (this.compressionStats.avgCompressionRatio * 100).toFixed(1) + '%'
+        }
+      };
+    } else if (this.constructor.name === 'PostMessageClient') {
+      baseMetrics.transportOptimization = {
+        batchingEnabled: this.batchingEnabled,
+        queuedMessages: this.messageQueue.length,
+        maxQueueSize: this.maxQueueSize,
+        batchSize: this.batchSize,
+        batchDelay: this.batchDelay,
+        serialization: {
+          messagesOptimized: this.serializationStats.messagesOptimized,
+          avgSizeReduction: (this.serializationStats.avgSizeReduction * 100).toFixed(1) + '%'
+        }
+      };
+    }
+
+    return baseMetrics;
   }
 
   /**
@@ -987,6 +1016,22 @@ class WebSocketClient extends BaseCommunicationClient {
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
     this.reconnectDelay = 1000;
+
+    // Enhanced transport optimization features
+    this.messageQueue = [];
+    this.maxQueueSize = 1000;
+    this.batchingEnabled = true;
+    this.batchTimeout = null;
+    this.batchSize = 10;
+    this.batchDelay = 16; // ~60fps for UI responsiveness
+
+    // Compression statistics for monitoring
+    this.compressionStats = {
+      messagesCompressed: 0,
+      totalCompressionRatio: 0,
+      avgCompressionRatio: 0
+    };
+
     // Note: callbacks, componentStates, isConnected, pendingUpdates, connections 
     // are now inherited from BaseCommunicationClient
   }
@@ -1205,9 +1250,20 @@ class WebSocketClient extends BaseCommunicationClient {
   async disconnect() {
     if (this.socket) {
       console.log('[WebSocket] Disconnecting...');
+
+      // Process any pending` batched messages before disconnecting
+      if (this.batchTimeout) {
+        clearTimeout(this.batchTimeout);
+        this.batchTimeout = null;
+        this._processBatchedMessages();
+      }
+
       this.socket.close();
       this.socket = null;
       this._setConnected(false);
+
+      // Clear message queue
+      this.messageQueue = [];
     }
   }
 
@@ -1248,21 +1304,120 @@ class WebSocketClient extends BaseCommunicationClient {
 
   _sendComponentUpdate(componentId, value) {
     const message = { type: 'component_update', states: { [componentId]: value } };
+
+    // Enhanced batching for better performance
+    if (this.batchingEnabled && this.messageQueue.length < this.maxQueueSize) {
+      this.messageQueue.push({ componentId, value, timestamp: performance.now() });
+
+      // Schedule batch processing if not already scheduled
+      if (!this.batchTimeout) {
+        this.batchTimeout = setTimeout(() => {
+          this._processBatchedMessages();
+        }, this.batchDelay);
+      }
+
+      // Process immediately if batch is full
+      if (this.messageQueue.length >= this.batchSize) {
+        clearTimeout(this.batchTimeout);
+        this.batchTimeout = null;
+        this._processBatchedMessages();
+      }
+
+      return;
+    }
+
+    // Fallback to immediate sending
+    this._sendImmediateMessage(message, componentId, value);
+  }
+
+  _processBatchedMessages() {
+    if (this.messageQueue.length === 0) return;
+
     try {
-      // Use MessageEncoder for consistent formatting, with legacy fallback
+      // Group messages by component for deduplication
+      const stateUpdates = {};
+      this.messageQueue.forEach(({ componentId, value }) => {
+        stateUpdates[componentId] = value;
+      });
+
+      const batchMessage = {
+        type: 'component_update',
+        states: stateUpdates,
+        batch: true,
+        count: Object.keys(stateUpdates).length
+      };
+
+      this._sendImmediateMessage(batchMessage);
+
+      // Update local states
+      Object.entries(stateUpdates).forEach(([componentId, value]) => {
+        this.componentStates[componentId] = value;
+      });
+
+      console.log(`[WebSocket] Sent batched update: ${Object.keys(stateUpdates).length} components from ${this.messageQueue.length} queued messages`);
+
+      // Clear the queue
+      this.messageQueue = [];
+      this.batchTimeout = null;
+
+    } catch (error) {
+      console.error('[WebSocket] Error processing batched messages:', error);
+      // Fallback to individual sends
+      this.messageQueue.forEach(({ componentId, value }) => {
+        const message = { type: 'component_update', states: { [componentId]: value } };
+        this._sendImmediateMessage(message, componentId, value);
+      });
+      this.messageQueue = [];
+      this.batchTimeout = null;
+    }
+  }
+
+  _sendImmediateMessage(message, componentId = null, value = null) {
+    try {
+      // Enhanced compression with statistics tracking
       let encodedMessage;
+      let originalSize, compressedSize;
+
       try {
+        // Determine if compression should be used
+        const jsonString = JSON.stringify(message);
+        originalSize = jsonString.length;
+
+        const shouldCompress = originalSize > MessageEncoder.COMPRESSION_THRESHOLD;
         encodedMessage = MessageEncoder.encodeLegacy(message);
+        compressedSize = encodedMessage.length;
+
+        // Track compression statistics
+        if (shouldCompress && compressedSize < originalSize) {
+          this.compressionStats.messagesCompressed++;
+          const compressionRatio = (originalSize - compressedSize) / originalSize;
+          this.compressionStats.totalCompressionRatio += compressionRatio;
+          this.compressionStats.avgCompressionRatio =
+            this.compressionStats.totalCompressionRatio / this.compressionStats.messagesCompressed;
+        }
+
       } catch (encodeError) {
         console.warn('[WebSocket] Using legacy JSON encoding:', encodeError.message);
         encodedMessage = JSON.stringify(message);
+        compressedSize = encodedMessage.length;
       }
 
       this.socket.send(encodedMessage);
-      this.componentStates[componentId] = value;
-      console.log('[WebSocket] Sent component update:', message);
+
+      if (componentId && value !== null) {
+        this.componentStates[componentId] = value;
+      }
+
+      // Enhanced logging with compression info
+      if (originalSize && compressedSize < originalSize) {
+        const compressionRatio = ((originalSize - compressedSize) / originalSize * 100).toFixed(1);
+        console.log(`[WebSocket] Sent compressed message: ${originalSize}B → ${compressedSize}B (${compressionRatio}% reduction)`);
+      } else {
+        console.log('[WebSocket] Sent message:', message.type, compressedSize ? `${compressedSize}B` : '');
+      }
+
     } catch (error) {
-      console.error('[WebSocket] Error sending component update:', error);
+      console.error('[WebSocket] Error sending message:', error);
       throw error;
     }
   }
@@ -1298,6 +1453,22 @@ class WebSocketClient extends BaseCommunicationClient {
 class PostMessageClient extends BaseCommunicationClient {
   constructor() {
     super();
+
+    // Enhanced transport optimization features for PostMessage
+    this.messageQueue = [];
+    this.maxQueueSize = 500; // Smaller queue for PostMessage due to potential parent window limitations
+    this.batchingEnabled = true;
+    this.batchTimeout = null;
+    this.batchSize = 8; // Smaller batch size for PostMessage
+    this.batchDelay = 20; // Slightly higher delay for PostMessage
+
+    // Serialization optimization statistics
+    this.serializationStats = {
+      messagesOptimized: 0,
+      totalSizeReduction: 0,
+      avgSizeReduction: 0
+    };
+
     // Note: callbacks, componentStates, isConnected, pendingUpdates
     // are now inherited from BaseCommunicationClient
   }
@@ -1321,8 +1492,19 @@ class PostMessageClient extends BaseCommunicationClient {
 
   async disconnect() {
     console.log('[PostMessage] Disconnecting...');
+
+    // Process any pending batched messages before disconnecting
+    if (this.batchTimeout) {
+      clearTimeout(this.batchTimeout);
+      this.batchTimeout = null;
+      this._processBatchedMessages();
+    }
+
     window.removeEventListener('message', this._handleMessage.bind(this));
     this._setConnected(false);
+
+    // Clear message queue
+    this.messageQueue = [];
   }
 
   _handleMessage(event) {
@@ -1465,28 +1647,191 @@ class PostMessageClient extends BaseCommunicationClient {
   }
 
   _sendComponentUpdate(componentId, value) {
-    if (window.parent) {
-      const message = {
-        type: 'component_update',
-        id: componentId,
-        value,
+    if (!window.parent) {
+      console.warn('[PostMessage] No parent window to send update');
+      return;
+    }
+
+    // Enhanced batching for better performance
+    if (this.batchingEnabled && this.messageQueue.length < this.maxQueueSize) {
+      this.messageQueue.push({ componentId, value, timestamp: performance.now() });
+
+      // Schedule batch processing if not already scheduled
+      if (!this.batchTimeout) {
+        this.batchTimeout = setTimeout(() => {
+          this._processBatchedMessages();
+        }, this.batchDelay);
+      }
+
+      // Process immediately if batch is full
+      if (this.messageQueue.length >= this.batchSize) {
+        clearTimeout(this.batchTimeout);
+        this.batchTimeout = null;
+        this._processBatchedMessages();
+      }
+
+      return;
+    }
+
+    // Fallback to immediate sending
+    const message = {
+      type: 'component_update',
+      id: componentId,
+      value,
+    };
+
+    this._sendImmediateMessage(message, componentId, value);
+  }
+
+  _processBatchedMessages() {
+    if (this.messageQueue.length === 0) return;
+
+    try {
+      // Group messages by component for deduplication
+      const stateUpdates = {};
+      this.messageQueue.forEach(({ componentId, value }) => {
+        stateUpdates[componentId] = value;
+      });
+
+      const batchMessage = {
+        type: 'component_update_batch',
+        states: stateUpdates,
+        count: Object.keys(stateUpdates).length,
+        timestamp: performance.now()
       };
 
-      // Use MessageEncoder for consistent formatting, with legacy fallback
+      this._sendImmediateMessage(batchMessage);
+
+      // Update local states
+      Object.entries(stateUpdates).forEach(([componentId, value]) => {
+        this.componentStates[componentId] = value;
+      });
+
+      console.log(`[PostMessage] Sent batched update: ${Object.keys(stateUpdates).length} components from ${this.messageQueue.length} queued messages`);
+
+      // Clear the queue
+      this.messageQueue = [];
+      this.batchTimeout = null;
+
+    } catch (error) {
+      console.error('[PostMessage] Error processing batched messages:', error);
+      // Fallback to individual sends
+      this.messageQueue.forEach(({ componentId, value }) => {
+        const message = {
+          type: 'component_update',
+          id: componentId,
+          value,
+        };
+        this._sendImmediateMessage(message, componentId, value);
+      });
+      this.messageQueue = [];
+      this.batchTimeout = null;
+    }
+  }
+
+  _sendImmediateMessage(message, componentId = null, value = null) {
+    try {
+      // Enhanced JSON serialization with optimization tracking
       let encodedMessage;
+      let originalSize, optimizedSize;
+
       try {
-        encodedMessage = MessageEncoder.encodeLegacy(message);
+        // Optimize message structure for PostMessage
+        const optimizedMessage = this._optimizeMessageForPostMessage(message);
+        const originalJson = JSON.stringify(message);
+        const optimizedJson = JSON.stringify(optimizedMessage);
+
+        originalSize = originalJson.length;
+        optimizedSize = optimizedJson.length;
+
+        // Use MessageEncoder for consistent formatting
+        encodedMessage = MessageEncoder.encodeLegacy(optimizedMessage);
+
+        // Track optimization statistics
+        if (optimizedSize < originalSize) {
+          this.serializationStats.messagesOptimized++;
+          const sizeReduction = (originalSize - optimizedSize) / originalSize;
+          this.serializationStats.totalSizeReduction += sizeReduction;
+          this.serializationStats.avgSizeReduction =
+            this.serializationStats.totalSizeReduction / this.serializationStats.messagesOptimized;
+        }
+
       } catch (encodeError) {
         console.warn('[PostMessage] Using legacy format:', encodeError.message);
         encodedMessage = message;
+        optimizedSize = JSON.stringify(message).length;
       }
 
       window.parent.postMessage(encodedMessage, '*');
-      this.componentStates[componentId] = value;
-      console.log('[PostMessage] Sent component update:', { id: componentId, value });
-    } else {
-      console.warn('[PostMessage] No parent window to send update');
+
+      if (componentId && value !== null) {
+        this.componentStates[componentId] = value;
+      }
+
+      // Enhanced logging with optimization info
+      if (originalSize && optimizedSize < originalSize) {
+        const reductionRatio = ((originalSize - optimizedSize) / originalSize * 100).toFixed(1);
+        console.log(`[PostMessage] Sent optimized message: ${originalSize}B → ${optimizedSize}B (${reductionRatio}% reduction)`);
+      } else {
+        console.log('[PostMessage] Sent message:', message.type, optimizedSize ? `${optimizedSize}B` : '');
+      }
+
+    } catch (error) {
+      console.error('[PostMessage] Error sending message:', error);
+      throw error;
     }
+  }
+
+  _optimizeMessageForPostMessage(message) {
+    // PostMessage-specific optimizations
+    const optimized = { ...message };
+
+    // Remove redundant fields for PostMessage transport
+    if (optimized.metadata && optimized.metadata.timestamp) {
+      // PostMessage doesn't need high-precision timestamps
+      optimized.metadata.timestamp = Math.floor(optimized.metadata.timestamp);
+    }
+
+    // Optimize value serialization for common types
+    if (optimized.value !== undefined) {
+      optimized.value = this._optimizeValue(optimized.value);
+    }
+
+    if (optimized.states) {
+      const optimizedStates = {};
+      Object.entries(optimized.states).forEach(([key, value]) => {
+        optimizedStates[key] = this._optimizeValue(value);
+      });
+      optimized.states = optimizedStates;
+    }
+
+    return optimized;
+  }
+
+  _optimizeValue(value) {
+    // Optimize common value types for JSON serialization
+    if (typeof value === 'number') {
+      // Round floating point numbers to reasonable precision
+      return Math.round(value * 1000000) / 1000000;
+    }
+
+    if (Array.isArray(value)) {
+      // Optimize arrays recursively
+      return value.map(item => this._optimizeValue(item));
+    }
+
+    if (value && typeof value === 'object') {
+      // Remove null/undefined properties
+      const optimized = {};
+      Object.entries(value).forEach(([key, val]) => {
+        if (val !== null && val !== undefined) {
+          optimized[key] = this._optimizeValue(val);
+        }
+      });
+      return optimized;
+    }
+
+    return value;
   }
 
   // getConnections is inherited from BaseCommunicationClient
@@ -1685,6 +2030,402 @@ const TransportType = {
   AUTO: 'auto'
 };
 
+/**
+ * Production-ready Connection Pool Manager
+ * Manages multiple connections for load balancing, failover, and performance optimization
+ */
+class ConnectionPoolManager {
+  constructor(config = {}) {
+    this.config = {
+      maxPoolSize: 3,
+      minPoolSize: 1,
+      healthCheckInterval: 30000, // 30 seconds
+      connectionTimeout: 10000,
+      retryAttempts: 3,
+      retryDelay: 1000,
+      loadBalancingStrategy: 'round-robin', // 'round-robin', 'least-connections', 'performance'
+      enableFailover: true,
+      ...config
+    };
+
+    this.connectionPool = new Map(); // connectionId -> connection
+    this.connectionMetrics = new Map(); // connectionId -> metrics
+    this.activeConnections = new Set();
+    this.currentConnectionIndex = 0;
+    this.isShuttingDown = false;
+    this.healthCheckTimer = null;
+
+    // Performance tracking
+    this.poolMetrics = {
+      totalConnections: 0,
+      activeConnections: 0,
+      failedConnections: 0,
+      totalRequests: 0,
+      failedRequests: 0,
+      avgResponseTime: 0,
+      lastHealthCheck: 0
+    };
+
+    console.log('[ConnectionPool] Initialized with config:', this.config);
+  }
+
+  /**
+   * Initialize the connection pool
+   */
+  async initialize(transportType, transportConfig = {}) {
+    console.log(`[ConnectionPool] Initializing pool with ${this.config.minPoolSize} ${transportType} connections`);
+
+    const initPromises = [];
+    for (let i = 0; i < this.config.minPoolSize; i++) {
+      const connectionId = `${transportType}_${i}_${Date.now()}`;
+      initPromises.push(this._createConnection(connectionId, transportType, transportConfig));
+    }
+
+    const results = await Promise.allSettled(initPromises);
+    const successfulConnections = results.filter(result => result.status === 'fulfilled').length;
+
+    if (successfulConnections === 0) {
+      throw new Error('Failed to initialize any connections in the pool');
+    }
+
+    console.log(`[ConnectionPool] Initialized ${successfulConnections}/${this.config.minPoolSize} connections`);
+
+    // Start health monitoring
+    this._startHealthMonitoring();
+
+    return successfulConnections;
+  }
+
+  /**
+   * Get an optimal connection from the pool
+   */
+  getConnection() {
+    if (this.isShuttingDown || this.activeConnections.size === 0) {
+      throw new Error('Connection pool is not available');
+    }
+
+    const activeConnectionsArray = Array.from(this.activeConnections);
+    let selectedConnection;
+
+    switch (this.config.loadBalancingStrategy) {
+      case 'round-robin':
+        selectedConnection = this._getRoundRobinConnection(activeConnectionsArray);
+        break;
+      case 'least-connections':
+        selectedConnection = this._getLeastConnectionsConnection(activeConnectionsArray);
+        break;
+      case 'performance':
+        selectedConnection = this._getPerformanceBasedConnection(activeConnectionsArray);
+        break;
+      default:
+        selectedConnection = this._getRoundRobinConnection(activeConnectionsArray);
+    }
+
+    if (!selectedConnection) {
+      throw new Error('No healthy connections available in pool');
+    }
+
+    this.poolMetrics.totalRequests++;
+    this._updateConnectionMetrics(selectedConnection.connectionId, 'request');
+
+    return selectedConnection.client;
+  }
+
+  /**
+   * Add a new connection to the pool
+   */
+  async addConnection(transportType, transportConfig = {}) {
+    if (this.connectionPool.size >= this.config.maxPoolSize) {
+      console.warn('[ConnectionPool] Pool is at maximum capacity');
+      return null;
+    }
+
+    const connectionId = `${transportType}_${this.connectionPool.size}_${Date.now()}`;
+    return await this._createConnection(connectionId, transportType, transportConfig);
+  }
+
+  /**
+   * Remove a connection from the pool
+   */
+  async removeConnection(connectionId) {
+    const connection = this.connectionPool.get(connectionId);
+    if (!connection) {
+      console.warn(`[ConnectionPool] Connection ${connectionId} not found`);
+      return;
+    }
+
+    console.log(`[ConnectionPool] Removing connection ${connectionId}`);
+
+    try {
+      await connection.client.disconnect();
+    } catch (error) {
+      console.error(`[ConnectionPool] Error disconnecting ${connectionId}:`, error);
+    }
+
+    this.connectionPool.delete(connectionId);
+    this.connectionMetrics.delete(connectionId);
+    this.activeConnections.delete(connection);
+    this.poolMetrics.totalConnections--;
+  }
+
+  /**
+   * Get pool statistics
+   */
+  getPoolMetrics() {
+    return {
+      ...this.poolMetrics,
+      poolSize: this.connectionPool.size,
+      activeConnections: this.activeConnections.size,
+      connectionDetails: Array.from(this.connectionPool.entries()).map(([id, conn]) => ({
+        connectionId: id,
+        transport: conn.client.constructor.name,
+        isConnected: conn.client.isConnected,
+        metrics: this.connectionMetrics.get(id) || {}
+      }))
+    };
+  }
+
+  /**
+   * Shutdown the connection pool
+   */
+  async shutdown() {
+    console.log('[ConnectionPool] Shutting down connection pool');
+    this.isShuttingDown = true;
+
+    if (this.healthCheckTimer) {
+      clearInterval(this.healthCheckTimer);
+      this.healthCheckTimer = null;
+    }
+
+    const disconnectPromises = Array.from(this.connectionPool.values()).map(async (connection) => {
+      try {
+        await connection.client.disconnect();
+      } catch (error) {
+        console.error(`[ConnectionPool] Error disconnecting ${connection.connectionId}:`, error);
+      }
+    });
+
+    await Promise.allSettled(disconnectPromises);
+
+    this.connectionPool.clear();
+    this.connectionMetrics.clear();
+    this.activeConnections.clear();
+
+    console.log('[ConnectionPool] Shutdown complete');
+  }
+
+  /**
+   * Create a new connection
+   * @private
+   */
+  async _createConnection(connectionId, transportType, transportConfig) {
+    console.log(`[ConnectionPool] Creating connection ${connectionId}`);
+
+    try {
+      const client = createTransportClient(transportType, transportConfig);
+      const startTime = performance.now();
+
+      await client.connect(transportConfig);
+
+      const connectionTime = performance.now() - startTime;
+      const connection = {
+        connectionId,
+        client,
+        transportType,
+        createdAt: Date.now(),
+        connectionTime
+      };
+
+      this.connectionPool.set(connectionId, connection);
+      this.activeConnections.add(connection);
+      this.poolMetrics.totalConnections++;
+
+      // Initialize connection metrics
+      this.connectionMetrics.set(connectionId, {
+        requests: 0,
+        errors: 0,
+        avgResponseTime: 0,
+        lastActivity: Date.now(),
+        connectionTime,
+        isHealthy: true
+      });
+
+      console.log(`[ConnectionPool] Connection ${connectionId} created successfully in ${connectionTime.toFixed(2)}ms`);
+      return connection;
+
+    } catch (error) {
+      console.error(`[ConnectionPool] Failed to create connection ${connectionId}:`, error);
+      this.poolMetrics.failedConnections++;
+      throw error;
+    }
+  }
+
+  /**
+   * Round-robin connection selection
+   * @private
+   */
+  _getRoundRobinConnection(activeConnections) {
+    if (activeConnections.length === 0) return null;
+
+    const connection = activeConnections[this.currentConnectionIndex % activeConnections.length];
+    this.currentConnectionIndex = (this.currentConnectionIndex + 1) % activeConnections.length;
+
+    return connection;
+  }
+
+  /**
+   * Least connections selection
+   * @private
+   */
+  _getLeastConnectionsConnection(activeConnections) {
+    if (activeConnections.length === 0) return null;
+
+    let selectedConnection = activeConnections[0];
+    let minRequests = this.connectionMetrics.get(selectedConnection.connectionId)?.requests || 0;
+
+    for (const connection of activeConnections) {
+      const requests = this.connectionMetrics.get(connection.connectionId)?.requests || 0;
+      if (requests < minRequests) {
+        minRequests = requests;
+        selectedConnection = connection;
+      }
+    }
+
+    return selectedConnection;
+  }
+
+  /**
+   * Performance-based connection selection
+   * @private
+   */
+  _getPerformanceBasedConnection(activeConnections) {
+    if (activeConnections.length === 0) return null;
+
+    let selectedConnection = activeConnections[0];
+    let bestScore = this._calculateConnectionScore(selectedConnection.connectionId);
+
+    for (const connection of activeConnections) {
+      const score = this._calculateConnectionScore(connection.connectionId);
+      if (score > bestScore) {
+        bestScore = score;
+        selectedConnection = connection;
+      }
+    }
+
+    return selectedConnection;
+  }
+
+  /**
+   * Calculate connection performance score
+   * @private
+   */
+  _calculateConnectionScore(connectionId) {
+    const metrics = this.connectionMetrics.get(connectionId);
+    if (!metrics) return 0;
+
+    // Higher score = better connection
+    const latencyFactor = 1000 / Math.max(metrics.avgResponseTime, 1);
+    const errorFactor = metrics.requests > 0 ? (1 - (metrics.errors / metrics.requests)) : 1;
+    const activityFactor = Math.max(0, 1 - ((Date.now() - metrics.lastActivity) / 60000)); // Decay over 1 minute
+
+    return latencyFactor * 0.4 + errorFactor * 0.4 + activityFactor * 0.2;
+  }
+
+  /**
+   * Update connection metrics
+   * @private
+   */
+  _updateConnectionMetrics(connectionId, eventType, responseTime = 0) {
+    const metrics = this.connectionMetrics.get(connectionId);
+    if (!metrics) return;
+
+    switch (eventType) {
+      case 'request':
+        metrics.requests++;
+        metrics.lastActivity = Date.now();
+        break;
+      case 'response':
+        if (responseTime > 0) {
+          const totalTime = metrics.avgResponseTime * (metrics.requests - 1) + responseTime;
+          metrics.avgResponseTime = totalTime / metrics.requests;
+        }
+        break;
+      case 'error':
+        metrics.errors++;
+        break;
+    }
+  }
+
+  /**
+   * Start health monitoring
+   * @private
+   */
+  _startHealthMonitoring() {
+    if (this.healthCheckTimer) {
+      clearInterval(this.healthCheckTimer);
+    }
+
+    this.healthCheckTimer = setInterval(() => {
+      this._performHealthCheck();
+    }, this.config.healthCheckInterval);
+
+    console.log(`[ConnectionPool] Health monitoring started (interval: ${this.config.healthCheckInterval}ms)`);
+  }
+
+  /**
+   * Perform health check on all connections
+   * @private
+   */
+  async _performHealthCheck() {
+    if (this.isShuttingDown) return;
+
+    console.log('[ConnectionPool] Performing health check');
+    const startTime = performance.now();
+
+    const healthCheckPromises = Array.from(this.connectionPool.entries()).map(async ([connectionId, connection]) => {
+      try {
+        const isHealthy = connection.client.isConnected &&
+          typeof connection.client.getConnectionMetrics === 'function';
+
+        const metrics = this.connectionMetrics.get(connectionId);
+        if (metrics) {
+          metrics.isHealthy = isHealthy;
+        }
+
+        if (!isHealthy) {
+          console.warn(`[ConnectionPool] Connection ${connectionId} is unhealthy`);
+          this.activeConnections.delete(connection);
+
+          // Attempt to reconnect if failover is enabled
+          if (this.config.enableFailover) {
+            try {
+              await connection.client.connect();
+              this.activeConnections.add(connection);
+              console.log(`[ConnectionPool] Connection ${connectionId} reconnected successfully`);
+            } catch (error) {
+              console.error(`[ConnectionPool] Failed to reconnect ${connectionId}:`, error);
+            }
+          }
+        } else {
+          this.activeConnections.add(connection);
+        }
+
+      } catch (error) {
+        console.error(`[ConnectionPool] Health check failed for ${connectionId}:`, error);
+        this.activeConnections.delete(connection);
+      }
+    });
+
+    await Promise.allSettled(healthCheckPromises);
+
+    const healthCheckTime = performance.now() - startTime;
+    this.poolMetrics.lastHealthCheck = Date.now();
+    this.poolMetrics.activeConnections = this.activeConnections.size;
+
+    console.log(`[ConnectionPool] Health check completed in ${healthCheckTime.toFixed(2)}ms - ${this.activeConnections.size}/${this.connectionPool.size} connections healthy`);
+  }
+}
+
 class TransportSelector {
   static selectOptimalTransport(config = {}) {
     const requestedTransport = config.transport || window.__PRESWALD_CLIENT_TYPE || TransportType.AUTO;
@@ -1775,13 +2516,207 @@ class TransportSelector {
 }
 
 /**
+ * Pooled Communication Client that uses connection pooling for enhanced performance and reliability
+ */
+class PooledCommunicationClient extends IPreswaldCommunicator {
+  constructor(transportType, config = {}) {
+    super();
+    this.transportType = transportType;
+    this.config = config;
+    this.connectionPool = null;
+    this.isInitialized = false;
+
+    // Aggregate metrics from all pooled connections
+    this.aggregateMetrics = {
+      totalRequests: 0,
+      totalErrors: 0,
+      avgResponseTime: 0,
+      poolUtilization: 0
+    };
+  }
+
+  async connect(config = {}) {
+    if (this.isInitialized) {
+      console.log('[PooledClient] Already initialized');
+      return { success: true, message: 'Already connected' };
+    }
+
+    console.log('[PooledClient] Initializing connection pool');
+
+    try {
+      const poolConfig = {
+        maxPoolSize: config.maxPoolSize || 3,
+        minPoolSize: config.minPoolSize || 1,
+        loadBalancingStrategy: config.loadBalancingStrategy || 'performance',
+        enableFailover: config.enableFailover !== false,
+        ...config.poolConfig
+      };
+
+      this.connectionPool = new ConnectionPoolManager(poolConfig);
+      const connectionsCreated = await this.connectionPool.initialize(this.transportType, config);
+
+      this.isInitialized = true;
+      this.isConnected = true;
+
+      console.log(`[PooledClient] Initialized with ${connectionsCreated} connections`);
+      return { success: true, message: `Connected with ${connectionsCreated} pooled connections` };
+
+    } catch (error) {
+      console.error('[PooledClient] Failed to initialize connection pool:', error);
+      throw error;
+    }
+  }
+
+  async disconnect() {
+    if (this.connectionPool) {
+      console.log('[PooledClient] Shutting down connection pool');
+      await this.connectionPool.shutdown();
+      this.connectionPool = null;
+    }
+    this.isInitialized = false;
+    this.isConnected = false;
+  }
+
+  getComponentState(componentId) {
+    if (!this.isInitialized) {
+      throw new Error('PooledClient not initialized');
+    }
+
+    try {
+      const connection = this.connectionPool.getConnection();
+      return connection.getComponentState(componentId);
+    } catch (error) {
+      console.error('[PooledClient] Error getting component state:', error);
+      throw error;
+    }
+  }
+
+  async updateComponentState(componentId, value) {
+    if (!this.isInitialized) {
+      throw new Error('PooledClient not initialized');
+    }
+
+    const startTime = performance.now();
+
+    try {
+      const connection = this.connectionPool.getConnection();
+      const result = await connection.updateComponentState(componentId, value);
+
+      const responseTime = performance.now() - startTime;
+      this._updateAggregateMetrics('success', responseTime);
+
+      return result;
+    } catch (error) {
+      this._updateAggregateMetrics('error', performance.now() - startTime);
+      console.error('[PooledClient] Error updating component state:', error);
+      throw error;
+    }
+  }
+
+  async bulkStateUpdate(updates) {
+    if (!this.isInitialized) {
+      throw new Error('PooledClient not initialized');
+    }
+
+    const startTime = performance.now();
+
+    try {
+      const connection = this.connectionPool.getConnection();
+      const result = await connection.bulkStateUpdate(updates);
+
+      const responseTime = performance.now() - startTime;
+      this._updateAggregateMetrics('success', responseTime);
+
+      return result;
+    } catch (error) {
+      this._updateAggregateMetrics('error', performance.now() - startTime);
+      console.error('[PooledClient] Error in bulk state update:', error);
+      throw error;
+    }
+  }
+
+  subscribe(callback) {
+    if (!this.isInitialized) {
+      throw new Error('PooledClient not initialized');
+    }
+
+    // Subscribe to all connections in the pool
+    const unsubscribeFunctions = [];
+
+    for (const connection of this.connectionPool.activeConnections) {
+      try {
+        const unsubscribe = connection.client.subscribe(callback);
+        unsubscribeFunctions.push(unsubscribe);
+      } catch (error) {
+        console.error('[PooledClient] Error subscribing to connection:', error);
+      }
+    }
+
+    // Return a function that unsubscribes from all connections
+    return () => {
+      unsubscribeFunctions.forEach(unsubscribe => {
+        try {
+          unsubscribe();
+        } catch (error) {
+          console.error('[PooledClient] Error unsubscribing:', error);
+        }
+      });
+    };
+  }
+
+  getConnectionMetrics() {
+    if (!this.isInitialized || !this.connectionPool) {
+      return {
+        isConnected: false,
+        transport: 'PooledClient',
+        error: 'Not initialized'
+      };
+    }
+
+    const poolMetrics = this.connectionPool.getPoolMetrics();
+
+    return {
+      isConnected: this.isConnected,
+      transport: 'PooledClient',
+      transportType: this.transportType,
+      poolMetrics,
+      aggregateMetrics: this.aggregateMetrics,
+      connectionCount: poolMetrics.activeConnections,
+      poolUtilization: poolMetrics.activeConnections / poolMetrics.poolSize * 100
+    };
+  }
+
+  getConnections() {
+    if (!this.isInitialized || !this.connectionPool) {
+      return [];
+    }
+
+    return this.connectionPool.getPoolMetrics().connectionDetails;
+  }
+
+  _updateAggregateMetrics(type, responseTime) {
+    this.aggregateMetrics.totalRequests++;
+
+    if (type === 'error') {
+      this.aggregateMetrics.totalErrors++;
+    }
+
+    // Update rolling average response time
+    const totalTime = this.aggregateMetrics.avgResponseTime * (this.aggregateMetrics.totalRequests - 1) + responseTime;
+    this.aggregateMetrics.avgResponseTime = totalTime / this.aggregateMetrics.totalRequests;
+  }
+}
+
+/**
  * Enhanced factory function to create the appropriate communication client
- * Includes optimized transport selection with environment detection
+ * Includes optimized transport selection with environment detection and optional connection pooling
  * 
  * @param {Object} config - Configuration for the communicator
  * @param {string} config.transport - Transport type ('websocket', 'postmessage', 'comlink', 'auto')
  * @param {number} config.connectionTimeout - Connection timeout in ms (default: 10000)
  * @param {boolean} config.enableWorkers - Allow worker-based transports (default: true)
+ * @param {boolean} config.enableConnectionPooling - Enable connection pooling (default: false for compatibility)
+ * @param {Object} config.poolConfig - Connection pool configuration
  * @returns {IPreswaldCommunicator} - Enhanced communication interface
  */
 export const createCommunicationLayer = (config = {}) => {
@@ -1795,6 +2730,12 @@ export const createCommunicationLayer = (config = {}) => {
       enableWorkers: true,
       retryAttempts: 3,
       retryDelay: 1000,
+      enableConnectionPooling: false, // Default to false for backward compatibility
+      poolConfig: {
+        maxPoolSize: 3,
+        minPoolSize: 1,
+        loadBalancingStrategy: 'performance'
+      },
       ...config
     };
 
@@ -1804,8 +2745,18 @@ export const createCommunicationLayer = (config = {}) => {
     const selectedTransport = TransportSelector.selectOptimalTransport(enhancedConfig);
     console.log('[CommunicationFactory] Selected transport:', selectedTransport);
 
-    // Create the appropriate client
-    const client = createTransportClient(selectedTransport, enhancedConfig);
+    let client;
+
+    // Create pooled or single client based on configuration
+    if (enhancedConfig.enableConnectionPooling && selectedTransport === TransportType.WEBSOCKET) {
+      console.log('[CommunicationFactory] Creating pooled communication client');
+      client = new PooledCommunicationClient(selectedTransport, enhancedConfig);
+    } else {
+      if (enhancedConfig.enableConnectionPooling) {
+        console.warn(`[CommunicationFactory] Connection pooling not supported for ${selectedTransport}, falling back to single connection`);
+      }
+      client = createTransportClient(selectedTransport, enhancedConfig);
+    }
 
     // Validate interface compliance
     if (!(client instanceof IPreswaldCommunicator)) {
@@ -1881,6 +2832,38 @@ export const createCommunicationLayerWithTransport = (transport, config = {}) =>
 };
 
 /**
+ * Create a production-ready communication layer with connection pooling enabled
+ * Optimized for high-throughput applications serving millions of users
+ * 
+ * @param {Object} config - Configuration for the pooled communicator
+ * @param {number} config.maxPoolSize - Maximum number of connections in pool (default: 3)
+ * @param {number} config.minPoolSize - Minimum number of connections in pool (default: 1)
+ * @param {string} config.loadBalancingStrategy - Load balancing strategy ('round-robin', 'least-connections', 'performance')
+ * @param {boolean} config.enableFailover - Enable automatic failover (default: true)
+ * @returns {IPreswaldCommunicator} - Pooled communication interface
+ */
+export const createProductionCommunicationLayer = (config = {}) => {
+  const productionConfig = {
+    enableConnectionPooling: true,
+    transport: TransportType.WEBSOCKET, // Force WebSocket for production pooling
+    poolConfig: {
+      maxPoolSize: 3,
+      minPoolSize: 2, // Higher minimum for production
+      loadBalancingStrategy: 'performance',
+      enableFailover: true,
+      healthCheckInterval: 15000, // More frequent health checks
+      ...config.poolConfig
+    },
+    connectionTimeout: 8000, // Faster timeout for production
+    retryAttempts: 5, // More retries for production
+    ...config
+  };
+
+  console.log('[ProductionFactory] Creating production communication layer with pooling');
+  return createCommunicationLayer(productionConfig);
+};
+
+/**
  * Legacy export - maintain backwards compatibility
  * @deprecated Use createCommunicationLayer() directly
  */
@@ -1890,12 +2873,14 @@ export const createCommunicator = createCommunicationLayer;
 export const comm = createCommunicationLayer();
 
 /**
- * Export MessageEncoder, ComponentStateManager and enhanced communication types for external use
- * Allows applications to use standardized message formatting, bulk state management, and transport selection
+ * Export MessageEncoder, ComponentStateManager, ConnectionPoolManager and enhanced communication types for external use
+ * Allows applications to use standardized message formatting, bulk state management, transport selection, and connection pooling
  */
 export {
   MessageEncoder,
   ComponentStateManager,
+  ConnectionPoolManager,
+  PooledCommunicationClient,
   MessageType,
   TransportType
 };
