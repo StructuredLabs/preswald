@@ -275,8 +275,8 @@ const MemoizedComponent = memo(
             value={component.value || component.state || { messages: [] }}
             onChange={(value) => {
               handleUpdate(componentId, value);
-              id = { componentId };
             }}
+            id={componentId}
           />
         );
 
