@@ -100,7 +100,10 @@ const App = () => {
 
         const updatedRows = prevState.rows.map((row) =>
           row.map((component) => {
-            if (!component || !component.id) return component;
+            if (!component || !component.id) {
+              console.warn('[App] Invalid component found during bulk state update:', component);
+              return component;
+            }
 
             // Check if this component has a state update
             if (stateUpdates.hasOwnProperty(component.id)) {
@@ -174,7 +177,10 @@ const App = () => {
       // Process components with bulk-retrieved states using optimized approach
       const updatedRows = components.rows.map((row) =>
         row.map((component) => {
-          if (!component || !component.id) return component;
+          if (!component || !component.id) {
+            console.warn('[App] Invalid component found during component refresh:', component);
+            return component;
+          }
 
           const currentState = stateMap.get(component.id);
           return {
@@ -196,8 +202,7 @@ const App = () => {
         timestamp: new Date().toISOString()
       };
       
-      console.log(`[App] Enhanced bulk component processing completed: ${componentIds.length} components in ${processingTime.toFixed(2)}ms`);
-      console.log('[App] Processing metrics:', metrics);
+      console.debug(`[App] Enhanced bulk component processing completed: ${componentIds.length} components in ${processingTime.toFixed(2)}ms`, { metrics });
       
       setAreComponentsLoading(false);
       setComponents({ rows: updatedRows });
@@ -260,7 +265,7 @@ const App = () => {
     }
   };
 
-  const handleBulkComponentUpdate = async (updates) => {
+  const processBulkComponentUpdates = async (updates) => {
     const startTime = performance.now();
     
     try {
@@ -289,7 +294,10 @@ const App = () => {
 
         const updatedRows = prevState.rows.map((row) =>
           row.map((component) => {
-            if (!component || !component.id) return component;
+            if (!component || !component.id) {
+              console.warn('[App] Invalid component found during bulk component update:', component);
+              return component;
+            }
 
             // Check if this component was updated
             if (updates.hasOwnProperty(component.id)) {

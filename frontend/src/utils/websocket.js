@@ -1317,6 +1317,7 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
       type: 'error',
       content: {
         message: error.message,
+        fullError: error.toString(),
         context,
         timestamp: performance.now(),
         transport: this.constructor.name
@@ -1349,7 +1350,7 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
 }
 
 class WebSocketClient extends BaseCommunicationClient {
-  constructor() {
+  constructor(config = {}) {
     super();
     this.socket = null;
     this.clientId = Math.random().toString(36).substring(7);
@@ -1358,13 +1359,12 @@ class WebSocketClient extends BaseCommunicationClient {
     this.maxReconnectAttempts = 5;
     this.reconnectDelay = 1000;
 
-    // Enhanced transport optimization features
     this.messageQueue = [];
-    this.maxQueueSize = 1000;
-    this.batchingEnabled = true;
+    this.maxQueueSize = config.maxQueueSize || 1000;
+    this.batchingEnabled = config.batchingEnabled !== false;
     this.batchTimeout = null;
-    this.batchSize = 10;
-    this.batchDelay = 16; // ~60fps for UI responsiveness
+    this.batchSize = config.batchSize || 10;
+    this.batchDelay = config.batchDelay || 16;
 
     // Compression statistics for monitoring
     this.compressionStats = {
@@ -1806,16 +1806,16 @@ class WebSocketClient extends BaseCommunicationClient {
 }
 
 class PostMessageClient extends BaseCommunicationClient {
-  constructor() {
+  constructor(config = {}) {
     super();
 
-    // Enhanced transport optimization features for PostMessage
     this.messageQueue = [];
-    this.maxQueueSize = 500; // Smaller queue for PostMessage due to potential parent window limitations
-    this.batchingEnabled = true;
+    this.maxQueueSize = config.maxQueueSize || 500;
+    this.batchingEnabled = config.batchingEnabled !== false;
     this.batchTimeout = null;
-    this.batchSize = 8; // Smaller batch size for PostMessage
-    this.batchDelay = 20; // Slightly higher delay for PostMessage
+    this.batchSize = config.batchSize || 8;
+    this.batchDelay = config.batchDelay || 20;
+    this.messageSequence = 0;
 
     // Serialization optimization statistics
     this.serializationStats = {
@@ -2193,10 +2193,18 @@ class PostMessageClient extends BaseCommunicationClient {
 }
 
 class ComlinkClient extends BaseCommunicationClient {
-  constructor() {
+  constructor(config = {}) {
     super();
     console.log('[Client] Initializing ComlinkClient');
     this.worker = null;
+
+    this.messageQueue = [];
+    this.maxQueueSize = config.maxQueueSize || 100;
+    this.batchingEnabled = config.batchingEnabled !== false;
+    this.batchTimeout = null;
+    this.batchSize = config.batchSize || 5;
+    this.batchDelay = config.batchDelay || 50;
+
     // Note: callbacks, componentStates, isConnected, pendingUpdates
     // are now inherited from BaseCommunicationClient
   }
@@ -3163,11 +3171,11 @@ export const createCommunicationLayer = (config = {}) => {
 function createTransportClient(transportType, config) {
   switch (transportType) {
     case TransportType.WEBSOCKET:
-      return new WebSocketClient();
+      return new WebSocketClient(config);
     case TransportType.POST_MESSAGE:
-      return new PostMessageClient();
+      return new PostMessageClient(config);
     case TransportType.COMLINK:
-      return new ComlinkClient();
+      return new ComlinkClient(config);
     default:
       throw new Error(`Unsupported transport type: ${transportType}`);
   }

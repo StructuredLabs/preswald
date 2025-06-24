@@ -418,9 +418,6 @@ class BasePreswaldService:
         self, states: dict[str, Any], exclude_client: str | None = None
     ):
         """Broadcast bulk state updates to all clients except the sender (optimized for bulk operations)"""
-        
-        if not states:
-            return
 
         # Prepare bulk update message with compression
         processed_states = {}
