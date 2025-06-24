@@ -22,6 +22,342 @@ const MessageType = {
 };
 
 /**
+ * Priority:
+ * 1. URL parameter: ?server=<server_url> or ?preswald_server=<server_url>
+ * 2. localStorage: 'preswald_server_url'
+ * 3. Environment variable: PRESWALD_SERVER_URL (via meta tag)
+ * 4. Session storage: 'preswald_server_url'
+ * 5. Default localhost with intelligent port detection
+ */
+class ServerUrlResolver {
+  static STORAGE_KEY = 'preswald_server_url';
+  static URL_PARAM_NAMES = ['server', 'preswald_server', 'serverUrl'];
+  static DEFAULT_LOCALHOST_PORTS = [8501, 8000, 3000, 5000, 8080];
+  static DEFAULT_HOST = 'localhost';
+
+  /**
+   * Resolves the server URL with comprehensive fallback logic
+   * @param {Object} config - Configuration options
+   * @param {boolean} config.enableUrlParams - Allow URL parameter resolution (default: true)
+   * @param {boolean} config.enableStorage - Allow storage-based resolution (default: true)
+   * @param {string} config.fallbackHost - Fallback host if auto-detection fails
+   * @param {number} config.fallbackPort - Fallback port if auto-detection fails
+   * @returns {Promise<string>} - Resolved server URL
+   */
+  static async resolveServerUrl(config = {}) {
+    const {
+      enableUrlParams = true,
+      enableStorage = true,
+      fallbackHost = this.DEFAULT_HOST,
+      fallbackPort = this.DEFAULT_LOCALHOST_PORTS[0]
+    } = config;
+
+    const startTime = performance.now();
+
+    try {
+      console.log('[ServerUrlResolver] Starting server URL resolution...');
+
+      // Priority 1: URL Parameters (if enabled and not in production build)
+      if (enableUrlParams) {
+        const urlServerUrl = this._getServerUrlFromParams();
+        if (urlServerUrl) {
+          const validatedUrl = await this._validateAndNormalizeUrl(urlServerUrl);
+          if (validatedUrl) {
+            console.log(`[ServerUrlResolver] Using URL parameter: ${validatedUrl}`);
+            this._saveToStorage(validatedUrl);
+            return validatedUrl;
+          }
+        }
+      }
+
+      // Priority 2: localStorage
+      if (enableStorage) {
+        const storedUrl = this._getFromStorage();
+        if (storedUrl) {
+          const validatedUrl = await this._validateAndNormalizeUrl(storedUrl);
+          if (validatedUrl) {
+            console.log(`[ServerUrlResolver] Using stored URL: ${validatedUrl}`);
+            return validatedUrl;
+          } else {
+            console.warn('[ServerUrlResolver] Stored URL is invalid, clearing storage');
+            this._clearStorage();
+          }
+        }
+      }
+
+      // Priority 3: Environment variable (via meta tag)
+      const envUrl = this._getFromEnvironment();
+      if (envUrl) {
+        const validatedUrl = await this._validateAndNormalizeUrl(envUrl);
+        if (validatedUrl) {
+          console.log(`[ServerUrlResolver] Using environment variable: ${validatedUrl}`);
+          this._saveToStorage(validatedUrl);
+          return validatedUrl;
+        }
+      }
+
+      // Priority 4: Session storage (temporary fallback)
+      if (enableStorage) {
+        const sessionUrl = this._getFromSessionStorage();
+        if (sessionUrl) {
+          const validatedUrl = await this._validateAndNormalizeUrl(sessionUrl);
+          if (validatedUrl) {
+            console.log(`[ServerUrlResolver] Using session storage: ${validatedUrl}`);
+            return validatedUrl;
+          }
+        }
+      }
+
+      // Priority 5: Auto-detect localhost server
+      const autoDetectedUrl = await this._autoDetectLocalhost();
+      if (autoDetectedUrl) {
+        console.log(`[ServerUrlResolver] Auto-detected localhost: ${autoDetectedUrl}`);
+        this._saveToStorage(autoDetectedUrl);
+        return autoDetectedUrl;
+      }
+
+      // Final fallback: Default localhost configuration
+      const fallbackUrl = `${window.location.protocol}//${fallbackHost}:${fallbackPort}`;
+      console.log(`[ServerUrlResolver] Using final fallback: ${fallbackUrl}`);
+
+      const resolveTime = performance.now() - startTime;
+      console.log(`[ServerUrlResolver] Resolution completed in ${resolveTime.toFixed(2)}ms`);
+
+      return fallbackUrl;
+
+    } catch (error) {
+      console.error('[ServerUrlResolver] Error during resolution:', error);
+      const errorFallback = `${window.location.protocol}//${fallbackHost}:${fallbackPort}`;
+      console.log(`[ServerUrlResolver] Using error fallback: ${errorFallback}`);
+      return errorFallback;
+    }
+  }
+
+  static _getServerUrlFromParams() {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+
+      for (const paramName of this.URL_PARAM_NAMES) {
+        const value = urlParams.get(paramName);
+        if (value) {
+          console.log(`[ServerUrlResolver] Found URL parameter '${paramName}': ${value}`);
+          return value.trim();
+        }
+      }
+
+      // Also check hash parameters for single-page applications
+      if (window.location.hash.includes('?')) {
+        const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
+        for (const paramName of this.URL_PARAM_NAMES) {
+          const value = hashParams.get(paramName);
+          if (value) {
+            console.log(`[ServerUrlResolver] Found hash parameter '${paramName}': ${value}`);
+            return value.trim();
+          }
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.error('[ServerUrlResolver] Error parsing URL parameters:', error);
+      return null;
+    }
+  }
+
+  static _getFromStorage() {
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      if (stored) {
+        console.log(`[ServerUrlResolver] Found in localStorage: ${stored}`);
+        return stored.trim();
+      }
+      return null;
+    } catch (error) {
+      console.error('[ServerUrlResolver] Error accessing localStorage:', error);
+      return null;
+    }
+  }
+
+  static _getFromSessionStorage() {
+    try {
+      const stored = sessionStorage.getItem(this.STORAGE_KEY);
+      if (stored) {
+        console.log(`[ServerUrlResolver] Found in sessionStorage: ${stored}`);
+        return stored.trim();
+      }
+      return null;
+    } catch (error) {
+      console.error('[ServerUrlResolver] Error accessing sessionStorage:', error);
+      return null;
+    }
+  }
+
+  static _getFromEnvironment() {
+    try {
+      const metaTag = document.querySelector('meta[name="preswald-server-url"]');
+      if (metaTag) {
+        const content = metaTag.getAttribute('content');
+        if (content) {
+          console.log(`[ServerUrlResolver] Found in meta tag: ${content}`);
+          return content.trim();
+        }
+      }
+
+      // Check for global environment variable
+      if (window.PRESWALD_SERVER_URL) {
+        console.log(`[ServerUrlResolver] Found in global variable: ${window.PRESWALD_SERVER_URL}`);
+        return window.PRESWALD_SERVER_URL.trim();
+      }
+
+      return null;
+    } catch (error) {
+      console.error('[ServerUrlResolver] Error accessing environment:', error);
+      return null;
+    }
+  }
+
+  static async _autoDetectLocalhost() {
+    console.log('[ServerUrlResolver] Starting localhost auto-detection...');
+
+    const protocol = window.location.protocol;
+    const detectionPromises = this.DEFAULT_LOCALHOST_PORTS.map(async (port) => {
+      const testUrl = `${protocol}//${this.DEFAULT_HOST}:${port}`;
+
+      try {
+        // Use a lightweight health check endpoint or fallback to main endpoint
+        const healthUrl = `${testUrl}/health`;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
+
+        const response = await fetch(healthUrl, {
+          method: 'GET',
+          signal: controller.signal,
+          mode: 'cors'
+        });
+
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+          console.log(`[ServerUrlResolver] Localhost server detected at port ${port}`);
+          return testUrl;
+        }
+      } catch (error) {
+        // Try without /health endpoint
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+          const response = await fetch(testUrl, {
+            method: 'HEAD',
+            signal: controller.signal,
+            mode: 'cors'
+          });
+
+          clearTimeout(timeoutId);
+
+          if (response.ok) {
+            console.log(`[ServerUrlResolver] Localhost server detected at port ${port} (root endpoint)`);
+            return testUrl;
+          }
+        } catch (rootError) {
+          // Silent fail for auto-detection
+        }
+      }
+
+      return null;
+    });
+
+    try {
+      const results = await Promise.allSettled(detectionPromises);
+      const successfulUrl = results.find(result =>
+        result.status === 'fulfilled' && result.value !== null
+      )?.value;
+
+      if (successfulUrl) {
+        return successfulUrl;
+      }
+
+      console.log('[ServerUrlResolver] No localhost server auto-detected');
+      return null;
+    } catch (error) {
+      console.error('[ServerUrlResolver] Error during localhost auto-detection:', error);
+      return null;
+    }
+  }
+
+  static async _validateAndNormalizeUrl(url) {
+    if (!url || typeof url !== 'string') {
+      return null;
+    }
+
+    try {
+      // Handle relative URLs and normalize
+      let normalizedUrl = url.trim();
+
+      // Add protocol if missing
+      if (!normalizedUrl.match(/^https?:\/\//)) {
+        // Use same protocol as current page
+        normalizedUrl = `${window.location.protocol}//${normalizedUrl}`;
+      }
+
+      // Validate URL format
+      const urlObj = new URL(normalizedUrl);
+
+      // Ensure it's HTTP/HTTPS
+      if (!['http:', 'https:'].includes(urlObj.protocol)) {
+        console.warn(`[ServerUrlResolver] Invalid protocol in URL: ${normalizedUrl}`);
+        return null;
+      }
+
+      // Remove trailing slash for consistency
+      const cleanUrl = normalizedUrl.replace(/\/$/, '');
+
+      console.log(`[ServerUrlResolver] Validated and normalized URL: ${cleanUrl}`);
+      return cleanUrl;
+
+    } catch (error) {
+      console.error(`[ServerUrlResolver] Invalid URL format: ${url}`, error);
+      return null;
+    }
+  }
+
+  static _saveToStorage(url) {
+    try {
+      localStorage.setItem(this.STORAGE_KEY, url);
+      console.log(`[ServerUrlResolver] Saved to localStorage: ${url}`);
+    } catch (error) {
+      console.error('[ServerUrlResolver] Error saving to localStorage:', error);
+    }
+  }
+
+  static _clearStorage() {
+    try {
+      localStorage.removeItem(this.STORAGE_KEY);
+      sessionStorage.removeItem(this.STORAGE_KEY);
+      console.log('[ServerUrlResolver] Cleared stored server URLs');
+    } catch (error) {
+      console.error('[ServerUrlResolver] Error clearing storage:', error);
+    }
+  }
+
+  static async getCurrentServerUrl() {
+    return await this.resolveServerUrl();
+  }
+
+  static setServerUrl(url) {
+    if (url && typeof url === 'string') {
+      this._saveToStorage(url.trim());
+      console.log(`[ServerUrlResolver] Manually set server URL: ${url}`);
+    }
+  }
+
+  static resetServerUrl() {
+    this._clearStorage();
+    console.log('[ServerUrlResolver] Reset server URL configuration');
+  }
+}
+
+/**
  * MessageEncoder with JSON protocol and optional compression
  * Provides consistent message formatting across all transport types
  */
@@ -930,6 +1266,11 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
         lastBulkChanges: this.metrics.lastBulkChanged,
         bulkEfficiency: this.metrics.lastBulkProcessed > 0 ?
           (this.metrics.lastBulkChanged / this.metrics.lastBulkProcessed * 100).toFixed(1) + '%' : 'N/A'
+      },
+      serverConfiguration: {
+        resolvedServerUrl: this.resolvedServerUrl || 'unknown',
+        wsUrl: this.wsUrl || 'unknown',
+        clientId: this.clientId
       }
     };
 
@@ -1046,9 +1387,23 @@ class WebSocketClient extends BaseCommunicationClient {
     console.log('[WebSocket] Connecting...');
 
     try {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/ws/${this.clientId}`;
+      const serverUrl = await ServerUrlResolver.resolveServerUrl({
+        enableUrlParams: config.enableUrlParams !== false,
+        enableStorage: config.enableStorage !== false,
+        fallbackHost: config.fallbackHost,
+        fallbackPort: config.fallbackPort
+      });
+
+      const wsProtocol = serverUrl.startsWith('https:') ? 'wss:' : 'ws:';
+      const serverHost = serverUrl.replace(/^https?:\/\//, '');
+      const wsUrl = `${wsProtocol}//${serverHost}/ws/${this.clientId}`;
+
+      console.log(`[WebSocket] Connecting to: ${wsUrl} (resolved from: ${serverUrl})`);
+
       this.socket = new WebSocket(wsUrl);
+
+      this.resolvedServerUrl = serverUrl;
+      this.wsUrl = wsUrl;
 
       return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
@@ -2709,7 +3064,7 @@ class PooledCommunicationClient extends IPreswaldCommunicator {
 
 /**
  * Enhanced factory function to create the appropriate communication client
- * Includes optimized transport selection with environment detection and optional connection pooling
+ * Includes optimized transport selection with environment detection, server URL resolution, and optional connection pooling
  * 
  * @param {Object} config - Configuration for the communicator
  * @param {string} config.transport - Transport type ('websocket', 'postmessage', 'comlink', 'auto')
@@ -2717,6 +3072,11 @@ class PooledCommunicationClient extends IPreswaldCommunicator {
  * @param {boolean} config.enableWorkers - Allow worker-based transports (default: true)
  * @param {boolean} config.enableConnectionPooling - Enable connection pooling (default: false for compatibility)
  * @param {Object} config.poolConfig - Connection pool configuration
+ * @param {boolean} config.enableUrlParams - Allow URL parameter server resolution (default: true)
+ * @param {boolean} config.enableStorage - Allow storage-based server resolution (default: true)
+ * @param {string} config.serverUrl - Explicit server URL (bypasses auto-resolution)
+ * @param {string} config.fallbackHost - Fallback host for server resolution (default: 'localhost')
+ * @param {number} config.fallbackPort - Fallback port for server resolution (default: 8501)
  * @returns {IPreswaldCommunicator} - Enhanced communication interface
  */
 export const createCommunicationLayer = (config = {}) => {
@@ -2736,6 +3096,12 @@ export const createCommunicationLayer = (config = {}) => {
         minPoolSize: 1,
         loadBalancingStrategy: 'performance'
       },
+      // Server URL resolution configuration
+      enableUrlParams: true,
+      enableStorage: true,
+      serverUrl: null, // Explicit server URL bypasses auto-resolution
+      fallbackHost: 'localhost',
+      fallbackPort: 8501,
       ...config
     };
 
@@ -2869,18 +3235,135 @@ export const createProductionCommunicationLayer = (config = {}) => {
  */
 export const createCommunicator = createCommunicationLayer;
 
-// Create the communication layer
+/**
+ * Initialize server URL configuration on module load
+ * This allows early resolution of server configuration before creating communication layer
+ */
+const initializeServerConfiguration = async () => {
+  try {
+    // Pre-resolve server URL to cache it and validate configuration
+    const serverUrl = await ServerUrlResolver.resolveServerUrl();
+    console.log(`[WebSocket Module] Pre-resolved server URL: ${serverUrl}`);
+
+    // Make server URL available globally for debugging
+    if (typeof window !== 'undefined') {
+      window.__PRESWALD_SERVER_URL = serverUrl;
+    }
+
+    return serverUrl;
+  } catch (error) {
+    console.error('[WebSocket Module] Error pre-resolving server URL:', error);
+    return null;
+  }
+};
+
+// Pre-initialize server configuration
+const serverConfigPromise = initializeServerConfiguration();
+
+/**
+ * Create the default communication layer with intelligent server resolution
+ * This is the main export that most applications will use
+ */
 export const comm = createCommunicationLayer();
 
 /**
- * Export MessageEncoder, ComponentStateManager, ConnectionPoolManager and enhanced communication types for external use
- * Allows applications to use standardized message formatting, bulk state management, transport selection, and connection pooling
+ * Create a communication layer with explicit server URL configuration
+ * Useful for applications that need to connect to specific servers
+ * 
+ * @param {string} serverUrl - Explicit server URL
+ * @param {Object} additionalConfig - Additional configuration options
+ * @returns {IPreswaldCommunicator} - Configured communication interface
  */
+const createCommunicationLayerWithServerUrl = (serverUrl, additionalConfig = {}) => {
+  if (!serverUrl || typeof serverUrl !== 'string') {
+    throw new Error('Server URL must be a valid string');
+  }
+
+  return createCommunicationLayer({
+    serverUrl: serverUrl.trim(),
+    enableUrlParams: false, // Skip URL param resolution when explicit URL provided
+    ...additionalConfig
+  });
+};
+
+/**
+ * Reconnect the default communication layer with new server configuration
+ * Useful for applications that need to switch servers dynamically
+ * 
+ * @param {string|null} newServerUrl - New server URL or null to re-resolve
+ * @returns {Promise<boolean>} - Success status
+ */
+const reconnectWithServerUrl = async (newServerUrl = null) => {
+  try {
+    console.log(`[WebSocket Module] Reconnecting with server URL: ${newServerUrl || 'auto-resolve'}`);
+
+    if (newServerUrl) {
+      ServerUrlResolver.setServerUrl(newServerUrl);
+    } else {
+      ServerUrlResolver.resetServerUrl();
+    }
+
+    // Disconnect current connection
+    if (comm && typeof comm.disconnect === 'function') {
+      await comm.disconnect();
+    }
+
+    // Reconnect with new configuration
+    if (comm && typeof comm.connect === 'function') {
+      const result = await comm.connect({ forceReconnect: true });
+      console.log('[WebSocket Module] Reconnection result:', result);
+      return result.success || false;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('[WebSocket Module] Error during reconnection:', error);
+    return false;
+  }
+};
+
+/**
+ * Get current server configuration information
+ * Useful for debugging and application status displays
+ * 
+ * @returns {Promise<Object>} - Server configuration details
+ */
+const getServerConfiguration = async () => {
+  try {
+    const currentUrl = await ServerUrlResolver.getCurrentServerUrl();
+    const metrics = comm && typeof comm.getConnectionMetrics === 'function'
+      ? comm.getConnectionMetrics()
+      : null;
+
+    return {
+      currentServerUrl: currentUrl,
+      isConnected: metrics?.isConnected || false,
+      connectionMetrics: metrics,
+      resolverCapabilities: {
+        urlParamsSupported: true,
+        storageSupported: typeof localStorage !== 'undefined',
+        autoDetectionSupported: true
+      }
+    };
+  } catch (error) {
+    console.error('[WebSocket Module] Error getting server configuration:', error);
+    return {
+      currentServerUrl: 'unknown',
+      isConnected: false,
+      error: error.message
+    };
+  }
+};
+
 export {
   MessageEncoder,
   ComponentStateManager,
   ConnectionPoolManager,
   PooledCommunicationClient,
+  ServerUrlResolver,
   MessageType,
-  TransportType
+  TransportType,
+  createCommunicationLayerWithServerUrl,
+  reconnectWithServerUrl,
+  getServerConfiguration
 };
