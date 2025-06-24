@@ -2824,29 +2824,77 @@ class TransportSelector {
     environment.supportsModules = 'noModule' in HTMLScriptElement.prototype;
     environment.isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
+    // Enhanced HTML export detection
+    environment.isHtmlExport = this._detectHtmlExport();
+    environment.hasProjectFs = typeof fetch !== 'undefined' && this._checkForProjectFs();
+
     return environment;
   }
 
+  static _detectHtmlExport() {
+    try {
+      // Check for HTML export indicators
+      return (
+        // Check for explicit client type setting
+        window.__PRESWALD_CLIENT_TYPE === 'comlink' ||
+        // Check for project_fs.json presence (HTML export artifact)
+        document.querySelector('script').textContent?.includes('project_fs.json') ||
+        // Check for Pyodide-related scripts
+        document.querySelector('script[src*="pyodide"]') ||
+        // Check for inline script setting client type
+        Array.from(document.querySelectorAll('script')).some(script =>
+          script.textContent?.includes('window.__PRESWALD_CLIENT_TYPE')
+        ) ||
+        // Check for static file serving pattern (no dynamic server endpoints)
+        window.location.protocol === 'file:' ||
+        // Check if we're being served from a static file server with typical HTML export structure
+        (window.location.pathname.endsWith('.html') || window.location.pathname.endsWith('/'))
+      );
+    } catch (error) {
+      console.warn('[TransportSelector] Error detecting HTML export environment:', error);
+      return false;
+    }
+  }
+
+  static _checkForProjectFs() {
+    // Quick check to see if project_fs.json is available (HTML export indicator)
+    try {
+      // Don't actually fetch, just check if we can construct the URL
+      const projectFsUrl = new URL('project_fs.json', window.location.origin + window.location.pathname);
+      return projectFsUrl.href !== null;
+    } catch {
+      return false;
+    }
+  }
+
   static selectForEnvironment(environment, config) {
-    // Priority-based selection with fallbacks
+    // Priority 1: HTML export environment should always use Comlink
+    if (environment.isHtmlExport && environment.hasWorkers && config.enableWorkers !== false) {
+      console.log('[TransportSelector] HTML export environment detected, using Comlink transport');
+      return TransportType.COMLINK;
+    }
+
+    // Priority 2: Embedded contexts (iframes) should use PostMessage
     if (environment.isEmbedded && environment.hasPostMessage) {
       return TransportType.POST_MESSAGE;
     }
 
-    if (environment.hasWebSocket && !environment.isEmbedded) {
+    // Priority 3: Regular web applications with server connectivity use WebSocket
+    if (environment.hasWebSocket && !environment.isEmbedded && !environment.isHtmlExport) {
       return TransportType.WEBSOCKET;
     }
 
+    // Priority 4: Worker-based applications (development/testing)
     if (environment.hasWorkers && config.enableWorkers !== false) {
       return TransportType.COMLINK;
     }
 
-    // Fallback to PostMessage if available
+    // Priority 5: Fallback to PostMessage if available
     if (environment.hasPostMessage) {
       return TransportType.POST_MESSAGE;
     }
 
-    // Last resort fallback
+    // Last resort fallback (should rarely be reached)
     console.warn('[TransportSelector] No optimal transport found, defaulting to WebSocket');
     return TransportType.WEBSOCKET;
   }
@@ -3271,8 +3319,211 @@ const serverConfigPromise = initializeServerConfiguration();
 /**
  * Create the default communication layer with intelligent server resolution
  * This is the main export that most applications will use
+ * 
+ * For HTML exports, we defer creation until the DOM is ready to ensure 
+ * window.__PRESWALD_CLIENT_TYPE is set correctly.
  */
-export const comm = createCommunicationLayer();
+let _globalCommInstance = null;
+
+function getOrCreateCommunicationLayer() {
+  if (_globalCommInstance) {
+    return _globalCommInstance;
+  }
+
+  try {
+    // Enhanced HTML export detection using multiple strategies
+    const isHtmlExport = detectHtmlExportEnvironment();
+    const clientType = window.__PRESWALD_CLIENT_TYPE;
+
+    console.log(`[WebSocket Module] Environment analysis:`, {
+      isHtmlExport,
+      clientType,
+      pathname: window.location.pathname,
+      protocol: window.location.protocol,
+      port: window.location.port,
+      hasProjectFsInUrl: window.location.href.includes('project_fs.json')
+    });
+
+    // Priority 1: Explicit client type 'comlink' always uses Comlink
+    if (clientType === 'comlink' || clientType === TransportType.COMLINK) {
+      console.log(`[WebSocket Module] Using Comlink transport due to explicit client type: ${clientType}`);
+      _globalCommInstance = createCommunicationLayer({
+        transport: TransportType.COMLINK,
+        enableUrlParams: false,
+        enableStorage: false
+      });
+    }
+    // Priority 2: Check if we have a server available (even in HTML export environment)
+    else if (isHtmlExport) {
+      console.log(`[WebSocket Module] HTML export environment detected, checking server availability...`);
+
+      // Check if we can reach a server (quick check)
+      const hasServerConnection = checkServerAvailability();
+
+      if (hasServerConnection) {
+        console.log(`[WebSocket Module] Server available in HTML export environment, using WebSocket transport`);
+        _globalCommInstance = createCommunicationLayer({
+          transport: TransportType.WEBSOCKET
+        });
+      } else {
+        console.log(`[WebSocket Module] No server available in HTML export environment, using Comlink transport`);
+        _globalCommInstance = createCommunicationLayer({
+          transport: TransportType.COMLINK,
+          enableUrlParams: false,
+          enableStorage: false
+        });
+      }
+    }
+    // Priority 3: Other explicit client types
+    else if (clientType && clientType !== TransportType.AUTO) {
+      console.log(`[WebSocket Module] Explicit client type specified: ${clientType}`);
+      _globalCommInstance = createCommunicationLayer({ transport: clientType });
+    }
+    // Priority 4: Default auto-detection
+    else {
+      console.log(`[WebSocket Module] Using auto-detection for transport selection`);
+      _globalCommInstance = createCommunicationLayer();
+    }
+
+    return _globalCommInstance;
+  } catch (error) {
+    console.error('[WebSocket Module] Error creating communication layer:', error);
+    // Fallback to basic creation
+    _globalCommInstance = createCommunicationLayer();
+    return _globalCommInstance;
+  }
+}
+
+function checkServerAvailability() {
+  try {
+    // Quick synchronous check to see if we're in a server environment
+    // Look for indicators that suggest a server is available
+
+    // 1. Check if we're on a known server port that's responding
+    const currentPort = window.location.port;
+    const isServerPort = ['8501', '8000', '3000', '5000'].includes(currentPort);
+
+    // 2. Check if localStorage has a server URL (indicates previous server connection)
+    const storedServerUrl = localStorage.getItem('preswald_server_url');
+
+    // 3. Check if we can access server-specific endpoints (quick check)
+    const hasServerEndpoints = window.location.pathname.includes('/api/') ||
+      window.location.pathname.includes('/ws/') ||
+      window.location.search.includes('server=');
+
+    // 4. Check if project_fs.json is NOT available locally (indicates server environment)
+    const hasLocalProjectFs = checkForProjectFsSync();
+
+    console.log(`[WebSocket Module] Server availability check:`, {
+      isServerPort,
+      storedServerUrl: !!storedServerUrl,
+      hasServerEndpoints,
+      hasLocalProjectFs
+    });
+
+    // If we have server indicators and no local project_fs.json, likely server environment
+    const hasServerConnection = (isServerPort || storedServerUrl || hasServerEndpoints) && !hasLocalProjectFs;
+
+    return hasServerConnection;
+  } catch (error) {
+    console.warn('[WebSocket Module] Error checking server availability:', error);
+    return false;
+  }
+}
+
+function detectHtmlExportEnvironment() {
+  try {
+    // Primary detection: Check for explicit client type first
+    if (window.__PRESWALD_CLIENT_TYPE === 'comlink') {
+      console.log('[WebSocket Module] HTML export detected via explicit client type: comlink');
+      return true;
+    }
+
+    // Secondary detection: Check for project_fs.json existence (synchronous check)
+    const hasProjectFs = checkForProjectFsSync();
+    if (hasProjectFs) {
+      console.log('[WebSocket Module] HTML export detected via project_fs.json presence');
+      return true;
+    }
+
+    // Tertiary detection: Multiple indicators approach
+    const indicators = [
+      // 1. Check for typical HTML export URL patterns
+      window.location.pathname.endsWith('.html') ||
+      window.location.pathname.endsWith('/') ||
+      window.location.protocol === 'file:',
+
+      // 2. Check for HTML export script indicators in head
+      Array.from(document.head?.querySelectorAll('script') || []).some(script =>
+        script.textContent?.includes('window.__PRESWALD_CLIENT_TYPE') ||
+        script.textContent?.includes('project_fs.json')
+      ),
+
+      // 3. Check for absence of typical server endpoints
+      !window.location.pathname.includes('/api/') &&
+      !window.location.pathname.includes('/ws/') &&
+      !window.location.search.includes('server='),
+
+      // 4. Check if running from static file server (common HTML export pattern)
+      window.location.port && ['8080', '8081', '3000', '5000'].includes(window.location.port) &&
+      !window.location.pathname.includes('dev'),
+
+      // 5. Check for Pyodide or worker-related assets
+      Array.from(document.querySelectorAll('script[src]')).some(script =>
+        script.src.includes('pyodide') || script.src.includes('worker')
+      )
+    ];
+
+    // Consider it an HTML export if multiple indicators are present
+    const positiveIndicators = indicators.filter(Boolean).length;
+    const isHtmlExport = positiveIndicators >= 2;
+
+    if (isHtmlExport) {
+      console.log(`[WebSocket Module] HTML export detected with ${positiveIndicators} indicators:`, {
+        clientType: window.__PRESWALD_CLIENT_TYPE,
+        pathname: window.location.pathname,
+        protocol: window.location.protocol,
+        port: window.location.port,
+        hasProjectFsScript: indicators[1],
+        noServerEndpoints: indicators[2],
+        staticFileServer: indicators[3],
+        hasWorkerAssets: indicators[4]
+      });
+    }
+
+    return isHtmlExport;
+  } catch (error) {
+    console.warn('[WebSocket Module] Error detecting HTML export environment:', error);
+    return false;
+  }
+}
+
+function checkForProjectFsSync() {
+  try {
+    // Check if project_fs.json is accessible (this is the most reliable indicator)
+    const xhr = new XMLHttpRequest();
+    xhr.open('HEAD', './project_fs.json', false); // Synchronous request
+    xhr.send();
+    return xhr.status === 200;
+  } catch (error) {
+    // If we get a CORS error or network error, we might still be in HTML export
+    // but served from a different origin. Check for other indicators.
+    return false;
+  }
+}
+
+export const comm = new Proxy({}, {
+  get(target, prop) {
+    const instance = getOrCreateCommunicationLayer();
+    const value = instance[prop];
+    return typeof value === 'function' ? value.bind(instance) : value;
+  },
+  set(target, prop, value) {
+    const instance = getOrCreateCommunicationLayer();
+    instance[prop] = value;
+    return true;
+  }
+});
 
 /**
  * Create a communication layer with explicit server URL configuration

@@ -523,9 +523,9 @@ def prepare_html_export(
     logger.info(f"Copied Preswald static assets to {output_dir}")
 
     # 3. Modify index.html (add branding, boot script)
-    head_script, _ = get_boot_script_html(
+    head_script, body_script = get_boot_script_html(
         client_type=client_type
-    )  # body_script not used by current logic
+    )
 
     # Initialize branding manager
     # For BrandingManager, static_dir is the path to package's static files (e.g., .../preswald/static)
@@ -583,6 +583,18 @@ def prepare_html_export(
             )
         else:  # Fallback if </head> not found
             index_content = index_content + "\n" + scripts_to_inject
+
+        # Add the boot script to the body (before </body>)
+        if "</body>" in index_content:
+            # Extract just the script tag from body_script (remove </body></html>)
+            boot_script_tag = body_script.split("</body>")[0].strip()
+            index_content = index_content.replace(
+                "</body>", f"{boot_script_tag}\n</body>"
+            )
+        else:  # Fallback if </body> not found
+            # Extract just the script tag from body_script
+            boot_script_tag = body_script.split("</body>")[0].strip()
+            index_content = index_content + "\n" + boot_script_tag
 
         f.seek(0)
         f.write(index_content)

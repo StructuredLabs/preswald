@@ -4,11 +4,22 @@
  */
 async function boot() {
     console.log('[Boot] Starting boot process...');
-    // await new Promise(resolve => setTimeout(resolve, 20000));
-    const comm = window.__PRESWALD_COMM;
+
+    // Wait for the communication layer to be initialized
+    let comm = window.__PRESWALD_COMM;
+    let retryCount = 0;
+    const maxRetries = 50; // 5 seconds with 100ms intervals
+
+    while (!comm && retryCount < maxRetries) {
+        console.log(`[Boot] Waiting for PRESWALD_COMM... (${retryCount + 1}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, 100));
+        comm = window.__PRESWALD_COMM;
+        retryCount++;
+    }
 
     if (!comm) {
-        console.error('[Boot] Error: window.__PRESWALD_COMM is not initialized');
+        console.error('[Boot] Error: window.__PRESWALD_COMM is not initialized after timeout');
+        console.error('[Boot] Make sure the communication layer is properly set up for HTML export');
         return;
     }
 
