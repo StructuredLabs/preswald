@@ -2,6 +2,7 @@ import Editor from '@monaco-editor/react';
 import { ChevronLeftIcon, ChevronRightIcon, PlayIcon } from '@radix-ui/react-icons';
 
 import React, { useEffect, useState } from 'react';
+import { AlertTriangle } from 'lucide-react';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +16,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 const ROWS_PER_PAGE = 10;
 
@@ -58,6 +62,7 @@ export default function PlaygroundWidget({
   id,
   error,
   data = null,
+  className,
 }) {
   const [query, setQuery] = useState();
   const [currentPage, setCurrentPage] = useState(1);
@@ -82,14 +87,39 @@ export default function PlaygroundWidget({
   }, [value]);
 
   return (
-    <div id={id} className="border rounded-md border-gray-200">
-      <Card className="w-full border-0 shadow-none">
+    <div
+      id={id}
+      className={cn(
+        'border rounded-md',
+        error ? 'border-destructive border-2 bg-red-50' : 'border-gray-200',
+        'relative',
+        className
+      )}
+    >
+      {error && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="absolute top-2 right-2 text-destructive z-10">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <span>{error.toString()}</span>
+          </TooltipContent>
+        </Tooltip>
+      )}
+
+      <Card className="w-full border-0 shadow-none bg-transparent">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <CardTitle>{label}</CardTitle>
             </div>
-            <Button onClick={handleQueryRun} size="sm" className="bg-primary hover:bg-primary/90">
+            <Button
+              onClick={handleQueryRun}
+              size="sm"
+              className="bg-primary hover:bg-primary/90"
+            >
               <PlayIcon className="mr-2 h-4 w-4" />
               Run Query
             </Button>
@@ -109,8 +139,8 @@ export default function PlaygroundWidget({
           </div>
 
           {error ? (
-            <div className="p-6">
-              <Alert variant="destructive">
+            <div className="flex flex-col items-center justify-center py-10">
+              <Alert variant="destructive" className="w-full max-w-md mx-auto">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             </div>

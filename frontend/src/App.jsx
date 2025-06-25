@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { BrowserRouter as Router } from 'react-router-dom';
 
+import { TooltipProvider } from '@/components/ui/tooltip';
 import Layout from './components/Layout';
 import LoadingState from './components/LoadingState';
 import Dashboard from './components/pages/Dashboard';
@@ -88,8 +89,9 @@ const App = () => {
           const currentState = comm.getComponentState(component.id);
           return {
             ...component,
-            value: currentState !== undefined ? currentState : component.value,
-            error: null,
+            value: component.error ? component.value : (
+              currentState !== undefined ? currentState : component.value
+            ),
           };
         })
       );
@@ -163,20 +165,22 @@ const App = () => {
   };
 
   return (
-    <Router>
-      <Layout>
-        {!isConnected || areComponentsLoading ? (
-          <LoadingState isConnected={isConnected} />
-        ) : (
-          <Dashboard
-            components={components}
-            error={error}
-            transformErrors={transformErrors}
-            handleComponentUpdate={handleComponentUpdate}
-          />
-        )}
-      </Layout>
-    </Router>
+    <TooltipProvider>
+      <Router>
+        <Layout>
+          {!isConnected || areComponentsLoading ? (
+            <LoadingState isConnected={isConnected} />
+          ) : (
+            <Dashboard
+              components={components}
+              error={error}
+              transformErrors={transformErrors}
+              handleComponentUpdate={handleComponentUpdate}
+            />
+          )}
+        </Layout>
+      </Router>
+    </TooltipProvider>
   );
 };
 

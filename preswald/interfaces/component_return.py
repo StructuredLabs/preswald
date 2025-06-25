@@ -8,6 +8,10 @@ class ComponentReturn:
         self.value = value
         self._preswald_component = component
 
+    @property
+    def component(self) -> dict:
+        return self._preswald_component
+
     def __str__(self): return str(self.value)
     def __float__(self): return float(self.value)
     def __bool__(self): return bool(self.value)

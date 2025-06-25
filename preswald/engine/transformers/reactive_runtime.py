@@ -2287,7 +2287,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
             # Attach atom decorator
             callsite_metadata = self._build_callsite_metadata(node, self.filename)
-            atom_name = generate_stable_id("_auto_atom", callsite_hint=callsite_metadata["callsite_hint"])
+            atom_name = generate_stable_id("_auto_atom", callsite_hint=callsite_metadata["hint"])
             decorator = self._create_workflow_atom_decorator(atom_name, callsite_deps=[], callsite_metadata=callsite_metadata)
 
             node.decorator_list.insert(0, decorator)
@@ -2483,17 +2483,36 @@ class AutoAtomTransformer(ast.NodeTransformer):
         - Explicit return override via `return_target`
 
         Any other AST node types passed as `call_expr` will result in a safe transformation error.
+
+        Args:
+            atom_name (str):
+                The name to assign to the generated atom function.
+
+            component_id (str):
+                The stable component ID used to uniquely identify the output component
+                associated with this atom.
+
+            callsite_deps (list[str]):
+                The list of atom names this atom depends on. These are used to
+                generate the function parameters as `param0`, `param1`, etc.
+
+            call_expr (ast.AST | list[ast.stmt]):
+                The lifted expression or block of statements that form the body of the atom.
+                Typically this is an `ast.Call`, `ast.Expr`, `ast.Assign`, or list of such nodes.
+                Used to build the body and return value of the generated function.
+
+            return_target (str | list[str] | tuple[str, ...] | ast.expr | None, optional):
+                Optional override for the return value of the function.
+                If provided, this value is returned instead of whatever is in `call_expr`.
+
+            callsite_node (ast.AST | None, optional):
+                The original AST node from the user script that corresponds to the component call.
+                Used to extract human readable metadata such as filename, line number, and source.
+                Unlike `call_expr`, this reflects the original user authored code before rewriting.
         """
 
         # Create function parameters: (param0, param1, ...)
         args_ast = self._make_param_args(callsite_deps)
-
-        callsite_metadata = self._build_callsite_metadata(callsite_node, self.filename)
-        decorator = self._create_workflow_atom_decorator(
-            atom_name,
-            callsite_deps,
-            callsite_metadata=callsite_metadata
-        )
 
         # Normalize call_expr into a body list
         if isinstance(call_expr, list):
@@ -2501,6 +2520,12 @@ class AutoAtomTransformer(ast.NodeTransformer):
         elif isinstance(call_expr, ast.Assign) or isinstance(call_expr, ast.Expr):
             body = [call_expr]
         elif isinstance(call_expr, ast.Call):
+            callsite_metadata = self._build_callsite_metadata(callsite_node, self.filename, call_expr=call_expr)
+            decorator = self._create_workflow_atom_decorator(
+                atom_name,
+                callsite_deps,
+                callsite_metadata=callsite_metadata
+            )
             return_stmt = ast.Return(value=call_expr)
             return ast.FunctionDef(
                 name=atom_name,
@@ -2516,6 +2541,13 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 atom_name=atom_name,
             )
             return None
+
+        callsite_metadata = self._build_callsite_metadata(callsite_node, self.filename)
+        decorator = self._create_workflow_atom_decorator(
+            atom_name,
+            callsite_deps,
+            callsite_metadata=callsite_metadata
+        )
 
         # Append appropriate return statement
         if isinstance(return_target, str):
@@ -2710,12 +2742,27 @@ class AutoAtomTransformer(ast.NodeTransformer):
         logger.debug(f"[AST] Generated names {func_name=} {callsite_hint=} {component_id=} {atom_name=}")
         return component_id, atom_name
 
-    def _build_callsite_metadata(self, node: ast.AST, filename: str) -> dict:
+    def _build_callsite_metadata(self, node: ast.AST, filename: str, *, call_expr: ast.Call = None) -> dict:
         """
-        Constructs callsite metadata (filename, lineno, source) for a given AST node.
+        Construct metadata describing the source location of an AST callsite.
+
+        This function extracts the filename, line number, and source code line associated
+        with the given AST node. If `call_expr` is provided, it also includes the full
+        unparsed source string of the lifted expression, which can be used for fallback
+        reconstruction or debugging.
+
+        Args:
+            node: The AST node for which to generate location metadata.
+            filename: The absolute or relative path to the source file.
+            call_expr: Optional `ast.Call` expression to include full source reconstruction.
 
         Returns:
-            A dict with keys: callsite_filename, callsite_lineno, callsite_source
+            A dictionary containing:
+              - "file": The source filename.
+              - "lineno": The line number in the source file (1-based).
+              - "src": The stripped source line at the given location, if available.
+              - "hint": A string in the form "filename:lineno" for human readable logging.
+              - "lifted_component_src" (optional): The full unparsed source string of the call expression.
         """
         lineno = getattr(node, "lineno", None)
         source = ""
@@ -2724,12 +2771,17 @@ class AutoAtomTransformer(ast.NodeTransformer):
             if 0 < lineno <= len(self._source_lines):
                 source = self._source_lines[lineno - 1].strip()
 
-        return {
-            "callsite_filename": filename,
-            "callsite_lineno": lineno,
-            "callsite_source": source,
-            "callsite_hint": f"{filename}:{lineno}" if filename and lineno else None,
+        callsite_metadata = {
+            "file": filename,
+            "lineno": lineno,
+            "src": source, # human readable debugging hint
+            "hint": f"{filename}:{lineno}" if filename and lineno else None,
         }
+
+        if call_expr is not None and isinstance(call_expr, ast.Call):
+            callsite_metadata['lifted_component_src'] = ast.unparse(call_expr).strip()
+
+        return callsite_metadata
 
 
 def annotate_parents(tree: ast.AST) -> ast.AST:

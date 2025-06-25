@@ -1,4 +1,5 @@
-import { Link2Icon } from 'lucide-react';
+import { Link2Icon, AlertTriangle } from 'lucide-react';
+
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
@@ -11,6 +12,11 @@ import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip';
 
 import { cn } from '@/lib/utils';
 
@@ -38,16 +44,29 @@ const MarkdownRendererWidget = ({ id, markdown, value, error, className }) => {
     }
   }, []);
 
-  if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertDescription>Error: {error}</AlertDescription>
-      </Alert>
-    );
-  }
-
   return (
-    <Card id={id} className={cn('overflow-hidden', className)}>
+    <Card
+      id={id}
+      className={cn(
+        'overflow-hidden relative',
+        error && 'border-destructive border-2 bg-red-50',
+        className
+      )}
+    >
+      {/* Error badge (top-right) */}
+      { error && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="absolute top-2 right-2 text-destructive">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <span>{error.toString()}</span>
+          </TooltipContent>
+        </Tooltip>
+      )}
+
       <CardContent className="prose max-w-none prose-pre:p-0 prose-pre:bg-transparent prose-pre:m-0 prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-foreground prose-code:before:content-none prose-code:after:content-none">
         <ReactMarkdown
           remarkPlugins={[remarkGfm, remarkMath, remarkSlug]}

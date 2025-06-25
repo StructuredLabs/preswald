@@ -1,8 +1,11 @@
 import React from 'react';
+import { AlertTriangle } from 'lucide-react';
 
-const GenericWidget = ({ id, value, mimetype = 'text/plain' }) => {
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
+
+const GenericWidget = ({ id, value, mimetype = 'text/plain', error, className }) => {
   const cleanMime = mimetype.split(';')[0].trim().toLowerCase();
-
   const renderContent = () => {
     if (!value) {
       return <div className="text-gray-500 italic">No content to display.</div>;
@@ -60,8 +63,24 @@ const GenericWidget = ({ id, value, mimetype = 'text/plain' }) => {
   return (
     <div
       id={id}
-      className="border border-gray-200 rounded-md shadow-sm p-4 bg-white overflow-x-auto"
+      className={cn(
+        'relative border rounded-md shadow-sm p-4 bg-white overflow-x-auto',
+        error ? 'border-destructive border-2 bg-red-50' : 'border-gray-200',
+        className
+      )}
     >
+      {error && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="absolute top-2 right-2 text-destructive z-10">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <span>{error.toString()}</span>
+          </TooltipContent>
+        </Tooltip>
+      )}
       {renderContent()}
     </div>
   );

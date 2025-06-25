@@ -1,16 +1,15 @@
 import Plotly from 'plotly.js-dist';
-
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 import Plot from 'react-plotly.js';
 
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 import { cn } from '@/lib/utils';
-
 import { FEATURES } from '../../config/features';
 import {
   debounce,
@@ -22,7 +21,13 @@ import {
 const INITIAL_POINTS_THRESHOLD = 1000;
 const PROGRESSIVE_LOADING_CHUNK_SIZE = 500;
 
-const DataVisualizationWidget = ({ id, data: rawData, content, error, className }) => {
+const DataVisualizationWidget = ({
+  id,
+  data: rawData,
+  content,
+  error,
+  className,
+}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [plotError, setPlotError] = useState(null);
   const [processedData, setProcessedData] = useState(null);
@@ -127,7 +132,6 @@ const DataVisualizationWidget = ({ id, data: rawData, content, error, className 
             }
           });
         });
-
         processDataInChunks(traces, PROGRESSIVE_LOADING_CHUNK_SIZE, (chunk, index, total) => {
           setProcessedData((prevData) => ({
             ...data,
@@ -137,11 +141,9 @@ const DataVisualizationWidget = ({ id, data: rawData, content, error, className 
               ...prevData.data.slice(index + chunk.length),
             ],
           }));
-
           processedPoints += chunk.reduce((acc, trace) => {
             return acc + (Array.isArray(trace.x) ? trace.x.length : 0);
           }, 0);
-
           setLoadedDataPercentage((processedPoints / totalPoints) * 100);
         });
       }
@@ -180,18 +182,38 @@ const DataVisualizationWidget = ({ id, data: rawData, content, error, className 
     setShowDropdown(false);
   };
 
-  if (error || plotError) {
-    return (
-      <Alert variant="destructive">
-        <AlertDescription>Error: {error || plotError}</AlertDescription>
-      </Alert>
-    );
-  }
+  const hasAnyError = !!(error || plotError);
 
   return (
-    <Card id={id} className={cn('plotly-container', className)} ref={setRefs}>
+    <Card
+      id={id}
+      className={cn(
+        'plotly-container relative',
+        hasAnyError && 'border-destructive border-2 bg-red-50 rounded-md',
+        className
+      )}
+      ref={setRefs}
+    >
+      {hasAnyError && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="absolute top-2 right-2 text-destructive z-10">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <span>{(error || plotError)?.toString()}</span>
+          </TooltipContent>
+        </Tooltip>
+      )}
       <CardContent className="plotly-card-content">
-        {!inView || isLoading ? (
+        {hasAnyError ? (
+          <div className="flex flex-col items-center justify-center py-10">
+            <span className="text-destructive italic text-sm">
+              {error || plotError || 'Unable to render plot.'}
+            </span>
+          </div>
+        ) : !inView || isLoading ? (
           <div className="plotly-loading-container">
             <div className="plotly-loading-spinner"></div>
             <p className="plotly-loading-text">Loading visualization...</p>

@@ -81,18 +81,22 @@ const MemoizedComponent = memo(
         );
 
       case 'button':
+        // TODO: the backend defines size as a layout property. All components have
+        // this layout propty, but the semantic difference causes naming collisions
+        // preventing the ability to override a widgets real size property.
+        // For now, I am overriding the button's size property to 'default'
         return (
           <ButtonWidget
             key={componentKey}
+            {...props}
             onClick={() => {
               if (component.onClick) {
                 handleUpdate(componentId, true);
               }
             }}
-            disabled={component.disabled}
             isLoading={component.loading}
-            variant={component.variant}
             id={componentId}
+            size='default'
           >
             {component.label}
           </ButtonWidget>
@@ -148,10 +152,9 @@ const MemoizedComponent = memo(
         return (
           <JSONViewerWidget
             key={componentKey}
+            {...props}
             data={component.data || component.value} // fallback if `data` isn't set
-            title={component.title}
             expanded={component.expanded !== false}
-            className={component.className}
             id={componentId}
           />
         );
@@ -258,8 +261,7 @@ const MemoizedComponent = memo(
           <MarkdownRendererWidget
             key={componentKey}
             {...props}
-            markdown={component.markdown || component.content || component.value || ''}
-            error={component.error}
+            markdown={component.markdown || component.value || ''}
             variant={component.variant || 'default'}
             id={componentId}
           />

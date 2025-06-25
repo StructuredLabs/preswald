@@ -1,6 +1,6 @@
 'use client';
 
-import { Bot, Loader2, Send, Settings, User } from 'lucide-react';
+import { AlertTriangle, Bot, Loader2, Send, Settings, User } from 'lucide-react';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { createChatCompletion } from '@/services/openai';
 
@@ -18,7 +19,9 @@ const ChatWidget = ({
   value = { messages: [] },
   onChange,
   className,
+  error,
 }) => {
+
   const messages = useMemo(() => value?.messages || [], [value?.messages]);
   const placeholder = 'Type your message here...';
   const messagesEndRef = useRef(null);
@@ -28,7 +31,8 @@ const ChatWidget = ({
   const [showSettings, setShowSettings] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [chatError, setChatError] = useState(null);
+
   const hasApiKey = useMemo(() => !!sessionStorage.getItem('openai_api_key'), []);
 
   // Add this state to store the processed context
@@ -92,23 +96,23 @@ const ChatWidget = ({
       - Source Name: ${sourceName}
       - Number of Records: ${rowCount}
       - Available Columns: ${columns.join(', ')}
-      
+
       Sample Data Preview:
       ${JSON.stringify(sampleData, null, 2)}
-      
+
       Your responsibilities:
       1. Analyze the data structure and relationships
       2. Provide detailed insights based on the available information
       3. Answer questions specifically referencing this dataset
       4. Highlight any patterns or anomalies you observe
       5. Make data-driven recommendations when appropriate
-      
+
       Please ensure your responses are:
       - Accurate and based on the provided data
       - Clear and well-structured
       - Include specific examples from the dataset when relevant
       - Highlight any assumptions or limitations in your analysis
-      
+
       When answering questions, always reference specific data points to support your conclusions.`;
     } catch (error) {
       console.error('Error formatting source context:', error);
@@ -131,7 +135,7 @@ const ChatWidget = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
-    setError(null);
+    setChatError(null);
 
     const newMessage = {
       role: 'user',
@@ -152,7 +156,7 @@ const ChatWidget = ({
       };
       onChange?.({ messages: [...newMessages, assistantMessage] });
     } catch (err) {
-      setError(err.message || 'An error occurred');
+      setChatError(err.message || 'An error occurred');
       console.error('Failed to get AI response:', err);
     } finally {
       setIsLoading(false);
@@ -174,11 +178,27 @@ const ChatWidget = ({
   };
 
   return (
+  <div className="relative">
+    {error && (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="absolute top-2 right-2 text-destructive z-10 pointer-events-auto cursor-pointer">
+            <AlertTriangle className="w-5 h-5" />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          <span>{error.toString()}</span>
+        </TooltipContent>
+      </Tooltip>
+    )}
     <Card
       id={id}
       className={cn(
         'flex flex-col w-full border border-border/60 rounded-lg bg-background overflow-hidden',
         'h-[100dvh] sm:h-[600px]',
+        error
+          ? 'border-destructive border-2 bg-red-50'
+          : 'border border-border/60 bg-background',
         className
       )}
     >
@@ -304,9 +324,9 @@ const ChatWidget = ({
         </div>
       </div>
 
-      {error && (
+      {chatError && (
         <div className="mx-3 sm:mx-4 mb-3 p-2 text-xs text-destructive bg-destructive/5 rounded-md border border-destructive/10">
-          {error}
+          {chatError}
         </div>
       )}
 
@@ -336,6 +356,7 @@ const ChatWidget = ({
         </div>
       </form>
     </Card>
+  </div>
   );
 };
 

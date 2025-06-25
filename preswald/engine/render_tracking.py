@@ -61,13 +61,16 @@ def with_render_tracking(component_type: str):
                 logger.debug(f"[with_render_tracking] Using provided component_id {component_id}:{atom_name}")
             else:
                 identifier = kwargs.get("identifier")
-                callsite_hint = kwargs.get("callsite_hint")
-                component_id = generate_stable_id(component_type, callsite_hint=callsite_hint, identifier=identifier)
+                hint = kwargs.get('hint')
+                component_id = generate_stable_id(component_type, callsite_hint=hint, identifier=identifier)
                 atom_name = generate_stable_atom_name_from_component_id(component_id)
                 kwargs["component_id"] = component_id
                 logger.debug(f"[with_render_tracking] Generated component_id {component_id}:{atom_name}")
 
             service = PreswaldService.get_instance()
+            if service.is_render_tracking_suppressed:
+                return func(*args, **kwargs)
+
             if not service.is_reactivity_enabled:
                 result = func(*args, **kwargs)
 

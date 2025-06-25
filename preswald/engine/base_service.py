@@ -1,6 +1,8 @@
 import logging
 import os
 import time
+import contextvars
+
 from collections.abc import Callable
 from threading import Lock
 from typing import Any, Callable, Dict, Optional
@@ -47,6 +49,8 @@ class BasePreswaldService:
         self._workflow = Workflow(service=self)
         self._current_atom: Optional[str] = None
         self._reactivity_enabled = True
+        self._reactivity_stack = []
+        self._render_tracking_suppressed: contextvars.ContextVar[bool] = contextvars.ContextVar("render_tracking_suppressed", default=False)
 
         # Initialize session tracking
         self.script_runners: dict[str, ScriptRunner] = {}
@@ -102,6 +106,10 @@ class BasePreswaldService:
 
         self._script_path = os.path.abspath(path)
         self._initialize_data_manager(path)
+
+    @property
+    def is_render_tracking_suppressed(self) -> bool:
+        return self._render_tracking_suppressed.get()
 
     @property
     def is_reactivity_enabled(self):
@@ -212,11 +220,50 @@ class BasePreswaldService:
 
     def disable_reactivity(self):
         self._reactivity_enabled = False
-        logger.info("[SERVICE] Reactivity disabled for fallback execution")
+        logger.debug("[SERVICE] Reactivity disabled for fallback execution")
 
     def enable_reactivity(self):
         self._reactivity_enabled = True
-        logger.info("[SERVICE] Reactivity re-enabled")
+        logger.debug("[SERVICE] Reactivity re-enabled")
+
+    @contextmanager
+    def reactivity_disabled(self):
+        """
+        Context manager to temporarily disable reactivity and restore it on exit.
+
+        Useful for wrapping small blocks of code that should not trigger reactive behavior,
+        such as fallback rendering or side-effect only computation.
+
+        Example:
+            with service.reactivity_disabled():
+                ...
+        """
+        self._reactivity_stack.append(self._reactivity_enabled)
+        self._reactivity_enabled = False
+        logger.debug("[SERVICE] Reactivity temporarily disabled (context)")
+
+        try:
+            yield
+        finally:
+            previous_state = self._reactivity_stack.pop() if self._reactivity_stack else True
+            self._reactivity_enabled = previous_state
+            logger.debug(f"[SERVICE] Reactivity restored to {self._reactivity_enabled}")
+
+    @contextmanager
+    def render_tracking_suppressed(self):
+        """
+        Context manager to temporarily suppress render tracking effects
+        from @with_render_tracking.
+
+        This is useful when falling back to rebuild a component and just want the raw output.
+        """
+        token = self._render_tracking_suppressed.set(True)
+        logger.debug("[SERVICE] Render tracking temporarily suppressed")
+        try:
+            yield
+        finally:
+            self._render_tracking_suppressed.reset(token)
+            logger.debug("[SERVICE] Render tracking restored")
 
     def force_recompute(self, atom_names: set[str]) -> None:
         """

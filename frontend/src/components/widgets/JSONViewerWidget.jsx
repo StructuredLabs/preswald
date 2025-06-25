@@ -1,14 +1,21 @@
-import { Check, Copy } from 'lucide-react';
-
+import { Check, Copy, AlertTriangle } from 'lucide-react';
 import React, { useState } from 'react';
 import { JSONTree } from 'react-json-tree';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 import { cn } from '@/lib/utils';
 
-const JSONViewerWidget = ({ id, data, title, expanded = true, className }) => {
+const JSONViewerWidget = ({
+  id,
+  data,
+  title,
+  expanded = true,
+  className,
+  error,
+}) => {
   const [copied, setCopied] = useState(false);
 
   const theme = {
@@ -36,14 +43,33 @@ const JSONViewerWidget = ({ id, data, title, expanded = true, className }) => {
       const jsonString = JSON.stringify(data, null, 2);
       navigator.clipboard.writeText(jsonString);
       setCopied(true);
-      setTimeout(() => setCopied(false), 1500); // Reset after 1.5s
+      setTimeout(() => setCopied(false), 1500);
     } catch (err) {
       console.error('Failed to copy JSON:', err);
     }
   };
 
   return (
-    <Card id={id} className={cn('overflow-auto text-sm', className)}>
+    <Card
+      id={id}
+      className={cn(
+        'relative overflow-auto text-sm',
+        error && 'border-destructive border-2 bg-red-50 rounded-md',
+        className
+      )}
+    >
+      {error && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="absolute top-2 right-2 text-destructive z-10">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <span>{error.toString()}</span>
+          </TooltipContent>
+        </Tooltip>
+      )}
       <CardContent>
         <div className="flex justify-between items-center mb-2">
           {title && <h3 className="font-semibold">{title}</h3>}
@@ -69,13 +95,17 @@ const JSONViewerWidget = ({ id, data, title, expanded = true, className }) => {
             )}
           </Button>
         </div>
-        <JSONTree
-          data={data}
-          theme={theme}
-          invertTheme={false}
-          shouldExpandNodeInitially={() => expanded}
-          hideRoot={true}
-        />
+        {error ? (
+          <div className="text-destructive italic">Unable to display JSON.</div>
+        ) : (
+          <JSONTree
+            data={data}
+            theme={theme}
+            invertTheme={false}
+            shouldExpandNodeInitially={() => expanded}
+            hideRoot={true}
+          />
+        )}
       </CardContent>
     </Card>
   );

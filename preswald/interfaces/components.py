@@ -378,7 +378,8 @@ def json_viewer(
             parsed_data = data
         serializable_data = convert_to_serializable(parsed_data)
     except Exception as e:
-        serializable_data = {"error": f"Invalid JSON: {e!s}"}
+        serializable_data = {"error": "Invalid JSON"}
+        raise
 
     component = {
         "type": "json_viewer",
@@ -401,6 +402,7 @@ def matplotlib(fig: plt.Figure | None = None, label: str = "plot", component_id:
         ax.plot([0, 1, 2], [0, 1, 4])
 
     # Save the figure as a base64-encoded PNG
+
     buf = io.BytesIO()
     fig.savefig(buf, format="png")
     buf.seek(0)
@@ -413,9 +415,7 @@ def matplotlib(fig: plt.Figure | None = None, label: str = "plot", component_id:
         "image": img_b64,  # Store the image data
     }
 
-    return ComponentReturn(
-        component_id, component
-    )  # Returning ID for potential tracking
+    return ComponentReturn(component_id, component)
 
 
 @with_render_tracking("playground")

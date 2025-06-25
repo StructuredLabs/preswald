@@ -92,9 +92,8 @@ class ScriptRunner:
             self._run_count = 0
 
         if reactivity_explicitly_disabled():
-           self._service.disable_reactivity()
-        else:
             logger.info("[ScriptRunner] Reactivity is disabled by configuration")
+            self._service.disable_reactivity()
 
         try:
             await self.run_script()

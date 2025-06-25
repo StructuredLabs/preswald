@@ -18,6 +18,7 @@ from preswald.utils import get_user_code_callsite
 from preswald.interfaces.component_return import ComponentReturn
 from preswald.interfaces.tracked_value import TrackedValue
 from preswald.interfaces.render.error_registry import register_error
+from preswald.engine.transformers.transformer_utils import rebuild_component_from_source
 
 
 logger = logging.getLogger(__name__)
@@ -163,44 +164,14 @@ class Atom:
                     f"Atom {self.name} failed with error: {e!s}", exc_info=True
                 )
 
-                callsite_filename = self.callsite_metadata.get('callsite_filename')
-                callsite_lineno = self.callsite_metadata.get('callsite_lineno')
-                callsite_source = self.callsite_metadata.get('callsite_source')
-                # if callsite info was not provided, attempt to
-                # capture this info where the atom is defined
-                if not callsite_filename or not callsite_lineno:
-                    callsite_filename, callsite_lineno = get_user_code_callsite(e)
-                    self.callsite_metadata['callsite_filename'] = callsite_filename
-                    self.callsite_metadata['callsite_lineno'] = callsite_lineno
-
-
-                # if callsite source was not provided, attempt to
-                # capture this info where the atom was defined
-                #
-                # TODO(preswald): Centralize source line buffering per filename in the service layer.
-                # This would allow both the AST transformer and Atom class to fetch source snippets
-                # without reopening the file. Until then, skip this fallback to avoid redundant I/O.
-                #
-                # if not callsite_source and callsite_filename:
-                #     try:
-                #         with open(callsite_filename, 'r') as f:
-                #             lines = f.readlines()
-                #             lineno = callsite_lineno or 0
-                #             callsite_source = lines[lineno - 1].strip() if 0 < lineno <= len(lines) else ""
-                #             self.callsite_metadata['callsite_source'] = callsite_source
-
-                #     except Exception:
-                #         pass
-
                 register_error(
                     type="runtime",
-                    filename=callsite_filename or "<unknown>",
-                    lineno=callsite_lineno or 0,
-                    source=callsite_source or "",
+                    filename=self.callsite_metadata.get("file", "<unknown>"),
+                    lineno=self.callsite_metadata.get("lineno", 0),
+                    source=self.callsite_metadata.get("src", ""),
                     message=str(e),
                     atom_name=self.name,
                 )
-
                 raise
             finally:
                 end_time = time.time()
@@ -313,6 +284,7 @@ class Workflow:
                 force_recompute=force_recompute,
                 callsite_metadata=callsite_metadata or {},
             )
+
             self.atoms[atom_name] = atom
 
             logger.info(f"[DAG] Atom registration complete {atom_name=} -> {atom_deps=}")
@@ -344,12 +316,19 @@ class Workflow:
 
             logger.info(f"[DAG] Atoms to recompute {atoms_to_recompute=}")
 
+            failed_atoms: set[str] = set()
+
             for atom_name in execution_order:
                 if self._is_rerun and recompute_atoms and atom_name not in atoms_to_recompute:
                     logger.info(f"[DAG] Skipping atom (not affected) {atom_name=}")
                     continue
 
+                # Skip if any dependency failed
                 atom = self.atoms[atom_name]
+                if any(dep in failed_atoms for dep in atom.dependencies):
+                    logger.warning(f"[DAG] Skipping atom due to failed dependency {atom_name=}")
+                    continue
+
                 if atom_name in atoms_to_recompute:
                     atom.force_recompute = True
 
@@ -358,8 +337,8 @@ class Workflow:
                 atom.force_recompute = False
 
                 if result.status == AtomStatus.FAILED:
-                    logger.error(f"[DAG] Execution halted due to failure {atom_name=}")
-                    break
+                    logger.error(f"[DAG] Atom failed during execution {atom_name=}")
+                    failed_atoms.add(atom_name)
 
             return self.context.results
         finally:
@@ -395,6 +374,15 @@ class Workflow:
                 logger.info(f"[DAG] Component registered while atom was active self._current_atom={self._current_atom}")
         else:
             logger.warning(f"[DAG] Skipping producer registration for unknown atom {atom_name=}")
+
+    def _register_component_producer(self, atom: Atom, candidate: Any) -> None:
+        if self._service:
+            if isinstance(candidate, ComponentReturn):
+                self.register_component_producer(candidate.component['id'], atom.name)
+            elif isinstance(candidate, tuple):
+                for item in candidate:
+                    if isinstance(item, ComponentReturn):
+                        self.register_component_producer(item.component['id'], atom.name)
 
     def _get_affected_atoms(self, changed_atoms: set[str]) -> set[str]:
         """
@@ -568,15 +556,7 @@ class Workflow:
 
                 result = atom.func(*args)
 
-                if self._service:
-                    if isinstance(result, ComponentReturn):
-                        logger.info('[DEBUG] - register_component_producer from workflow _execute_inner')
-                        self.register_component_producer(result.component_id, atom.name)
-                    elif isinstance(result, tuple):
-                        for item in result:
-                            if isinstance(item, ComponentReturn):
-                                logger.info('[DEBUG] - register_component_producer from workflow _execute_inner. result is tuple.')
-                                self.register_component_producer(item.component_id, atom.name)
+                self._register_component_producer(atom, result)
 
                 end_time = time.time()
                 atom_result = AtomResult(
@@ -597,9 +577,27 @@ class Workflow:
                     logger.warning(f"[DAG] Atom execution failed, retrying {atom.name=} {attempts=} delay={delay:.2f}")
                     time.sleep(delay)
                 else:
+                    component = None
+                    lifted_component_src = atom.callsite_metadata.get("lifted_component_src")
+                    if lifted_component_src:
+                        try:
+                            callsite_hint = atom.callsite_metadata.get("hint")
+                            component_return = rebuild_component_from_source(lifted_component_src, callsite_hint, force_render=True)
+                            component_return.component['error'] = str(e)
+                            self._register_component_producer(atom, component_return)
+                            component = component_return.component
+                        except Exception as rebuild_error:
+                            logger.error(f"[DAG] Failed to rebuild component for {atom.name}: {rebuild_error=}")
+
+                            component = {
+                                "type": "unkown",
+                                "error": f"[Runtime Error] {str(e)}"
+                            }
+
                     return AtomResult(
                         status=AtomStatus.FAILED,
                         error=e,
+                        value=component,
                         attempts=attempts,
                         start_time=start_time,
                         end_time=current_time,
