@@ -1,167 +1,1624 @@
+import { createWorker } from '../backend/service';
 import { decode } from '@msgpack/msgpack';
 
-import { createWorker } from '../backend/service';
+/**
+ * Message types used throughout the Preswald communication system
+ */
+const MessageType = {
+  STATE_UPDATE: 'state_update',
+  COMPONENT_RENDER: 'component_render',
+  COMPONENT_UPDATE: 'component_update',
+  COMPONENTS: 'components',
+  ERROR: 'error',
+  HEARTBEAT: 'heartbeat',
+  BULK_UPDATE: 'bulk_update',
+  BULK_UPDATE_ACK: 'bulk_update_ack',
+  CONNECTION_STATUS: 'connection_status',
+  INITIAL_STATE: 'initial_state',
+  CONNECTIONS_UPDATE: 'connections_update',
+  IMAGE_UPDATE: 'image_update',
+  ERRORS_RESULT: 'errors:result',
+  CONFIG: 'config'
+};
 
-class WebSocketClient {
+/**
+ * Priority:
+ * 1. URL parameter: ?server=<server_url> or ?preswald_server=<server_url>
+ * 2. localStorage: 'preswald_server_url'
+ * 3. Environment variable: PRESWALD_SERVER_URL (via meta tag)
+ * 4. Session storage: 'preswald_server_url'
+ * 5. Default localhost with intelligent port detection
+ */
+class ServerUrlResolver {
+  static STORAGE_KEY = 'preswald_server_url';
+  static URL_PARAM_NAMES = ['server', 'preswald_server', 'serverUrl'];
+  static DEFAULT_LOCALHOST_PORTS = [8501, 8000, 3000, 5000, 8080];
+  static DEFAULT_HOST = 'localhost';
+
+  /**
+   * Resolves the server URL with comprehensive fallback logic
+   * @param {Object} config - Configuration options
+   * @param {boolean} config.enableUrlParams - Allow URL parameter resolution (default: true)
+   * @param {boolean} config.enableStorage - Allow storage-based resolution (default: true)
+   * @param {string} config.fallbackHost - Fallback host if auto-detection fails
+   * @param {number} config.fallbackPort - Fallback port if auto-detection fails
+   * @returns {Promise<string>} - Resolved server URL
+   */
+  static async resolveServerUrl(config = {}) {
+    const {
+      enableUrlParams = true,
+      enableStorage = true,
+      fallbackHost = this.DEFAULT_HOST,
+      fallbackPort = this.DEFAULT_LOCALHOST_PORTS[0]
+    } = config;
+
+    const startTime = performance.now();
+
+    try {
+      console.log('[ServerUrlResolver] Starting server URL resolution...');
+
+      // Priority 1: URL Parameters (if enabled and not in production build)
+      if (enableUrlParams) {
+        const urlServerUrl = this._getServerUrlFromParams();
+        if (urlServerUrl) {
+          const validatedUrl = await this._validateAndNormalizeUrl(urlServerUrl);
+          if (validatedUrl) {
+            console.log(`[ServerUrlResolver] Using URL parameter: ${validatedUrl}`);
+            this._saveToStorage(validatedUrl);
+            return validatedUrl;
+          }
+        }
+      }
+
+      // Priority 2: localStorage
+      if (enableStorage) {
+        const storedUrl = this._getFromStorage();
+        if (storedUrl) {
+          const validatedUrl = await this._validateAndNormalizeUrl(storedUrl);
+          if (validatedUrl) {
+            console.log(`[ServerUrlResolver] Using stored URL: ${validatedUrl}`);
+            return validatedUrl;
+          } else {
+            console.warn('[ServerUrlResolver] Stored URL is invalid, clearing storage');
+            this._clearStorage();
+          }
+        }
+      }
+
+      // Priority 3: Environment variable (via meta tag)
+      const envUrl = this._getFromEnvironment();
+      if (envUrl) {
+        const validatedUrl = await this._validateAndNormalizeUrl(envUrl);
+        if (validatedUrl) {
+          console.log(`[ServerUrlResolver] Using environment variable: ${validatedUrl}`);
+          this._saveToStorage(validatedUrl);
+          return validatedUrl;
+        }
+      }
+
+      // Priority 4: Session storage (temporary fallback)
+      if (enableStorage) {
+        const sessionUrl = this._getFromSessionStorage();
+        if (sessionUrl) {
+          const validatedUrl = await this._validateAndNormalizeUrl(sessionUrl);
+          if (validatedUrl) {
+            console.log(`[ServerUrlResolver] Using session storage: ${validatedUrl}`);
+            return validatedUrl;
+          }
+        }
+      }
+
+      // Priority 5: Auto-detect localhost server
+      const autoDetectedUrl = await this._autoDetectLocalhost();
+      if (autoDetectedUrl) {
+        console.log(`[ServerUrlResolver] Auto-detected localhost: ${autoDetectedUrl}`);
+        this._saveToStorage(autoDetectedUrl);
+        return autoDetectedUrl;
+      }
+
+      // Final fallback: Default localhost configuration
+      const fallbackUrl = `${window.location.protocol}//${fallbackHost}:${fallbackPort}`;
+      console.log(`[ServerUrlResolver] Using final fallback: ${fallbackUrl}`);
+
+      const resolveTime = performance.now() - startTime;
+      console.log(`[ServerUrlResolver] Resolution completed in ${resolveTime.toFixed(2)}ms`);
+
+      return fallbackUrl;
+
+    } catch (error) {
+      console.error('[ServerUrlResolver] Error during resolution:', error);
+      const errorFallback = `${window.location.protocol}//${fallbackHost}:${fallbackPort}`;
+      console.log(`[ServerUrlResolver] Using error fallback: ${errorFallback}`);
+      return errorFallback;
+    }
+  }
+
+  static _getServerUrlFromParams() {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+
+      for (const paramName of this.URL_PARAM_NAMES) {
+        const value = urlParams.get(paramName);
+        if (value) {
+          console.log(`[ServerUrlResolver] Found URL parameter '${paramName}': ${value}`);
+          return value.trim();
+        }
+      }
+
+      // Also check hash parameters for single-page applications
+      if (window.location.hash.includes('?')) {
+        const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
+        for (const paramName of this.URL_PARAM_NAMES) {
+          const value = hashParams.get(paramName);
+          if (value) {
+            console.log(`[ServerUrlResolver] Found hash parameter '${paramName}': ${value}`);
+            return value.trim();
+          }
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.error('[ServerUrlResolver] Error parsing URL parameters:', error);
+      return null;
+    }
+  }
+
+  static _getFromStorage() {
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      if (stored) {
+        console.log(`[ServerUrlResolver] Found in localStorage: ${stored}`);
+        return stored.trim();
+      }
+      return null;
+    } catch (error) {
+      console.error('[ServerUrlResolver] Error accessing localStorage:', error);
+      return null;
+    }
+  }
+
+  static _getFromSessionStorage() {
+    try {
+      const stored = sessionStorage.getItem(this.STORAGE_KEY);
+      if (stored) {
+        console.log(`[ServerUrlResolver] Found in sessionStorage: ${stored}`);
+        return stored.trim();
+      }
+      return null;
+    } catch (error) {
+      console.error('[ServerUrlResolver] Error accessing sessionStorage:', error);
+      return null;
+    }
+  }
+
+  static _getFromEnvironment() {
+    try {
+      const metaTag = document.querySelector('meta[name="preswald-server-url"]');
+      if (metaTag) {
+        const content = metaTag.getAttribute('content');
+        if (content) {
+          console.log(`[ServerUrlResolver] Found in meta tag: ${content}`);
+          return content.trim();
+        }
+      }
+
+      // Check for global environment variable
+      if (window.PRESWALD_SERVER_URL) {
+        console.log(`[ServerUrlResolver] Found in global variable: ${window.PRESWALD_SERVER_URL}`);
+        return window.PRESWALD_SERVER_URL.trim();
+      }
+
+      return null;
+    } catch (error) {
+      console.error('[ServerUrlResolver] Error accessing environment:', error);
+      return null;
+    }
+  }
+
+  static async _autoDetectLocalhost() {
+    console.log('[ServerUrlResolver] Starting localhost auto-detection...');
+
+    const protocol = window.location.protocol;
+    const detectionPromises = this.DEFAULT_LOCALHOST_PORTS.map(async (port) => {
+      const testUrl = `${protocol}//${this.DEFAULT_HOST}:${port}`;
+
+      try {
+        // Use a lightweight health check endpoint or fallback to main endpoint
+        const healthUrl = `${testUrl}/health`;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
+
+        const response = await fetch(healthUrl, {
+          method: 'GET',
+          signal: controller.signal,
+          mode: 'cors'
+        });
+
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+          console.log(`[ServerUrlResolver] Localhost server detected at port ${port}`);
+          return testUrl;
+        }
+      } catch (error) {
+        // Try without /health endpoint
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+          const response = await fetch(testUrl, {
+            method: 'HEAD',
+            signal: controller.signal,
+            mode: 'cors'
+          });
+
+          clearTimeout(timeoutId);
+
+          if (response.ok) {
+            console.log(`[ServerUrlResolver] Localhost server detected at port ${port} (root endpoint)`);
+            return testUrl;
+          }
+        } catch (rootError) {
+          // Silent fail for auto-detection
+        }
+      }
+
+      return null;
+    });
+
+    try {
+      const results = await Promise.allSettled(detectionPromises);
+      const successfulUrl = results.find(result =>
+        result.status === 'fulfilled' && result.value !== null
+      )?.value;
+
+      if (successfulUrl) {
+        return successfulUrl;
+      }
+
+      console.log('[ServerUrlResolver] No localhost server auto-detected');
+      return null;
+    } catch (error) {
+      console.error('[ServerUrlResolver] Error during localhost auto-detection:', error);
+      return null;
+    }
+  }
+
+  static async _validateAndNormalizeUrl(url) {
+    if (!url || typeof url !== 'string') {
+      return null;
+    }
+
+    try {
+      // Handle relative URLs and normalize
+      let normalizedUrl = url.trim();
+
+      // Add protocol if missing
+      if (!normalizedUrl.match(/^https?:\/\//)) {
+        // Use same protocol as current page
+        normalizedUrl = `${window.location.protocol}//${normalizedUrl}`;
+      }
+
+      // Validate URL format
+      const urlObj = new URL(normalizedUrl);
+
+      // Ensure it's HTTP/HTTPS
+      if (!['http:', 'https:'].includes(urlObj.protocol)) {
+        console.warn(`[ServerUrlResolver] Invalid protocol in URL: ${normalizedUrl}`);
+        return null;
+      }
+
+      // Remove trailing slash for consistency
+      const cleanUrl = normalizedUrl.replace(/\/$/, '');
+
+      console.log(`[ServerUrlResolver] Validated and normalized URL: ${cleanUrl}`);
+      return cleanUrl;
+
+    } catch (error) {
+      console.error(`[ServerUrlResolver] Invalid URL format: ${url}`, error);
+      return null;
+    }
+  }
+
+  static _saveToStorage(url) {
+    try {
+      localStorage.setItem(this.STORAGE_KEY, url);
+      console.log(`[ServerUrlResolver] Saved to localStorage: ${url}`);
+    } catch (error) {
+      console.error('[ServerUrlResolver] Error saving to localStorage:', error);
+    }
+  }
+
+  static _clearStorage() {
+    try {
+      localStorage.removeItem(this.STORAGE_KEY);
+      sessionStorage.removeItem(this.STORAGE_KEY);
+      console.log('[ServerUrlResolver] Cleared stored server URLs');
+    } catch (error) {
+      console.error('[ServerUrlResolver] Error clearing storage:', error);
+    }
+  }
+
+  static async getCurrentServerUrl() {
+    return await this.resolveServerUrl();
+  }
+
+  static setServerUrl(url) {
+    if (url && typeof url === 'string') {
+      this._saveToStorage(url.trim());
+      console.log(`[ServerUrlResolver] Manually set server URL: ${url}`);
+    }
+  }
+
+  static resetServerUrl() {
+    this._clearStorage();
+    console.log('[ServerUrlResolver] Reset server URL configuration');
+  }
+}
+
+/**
+ * MessageEncoder with JSON protocol and optional compression
+ * Provides consistent message formatting across all transport types
+ */
+class MessageEncoder {
+  static messageIdCounter = 0;
+  static COMPRESSION_THRESHOLD = 1024; // bytes
+  static COMPRESSION_PREFIX = 'compressed:';
+
+  /**
+   * Encodes a message with metadata and optional compression
+   * @param {string} type - Message type from MessageType enum
+   * @param {any} payload - Message payload (JSON-serializable)
+   * @param {Object} options - Encoding options
+   * @returns {string} - Encoded message string
+   */
+  static encode(type, payload, options = {}) {
+    const {
+      compressed = false,
+      forceCompression = false,
+      preserveOriginalFormat = false
+    } = options;
+
+    // Handle backwards compatibility - if payload already has type, preserve it
+    if (preserveOriginalFormat && payload && typeof payload === 'object' && payload.type) {
+      const jsonString = JSON.stringify(payload);
+      return this._applyCompression(jsonString, compressed, forceCompression);
+    }
+
+    // Create standardized message structure
+    const message = {
+      type,
+      payload,
+      metadata: {
+        messageId: ++this.messageIdCounter,
+        timestamp: performance.now(),
+        ...(compressed && { compressed: true })
+      }
+    };
+
+    const jsonString = JSON.stringify(message);
+    return this._applyCompression(jsonString, compressed, forceCompression);
+  }
+
+  /**
+   * Decodes a message string back to object format
+   * @param {string} messageString - Encoded message string
+   * @returns {Object} - Decoded message object
+   */
+  static decode(messageString) {
+    if (!messageString || typeof messageString !== 'string') {
+      throw new Error('Invalid message string provided');
+    }
+
+    try {
+      let decodedString = messageString;
+
+      // Handle compressed messages
+      if (messageString.startsWith(this.COMPRESSION_PREFIX)) {
+        decodedString = this._decompressMessage(messageString);
+      }
+
+      const parsed = JSON.parse(decodedString);
+
+      // Validate message structure
+      if (!this._isValidMessage(parsed)) {
+        // Handle legacy format - if it's a direct object with type, return as-is
+        if (parsed && typeof parsed === 'object' && parsed.type) {
+          return parsed;
+        }
+        throw new Error('Invalid message structure');
+      }
+
+      return parsed;
+    } catch (error) {
+      throw new Error(`Failed to decode message: ${error.message}`);
+    }
+  }
+
+  /**
+   * Encodes a message in legacy format for backwards compatibility
+   * @param {Object} legacyMessage - Message in original format
+   * @returns {string} - JSON string
+   */
+  static encodeLegacy(legacyMessage) {
+    if (!legacyMessage || typeof legacyMessage !== 'object') {
+      throw new Error('Invalid legacy message object');
+    }
+
+    const jsonString = JSON.stringify(legacyMessage);
+
+    // Apply compression if message is large
+    if (jsonString.length > this.COMPRESSION_THRESHOLD) {
+      return this._applyCompression(jsonString, true, false);
+    }
+
+    return jsonString;
+  }
+
+  /**
+   * Creates a standardized error message
+   * @param {string} message - Error message
+   * @param {string} context - Error context
+   * @returns {string} - Encoded error message
+   */
+  static encodeError(message, context = '') {
+    return this.encode(MessageType.ERROR, {
+      message,
+      context,
+      timestamp: Date.now()
+    });
+  }
+
+  /**
+   * Creates a standardized state update message
+   * @param {string} componentId - Component identifier
+   * @param {any} value - New component value
+   * @returns {string} - Encoded state update message
+   */
+  static encodeStateUpdate(componentId, value) {
+    return this.encode(MessageType.STATE_UPDATE, {
+      component_id: componentId,
+      value
+    });
+  }
+
+  /**
+   * Creates a standardized bulk update message
+   * @param {Map|Object} updates - Component updates
+   * @returns {string} - Encoded bulk update message
+   */
+  static encodeBulkUpdate(updates) {
+    const payload = updates instanceof Map ? Object.fromEntries(updates) : updates;
+    return this.encode(MessageType.BULK_UPDATE, {
+      states: payload
+    }, { compressed: Object.keys(payload).length > 10 });
+  }
+
+  /**
+   * Applies compression if conditions are met
+   * @private
+   */
+  static _applyCompression(jsonString, compressed, forceCompression) {
+    if (forceCompression || (compressed && jsonString.length > this.COMPRESSION_THRESHOLD)) {
+      return this._compressMessage(jsonString);
+    }
+    return jsonString;
+  }
+
+  /**
+   * base64 encoding
+   * TODO: bring compression lib
+   * @private
+   */
+  static _compressMessage(jsonString) {
+    try {
+      return this.COMPRESSION_PREFIX + btoa(jsonString);
+    } catch (error) {
+      console.warn('[MessageEncoder] Compression failed, using uncompressed:', error);
+      return jsonString;
+    }
+  }
+
+  /**
+   * Decompresses a base64-encoded message
+   * @private
+   */
+  static _decompressMessage(compressedString) {
+    try {
+      return atob(compressedString.replace(this.COMPRESSION_PREFIX, ''));
+    } catch (error) {
+      throw new Error(`Decompression failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Validates message structure
+   * @private
+   */
+  static _isValidMessage(parsed) {
+    return parsed &&
+      typeof parsed === 'object' &&
+      typeof parsed.type === 'string' &&
+      parsed.hasOwnProperty('payload') &&
+      parsed.metadata &&
+      typeof parsed.metadata.messageId === 'number' &&
+      typeof parsed.metadata.timestamp === 'number';
+  }
+
+  /**
+   * Gets encoding statistics for monitoring
+   * @returns {Object} - Encoding statistics
+   */
+  static getStats() {
+    return {
+      totalMessages: this.messageIdCounter,
+      compressionThreshold: this.COMPRESSION_THRESHOLD,
+      supportedTypes: Object.values(MessageType)
+    };
+  }
+}
+
+/**
+ * Component State Manager for bulk operations
+ * Provides efficient state management with change detection, bulk processing,
+ * and performance optimizations for high-volume state updates
+ */
+class ComponentStateManager {
+  constructor(config = {}) {
+    // Core state storage - using Map for O(1) operations
+    this.stateMap = new Map();
+    this.subscribers = new Map(); // componentId -> Set<callback>
+    this.globalSubscribers = new Set(); // Global state change listeners
+
+    // Performance tracking
+    this.metrics = {
+      totalUpdates: 0,
+      bulkUpdates: 0,
+      changeDetections: 0,
+      lastBulkSize: 0,
+      lastBulkDuration: 0
+    };
+
+    // Configuration
+    this.config = {
+      maxBulkSize: 1000,
+      enableMetrics: true,
+      deepCompareDepth: 3,
+      ...config
+    };
+
+    // Change detection optimizations
+    this.lastBulkUpdate = 0;
+    this.pendingUpdates = new Map();
+    this.batchTimeout = null;
+  }
+
+  /**
+   * Get component state with O(1) lookup
+   * @param {string} componentId - Component identifier
+   * @param {any} defaultValue - Default value if not found
+   * @returns {any} - Component state value
+   */
+  getState(componentId) {
+    if (!componentId || typeof componentId !== 'string') {
+      console.warn('[ComponentStateManager] Invalid componentId:', componentId);
+      return undefined;
+    }
+
+    const state = this.stateMap.get(componentId);
+    return state ? state.value : undefined;
+  }
+
+  /**
+   * Set component state with change detection
+   * @param {string} componentId - Component identifier  
+   * @param {any} value - New value
+   * @returns {boolean} - True if state actually changed
+   */
+  setState(componentId, value) {
+    if (!componentId || typeof componentId !== 'string') {
+      throw new Error('Invalid componentId provided');
+    }
+
+    const startTime = performance.now();
+    const currentState = this.stateMap.get(componentId);
+    const hasChanged = this._hasStateChanged(currentState?.value, value);
+
+    if (hasChanged) {
+      const newState = {
+        value,
+        version: (currentState?.version || 0) + 1,
+        lastModified: startTime,
+        componentId
+      };
+
+      this.stateMap.set(componentId, newState);
+      this.metrics.totalUpdates++;
+
+      // Notify subscribers
+      this._notifyStateChange(componentId, value, currentState?.value);
+
+      if (this.config.enableMetrics) {
+        this.metrics.changeDetections++;
+      }
+    }
+
+    return hasChanged;
+  }
+
+  /**
+   * Bulk state update with optimized processing
+   * @param {Map|Object|Array} updates - Bulk updates in various formats
+   * @returns {Object} - Results with metrics and change summary
+   */
+  bulkSetState(updates) {
+    const startTime = performance.now();
+
+    // Normalize updates to Map format for consistent processing
+    const updateMap = this._normalizeUpdates(updates);
+
+    if (updateMap.size === 0) {
+      return {
+        success: true,
+        changedCount: 0,
+        totalCount: 0,
+        duration: 0,
+        changes: new Map()
+      };
+    }
+
+    if (updateMap.size > this.config.maxBulkSize) {
+      throw new Error(`Bulk update size ${updateMap.size} exceeds maximum ${this.config.maxBulkSize}`);
+    }
+
+    // Process all updates and track changes
+    const changes = new Map();
+    const notifications = [];
+    let changedCount = 0;
+
+    try {
+      // Batch process all updates
+      for (const [componentId, value] of updateMap) {
+        const currentState = this.stateMap.get(componentId);
+        const hasChanged = this._hasStateChanged(currentState?.value, value);
+
+        if (hasChanged) {
+          const newState = {
+            value,
+            version: (currentState?.version || 0) + 1,
+            lastModified: startTime,
+            componentId
+          };
+
+          this.stateMap.set(componentId, newState);
+          changes.set(componentId, {
+            oldValue: currentState?.value,
+            newValue: value,
+            version: newState.version
+          });
+
+          notifications.push({
+            componentId,
+            newValue: value,
+            oldValue: currentState?.value
+          });
+
+          changedCount++;
+        }
+      }
+
+      // Batch notify all changes at once for better performance
+      if (notifications.length > 0) {
+        this._batchNotifyChanges(notifications);
+      }
+
+      const duration = performance.now() - startTime;
+
+      // Update metrics
+      if (this.config.enableMetrics) {
+        this.metrics.bulkUpdates++;
+        this.metrics.totalUpdates += changedCount;
+        this.metrics.lastBulkSize = updateMap.size;
+        this.metrics.lastBulkDuration = duration;
+      }
+
+      console.log(`[ComponentStateManager] Bulk update completed: ${changedCount}/${updateMap.size} changed in ${duration.toFixed(2)}ms`);
+
+      return {
+        success: true,
+        changedCount,
+        totalCount: updateMap.size,
+        duration,
+        changes
+      };
+
+    } catch (error) {
+      console.error('[ComponentStateManager] Bulk update failed:', error);
+      throw new Error(`Bulk state update failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Subscribe to state changes for specific component
+   * @param {string} componentId - Component to watch
+   * @param {Function} callback - Change notification callback
+   * @returns {Function} - Unsubscribe function
+   */
+  subscribe(componentId, callback) {
+    if (!this.subscribers.has(componentId)) {
+      this.subscribers.set(componentId, new Set());
+    }
+
+    this.subscribers.get(componentId).add(callback);
+
+    return () => {
+      const componentSubscribers = this.subscribers.get(componentId);
+      if (componentSubscribers) {
+        componentSubscribers.delete(callback);
+        if (componentSubscribers.size === 0) {
+          this.subscribers.delete(componentId);
+        }
+      }
+    };
+  }
+
+  /**
+   * Subscribe to all state changes globally
+   * @param {Function} callback - Global change notification callback
+   * @returns {Function} - Unsubscribe function
+   */
+  subscribeGlobal(callback) {
+    this.globalSubscribers.add(callback);
+
+    return () => {
+      this.globalSubscribers.delete(callback);
+    };
+  }
+
+  /**
+   * Get all current states as a Map
+   * @returns {Map} - All component states
+   */
+  getAllStates() {
+    const result = new Map();
+    for (const [componentId, state] of this.stateMap) {
+      result.set(componentId, state.value);
+    }
+    return result;
+  }
+
+  /**
+   * Get performance metrics
+   * @returns {Object} - Current metrics
+   */
+  getMetrics() {
+    return {
+      ...this.metrics,
+      totalComponents: this.stateMap.size,
+      subscriberCount: this.subscribers.size,
+      globalSubscriberCount: this.globalSubscribers.size
+    };
+  }
+
+  /**
+   * Clear all states and reset manager
+   */
+  reset() {
+    this.stateMap.clear();
+    this.subscribers.clear();
+    this.globalSubscribers.clear();
+    this.pendingUpdates.clear();
+
+    if (this.batchTimeout) {
+      clearTimeout(this.batchTimeout);
+      this.batchTimeout = null;
+    }
+
+    // Reset metrics
+    this.metrics = {
+      totalUpdates: 0,
+      bulkUpdates: 0,
+      changeDetections: 0,
+      lastBulkSize: 0,
+      lastBulkDuration: 0
+    };
+  }
+
+  /**
+   * Normalize various update formats to Map
+   * @private
+   */
+  _normalizeUpdates(updates) {
+    if (updates instanceof Map) {
+      return updates;
+    }
+
+    if (Array.isArray(updates)) {
+      // Assume array of [componentId, value] tuples
+      return new Map(updates);
+    }
+
+    if (updates && typeof updates === 'object') {
+      return new Map(Object.entries(updates));
+    }
+
+    throw new Error('Updates must be Map, Object, or Array format');
+  }
+
+  /**
+   * Efficient change detection with configurable depth
+   * @private
+   */
+  _hasStateChanged(oldValue, newValue) {
+    // Fast equality check
+    if (oldValue === newValue) return false;
+
+    // Null/undefined checks
+    if (oldValue == null || newValue == null) return oldValue !== newValue;
+
+    // Type mismatch
+    if (typeof oldValue !== typeof newValue) return true;
+
+    // Primitive types
+    if (typeof oldValue !== 'object') return oldValue !== newValue;
+
+    // Deep comparison for objects (with depth limit for performance)
+    return !this._deepEqual(oldValue, newValue, this.config.deepCompareDepth);
+  }
+
+  /**
+   * Deep equality check with depth limit
+   * @private
+   */
+  _deepEqual(obj1, obj2, maxDepth = 3) {
+    if (maxDepth <= 0) return obj1 === obj2;
+
+    if (obj1 === obj2) return true;
+    if (obj1 == null || obj2 == null) return obj1 === obj2;
+    if (typeof obj1 !== 'object' || typeof obj2 !== 'object') return obj1 === obj2;
+
+    const keys1 = Object.keys(obj1);
+    const keys2 = Object.keys(obj2);
+
+    if (keys1.length !== keys2.length) return false;
+
+    for (const key of keys1) {
+      if (!keys2.includes(key)) return false;
+      if (!this._deepEqual(obj1[key], obj2[key], maxDepth - 1)) return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Notify subscribers of state change
+   * @private
+   */
+  _notifyStateChange(componentId, newValue, oldValue) {
+    // Notify component-specific subscribers
+    const componentSubscribers = this.subscribers.get(componentId);
+    if (componentSubscribers) {
+      for (const callback of componentSubscribers) {
+        try {
+          callback(componentId, newValue, oldValue);
+        } catch (error) {
+          console.error(`[ComponentStateManager] Subscriber error for ${componentId}:`, error);
+        }
+      }
+    }
+
+    // Notify global subscribers
+    for (const callback of this.globalSubscribers) {
+      try {
+        callback(componentId, newValue, oldValue);
+      } catch (error) {
+        console.error('[ComponentStateManager] Global subscriber error:', error);
+      }
+    }
+  }
+
+  /**
+   * Batch notify multiple changes for better performance
+   * @private
+   */
+  _batchNotifyChanges(notifications) {
+    // Group notifications by subscriber for efficiency
+    const componentNotifications = new Map();
+    const globalNotifications = [];
+
+    // Prepare component-specific notifications
+    for (const notification of notifications) {
+      const { componentId } = notification;
+      const subscribers = this.subscribers.get(componentId);
+
+      if (subscribers) {
+        if (!componentNotifications.has(componentId)) {
+          componentNotifications.set(componentId, []);
+        }
+        componentNotifications.get(componentId).push(notification);
+      }
+
+      globalNotifications.push(notification);
+    }
+
+    // Send component-specific batch notifications
+    for (const [componentId, componentNotifs] of componentNotifications) {
+      const subscribers = this.subscribers.get(componentId);
+      if (subscribers) {
+        for (const callback of subscribers) {
+          try {
+            // Send all changes for this component at once
+            for (const notif of componentNotifs) {
+              callback(notif.componentId, notif.newValue, notif.oldValue);
+            }
+          } catch (error) {
+            console.error(`[ComponentStateManager] Batch subscriber error for ${componentId}:`, error);
+          }
+        }
+      }
+    }
+
+    // Send global batch notifications
+    for (const callback of this.globalSubscribers) {
+      try {
+        // Send all changes at once
+        for (const notif of globalNotifications) {
+          callback(notif.componentId, notif.newValue, notif.oldValue);
+        }
+      } catch (error) {
+        console.error('[ComponentStateManager] Global batch subscriber error:', error);
+      }
+    }
+  }
+}
+
+/**
+ * Core interface for all Preswald communication clients
+ * Provides a unified API across WebSocket, PostMessage, and Comlink transports
+ */
+class IPreswaldCommunicator {
+  /**
+   * Connection lifecycle management
+   */
+  async connect(config = {}) {
+    throw new Error('connect() must be implemented by subclass');
+  }
+
+  async disconnect() {
+    throw new Error('disconnect() must be implemented by subclass');
+  }
+
+  /**
+   * State management operations
+   */
+  getComponentState(componentId) {
+    throw new Error('getComponentState() must be implemented by subclass');
+  }
+
+  async updateComponentState(componentId, value) {
+    throw new Error('updateComponentState() must be implemented by subclass');
+  }
+
+  /**
+   * Subscription management
+   */
+  subscribe(callback) {
+    throw new Error('subscribe() must be implemented by subclass');
+  }
+
+  /**
+   * Bulk operations for efficiency (optional, with fallback)
+   */
+  async bulkStateUpdate(updates) {
+    // Default implementation using individual updates
+    const results = [];
+    for (const [componentId, value] of updates) {
+      try {
+        await this.updateComponentState(componentId, value);
+        results.push({ componentId, success: true });
+      } catch (error) {
+        results.push({ componentId, success: false, error: error.message });
+      }
+    }
+    return { results, totalProcessed: results.length };
+  }
+
+  /**
+   * Connection health monitoring
+   */
+  getConnectionMetrics() {
+    return {
+      isConnected: this.isConnected || false,
+      transport: this.constructor.name,
+      lastActivity: this.lastActivity || 0,
+      pendingUpdates: Object.keys(this.pendingUpdates || {}).length
+    };
+  }
+
+  /**
+   * Legacy compatibility methods - preserved for backwards compatibility
+   */
+  getConnections() {
+    return this.connections || [];
+  }
+}
+
+/**
+ * Base implementation providing common functionality for all transport types
+ * Handles state management, subscription management, and error handling
+ */
+class BaseCommunicationClient extends IPreswaldCommunicator {
   constructor() {
-    this.socket = null;
+    super();
     this.callbacks = new Set();
+    this.componentStates = {}; // Legacy compatibility - will be deprecated
+    this.isConnected = false;
+    this.pendingUpdates = {};
+    this.lastActivity = 0;
+    this.connections = [];
+
+    // Initialize ComponentStateManager for enhanced bulk operations
+    this.stateManager = new ComponentStateManager({
+      maxBulkSize: 1000,
+      enableMetrics: true,
+      deepCompareDepth: 3
+    });
+
+    // Enhanced performance tracking for bulk operations
+    this.metrics = {
+      messagesReceived: 0,
+      messagesSent: 0,
+      errors: 0,
+      lastLatency: 0,
+      bulkUpdatesProcessed: 0,
+      lastBulkProcessed: 0,
+      lastBulkChanged: 0,
+      totalBulkChanges: 0,
+      avgBulkProcessingTime: 0
+    };
+
+    // Subscribe to state manager changes to maintain legacy compatibility
+    this.stateManager.subscribeGlobal((componentId, newValue, oldValue) => {
+      this.componentStates[componentId] = newValue;
+    });
+  }
+
+  /**
+   * Common subscription management
+   */
+  subscribe(callback) {
+    if (typeof callback !== 'function') {
+      throw new Error('Callback must be a function');
+    }
+
+    this.callbacks.add(callback);
+    console.log(`[${this.constructor.name}] Subscriber added, total: ${this.callbacks.size}`);
+
+    return () => {
+      this.callbacks.delete(callback);
+      console.log(`[${this.constructor.name}] Subscriber removed, total: ${this.callbacks.size}`);
+    };
+  }
+
+  /**
+   * Common notification system with error handling
+   */
+  _notifySubscribers(message) {
+    this.lastActivity = performance.now();
+    this.metrics.messagesReceived++;
+
+    this.callbacks.forEach((callback) => {
+      try {
+        callback(message);
+      } catch (error) {
+        console.error(`[${this.constructor.name}] Error in subscriber callback:`, error);
+        this.metrics.errors++;
+      }
+    });
+  }
+
+  /**
+   * Enhanced state management with ComponentStateManager
+   */
+  getComponentState(componentId) {
+    if (!componentId || typeof componentId !== 'string') {
+      console.warn(`[${this.constructor.name}] Invalid componentId:`, componentId);
+      return undefined;
+    }
+
+    // Use ComponentStateManager for enhanced performance
+    const value = this.stateManager.getState(componentId);
+
+    // Fallback to legacy componentStates for backwards compatibility
+    return value !== undefined ? value : this.componentStates[componentId];
+  }
+
+  /**
+   * Enhanced bulk update with ComponentStateManager and MessageEncoder support
+   */
+  async bulkStateUpdate(updates) {
+    if (!updates || typeof updates[Symbol.iterator] !== 'function') {
+      throw new Error('Updates must be iterable (Map, Array, etc.)');
+    }
+
+    const startTime = performance.now();
+
+    try {
+      // Use ComponentStateManager for efficient local state management
+      const stateResult = this.stateManager.bulkSetState(updates);
+
+      if (stateResult.changedCount === 0) {
+        console.log(`[${this.constructor.name}] No state changes detected in bulk update`);
+        return {
+          results: [],
+          totalProcessed: stateResult.totalCount,
+          successCount: 0,
+          duration: stateResult.duration,
+          localChanges: stateResult.changedCount
+        };
+      }
+
+      // Only send updates for changed states to reduce network traffic
+      const changedUpdates = new Map();
+      for (const [componentId, changeInfo] of stateResult.changes) {
+        changedUpdates.set(componentId, changeInfo.newValue);
+      }
+
+      const results = [];
+      let successCount = 0;
+
+      // Check if the transport supports native bulk updates
+      if (this._sendBulkUpdate && typeof this._sendBulkUpdate === 'function') {
+        try {
+          const bulkResult = await this._sendBulkUpdate(changedUpdates);
+          if (bulkResult.success) {
+            // All changes were successfully sent
+            for (const componentId of changedUpdates.keys()) {
+              results.push({ componentId, success: true });
+              successCount++;
+            }
+          } else {
+            throw new Error('Bulk update failed on transport level');
+          }
+        } catch (error) {
+          console.warn(`[${this.constructor.name}] Bulk update failed, falling back to individual updates:`, error);
+          // Fall back to individual updates
+          return this._fallbackBulkUpdate(changedUpdates, startTime);
+        }
+      } else {
+        // Fall back to individual updates
+        return this._fallbackBulkUpdate(changedUpdates, startTime);
+      }
+
+      const duration = performance.now() - startTime;
+      console.log(`[${this.constructor.name}] Bulk update completed: ${successCount}/${changedUpdates.size} network updates (${stateResult.changedCount}/${stateResult.totalCount} local changes) in ${duration.toFixed(2)}ms`);
+
+      return {
+        results,
+        totalProcessed: stateResult.totalCount,
+        successCount,
+        duration,
+        localChanges: stateResult.changedCount,
+        networkUpdates: changedUpdates.size,
+        stateManagerMetrics: this.stateManager.getMetrics()
+      };
+
+    } catch (error) {
+      console.error(`[${this.constructor.name}] Enhanced bulk update failed:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Fallback bulk update using individual updates
+   * @private
+   */
+  async _fallbackBulkUpdate(updates, startTime) {
+    const results = [];
+    let successCount = 0;
+
+    try {
+      for (const [componentId, value] of updates) {
+        try {
+          await this.updateComponentState(componentId, value);
+          results.push({ componentId, success: true });
+          successCount++;
+        } catch (error) {
+          results.push({ componentId, success: false, error: error.message });
+          console.error(`[${this.constructor.name}] Bulk update failed for ${componentId}:`, error);
+        }
+      }
+    } catch (error) {
+      console.error(`[${this.constructor.name}] Bulk update iteration failed:`, error);
+      throw error;
+    }
+
+    const duration = performance.now() - startTime;
+    console.log(`[${this.constructor.name}] Fallback bulk update completed: ${successCount}/${results.length} in ${duration.toFixed(2)}ms`);
+
+    return {
+      results,
+      totalProcessed: results.length,
+      successCount,
+      duration
+    };
+  }
+
+  /**
+ * Enhanced connection metrics with ComponentStateManager, MessageEncoder, bulk operations, and transport optimization statistics
+ */
+  getConnectionMetrics() {
+    const baseMetrics = {
+      isConnected: this.isConnected,
+      transport: this.constructor.name,
+      lastActivity: this.lastActivity,
+      pendingUpdates: Object.keys(this.pendingUpdates).length,
+      metrics: { ...this.metrics },
+      uptime: this.connectTime ? performance.now() - this.connectTime : 0,
+      messageEncoder: MessageEncoder.getStats(),
+      stateManager: this.stateManager.getMetrics(),
+      bulkOperations: {
+        totalBulkUpdates: this.metrics.bulkUpdatesProcessed,
+        totalBulkChanges: this.metrics.totalBulkChanges,
+        avgProcessingTime: this.metrics.avgBulkProcessingTime,
+        lastBulkSize: this.metrics.lastBulkProcessed,
+        lastBulkChanges: this.metrics.lastBulkChanged,
+        bulkEfficiency: this.metrics.lastBulkProcessed > 0 ?
+          (this.metrics.lastBulkChanged / this.metrics.lastBulkProcessed * 100).toFixed(1) + '%' : 'N/A'
+      },
+      serverConfiguration: {
+        resolvedServerUrl: this.resolvedServerUrl || 'unknown',
+        wsUrl: this.wsUrl || 'unknown',
+        clientId: this.clientId
+      }
+    };
+
+    // Add transport-specific optimization metrics
+    if (this.constructor.name === 'WebSocketClient') {
+      baseMetrics.transportOptimization = {
+        batchingEnabled: this.batchingEnabled,
+        queuedMessages: this.messageQueue.length,
+        maxQueueSize: this.maxQueueSize,
+        batchSize: this.batchSize,
+        batchDelay: this.batchDelay,
+        compression: {
+          messagesCompressed: this.compressionStats.messagesCompressed,
+          avgCompressionRatio: (this.compressionStats.avgCompressionRatio * 100).toFixed(1) + '%'
+        }
+      };
+    } else if (this.constructor.name === 'PostMessageClient') {
+      baseMetrics.transportOptimization = {
+        batchingEnabled: this.batchingEnabled,
+        queuedMessages: this.messageQueue.length,
+        maxQueueSize: this.maxQueueSize,
+        batchSize: this.batchSize,
+        batchDelay: this.batchDelay,
+        serialization: {
+          messagesOptimized: this.serializationStats.messagesOptimized,
+          avgSizeReduction: (this.serializationStats.avgSizeReduction * 100).toFixed(1) + '%'
+        }
+      };
+    }
+
+    return baseMetrics;
+  }
+
+  /**
+ * Enhanced error handling with MessageEncoder support
+ */
+  _handleError(error, context = '') {
+    this.metrics.errors++;
+    const errorMessage = `[${this.constructor.name}] ${context ? context + ': ' : ''}${error.message}`;
+    console.error(errorMessage, error);
+
+    // Create standardized error message
+    const errorPayload = {
+      type: 'error',
+      content: {
+        message: error.message,
+        fullError: error.toString(),
+        context,
+        timestamp: performance.now(),
+        transport: this.constructor.name
+      }
+    };
+
+    this._notifySubscribers(errorPayload);
+  }
+
+  /**
+   * Common connection state management
+   */
+  _setConnected(connected) {
+    const wasConnected = this.isConnected;
+    this.isConnected = connected;
+
+    if (connected && !wasConnected) {
+      this.connectTime = performance.now();
+      console.log(`[${this.constructor.name}] Connection established`);
+    } else if (!connected && wasConnected) {
+      console.log(`[${this.constructor.name}] Connection lost`);
+    }
+
+    this._notifySubscribers({
+      type: 'connection_status',
+      connected,
+      timestamp: performance.now()
+    });
+  }
+}
+
+class WebSocketClient extends BaseCommunicationClient {
+  constructor(config = {}) {
+    super();
+    this.socket = null;
     this.clientId = Math.random().toString(36).substring(7);
     this.isConnecting = false;
-    this.componentStates = {};
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
     this.reconnectDelay = 1000;
-    this.connections = [];
-    this.pendingUpdates = {}; // Only store latest value for each component
+
+    this.messageQueue = [];
+    this.maxQueueSize = config.maxQueueSize || 1000;
+    this.batchingEnabled = config.batchingEnabled !== false;
+    this.batchTimeout = null;
+    this.batchSize = config.batchSize || 10;
+    this.batchDelay = config.batchDelay || 16;
+
+    // Compression statistics for monitoring
+    this.compressionStats = {
+      messagesCompressed: 0,
+      totalCompressionRatio: 0,
+      avgCompressionRatio: 0
+    };
+
+    // Note: callbacks, componentStates, isConnected, pendingUpdates, connections 
+    // are now inherited from BaseCommunicationClient
   }
 
-  connect() {
+  async connect(config = {}) {
     if (this.isConnecting || (this.socket && this.socket.readyState === WebSocket.OPEN)) {
       console.log('[WebSocket] Already connected or connecting');
-      return;
+      return { success: true, message: 'Already connected' };
     }
 
     this.isConnecting = true;
     console.log('[WebSocket] Connecting...');
 
     try {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/ws/${this.clientId}`;
+      const serverUrl = await ServerUrlResolver.resolveServerUrl({
+        enableUrlParams: config.enableUrlParams !== false,
+        enableStorage: config.enableStorage !== false,
+        fallbackHost: config.fallbackHost,
+        fallbackPort: config.fallbackPort
+      });
+
+      const wsProtocol = serverUrl.startsWith('https:') ? 'wss:' : 'ws:';
+      const serverHost = serverUrl.replace(/^https?:\/\//, '');
+      const wsUrl = `${wsProtocol}//${serverHost}/ws/${this.clientId}`;
+
+      console.log(`[WebSocket] Connecting to: ${wsUrl} (resolved from: ${serverUrl})`);
+
       this.socket = new WebSocket(wsUrl);
 
-      this.socket.onopen = () => {
-        console.log('[WebSocket] Connected successfully');
-        this.isConnecting = false;
-        this.reconnectAttempts = 0;
-        this.reconnectDelay = 1000;
+      this.resolvedServerUrl = serverUrl;
+      this.wsUrl = wsUrl;
 
-        Object.entries(this.pendingUpdates).forEach(([componentId, value]) => {
-          this._sendComponentUpdate(componentId, value);
-        });
-        this.pendingUpdates = {};
+      return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          this.isConnecting = false;
+          reject(new Error('Connection timeout'));
+        }, config.timeout || 10000);
 
-        this._notifySubscribers({ type: 'connection_status', connected: true });
-      };
+        this.socket.onopen = () => {
+          clearTimeout(timeout);
+          console.log('[WebSocket] Connected successfully');
+          this.isConnecting = false;
+          this.reconnectAttempts = 0;
+          this.reconnectDelay = 1000;
 
-      this.socket.onclose = (event) => {
-        console.log('[WebSocket] Connection closed:', event);
-        this.isConnecting = false;
-        this.socket = null;
-        this._notifySubscribers({ type: 'connection_status', connected: false });
-        this._handleReconnect();
-      };
-
-      this.socket.onerror = (error) => {
-        console.error('[WebSocket] Error:', error);
-        this.isConnecting = false;
-        this._notifySubscribers({
-          type: 'error',
-          content: { message: 'WebSocket connection error' },
-        });
-      };
-
-      this.socket.onmessage = async (event) => {
-        try {
-          if (typeof event.data === 'string') {
-            // Normal text message — parse as JSON
-            const data = JSON.parse(event.data);
-            console.log('[WebSocket] JSON Message received:', {
-              ...data,
-              timestamp: new Date().toISOString(),
-            });
-
-            switch (data.type) {
-              case 'initial_state':
-                this.componentStates = { ...data.states };
-                console.log('[WebSocket] Initial states loaded:', this.componentStates);
-                break;
-
-              case 'state_update':
-                if (data.component_id) {
-                  this.componentStates[data.component_id] = data.value;
-                }
-                console.log('[WebSocket] Component state updated:', {
-                  componentId: data.component_id,
-                  value: data.value,
-                });
-                break;
-
-              case 'components':
-                if (data.components?.rows) {
-                  data.components.rows.forEach((row) => {
-                    row.forEach((component) => {
-                      if (component.id && 'value' in component) {
-                        this.componentStates[component.id] = component.value;
-                        console.log('[WebSocket] Component state updated:', {
-                          componentId: component.id,
-                          value: component.value,
-                        });
-                      }
-                    });
-                  });
-                }
-                break;
-
-              case 'connections_update':
-                this.connections = data.connections || [];
-                console.log('[WebSocket] Connections updated:', this.connections);
-                break;
-            }
-
-            this._notifySubscribers(data);
-          } else if (event.data instanceof Blob) {
-            const buffer = await event.data.arrayBuffer();
-            const decoded = decode(new Uint8Array(buffer));
-
-            if (decoded?.type === 'image_update' && decoded.format === 'png') {
-              const { component_id, data: binaryData, label } = decoded;
-
-              // Convert image data (Uint8Array) to base64
-              const base64 = `data:image/png;base64,${btoa(
-                new Uint8Array(binaryData).reduce(
-                  (data, byte) => data + String.fromCharCode(byte),
-                  ''
-                )
-              )}`;
-
-              // Update state and notify
-              this.componentStates[component_id] = base64;
-              this._notifySubscribers({
-                type: 'image_update',
-                component_id,
-                value: base64,
-                label,
-              });
-            } else {
-              console.warn('[WebSocket] Unknown binary message format:', decoded);
-            }
-          } else {
-            console.warn('[WebSocket] Unrecognized message format:', event.data);
-          }
-        } catch (error) {
-          console.error('[WebSocket] Error processing message:', error);
-          this._notifySubscribers({
-            type: 'error',
-            content: { message: 'Error processing server message' },
+          // Process pending updates
+          Object.entries(this.pendingUpdates).forEach(([componentId, value]) => {
+            this._sendComponentUpdate(componentId, value);
           });
-        }
-      };
+          this.pendingUpdates = {};
+
+          this._setConnected(true);
+          resolve({ success: true, message: 'Connected successfully' });
+        };
+
+        this.socket.onclose = (event) => {
+          clearTimeout(timeout);
+          console.log('[WebSocket] Connection closed:', event);
+          this.isConnecting = false;
+          this.socket = null;
+          this._setConnected(false);
+          this._handleReconnect();
+          if (this.isConnecting) {
+            reject(new Error('Connection closed during setup'));
+          }
+        };
+
+        this.socket.onerror = (error) => {
+          clearTimeout(timeout);
+          console.error('[WebSocket] Error:', error);
+          this.isConnecting = false;
+          this._handleError(error, 'Connection error');
+          reject(new Error('WebSocket connection error'));
+        };
+
+        this.socket.onmessage = async (event) => {
+          try {
+            if (typeof event.data === 'string') {
+              // Use MessageEncoder for consistent parsing with fallback to legacy
+              let data;
+              try {
+                data = MessageEncoder.decode(event.data);
+                // If it's a new format message, extract payload
+                if (data.metadata && data.payload) {
+                  data = { ...data.payload, type: data.type };
+                }
+              } catch (decodeError) {
+                // Fallback to legacy JSON parsing for backwards compatibility
+                console.warn('[WebSocket] Using legacy JSON parsing:', decodeError.message);
+                data = JSON.parse(event.data);
+              }
+
+              console.log('[WebSocket] Message received:', {
+                ...data,
+                timestamp: new Date().toISOString(),
+              });
+
+              switch (data.type) {
+                case 'initial_state':
+                  // Use ComponentStateManager for bulk initial state loading
+                  if (data.states) {
+                    this.stateManager.bulkSetState(data.states);
+                    console.log('[WebSocket] Initial states loaded via ComponentStateManager:', Object.keys(data.states).length, 'components');
+                  }
+                  // Legacy compatibility
+                  this.componentStates = { ...data.states };
+                  break;
+
+                case 'state_update':
+                  if (data.component_id) {
+                    // Use ComponentStateManager for individual updates
+                    this.stateManager.setState(data.component_id, data.value);
+                    console.log('[WebSocket] Component state updated:', {
+                      componentId: data.component_id,
+                      value: data.value,
+                    });
+                  }
+                  break;
+
+                case 'bulk_update':
+                  if (data.states) {
+                    // Handle bulk updates efficiently
+                    const bulkResult = this.stateManager.bulkSetState(data.states);
+                    console.log('[WebSocket] Bulk state update processed:', {
+                      totalCount: bulkResult.totalCount,
+                      changedCount: bulkResult.changedCount,
+                      duration: bulkResult.duration
+                    });
+                  }
+                  break;
+
+                case 'bulk_update_ack':
+                  // Handle server acknowledgment of bulk updates
+                  console.log('[WebSocket] Bulk update acknowledged by server:', {
+                    totalCount: data.total_count,
+                    changedCount: data.changed_count,
+                    processingTime: data.processing_time,
+                    validationErrors: data.validation_errors,
+                    success: data.success
+                  });
+
+                  // Update connection metrics with server performance data
+                  if (this.metrics) {
+                    this.metrics.lastLatency = data.processing_time * 1000; // Convert to ms
+                    this.metrics.lastBulkProcessed = data.total_count;
+                    this.metrics.lastBulkChanged = data.changed_count;
+                    this.metrics.bulkUpdatesProcessed++;
+                    this.metrics.totalBulkChanges += data.changed_count;
+
+                    // Calculate rolling average of bulk processing times
+                    const currentAvg = this.metrics.avgBulkProcessingTime;
+                    const count = this.metrics.bulkUpdatesProcessed;
+                    this.metrics.avgBulkProcessingTime = ((currentAvg * (count - 1)) + (data.processing_time * 1000)) / count;
+                  }
+                  break;
+
+                case 'components':
+                  if (data.components?.rows) {
+                    // Extract state updates from component data for bulk processing
+                    const stateUpdates = new Map();
+                    data.components.rows.forEach((row) => {
+                      row.forEach((component) => {
+                        if (component.id && 'value' in component) {
+                          stateUpdates.set(component.id, component.value);
+                        }
+                      });
+                    });
+
+                    if (stateUpdates.size > 0) {
+                      const bulkResult = this.stateManager.bulkSetState(stateUpdates);
+                      console.log('[WebSocket] Component states bulk updated:', {
+                        totalCount: bulkResult.totalCount,
+                        changedCount: bulkResult.changedCount,
+                        duration: bulkResult.duration
+                      });
+                    }
+                  }
+                  break;
+
+                case 'connections_update':
+                  this.connections = data.connections || [];
+                  console.log('[WebSocket] Connections updated:', this.connections);
+                  break;
+              }
+
+              this._notifySubscribers(data);
+            } else if (event.data instanceof Blob) {
+              const buffer = await event.data.arrayBuffer();
+              const decoded = decode(new Uint8Array(buffer));
+
+              if (decoded?.type === 'image_update' && decoded.format === 'png') {
+                const { component_id, data: binaryData, label } = decoded;
+
+                // Convert image data (Uint8Array) to base64
+                const base64 = `data:image/png;base64,${btoa(
+                  new Uint8Array(binaryData).reduce(
+                    (data, byte) => data + String.fromCharCode(byte),
+                    ''
+                  )
+                )}`;
+
+                // Update state and notify
+                this.componentStates[component_id] = base64;
+                this._notifySubscribers({
+                  type: 'image_update',
+                  component_id,
+                  value: base64,
+                  label,
+                });
+              } else {
+                console.warn('[WebSocket] Unknown binary message format:', decoded);
+              }
+            } else {
+              console.warn('[WebSocket] Unrecognized message format:', event.data);
+            }
+          } catch (error) {
+            console.error('[WebSocket] Error processing message:', error);
+            this._handleError(error, 'Message processing');
+          }
+        };
+      });
     } catch (error) {
       console.error('[WebSocket] Error creating connection:', error);
       this.isConnecting = false;
-      this._notifySubscribers({
-        type: 'error',
-        content: { message: 'Failed to create WebSocket connection' },
-      });
+      this._handleError(error, 'Connection creation');
+      return { success: false, message: error.message };
     }
   }
 
-  disconnect() {
+  async disconnect() {
     if (this.socket) {
       console.log('[WebSocket] Disconnecting...');
+
+      // Process any pending` batched messages before disconnecting
+      if (this.batchTimeout) {
+        clearTimeout(this.batchTimeout);
+        this.batchTimeout = null;
+        this._processBatchedMessages();
+      }
+
       this.socket.close();
       this.socket = null;
+      this._setConnected(false);
+
+      // Clear message queue
+      this.messageQueue = [];
     }
   }
 
@@ -189,41 +1646,156 @@ class WebSocketClient {
     }, delay);
   }
 
-  subscribe(callback) {
-    this.callbacks.add(callback);
-    return () => this.callbacks.delete(callback);
-  }
+  // subscribe, _notifySubscribers, getComponentState are inherited from BaseCommunicationClient
 
-  _notifySubscribers(message) {
-    this.callbacks.forEach((callback) => {
-      try {
-        callback(message);
-      } catch (error) {
-        console.error('[WebSocket] Error in subscriber callback:', error);
-      }
-    });
-  }
-
-  getComponentState(componentId) {
-    return this.componentStates[componentId];
-  }
-
-  updateComponentState(componentId, value) {
+  async updateComponentState(componentId, value) {
     if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
-      this.pendingUpdates.set(componentId, value);
+      this.pendingUpdates[componentId] = value;
       throw new Error('WebSocket connection not open');
     }
+    this.metrics.messagesSent++;
     return this._sendComponentUpdate(componentId, value);
   }
 
   _sendComponentUpdate(componentId, value) {
     const message = { type: 'component_update', states: { [componentId]: value } };
+
+    // Enhanced batching for better performance
+    if (this.batchingEnabled && this.messageQueue.length < this.maxQueueSize) {
+      this.messageQueue.push({ componentId, value, timestamp: performance.now() });
+
+      // Schedule batch processing if not already scheduled
+      if (!this.batchTimeout) {
+        this.batchTimeout = setTimeout(() => {
+          this._processBatchedMessages();
+        }, this.batchDelay);
+      }
+
+      // Process immediately if batch is full
+      if (this.messageQueue.length >= this.batchSize) {
+        clearTimeout(this.batchTimeout);
+        this.batchTimeout = null;
+        this._processBatchedMessages();
+      }
+
+      return;
+    }
+
+    // Fallback to immediate sending
+    this._sendImmediateMessage(message, componentId, value);
+  }
+
+  _processBatchedMessages() {
+    if (this.messageQueue.length === 0) return;
+
     try {
-      this.socket.send(JSON.stringify(message));
-      this.componentStates[componentId] = value;
-      console.log('[WebSocket] Sent component update:', message);
+      // Group messages by component for deduplication
+      const stateUpdates = {};
+      this.messageQueue.forEach(({ componentId, value }) => {
+        stateUpdates[componentId] = value;
+      });
+
+      const batchMessage = {
+        type: 'component_update',
+        states: stateUpdates,
+        batch: true,
+        count: Object.keys(stateUpdates).length
+      };
+
+      this._sendImmediateMessage(batchMessage);
+
+      // Update local states
+      Object.entries(stateUpdates).forEach(([componentId, value]) => {
+        this.componentStates[componentId] = value;
+      });
+
+      console.log(`[WebSocket] Sent batched update: ${Object.keys(stateUpdates).length} components from ${this.messageQueue.length} queued messages`);
+
+      // Clear the queue
+      this.messageQueue = [];
+      this.batchTimeout = null;
+
     } catch (error) {
-      console.error('[WebSocket] Error sending component update:', error);
+      console.error('[WebSocket] Error processing batched messages:', error);
+      // Fallback to individual sends
+      this.messageQueue.forEach(({ componentId, value }) => {
+        const message = { type: 'component_update', states: { [componentId]: value } };
+        this._sendImmediateMessage(message, componentId, value);
+      });
+      this.messageQueue = [];
+      this.batchTimeout = null;
+    }
+  }
+
+  _sendImmediateMessage(message, componentId = null, value = null) {
+    try {
+      // Enhanced compression with statistics tracking
+      let encodedMessage;
+      let originalSize, compressedSize;
+
+      try {
+        // Determine if compression should be used
+        const jsonString = JSON.stringify(message);
+        originalSize = jsonString.length;
+
+        const shouldCompress = originalSize > MessageEncoder.COMPRESSION_THRESHOLD;
+        encodedMessage = MessageEncoder.encodeLegacy(message);
+        compressedSize = encodedMessage.length;
+
+        // Track compression statistics
+        if (shouldCompress && compressedSize < originalSize) {
+          this.compressionStats.messagesCompressed++;
+          const compressionRatio = (originalSize - compressedSize) / originalSize;
+          this.compressionStats.totalCompressionRatio += compressionRatio;
+          this.compressionStats.avgCompressionRatio =
+            this.compressionStats.totalCompressionRatio / this.compressionStats.messagesCompressed;
+        }
+
+      } catch (encodeError) {
+        console.warn('[WebSocket] Using legacy JSON encoding:', encodeError.message);
+        encodedMessage = JSON.stringify(message);
+        compressedSize = encodedMessage.length;
+      }
+
+      this.socket.send(encodedMessage);
+
+      if (componentId && value !== null) {
+        this.componentStates[componentId] = value;
+      }
+
+      // Enhanced logging with compression info
+      if (originalSize && compressedSize < originalSize) {
+        const compressionRatio = ((originalSize - compressedSize) / originalSize * 100).toFixed(1);
+        console.log(`[WebSocket] Sent compressed message: ${originalSize}B → ${compressedSize}B (${compressionRatio}% reduction)`);
+      } else {
+        console.log('[WebSocket] Sent message:', message.type, compressedSize ? `${compressedSize}B` : '');
+      }
+
+    } catch (error) {
+      console.error('[WebSocket] Error sending message:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Native bulk update implementation for WebSocket transport
+   * @private
+   */
+  async _sendBulkUpdate(updates) {
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+      throw new Error('WebSocket connection not open');
+    }
+
+    try {
+      // Use MessageEncoder for efficient bulk updates
+      const encodedMessage = MessageEncoder.encodeBulkUpdate(updates);
+      this.socket.send(encodedMessage);
+      this.metrics.messagesSent++;
+
+      console.log(`[WebSocket] Sent bulk update for ${updates instanceof Map ? updates.size : Object.keys(updates).length} components`);
+      return { success: true };
+    } catch (error) {
+      console.error('[WebSocket] Error sending bulk update:', error);
       throw error;
     }
   }
@@ -233,21 +1805,35 @@ class WebSocketClient {
   }
 }
 
-class PostMessageClient {
-  constructor() {
-    this.callbacks = new Set();
-    this.componentStates = {};
-    this.isConnected = false;
-    this.pendingUpdates = {};
+class PostMessageClient extends BaseCommunicationClient {
+  constructor(config = {}) {
+    super();
+
+    this.messageQueue = [];
+    this.maxQueueSize = config.maxQueueSize || 500;
+    this.batchingEnabled = config.batchingEnabled !== false;
+    this.batchTimeout = null;
+    this.batchSize = config.batchSize || 8;
+    this.batchDelay = config.batchDelay || 20;
+    this.messageSequence = 0;
+
+    // Serialization optimization statistics
+    this.serializationStats = {
+      messagesOptimized: 0,
+      totalSizeReduction: 0,
+      avgSizeReduction: 0
+    };
+
+    // Note: callbacks, componentStates, isConnected, pendingUpdates
+    // are now inherited from BaseCommunicationClient
   }
 
-  connect() {
+  async connect(config = {}) {
     console.log('[PostMessage] Setting up listener...');
-    window.addEventListener('message', this._handleMessage.bind(this)); // This is the real core of the postmessage client
+    window.addEventListener('message', this._handleMessage.bind(this));
 
     // Assume connected in browser context
-    this.isConnected = true;
-    this._notifySubscribers({ type: 'connection_status', connected: true });
+    this._setConnected(true);
     console.log('[PostMessage] Connected successfully');
 
     // Send pending updates
@@ -255,13 +1841,25 @@ class PostMessageClient {
       this._sendComponentUpdate(componentId, value);
     });
     this.pendingUpdates = {};
+
+    return { success: true, message: 'PostMessage connected successfully' };
   }
 
-  disconnect() {
+  async disconnect() {
     console.log('[PostMessage] Disconnecting...');
+
+    // Process any pending batched messages before disconnecting
+    if (this.batchTimeout) {
+      clearTimeout(this.batchTimeout);
+      this.batchTimeout = null;
+      this._processBatchedMessages();
+    }
+
     window.removeEventListener('message', this._handleMessage.bind(this));
-    this.isConnected = false;
-    this._notifySubscribers({ type: 'connection_status', connected: false });
+    this._setConnected(false);
+
+    // Clear message queue
+    this.messageQueue = [];
   }
 
   _handleMessage(event) {
@@ -269,8 +1867,22 @@ class PostMessageClient {
 
     let data;
     try {
-      // Handle both string and object messages
-      data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+      // Handle both string and object messages with MessageEncoder support
+      if (typeof event.data === 'string') {
+        try {
+          data = MessageEncoder.decode(event.data);
+          // If it's a new format message, extract payload
+          if (data.metadata && data.payload) {
+            data = { ...data.payload, type: data.type };
+          }
+        } catch (decodeError) {
+          // Fallback to legacy JSON parsing
+          console.warn('[PostMessage] Using legacy JSON parsing:', decodeError.message);
+          data = JSON.parse(event.data);
+        }
+      } else {
+        data = event.data;
+      }
     } catch (error) {
       console.error('[PostMessage] Error parsing message:', error);
       return;
@@ -287,35 +1899,87 @@ class PostMessageClient {
         break;
 
       case 'initial_state':
+        // Use ComponentStateManager for bulk initial state loading
+        if (data.states) {
+          this.stateManager.bulkSetState(data.states);
+          console.log('[PostMessage] Initial states loaded via ComponentStateManager:', Object.keys(data.states).length, 'components');
+        }
+        // Legacy compatibility
         this.componentStates = { ...data.states };
-        console.log('[PostMessage] Initial states loaded:', this.componentStates);
         this._notifySubscribers(data);
         break;
 
       case 'state_update':
         if (data.component_id) {
-          this.componentStates[data.component_id] = data.value;
+          // Use ComponentStateManager for individual updates
+          this.stateManager.setState(data.component_id, data.value);
+          console.log('[PostMessage] Component state updated:', {
+            componentId: data.component_id,
+            value: data.value,
+          });
         }
-        console.log('[PostMessage] Component state updated:', {
-          componentId: data.component_id,
-          value: data.value,
+        this._notifySubscribers(data);
+        break;
+
+      case 'bulk_update':
+        if (data.states) {
+          // Handle bulk updates efficiently
+          const bulkResult = this.stateManager.bulkSetState(data.states);
+          console.log('[PostMessage] Bulk state update processed:', {
+            totalCount: bulkResult.totalCount,
+            changedCount: bulkResult.changedCount,
+            duration: bulkResult.duration
+          });
+        }
+        this._notifySubscribers(data);
+        break;
+
+      case 'bulk_update_ack':
+        // Handle server acknowledgment of bulk updates
+        console.log('[PostMessage] Bulk update acknowledged by server:', {
+          totalCount: data.total_count,
+          changedCount: data.changed_count,
+          processingTime: data.processing_time,
+          validationErrors: data.validation_errors,
+          success: data.success
         });
+
+        // Update connection metrics with server performance data
+        if (this.metrics) {
+          this.metrics.lastLatency = data.processing_time * 1000; // Convert to ms
+          this.metrics.lastBulkProcessed = data.total_count;
+          this.metrics.lastBulkChanged = data.changed_count;
+          this.metrics.bulkUpdatesProcessed++;
+          this.metrics.totalBulkChanges += data.changed_count;
+
+          // Calculate rolling average of bulk processing times
+          const currentAvg = this.metrics.avgBulkProcessingTime;
+          const count = this.metrics.bulkUpdatesProcessed;
+          this.metrics.avgBulkProcessingTime = ((currentAvg * (count - 1)) + (data.processing_time * 1000)) / count;
+        }
         this._notifySubscribers(data);
         break;
 
       case 'components':
         if (data.components && data.components.rows) {
+          // Extract state updates from component data for bulk processing
+          const stateUpdates = new Map();
           data.components.rows.forEach((row) => {
             row.forEach((component) => {
               if (component.id && 'value' in component) {
-                this.componentStates[component.id] = component.value;
-                console.log('[PostMessage] Component state updated:', {
-                  componentId: component.id,
-                  value: component.value,
-                });
+                stateUpdates.set(component.id, component.value);
               }
             });
           });
+
+          if (stateUpdates.size > 0) {
+            const bulkResult = this.stateManager.bulkSetState(stateUpdates);
+            console.log('[PostMessage] Component states bulk updated:', {
+              totalCount: bulkResult.totalCount,
+              changedCount: bulkResult.changedCount,
+              duration: bulkResult.duration
+            });
+          }
         }
         this._notifySubscribers(data);
         break;
@@ -326,63 +1990,223 @@ class PostMessageClient {
     }
   }
 
-  subscribe(callback) {
-    this.callbacks.add(callback);
-    return () => this.callbacks.delete(callback);
-  }
+  // subscribe, _notifySubscribers, getComponentState are inherited from BaseCommunicationClient
 
-  _notifySubscribers(message) {
-    this.callbacks.forEach((callback) => {
-      try {
-        callback(message);
-      } catch (error) {
-        console.error('[PostMessage] Error in subscriber callback:', error);
-      }
-    });
-  }
-
-  getComponentState(componentId) {
-    return this.componentStates[componentId];
-  }
-
-  updateComponentState(componentId, value) {
+  async updateComponentState(componentId, value) {
     if (!this.isConnected) {
-      this.pendingUpdates.set(componentId, value);
+      this.pendingUpdates[componentId] = value;
       throw new Error('PostMessage connection not ready');
     }
+    this.metrics.messagesSent++;
     return this._sendComponentUpdate(componentId, value);
   }
 
   _sendComponentUpdate(componentId, value) {
-    if (window.parent) {
-      window.parent.postMessage(
-        {
+    if (!window.parent) {
+      console.warn('[PostMessage] No parent window to send update');
+      return;
+    }
+
+    // Enhanced batching for better performance
+    if (this.batchingEnabled && this.messageQueue.length < this.maxQueueSize) {
+      this.messageQueue.push({ componentId, value, timestamp: performance.now() });
+
+      // Schedule batch processing if not already scheduled
+      if (!this.batchTimeout) {
+        this.batchTimeout = setTimeout(() => {
+          this._processBatchedMessages();
+        }, this.batchDelay);
+      }
+
+      // Process immediately if batch is full
+      if (this.messageQueue.length >= this.batchSize) {
+        clearTimeout(this.batchTimeout);
+        this.batchTimeout = null;
+        this._processBatchedMessages();
+      }
+
+      return;
+    }
+
+    // Fallback to immediate sending
+    const message = {
+      type: 'component_update',
+      id: componentId,
+      value,
+    };
+
+    this._sendImmediateMessage(message, componentId, value);
+  }
+
+  _processBatchedMessages() {
+    if (this.messageQueue.length === 0) return;
+
+    try {
+      // Group messages by component for deduplication
+      const stateUpdates = {};
+      this.messageQueue.forEach(({ componentId, value }) => {
+        stateUpdates[componentId] = value;
+      });
+
+      const batchMessage = {
+        type: 'component_update_batch',
+        states: stateUpdates,
+        count: Object.keys(stateUpdates).length,
+        timestamp: performance.now()
+      };
+
+      this._sendImmediateMessage(batchMessage);
+
+      // Update local states
+      Object.entries(stateUpdates).forEach(([componentId, value]) => {
+        this.componentStates[componentId] = value;
+      });
+
+      console.log(`[PostMessage] Sent batched update: ${Object.keys(stateUpdates).length} components from ${this.messageQueue.length} queued messages`);
+
+      // Clear the queue
+      this.messageQueue = [];
+      this.batchTimeout = null;
+
+    } catch (error) {
+      console.error('[PostMessage] Error processing batched messages:', error);
+      // Fallback to individual sends
+      this.messageQueue.forEach(({ componentId, value }) => {
+        const message = {
           type: 'component_update',
           id: componentId,
           value,
-        },
-        '*'
-      );
-      this.componentStates[componentId] = value;
-      console.log('[PostMessage] Sent component update:', { id: componentId, value });
-    } else {
-      console.warn('[PostMessage] No parent window to send update');
+        };
+        this._sendImmediateMessage(message, componentId, value);
+      });
+      this.messageQueue = [];
+      this.batchTimeout = null;
     }
   }
 
-  getConnections() {
-    return [];
+  _sendImmediateMessage(message, componentId = null, value = null) {
+    try {
+      // Enhanced JSON serialization with optimization tracking
+      let encodedMessage;
+      let originalSize, optimizedSize;
+
+      try {
+        // Optimize message structure for PostMessage
+        const optimizedMessage = this._optimizeMessageForPostMessage(message);
+        const originalJson = JSON.stringify(message);
+        const optimizedJson = JSON.stringify(optimizedMessage);
+
+        originalSize = originalJson.length;
+        optimizedSize = optimizedJson.length;
+
+        // Use MessageEncoder for consistent formatting
+        encodedMessage = MessageEncoder.encodeLegacy(optimizedMessage);
+
+        // Track optimization statistics
+        if (optimizedSize < originalSize) {
+          this.serializationStats.messagesOptimized++;
+          const sizeReduction = (originalSize - optimizedSize) / originalSize;
+          this.serializationStats.totalSizeReduction += sizeReduction;
+          this.serializationStats.avgSizeReduction =
+            this.serializationStats.totalSizeReduction / this.serializationStats.messagesOptimized;
+        }
+
+      } catch (encodeError) {
+        console.warn('[PostMessage] Using legacy format:', encodeError.message);
+        encodedMessage = message;
+        optimizedSize = JSON.stringify(message).length;
+      }
+
+      window.parent.postMessage(encodedMessage, '*');
+
+      if (componentId && value !== null) {
+        this.componentStates[componentId] = value;
+      }
+
+      // Enhanced logging with optimization info
+      if (originalSize && optimizedSize < originalSize) {
+        const reductionRatio = ((originalSize - optimizedSize) / originalSize * 100).toFixed(1);
+        console.log(`[PostMessage] Sent optimized message: ${originalSize}B → ${optimizedSize}B (${reductionRatio}% reduction)`);
+      } else {
+        console.log('[PostMessage] Sent message:', message.type, optimizedSize ? `${optimizedSize}B` : '');
+      }
+
+    } catch (error) {
+      console.error('[PostMessage] Error sending message:', error);
+      throw error;
+    }
   }
+
+  _optimizeMessageForPostMessage(message) {
+    // PostMessage-specific optimizations
+    const optimized = { ...message };
+
+    // Remove redundant fields for PostMessage transport
+    if (optimized.metadata && optimized.metadata.timestamp) {
+      // PostMessage doesn't need high-precision timestamps
+      optimized.metadata.timestamp = Math.floor(optimized.metadata.timestamp);
+    }
+
+    // Optimize value serialization for common types
+    if (optimized.value !== undefined) {
+      optimized.value = this._optimizeValue(optimized.value);
+    }
+
+    if (optimized.states) {
+      const optimizedStates = {};
+      Object.entries(optimized.states).forEach(([key, value]) => {
+        optimizedStates[key] = this._optimizeValue(value);
+      });
+      optimized.states = optimizedStates;
+    }
+
+    return optimized;
+  }
+
+  _optimizeValue(value) {
+    // Optimize common value types for JSON serialization
+    if (typeof value === 'number') {
+      // Round floating point numbers to reasonable precision
+      return Math.round(value * 1000000) / 1000000;
+    }
+
+    if (Array.isArray(value)) {
+      // Optimize arrays recursively
+      return value.map(item => this._optimizeValue(item));
+    }
+
+    if (value && typeof value === 'object') {
+      // Remove null/undefined properties
+      const optimized = {};
+      Object.entries(value).forEach(([key, val]) => {
+        if (val !== null && val !== undefined) {
+          optimized[key] = this._optimizeValue(val);
+        }
+      });
+      return optimized;
+    }
+
+    return value;
+  }
+
+  // getConnections is inherited from BaseCommunicationClient
 }
 
-class ComlinkClient {
-  constructor() {
+class ComlinkClient extends BaseCommunicationClient {
+  constructor(config = {}) {
+    super();
     console.log('[Client] Initializing ComlinkClient');
-    this.callbacks = new Set();
-    this.componentStates = {};
-    this.isConnected = false;
-    this.pendingUpdates = {};
     this.worker = null;
+
+    this.messageQueue = [];
+    this.maxQueueSize = config.maxQueueSize || 100;
+    this.batchingEnabled = config.batchingEnabled !== false;
+    this.batchTimeout = null;
+    this.batchSize = config.batchSize || 5;
+    this.batchDelay = config.batchDelay || 50;
+
+    // Note: callbacks, componentStates, isConnected, pendingUpdates
+    // are now inherited from BaseCommunicationClient
   }
 
   async connect() {
@@ -457,20 +2281,25 @@ class ComlinkClient {
   _handleComponentUpdate(components) {
     console.log('[Client] Handling component update:', components);
     if (components?.rows) {
+      // Extract state updates from component data for bulk processing
+      const stateUpdates = new Map();
       components.rows.forEach((row) => {
         row.forEach((component) => {
           if (component.id && 'value' in component) {
-            const oldValue = this.componentStates[component.id];
-            if (oldValue !== component.value) {
-              console.log(`[Client] Component ${component.id} value changed:`, {
-                old: oldValue,
-                new: component.value,
-              });
-              this.componentStates[component.id] = component.value;
-            }
+            stateUpdates.set(component.id, component.value);
           }
         });
       });
+
+      if (stateUpdates.size > 0) {
+        const bulkResult = this.stateManager.bulkSetState(stateUpdates);
+        console.log('[Client] Component states bulk updated:', {
+          totalCount: bulkResult.totalCount,
+          changedCount: bulkResult.changedCount,
+          duration: bulkResult.duration
+        });
+      }
+
       this._notifySubscribers({
         type: 'components',
         components: components,
@@ -478,40 +2307,17 @@ class ComlinkClient {
     }
   }
 
-  disconnect() {
+  async disconnect() {
     console.log('[Client] Disconnecting');
     if (this.worker) {
       this.worker.shutdown();
       this.worker = null;
-      this.isConnected = false;
-      this._notifySubscribers({ type: 'connection_status', connected: false });
+      this._setConnected(false);
       console.log('[Client] Disconnected');
     }
   }
 
-  subscribe(callback) {
-    console.log('[Client] New subscriber added');
-    this.callbacks.add(callback);
-    return () => {
-      console.log('[Client] Subscriber removed');
-      this.callbacks.delete(callback);
-    };
-  }
-
-  _notifySubscribers(message) {
-    console.log('[Client] Notifying subscribers:', message);
-    this.callbacks.forEach((callback) => {
-      try {
-        callback(message);
-      } catch (error) {
-        console.error('[Client] Error in subscriber callback:', error);
-      }
-    });
-  }
-
-  getComponentState(componentId) {
-    return this.componentStates[componentId];
-  }
+  // subscribe, _notifySubscribers, getComponentState are inherited from BaseCommunicationClient
 
   async updateComponentState(componentId, value) {
     console.log(`[Client] Updating state for component ${componentId}:`, value);
@@ -577,35 +2383,1246 @@ class ComlinkClient {
   }
 }
 
-export const createCommunicationLayer = () => {
-  // Check if we have a client type specified in window
-  const clientType = window.__PRESWALD_CLIENT_TYPE || 'auto';
-  console.log('[Communication] Using client type:', clientType);
-
-  // If a specific client type is specified, use it
-  if (clientType === 'websocket') {
-    console.log('[Communication] Using WebSocketClient');
-    return new WebSocketClient();
-  } else if (clientType === 'postmessage') {
-    console.log('[Communication] Using PostMessageClient');
-    return new PostMessageClient();
-  } else if (clientType === 'comlink') {
-    console.log('[Communication] Using ComlinkClient');
-    const client = new ComlinkClient();
-    window.__PRESWALD_COMM = client;
-    window.__PRESWALD_COMM_READY = true;
-    return client;
-  }
-
-  // For 'auto' mode, use the original logic
-  const isBrowser = window !== window.top;
-  console.log(
-    '[Communication] Auto-detected environment:',
-    isBrowser ? 'browser (iframe)' : 'server (top-level)'
-  );
-
-  return isBrowser ? new PostMessageClient() : new WebSocketClient();
+/**
+ * Transport types available for communication
+ */
+const TransportType = {
+  WEBSOCKET: 'websocket',
+  POST_MESSAGE: 'postmessage',
+  COMLINK: 'comlink',
+  AUTO: 'auto'
 };
 
-// Create the communication layer
-export const comm = createCommunicationLayer();
+/**
+ * Production-ready Connection Pool Manager
+ * Manages multiple connections for load balancing, failover, and performance optimization
+ */
+class ConnectionPoolManager {
+  constructor(config = {}) {
+    this.config = {
+      maxPoolSize: 3,
+      minPoolSize: 1,
+      healthCheckInterval: 30000, // 30 seconds
+      connectionTimeout: 10000,
+      retryAttempts: 3,
+      retryDelay: 1000,
+      loadBalancingStrategy: 'round-robin', // 'round-robin', 'least-connections', 'performance'
+      enableFailover: true,
+      ...config
+    };
+
+    this.connectionPool = new Map(); // connectionId -> connection
+    this.connectionMetrics = new Map(); // connectionId -> metrics
+    this.activeConnections = new Set();
+    this.currentConnectionIndex = 0;
+    this.isShuttingDown = false;
+    this.healthCheckTimer = null;
+
+    // Performance tracking
+    this.poolMetrics = {
+      totalConnections: 0,
+      activeConnections: 0,
+      failedConnections: 0,
+      totalRequests: 0,
+      failedRequests: 0,
+      avgResponseTime: 0,
+      lastHealthCheck: 0
+    };
+
+    console.log('[ConnectionPool] Initialized with config:', this.config);
+  }
+
+  /**
+   * Initialize the connection pool
+   */
+  async initialize(transportType, transportConfig = {}) {
+    console.log(`[ConnectionPool] Initializing pool with ${this.config.minPoolSize} ${transportType} connections`);
+
+    const initPromises = [];
+    for (let i = 0; i < this.config.minPoolSize; i++) {
+      const connectionId = `${transportType}_${i}_${Date.now()}`;
+      initPromises.push(this._createConnection(connectionId, transportType, transportConfig));
+    }
+
+    const results = await Promise.allSettled(initPromises);
+    const successfulConnections = results.filter(result => result.status === 'fulfilled').length;
+
+    if (successfulConnections === 0) {
+      throw new Error('Failed to initialize any connections in the pool');
+    }
+
+    console.log(`[ConnectionPool] Initialized ${successfulConnections}/${this.config.minPoolSize} connections`);
+
+    // Start health monitoring
+    this._startHealthMonitoring();
+
+    return successfulConnections;
+  }
+
+  /**
+   * Get an optimal connection from the pool
+   */
+  getConnection() {
+    if (this.isShuttingDown || this.activeConnections.size === 0) {
+      throw new Error('Connection pool is not available');
+    }
+
+    const activeConnectionsArray = Array.from(this.activeConnections);
+    let selectedConnection;
+
+    switch (this.config.loadBalancingStrategy) {
+      case 'round-robin':
+        selectedConnection = this._getRoundRobinConnection(activeConnectionsArray);
+        break;
+      case 'least-connections':
+        selectedConnection = this._getLeastConnectionsConnection(activeConnectionsArray);
+        break;
+      case 'performance':
+        selectedConnection = this._getPerformanceBasedConnection(activeConnectionsArray);
+        break;
+      default:
+        selectedConnection = this._getRoundRobinConnection(activeConnectionsArray);
+    }
+
+    if (!selectedConnection) {
+      throw new Error('No healthy connections available in pool');
+    }
+
+    this.poolMetrics.totalRequests++;
+    this._updateConnectionMetrics(selectedConnection.connectionId, 'request');
+
+    return selectedConnection.client;
+  }
+
+  /**
+   * Add a new connection to the pool
+   */
+  async addConnection(transportType, transportConfig = {}) {
+    if (this.connectionPool.size >= this.config.maxPoolSize) {
+      console.warn('[ConnectionPool] Pool is at maximum capacity');
+      return null;
+    }
+
+    const connectionId = `${transportType}_${this.connectionPool.size}_${Date.now()}`;
+    return await this._createConnection(connectionId, transportType, transportConfig);
+  }
+
+  /**
+   * Remove a connection from the pool
+   */
+  async removeConnection(connectionId) {
+    const connection = this.connectionPool.get(connectionId);
+    if (!connection) {
+      console.warn(`[ConnectionPool] Connection ${connectionId} not found`);
+      return;
+    }
+
+    console.log(`[ConnectionPool] Removing connection ${connectionId}`);
+
+    try {
+      await connection.client.disconnect();
+    } catch (error) {
+      console.error(`[ConnectionPool] Error disconnecting ${connectionId}:`, error);
+    }
+
+    this.connectionPool.delete(connectionId);
+    this.connectionMetrics.delete(connectionId);
+    this.activeConnections.delete(connection);
+    this.poolMetrics.totalConnections--;
+  }
+
+  /**
+   * Get pool statistics
+   */
+  getPoolMetrics() {
+    return {
+      ...this.poolMetrics,
+      poolSize: this.connectionPool.size,
+      activeConnections: this.activeConnections.size,
+      connectionDetails: Array.from(this.connectionPool.entries()).map(([id, conn]) => ({
+        connectionId: id,
+        transport: conn.client.constructor.name,
+        isConnected: conn.client.isConnected,
+        metrics: this.connectionMetrics.get(id) || {}
+      }))
+    };
+  }
+
+  /**
+   * Shutdown the connection pool
+   */
+  async shutdown() {
+    console.log('[ConnectionPool] Shutting down connection pool');
+    this.isShuttingDown = true;
+
+    if (this.healthCheckTimer) {
+      clearInterval(this.healthCheckTimer);
+      this.healthCheckTimer = null;
+    }
+
+    const disconnectPromises = Array.from(this.connectionPool.values()).map(async (connection) => {
+      try {
+        await connection.client.disconnect();
+      } catch (error) {
+        console.error(`[ConnectionPool] Error disconnecting ${connection.connectionId}:`, error);
+      }
+    });
+
+    await Promise.allSettled(disconnectPromises);
+
+    this.connectionPool.clear();
+    this.connectionMetrics.clear();
+    this.activeConnections.clear();
+
+    console.log('[ConnectionPool] Shutdown complete');
+  }
+
+  /**
+   * Create a new connection
+   * @private
+   */
+  async _createConnection(connectionId, transportType, transportConfig) {
+    console.log(`[ConnectionPool] Creating connection ${connectionId}`);
+
+    try {
+      const client = createTransportClient(transportType, transportConfig);
+      const startTime = performance.now();
+
+      await client.connect(transportConfig);
+
+      const connectionTime = performance.now() - startTime;
+      const connection = {
+        connectionId,
+        client,
+        transportType,
+        createdAt: Date.now(),
+        connectionTime
+      };
+
+      this.connectionPool.set(connectionId, connection);
+      this.activeConnections.add(connection);
+      this.poolMetrics.totalConnections++;
+
+      // Initialize connection metrics
+      this.connectionMetrics.set(connectionId, {
+        requests: 0,
+        errors: 0,
+        avgResponseTime: 0,
+        lastActivity: Date.now(),
+        connectionTime,
+        isHealthy: true
+      });
+
+      console.log(`[ConnectionPool] Connection ${connectionId} created successfully in ${connectionTime.toFixed(2)}ms`);
+      return connection;
+
+    } catch (error) {
+      console.error(`[ConnectionPool] Failed to create connection ${connectionId}:`, error);
+      this.poolMetrics.failedConnections++;
+      throw error;
+    }
+  }
+
+  /**
+   * Round-robin connection selection
+   * @private
+   */
+  _getRoundRobinConnection(activeConnections) {
+    if (activeConnections.length === 0) return null;
+
+    const connection = activeConnections[this.currentConnectionIndex % activeConnections.length];
+    this.currentConnectionIndex = (this.currentConnectionIndex + 1) % activeConnections.length;
+
+    return connection;
+  }
+
+  /**
+   * Least connections selection
+   * @private
+   */
+  _getLeastConnectionsConnection(activeConnections) {
+    if (activeConnections.length === 0) return null;
+
+    let selectedConnection = activeConnections[0];
+    let minRequests = this.connectionMetrics.get(selectedConnection.connectionId)?.requests || 0;
+
+    for (const connection of activeConnections) {
+      const requests = this.connectionMetrics.get(connection.connectionId)?.requests || 0;
+      if (requests < minRequests) {
+        minRequests = requests;
+        selectedConnection = connection;
+      }
+    }
+
+    return selectedConnection;
+  }
+
+  /**
+   * Performance-based connection selection
+   * @private
+   */
+  _getPerformanceBasedConnection(activeConnections) {
+    if (activeConnections.length === 0) return null;
+
+    let selectedConnection = activeConnections[0];
+    let bestScore = this._calculateConnectionScore(selectedConnection.connectionId);
+
+    for (const connection of activeConnections) {
+      const score = this._calculateConnectionScore(connection.connectionId);
+      if (score > bestScore) {
+        bestScore = score;
+        selectedConnection = connection;
+      }
+    }
+
+    return selectedConnection;
+  }
+
+  /**
+   * Calculate connection performance score
+   * @private
+   */
+  _calculateConnectionScore(connectionId) {
+    const metrics = this.connectionMetrics.get(connectionId);
+    if (!metrics) return 0;
+
+    // Higher score = better connection
+    const latencyFactor = 1000 / Math.max(metrics.avgResponseTime, 1);
+    const errorFactor = metrics.requests > 0 ? (1 - (metrics.errors / metrics.requests)) : 1;
+    const activityFactor = Math.max(0, 1 - ((Date.now() - metrics.lastActivity) / 60000)); // Decay over 1 minute
+
+    return latencyFactor * 0.4 + errorFactor * 0.4 + activityFactor * 0.2;
+  }
+
+  /**
+   * Update connection metrics
+   * @private
+   */
+  _updateConnectionMetrics(connectionId, eventType, responseTime = 0) {
+    const metrics = this.connectionMetrics.get(connectionId);
+    if (!metrics) return;
+
+    switch (eventType) {
+      case 'request':
+        metrics.requests++;
+        metrics.lastActivity = Date.now();
+        break;
+      case 'response':
+        if (responseTime > 0) {
+          const totalTime = metrics.avgResponseTime * (metrics.requests - 1) + responseTime;
+          metrics.avgResponseTime = totalTime / metrics.requests;
+        }
+        break;
+      case 'error':
+        metrics.errors++;
+        break;
+    }
+  }
+
+  /**
+   * Start health monitoring
+   * @private
+   */
+  _startHealthMonitoring() {
+    if (this.healthCheckTimer) {
+      clearInterval(this.healthCheckTimer);
+    }
+
+    this.healthCheckTimer = setInterval(() => {
+      this._performHealthCheck();
+    }, this.config.healthCheckInterval);
+
+    console.log(`[ConnectionPool] Health monitoring started (interval: ${this.config.healthCheckInterval}ms)`);
+  }
+
+  /**
+   * Perform health check on all connections
+   * @private
+   */
+  async _performHealthCheck() {
+    if (this.isShuttingDown) return;
+
+    console.log('[ConnectionPool] Performing health check');
+    const startTime = performance.now();
+
+    const healthCheckPromises = Array.from(this.connectionPool.entries()).map(async ([connectionId, connection]) => {
+      try {
+        const isHealthy = connection.client.isConnected &&
+          typeof connection.client.getConnectionMetrics === 'function';
+
+        const metrics = this.connectionMetrics.get(connectionId);
+        if (metrics) {
+          metrics.isHealthy = isHealthy;
+        }
+
+        if (!isHealthy) {
+          console.warn(`[ConnectionPool] Connection ${connectionId} is unhealthy`);
+          this.activeConnections.delete(connection);
+
+          // Attempt to reconnect if failover is enabled
+          if (this.config.enableFailover) {
+            try {
+              await connection.client.connect();
+              this.activeConnections.add(connection);
+              console.log(`[ConnectionPool] Connection ${connectionId} reconnected successfully`);
+            } catch (error) {
+              console.error(`[ConnectionPool] Failed to reconnect ${connectionId}:`, error);
+            }
+          }
+        } else {
+          this.activeConnections.add(connection);
+        }
+
+      } catch (error) {
+        console.error(`[ConnectionPool] Health check failed for ${connectionId}:`, error);
+        this.activeConnections.delete(connection);
+      }
+    });
+
+    await Promise.allSettled(healthCheckPromises);
+
+    const healthCheckTime = performance.now() - startTime;
+    this.poolMetrics.lastHealthCheck = Date.now();
+    this.poolMetrics.activeConnections = this.activeConnections.size;
+
+    console.log(`[ConnectionPool] Health check completed in ${healthCheckTime.toFixed(2)}ms - ${this.activeConnections.size}/${this.connectionPool.size} connections healthy`);
+  }
+}
+
+class TransportSelector {
+  static selectOptimalTransport(config = {}) {
+    const requestedTransport = config.transport || window.__PRESWALD_CLIENT_TYPE || TransportType.AUTO;
+
+    // If specific transport requested, validate and return
+    if (requestedTransport !== TransportType.AUTO) {
+      return this.validateTransport(requestedTransport, config);
+    }
+
+    // Auto-detection logic with enhanced environment analysis
+    const environment = this.detectEnvironment();
+    const optimalTransport = this.selectForEnvironment(environment, config);
+
+    console.log('[TransportSelector] Environment detected:', environment);
+    console.log('[TransportSelector] Selected transport:', optimalTransport);
+
+    return optimalTransport;
+  }
+
+  static detectEnvironment() {
+    const environment = {
+      isIframe: window !== window.top,
+      hasWebSocket: typeof WebSocket !== 'undefined',
+      hasWorkers: typeof Worker !== 'undefined',
+      hasPostMessage: typeof window.postMessage === 'function',
+      isSecureContext: window.isSecureContext,
+      userAgent: navigator.userAgent,
+      connectionType: navigator.connection?.effectiveType || 'unknown'
+    };
+
+    // Additional environment checks
+    environment.isEmbedded = environment.isIframe || window.location !== window.parent.location;
+    environment.supportsModules = 'noModule' in HTMLScriptElement.prototype;
+    environment.isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    // Enhanced HTML export detection
+    environment.isHtmlExport = this._detectHtmlExport();
+    environment.hasProjectFs = typeof fetch !== 'undefined' && this._checkForProjectFs();
+
+    return environment;
+  }
+
+  static _detectHtmlExport() {
+    try {
+      // Check for HTML export indicators
+      return (
+        // Check for explicit client type setting
+        window.__PRESWALD_CLIENT_TYPE === 'comlink' ||
+        // Check for project_fs.json presence (HTML export artifact)
+        document.querySelector('script').textContent?.includes('project_fs.json') ||
+        // Check for Pyodide-related scripts
+        document.querySelector('script[src*="pyodide"]') ||
+        // Check for inline script setting client type
+        Array.from(document.querySelectorAll('script')).some(script =>
+          script.textContent?.includes('window.__PRESWALD_CLIENT_TYPE')
+        ) ||
+        // Check for static file serving pattern (no dynamic server endpoints)
+        window.location.protocol === 'file:' ||
+        // Check if we're being served from a static file server with typical HTML export structure
+        (window.location.pathname.endsWith('.html') || window.location.pathname.endsWith('/'))
+      );
+    } catch (error) {
+      console.warn('[TransportSelector] Error detecting HTML export environment:', error);
+      return false;
+    }
+  }
+
+  static _checkForProjectFs() {
+    // Quick check to see if project_fs.json is available (HTML export indicator)
+    try {
+      // Don't actually fetch, just check if we can construct the URL
+      const projectFsUrl = new URL('project_fs.json', window.location.origin + window.location.pathname);
+      return projectFsUrl.href !== null;
+    } catch {
+      return false;
+    }
+  }
+
+  static selectForEnvironment(environment, config) {
+    // Priority 1: HTML export environment should always use Comlink
+    if (environment.isHtmlExport && environment.hasWorkers && config.enableWorkers !== false) {
+      console.log('[TransportSelector] HTML export environment detected, using Comlink transport');
+      return TransportType.COMLINK;
+    }
+
+    // Priority 2: Embedded contexts (iframes) should use PostMessage
+    if (environment.isEmbedded && environment.hasPostMessage) {
+      return TransportType.POST_MESSAGE;
+    }
+
+    // Priority 3: Regular web applications with server connectivity use WebSocket
+    if (environment.hasWebSocket && !environment.isEmbedded && !environment.isHtmlExport) {
+      return TransportType.WEBSOCKET;
+    }
+
+    // Priority 4: Worker-based applications (development/testing)
+    if (environment.hasWorkers && config.enableWorkers !== false) {
+      return TransportType.COMLINK;
+    }
+
+    // Priority 5: Fallback to PostMessage if available
+    if (environment.hasPostMessage) {
+      return TransportType.POST_MESSAGE;
+    }
+
+    // Last resort fallback (should rarely be reached)
+    console.warn('[TransportSelector] No optimal transport found, defaulting to WebSocket');
+    return TransportType.WEBSOCKET;
+  }
+
+  static validateTransport(transport, config) {
+    const environment = this.detectEnvironment();
+
+    switch (transport) {
+      case TransportType.WEBSOCKET:
+        if (!environment.hasWebSocket) {
+          throw new Error('WebSocket transport not supported in this environment');
+        }
+        break;
+      case TransportType.POST_MESSAGE:
+        if (!environment.hasPostMessage) {
+          throw new Error('PostMessage transport not supported in this environment');
+        }
+        break;
+      case TransportType.COMLINK:
+        if (!environment.hasWorkers) {
+          throw new Error('Comlink transport requires Web Worker support');
+        }
+        break;
+      default:
+        throw new Error(`Unknown transport type: ${transport}`);
+    }
+
+    return transport;
+  }
+}
+
+/**
+ * Pooled Communication Client that uses connection pooling for enhanced performance and reliability
+ */
+class PooledCommunicationClient extends IPreswaldCommunicator {
+  constructor(transportType, config = {}) {
+    super();
+    this.transportType = transportType;
+    this.config = config;
+    this.connectionPool = null;
+    this.isInitialized = false;
+
+    // Aggregate metrics from all pooled connections
+    this.aggregateMetrics = {
+      totalRequests: 0,
+      totalErrors: 0,
+      avgResponseTime: 0,
+      poolUtilization: 0
+    };
+  }
+
+  async connect(config = {}) {
+    if (this.isInitialized) {
+      console.log('[PooledClient] Already initialized');
+      return { success: true, message: 'Already connected' };
+    }
+
+    console.log('[PooledClient] Initializing connection pool');
+
+    try {
+      const poolConfig = {
+        maxPoolSize: config.maxPoolSize || 3,
+        minPoolSize: config.minPoolSize || 1,
+        loadBalancingStrategy: config.loadBalancingStrategy || 'performance',
+        enableFailover: config.enableFailover !== false,
+        ...config.poolConfig
+      };
+
+      this.connectionPool = new ConnectionPoolManager(poolConfig);
+      const connectionsCreated = await this.connectionPool.initialize(this.transportType, config);
+
+      this.isInitialized = true;
+      this.isConnected = true;
+
+      console.log(`[PooledClient] Initialized with ${connectionsCreated} connections`);
+      return { success: true, message: `Connected with ${connectionsCreated} pooled connections` };
+
+    } catch (error) {
+      console.error('[PooledClient] Failed to initialize connection pool:', error);
+      throw error;
+    }
+  }
+
+  async disconnect() {
+    if (this.connectionPool) {
+      console.log('[PooledClient] Shutting down connection pool');
+      await this.connectionPool.shutdown();
+      this.connectionPool = null;
+    }
+    this.isInitialized = false;
+    this.isConnected = false;
+  }
+
+  getComponentState(componentId) {
+    if (!this.isInitialized) {
+      throw new Error('PooledClient not initialized');
+    }
+
+    try {
+      const connection = this.connectionPool.getConnection();
+      return connection.getComponentState(componentId);
+    } catch (error) {
+      console.error('[PooledClient] Error getting component state:', error);
+      throw error;
+    }
+  }
+
+  async updateComponentState(componentId, value) {
+    if (!this.isInitialized) {
+      throw new Error('PooledClient not initialized');
+    }
+
+    const startTime = performance.now();
+
+    try {
+      const connection = this.connectionPool.getConnection();
+      const result = await connection.updateComponentState(componentId, value);
+
+      const responseTime = performance.now() - startTime;
+      this._updateAggregateMetrics('success', responseTime);
+
+      return result;
+    } catch (error) {
+      this._updateAggregateMetrics('error', performance.now() - startTime);
+      console.error('[PooledClient] Error updating component state:', error);
+      throw error;
+    }
+  }
+
+  async bulkStateUpdate(updates) {
+    if (!this.isInitialized) {
+      throw new Error('PooledClient not initialized');
+    }
+
+    const startTime = performance.now();
+
+    try {
+      const connection = this.connectionPool.getConnection();
+      const result = await connection.bulkStateUpdate(updates);
+
+      const responseTime = performance.now() - startTime;
+      this._updateAggregateMetrics('success', responseTime);
+
+      return result;
+    } catch (error) {
+      this._updateAggregateMetrics('error', performance.now() - startTime);
+      console.error('[PooledClient] Error in bulk state update:', error);
+      throw error;
+    }
+  }
+
+  subscribe(callback) {
+    if (!this.isInitialized) {
+      throw new Error('PooledClient not initialized');
+    }
+
+    // Subscribe to all connections in the pool
+    const unsubscribeFunctions = [];
+
+    for (const connection of this.connectionPool.activeConnections) {
+      try {
+        const unsubscribe = connection.client.subscribe(callback);
+        unsubscribeFunctions.push(unsubscribe);
+      } catch (error) {
+        console.error('[PooledClient] Error subscribing to connection:', error);
+      }
+    }
+
+    // Return a function that unsubscribes from all connections
+    return () => {
+      unsubscribeFunctions.forEach(unsubscribe => {
+        try {
+          unsubscribe();
+        } catch (error) {
+          console.error('[PooledClient] Error unsubscribing:', error);
+        }
+      });
+    };
+  }
+
+  getConnectionMetrics() {
+    if (!this.isInitialized || !this.connectionPool) {
+      return {
+        isConnected: false,
+        transport: 'PooledClient',
+        error: 'Not initialized'
+      };
+    }
+
+    const poolMetrics = this.connectionPool.getPoolMetrics();
+
+    return {
+      isConnected: this.isConnected,
+      transport: 'PooledClient',
+      transportType: this.transportType,
+      poolMetrics,
+      aggregateMetrics: this.aggregateMetrics,
+      connectionCount: poolMetrics.activeConnections,
+      poolUtilization: poolMetrics.activeConnections / poolMetrics.poolSize * 100
+    };
+  }
+
+  getConnections() {
+    if (!this.isInitialized || !this.connectionPool) {
+      return [];
+    }
+
+    return this.connectionPool.getPoolMetrics().connectionDetails;
+  }
+
+  _updateAggregateMetrics(type, responseTime) {
+    this.aggregateMetrics.totalRequests++;
+
+    if (type === 'error') {
+      this.aggregateMetrics.totalErrors++;
+    }
+
+    // Update rolling average response time
+    const totalTime = this.aggregateMetrics.avgResponseTime * (this.aggregateMetrics.totalRequests - 1) + responseTime;
+    this.aggregateMetrics.avgResponseTime = totalTime / this.aggregateMetrics.totalRequests;
+  }
+}
+
+/**
+ * Enhanced factory function to create the appropriate communication client
+ * Includes optimized transport selection with environment detection, server URL resolution, and optional connection pooling
+ * 
+ * @param {Object} config - Configuration for the communicator
+ * @param {string} config.transport - Transport type ('websocket', 'postmessage', 'comlink', 'auto')
+ * @param {number} config.connectionTimeout - Connection timeout in ms (default: 10000)
+ * @param {boolean} config.enableWorkers - Allow worker-based transports (default: true)
+ * @param {boolean} config.enableConnectionPooling - Enable connection pooling (default: false for compatibility)
+ * @param {Object} config.poolConfig - Connection pool configuration
+ * @param {boolean} config.enableUrlParams - Allow URL parameter server resolution (default: true)
+ * @param {boolean} config.enableStorage - Allow storage-based server resolution (default: true)
+ * @param {string} config.serverUrl - Explicit server URL (bypasses auto-resolution)
+ * @param {string} config.fallbackHost - Fallback host for server resolution (default: 'localhost')
+ * @param {number} config.fallbackPort - Fallback port for server resolution (default: 8501)
+ * @returns {IPreswaldCommunicator} - Enhanced communication interface
+ */
+export const createCommunicationLayer = (config = {}) => {
+  const startTime = performance.now();
+
+  try {
+    // Enhanced configuration with defaults
+    const enhancedConfig = {
+      transport: TransportType.AUTO,
+      connectionTimeout: 10000,
+      enableWorkers: true,
+      retryAttempts: 3,
+      retryDelay: 1000,
+      enableConnectionPooling: false, // Default to false for backward compatibility
+      poolConfig: {
+        maxPoolSize: 3,
+        minPoolSize: 1,
+        loadBalancingStrategy: 'performance'
+      },
+      // Server URL resolution configuration
+      enableUrlParams: true,
+      enableStorage: true,
+      serverUrl: null, // Explicit server URL bypasses auto-resolution
+      fallbackHost: 'localhost',
+      fallbackPort: 8501,
+      ...config
+    };
+
+    console.log('[CommunicationFactory] Creating communicator with config:', enhancedConfig);
+
+    // Select optimal transport
+    const selectedTransport = TransportSelector.selectOptimalTransport(enhancedConfig);
+    console.log('[CommunicationFactory] Selected transport:', selectedTransport);
+
+    let client;
+
+    // Create pooled or single client based on configuration
+    if (enhancedConfig.enableConnectionPooling && selectedTransport === TransportType.WEBSOCKET) {
+      console.log('[CommunicationFactory] Creating pooled communication client');
+      client = new PooledCommunicationClient(selectedTransport, enhancedConfig);
+    } else {
+      if (enhancedConfig.enableConnectionPooling) {
+        console.warn(`[CommunicationFactory] Connection pooling not supported for ${selectedTransport}, falling back to single connection`);
+      }
+      client = createTransportClient(selectedTransport, enhancedConfig);
+    }
+
+    // Validate interface compliance
+    if (!(client instanceof IPreswaldCommunicator)) {
+      throw new Error(`Created client does not implement IPreswaldCommunicator interface`);
+    }
+
+    // Set global references for legacy compatibility
+    if (selectedTransport === TransportType.COMLINK) {
+      window.__PRESWALD_COMM = client;
+      window.__PRESWALD_COMM_READY = true;
+    }
+
+    const creationTime = performance.now() - startTime;
+    console.log(`[CommunicationFactory] Created ${client.constructor.name} in ${creationTime.toFixed(2)}ms`);
+
+    return client;
+
+  } catch (error) {
+    console.error('[CommunicationFactory] Failed to create communication layer:', error);
+
+    // Attempt fallback to basic WebSocket client
+    try {
+      console.log('[CommunicationFactory] Attempting fallback to WebSocket...');
+      const fallbackClient = new WebSocketClient();
+      console.warn('[CommunicationFactory] Using fallback WebSocket client');
+      return fallbackClient;
+    } catch (fallbackError) {
+      console.error('[CommunicationFactory] Fallback also failed:', fallbackError);
+      throw new Error(`Failed to create communication layer: ${error.message}`);
+    }
+  }
+};
+
+/**
+ * Creates the appropriate transport client based on type
+ * @private
+ */
+function createTransportClient(transportType, config) {
+  switch (transportType) {
+    case TransportType.WEBSOCKET:
+      return new WebSocketClient(config);
+    case TransportType.POST_MESSAGE:
+      return new PostMessageClient(config);
+    case TransportType.COMLINK:
+      return new ComlinkClient(config);
+    default:
+      throw new Error(`Unsupported transport type: ${transportType}`);
+  }
+}
+
+/**
+ * Utility function to get optimal transport for current environment
+ * Useful for debugging and configuration
+ */
+export const getOptimalTransport = (config = {}) => {
+  return TransportSelector.selectOptimalTransport(config);
+};
+
+/**
+ * Utility function to detect current environment capabilities
+ * Useful for debugging and feature detection
+ */
+export const detectEnvironment = () => {
+  return TransportSelector.detectEnvironment();
+};
+
+/**
+ * Create a communication layer with specific transport (bypasses auto-detection)
+ * Useful for testing and specific deployment scenarios
+ */
+export const createCommunicationLayerWithTransport = (transport, config = {}) => {
+  return createCommunicationLayer({ ...config, transport });
+};
+
+/**
+ * Create a production-ready communication layer with connection pooling enabled
+ * Optimized for high-throughput applications serving millions of users
+ * 
+ * @param {Object} config - Configuration for the pooled communicator
+ * @param {number} config.maxPoolSize - Maximum number of connections in pool (default: 3)
+ * @param {number} config.minPoolSize - Minimum number of connections in pool (default: 1)
+ * @param {string} config.loadBalancingStrategy - Load balancing strategy ('round-robin', 'least-connections', 'performance')
+ * @param {boolean} config.enableFailover - Enable automatic failover (default: true)
+ * @returns {IPreswaldCommunicator} - Pooled communication interface
+ */
+export const createProductionCommunicationLayer = (config = {}) => {
+  const productionConfig = {
+    enableConnectionPooling: true,
+    transport: TransportType.WEBSOCKET, // Force WebSocket for production pooling
+    poolConfig: {
+      maxPoolSize: 3,
+      minPoolSize: 2, // Higher minimum for production
+      loadBalancingStrategy: 'performance',
+      enableFailover: true,
+      healthCheckInterval: 15000, // More frequent health checks
+      ...config.poolConfig
+    },
+    connectionTimeout: 8000, // Faster timeout for production
+    retryAttempts: 5, // More retries for production
+    ...config
+  };
+
+  console.log('[ProductionFactory] Creating production communication layer with pooling');
+  return createCommunicationLayer(productionConfig);
+};
+
+/**
+ * Legacy export - maintain backwards compatibility
+ * @deprecated Use createCommunicationLayer() directly
+ */
+export const createCommunicator = createCommunicationLayer;
+
+/**
+ * Initialize server URL configuration on module load
+ * This allows early resolution of server configuration before creating communication layer
+ */
+const initializeServerConfiguration = async () => {
+  try {
+    // Pre-resolve server URL to cache it and validate configuration
+    const serverUrl = await ServerUrlResolver.resolveServerUrl();
+    console.log(`[WebSocket Module] Pre-resolved server URL: ${serverUrl}`);
+
+    // Make server URL available globally for debugging
+    if (typeof window !== 'undefined') {
+      window.__PRESWALD_SERVER_URL = serverUrl;
+    }
+
+    return serverUrl;
+  } catch (error) {
+    console.error('[WebSocket Module] Error pre-resolving server URL:', error);
+    return null;
+  }
+};
+
+// Pre-initialize server configuration
+const serverConfigPromise = initializeServerConfiguration();
+
+/**
+ * Create the default communication layer with intelligent server resolution
+ * This is the main export that most applications will use
+ * 
+ * For HTML exports, we defer creation until the DOM is ready to ensure 
+ * window.__PRESWALD_CLIENT_TYPE is set correctly.
+ */
+let _globalCommInstance = null;
+
+function getOrCreateCommunicationLayer() {
+  if (_globalCommInstance) {
+    return _globalCommInstance;
+  }
+
+  try {
+    // Enhanced HTML export detection using multiple strategies
+    const isHtmlExport = detectHtmlExportEnvironment();
+    const clientType = window.__PRESWALD_CLIENT_TYPE;
+
+    console.log(`[WebSocket Module] Environment analysis:`, {
+      isHtmlExport,
+      clientType,
+      pathname: window.location.pathname,
+      protocol: window.location.protocol,
+      port: window.location.port,
+      hasProjectFsInUrl: window.location.href.includes('project_fs.json')
+    });
+
+    // Priority 1: Explicit client type 'comlink' always uses Comlink
+    if (clientType === 'comlink' || clientType === TransportType.COMLINK) {
+      console.log(`[WebSocket Module] Using Comlink transport due to explicit client type: ${clientType}`);
+      _globalCommInstance = createCommunicationLayer({
+        transport: TransportType.COMLINK,
+        enableUrlParams: false,
+        enableStorage: false
+      });
+    }
+    // Priority 2: Check if we have a server available (even in HTML export environment)
+    else if (isHtmlExport) {
+      console.log(`[WebSocket Module] HTML export environment detected, checking server availability...`);
+
+      // Check if we can reach a server (quick check)
+      const hasServerConnection = checkServerAvailability();
+
+      if (hasServerConnection) {
+        console.log(`[WebSocket Module] Server available in HTML export environment, using WebSocket transport`);
+        _globalCommInstance = createCommunicationLayer({
+          transport: TransportType.WEBSOCKET
+        });
+      } else {
+        console.log(`[WebSocket Module] No server available in HTML export environment, using Comlink transport`);
+        _globalCommInstance = createCommunicationLayer({
+          transport: TransportType.COMLINK,
+          enableUrlParams: false,
+          enableStorage: false
+        });
+      }
+    }
+    // Priority 3: Other explicit client types
+    else if (clientType && clientType !== TransportType.AUTO) {
+      console.log(`[WebSocket Module] Explicit client type specified: ${clientType}`);
+      _globalCommInstance = createCommunicationLayer({ transport: clientType });
+    }
+    // Priority 4: Default auto-detection
+    else {
+      console.log(`[WebSocket Module] Using auto-detection for transport selection`);
+      _globalCommInstance = createCommunicationLayer();
+    }
+
+    return _globalCommInstance;
+  } catch (error) {
+    console.error('[WebSocket Module] Error creating communication layer:', error);
+    // Fallback to basic creation
+    _globalCommInstance = createCommunicationLayer();
+    return _globalCommInstance;
+  }
+}
+
+function checkServerAvailability() {
+  try {
+    // Quick synchronous check to see if we're in a server environment
+    // Look for indicators that suggest a server is available
+
+    // 1. Check if we're on a known server port that's responding
+    const currentPort = window.location.port;
+    const isServerPort = ['8501', '8000', '3000', '5000'].includes(currentPort);
+
+    // 2. Check if localStorage has a server URL (indicates previous server connection)
+    const storedServerUrl = localStorage.getItem('preswald_server_url');
+
+    // 3. Check if we can access server-specific endpoints (quick check)
+    const hasServerEndpoints = window.location.pathname.includes('/api/') ||
+      window.location.pathname.includes('/ws/') ||
+      window.location.search.includes('server=');
+
+    // 4. Check if project_fs.json is NOT available locally (indicates server environment)
+    const hasLocalProjectFs = checkForProjectFsSync();
+
+    console.log(`[WebSocket Module] Server availability check:`, {
+      isServerPort,
+      storedServerUrl: !!storedServerUrl,
+      hasServerEndpoints,
+      hasLocalProjectFs
+    });
+
+    // If we have server indicators and no local project_fs.json, likely server environment
+    const hasServerConnection = (isServerPort || storedServerUrl || hasServerEndpoints) && !hasLocalProjectFs;
+
+    return hasServerConnection;
+  } catch (error) {
+    console.warn('[WebSocket Module] Error checking server availability:', error);
+    return false;
+  }
+}
+
+function detectHtmlExportEnvironment() {
+  try {
+    // Primary detection: Check for explicit client type first
+    if (window.__PRESWALD_CLIENT_TYPE === 'comlink') {
+      console.log('[WebSocket Module] HTML export detected via explicit client type: comlink');
+      return true;
+    }
+
+    // Secondary detection: Check for project_fs.json existence (synchronous check)
+    const hasProjectFs = checkForProjectFsSync();
+    if (hasProjectFs) {
+      console.log('[WebSocket Module] HTML export detected via project_fs.json presence');
+      return true;
+    }
+
+    // Tertiary detection: Multiple indicators approach
+    const indicators = [
+      // 1. Check for typical HTML export URL patterns
+      window.location.pathname.endsWith('.html') ||
+      window.location.pathname.endsWith('/') ||
+      window.location.protocol === 'file:',
+
+      // 2. Check for HTML export script indicators in head
+      Array.from(document.head?.querySelectorAll('script') || []).some(script =>
+        script.textContent?.includes('window.__PRESWALD_CLIENT_TYPE') ||
+        script.textContent?.includes('project_fs.json')
+      ),
+
+      // 3. Check for absence of typical server endpoints
+      !window.location.pathname.includes('/api/') &&
+      !window.location.pathname.includes('/ws/') &&
+      !window.location.search.includes('server='),
+
+      // 4. Check if running from static file server (common HTML export pattern)
+      window.location.port && ['8080', '8081', '3000', '5000'].includes(window.location.port) &&
+      !window.location.pathname.includes('dev'),
+
+      // 5. Check for Pyodide or worker-related assets
+      Array.from(document.querySelectorAll('script[src]')).some(script =>
+        script.src.includes('pyodide') || script.src.includes('worker')
+      )
+    ];
+
+    // Consider it an HTML export if multiple indicators are present
+    const positiveIndicators = indicators.filter(Boolean).length;
+    const isHtmlExport = positiveIndicators >= 2;
+
+    if (isHtmlExport) {
+      console.log(`[WebSocket Module] HTML export detected with ${positiveIndicators} indicators:`, {
+        clientType: window.__PRESWALD_CLIENT_TYPE,
+        pathname: window.location.pathname,
+        protocol: window.location.protocol,
+        port: window.location.port,
+        hasProjectFsScript: indicators[1],
+        noServerEndpoints: indicators[2],
+        staticFileServer: indicators[3],
+        hasWorkerAssets: indicators[4]
+      });
+    }
+
+    return isHtmlExport;
+  } catch (error) {
+    console.warn('[WebSocket Module] Error detecting HTML export environment:', error);
+    return false;
+  }
+}
+
+function checkForProjectFsSync() {
+  try {
+    // Check if project_fs.json is accessible (this is the most reliable indicator)
+    const xhr = new XMLHttpRequest();
+    xhr.open('HEAD', './project_fs.json', false); // Synchronous request
+    xhr.send();
+    return xhr.status === 200;
+  } catch (error) {
+    // If we get a CORS error or network error, we might still be in HTML export
+    // but served from a different origin. Check for other indicators.
+    return false;
+  }
+}
+
+export const comm = new Proxy({}, {
+  get(target, prop) {
+    const instance = getOrCreateCommunicationLayer();
+    const value = instance[prop];
+    return typeof value === 'function' ? value.bind(instance) : value;
+  },
+  set(target, prop, value) {
+    const instance = getOrCreateCommunicationLayer();
+    instance[prop] = value;
+    return true;
+  }
+});
+
+/**
+ * Create a communication layer with explicit server URL configuration
+ * Useful for applications that need to connect to specific servers
+ * 
+ * @param {string} serverUrl - Explicit server URL
+ * @param {Object} additionalConfig - Additional configuration options
+ * @returns {IPreswaldCommunicator} - Configured communication interface
+ */
+const createCommunicationLayerWithServerUrl = (serverUrl, additionalConfig = {}) => {
+  if (!serverUrl || typeof serverUrl !== 'string') {
+    throw new Error('Server URL must be a valid string');
+  }
+
+  return createCommunicationLayer({
+    serverUrl: serverUrl.trim(),
+    enableUrlParams: false, // Skip URL param resolution when explicit URL provided
+    ...additionalConfig
+  });
+};
+
+/**
+ * Reconnect the default communication layer with new server configuration
+ * Useful for applications that need to switch servers dynamically
+ * 
+ * @param {string|null} newServerUrl - New server URL or null to re-resolve
+ * @returns {Promise<boolean>} - Success status
+ */
+const reconnectWithServerUrl = async (newServerUrl = null) => {
+  try {
+    console.log(`[WebSocket Module] Reconnecting with server URL: ${newServerUrl || 'auto-resolve'}`);
+
+    if (newServerUrl) {
+      ServerUrlResolver.setServerUrl(newServerUrl);
+    } else {
+      ServerUrlResolver.resetServerUrl();
+    }
+
+    // Disconnect current connection
+    if (comm && typeof comm.disconnect === 'function') {
+      await comm.disconnect();
+    }
+
+    // Reconnect with new configuration
+    if (comm && typeof comm.connect === 'function') {
+      const result = await comm.connect({ forceReconnect: true });
+      console.log('[WebSocket Module] Reconnection result:', result);
+      return result.success || false;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('[WebSocket Module] Error during reconnection:', error);
+    return false;
+  }
+};
+
+/**
+ * Get current server configuration information
+ * Useful for debugging and application status displays
+ * 
+ * @returns {Promise<Object>} - Server configuration details
+ */
+const getServerConfiguration = async () => {
+  try {
+    const currentUrl = await ServerUrlResolver.getCurrentServerUrl();
+    const metrics = comm && typeof comm.getConnectionMetrics === 'function'
+      ? comm.getConnectionMetrics()
+      : null;
+
+    return {
+      currentServerUrl: currentUrl,
+      isConnected: metrics?.isConnected || false,
+      connectionMetrics: metrics,
+      resolverCapabilities: {
+        urlParamsSupported: true,
+        storageSupported: typeof localStorage !== 'undefined',
+        autoDetectionSupported: true
+      }
+    };
+  } catch (error) {
+    console.error('[WebSocket Module] Error getting server configuration:', error);
+    return {
+      currentServerUrl: 'unknown',
+      isConnected: false,
+      error: error.message
+    };
+  }
+};
+
+export {
+  MessageEncoder,
+  ComponentStateManager,
+  ConnectionPoolManager,
+  PooledCommunicationClient,
+  ServerUrlResolver,
+  MessageType,
+  TransportType,
+  createCommunicationLayerWithServerUrl,
+  reconnectWithServerUrl,
+  getServerConfiguration
+};
