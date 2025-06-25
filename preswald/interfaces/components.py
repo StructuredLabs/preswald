@@ -280,7 +280,7 @@ def generic(content, mimetype: str, component_id: str | None = None, **kwargs) -
 
     component_type = get_component_type_for_mimetype(mimetype)
 
-    if component_type:
+    if component_type and component_type != 'generic':
         component_fn = getattr(interfaces.components, component_type, None)
         if callable(component_fn):
             return component_fn(content, component_id=component_id, mimetype=mimetype, **kwargs)
