@@ -63,10 +63,11 @@ def configure_logging(config_path: str | None = None, level: str | None = None):
         config_path: Path to preswald.toml file. If None, will look in current directory
         level: Directly specified logging level, overrides config file if provided
     """
-    # Default configuration
+    # Default configuration with enhanced timestamp format
     log_config = {
         "level": "INFO",
-        "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        "format": "%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s - %(message)s",
+        "datefmt": "%Y-%m-%d %H:%M:%S",
     }
 
     # Try to load from config file
@@ -86,16 +87,17 @@ def configure_logging(config_path: str | None = None, level: str | None = None):
     if level is not None:
         log_config["level"] = level
 
-    # Configure logging
+    # Configure logging with enhanced timestamp format
     logging.basicConfig(
         level=getattr(logging, log_config["level"].upper()),
         format=log_config["format"],
+        datefmt=log_config.get("datefmt", "%Y-%m-%d %H:%M:%S"),
         force=True,  # This resets any existing handlers
     )
 
     # Create logger for this module
     logger = logging.getLogger(__name__)
-    logger.debug(f"Logging configured with level {log_config['level']}")
+    logger.debug(f"Logging configured with level {log_config['level']} and enhanced timestamp format")
 
     return log_config["level"]
 
