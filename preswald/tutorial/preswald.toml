@@ -14,6 +14,7 @@ primaryColor = "#000000"
 [data.sample_csv]
 type = "csv"
 path = "data/sample.csv"
+# encoding = "latin-1"  # Uncomment and set to "latin-1" for ISO-8859-1 encoded files
 
 [logging]
 level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
