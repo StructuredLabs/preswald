@@ -63,17 +63,21 @@ Preswald is especially useful when:
 ## Export as a Static App
 
 ```bash
-preswald export
-```
+preswald export --format html
+ ```         
+This command builds your app into a static site inside the dist/ directory. The folder contains all the files needed to run your app locally or share it.
 
-This command builds your app into a static site inside `dist/`. The folder contains all the files needed to run your app locally or share it.
-
+⚠️ Note: The --format option is required.
+Available formats: html, markdown, pdf.
 * Works offline in any modern browser
 * Bundles your Python code (via Pyodide), data, and DuckDB queries
 * Preserves app UI, logic, and reactive state
 * Shareable as a file folder or embeddable in hosting platforms
 
-
+Example
+```bash
+preswald export --format markdown
+```
 ## **Installation**
 
 https://pypi.org/project/preswald/
