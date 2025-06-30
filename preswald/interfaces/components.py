@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import re
+import folium
 
 # Third-Party
 import matplotlib.pyplot as plt
@@ -418,6 +419,64 @@ def matplotlib(fig: plt.Figure | None = None, label: str = "plot", component_id:
     )  # Returning ID for potential tracking
 
 
+from preswald.interfaces.components import with_render_tracking, ComponentReturn
+
+@with_render_tracking("map")
+def map_component(
+    lat: float = 0.0,
+    lon: float = 0.0,
+    zoom_start: int = 2,
+    markers: list[dict] = None,  # Example: [{"lat": 40, "lon": -74, "popup": "NYC"}]
+    size: float = 1.0,
+    component_id: str | None = None,
+    **kwargs
+) -> ComponentReturn:
+    """
+    Create a map component using folium.
+
+    Args:
+        lat (float): Latitude for map center.
+        lon (float): Longitude for map center.
+        zoom_start (int): Initial zoom level.
+        markers (list): List of dicts with 'lat', 'lon', and optional 'popup'.
+        size (float): Not used directly but can be used for scaling.
+        component_id (str): Optional unique ID for the component.
+        **kwargs: Additional arguments (ignored).
+
+    Returns:
+        ComponentReturn: Contains both data and rendering information.
+    """
+    fmap = folium.Map(location=[lat, lon], zoom_start=zoom_start)
+    markers = markers or []
+    for m in markers:
+        folium.Marker(
+            location=[m["lat"], m["lon"]],
+            popup=m.get("popup", ""),
+        ).add_to(fmap)
+
+    html_data = fmap._repr_html_()
+
+    component = {
+        "type": "map",
+        "id": component_id,
+        "html": html_data,
+        "center": [lat, lon],
+        "zoom": zoom_start,
+        "size": size,
+        "markers": markers,
+    }
+
+    # The first argument is any "data" you want to pass (can be empty or summary/statistics)
+    # The second argument is the component dict with 'type', 'html', etc.
+    return ComponentReturn(
+        {
+            "center": (lat, lon),
+            "zoom": zoom_start,
+            "markers": markers,
+            "size": size,
+        },
+        component,
+    )
 @with_render_tracking("playground")
 def playground(
     label: str,
