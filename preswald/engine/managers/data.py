@@ -42,6 +42,7 @@ class PostgresConfig:
 @dataclass
 class CSVConfig:
     path: str
+    encoding: str = "utf-8"  # default to utf-8 for backward compatibility
 
 
 @dataclass
@@ -152,7 +153,8 @@ class CSVSource(DataSource):
                 ignore_errors=true,
                 normalize_names=false,
                 sample_size=-1,
-                all_varchar=true
+                all_varchar=true,
+                encoding='{config.encoding}'
             )
         """)
 
@@ -428,7 +430,10 @@ class DataManager:
 
             try:
                 if source_type == "csv":
-                    cfg = CSVConfig(path=source_config["path"])
+                    cfg = CSVConfig(
+                        path=source_config["path"],
+                        encoding=source_config.get("encoding", "utf-8")
+                    )
                     self.sources[name] = CSVSource(name, cfg, self.duckdb_conn)
 
                 elif source_type == "json":
@@ -520,7 +525,7 @@ class DataManager:
             # check if source_name is a valid file path
             if os.path.exists(source_name):
                 if source_name.endswith(".csv"):
-                    cfg = CSVConfig(path=source_name)
+                    cfg = CSVConfig(path=source_name, encoding="utf-8")
                     self.sources[source_name] = CSVSource(
                         source_name, cfg, self.duckdb_conn
                     )
