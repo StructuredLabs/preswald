@@ -1,7 +1,7 @@
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
 import { ModuleRegistry } from '@ag-grid-community/core';
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-alpine.css';
+import { themeAlpine } from 'ag-grid-community';
+import { colorSchemeDark } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
 
 import React from 'react';
@@ -35,15 +35,19 @@ const TableViewerWidget = ({
     return newRow;
   });
 
+  const darkTheme = themeAlpine.withPart(colorSchemeDark);
+  const isDark = document.body.classList.contains('dark');
+
   return (
     <div
       className={`w-full rounded-sm overflow-hidden ${
-        hasCard ? 'border border-gray-50 shadow-sm bg-white' : ''
-      } ag-theme-alpine ${className} [&_.ag-row-alt]:bg-white`}
+        hasCard ? 'border border-gray-50 shadow-sm bg-background' : ''
+      } ${className} [&_.ag-row-alt]:bg-background`}
     >
       <div id={commonProps.id} className="h-[500px]">
         {data.length > 0 && columns.length > 0 ? (
           <AgGridReact
+            theme={isDark ? darkTheme : themeAlpine}
             columnDefs={columns}
             rowData={data}
             defaultColDef={{
@@ -54,9 +58,6 @@ const TableViewerWidget = ({
             }}
             pagination={pagination}
             paginationPageSize={paginationPageSize}
-            getRowStyle={() => ({
-              backgroundColor: 'white',
-            })}
             rowHeight={36}
             headerHeight={28}
             onGridReady={(params) => params.api.sizeColumnsToFit()}
