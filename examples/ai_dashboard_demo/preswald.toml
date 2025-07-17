@@ -1,0 +1,32 @@
+# AI-Powered Dashboard Demo Configuration
+# Author: Topgyal Gurung
+# Created: 2025-06-12
+# Description: Configuration for AI dashboard demo featuring Smart Insights and Live Data widgets
+
+[project]
+title = "AI-Powered Dashboard Demo"
+version = "1.0.0"
+port = 8501
+slug = "ai-dashboard-demo"
+entrypoint = "main.py"
+description = "Showcase of AI-powered insights and real-time data streaming"
+
+[branding]
+name = "AI Dashboard Demo"
+primaryColor = "#6366f1"
+secondaryColor = "#ec4899"
+favicon = "favicon.ico"
+
+[features]
+ai_integration = true
+real_time_streaming = true
+interactive_charts = true
+
+[logging]
+level = "INFO"
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+[dependencies]
+pandas = ">=1.5.0"
+numpy = ">=1.20.0"
+openai = ">=1.0.0" 
