@@ -1,9 +1,14 @@
 """Build utilities for preswald."""
 
+import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+
+env = os.environ.copy()
+env["NODE_OPTIONS"] = env.get("NODE_OPTIONS", "--max-old-space-size=4096")
 
 
 def _run_npm_command(cmd: str, cwd: Path) -> int:
