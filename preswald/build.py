@@ -18,7 +18,7 @@ def _run_npm_command(cmd: str, cwd: Path) -> int:
         print("Error: npm not found. Please install npm first.", file=sys.stderr)
         return 1
 
-    result = subprocess.run([npm_path, *cmd.split()], cwd=cwd, check=False)
+    result = subprocess.run([npm_path, *cmd.split()], cwd=cwd, check=False, env=env)
     return result.returncode
 
 
