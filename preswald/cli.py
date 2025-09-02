@@ -24,6 +24,17 @@ def cli():
     pass
 
 
+def get_available_templates():
+    templates_dir = os.path.join(os.path.dirname(__file__), "templates")
+    if not os.path.exists(templates_dir):
+        return []
+    return [
+        name
+        for name in os.listdir(templates_dir)
+        if os.path.isdir(os.path.join(templates_dir, name))
+    ]
+
+
 def _create_default_init_files(target_dir: str, project_slug: str, template: str):
     """Create default project files in the target directory using templates."""
     from importlib.resources import as_file, files
@@ -67,7 +78,12 @@ def _create_default_init_files(target_dir: str, project_slug: str, template: str
 
 @cli.command()
 @click.argument("name", default="preswald_project")
-@click.option("--template", default="default")
+@click.option(
+    "--template",
+    type=click.Choice(get_available_templates(), case_sensitive=True),
+    default="default",
+    help="Use a template to initialize the project.",
+)
 def init(name, template):
     """
     Initialize a new Preswald project.
