@@ -13,7 +13,7 @@ primaryColor = "#F89613"
 
 [data.sample_csv]
 type = "csv"
-path = "data/sample.csv"
+path = "data/sample.json"
 
 [logging]
 level = "INFO"
