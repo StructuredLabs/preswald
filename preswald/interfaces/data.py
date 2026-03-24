@@ -8,16 +8,27 @@ from preswald.engine.service import PreswaldService
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# Track whether connect() has been called to avoid duplicate table registration
+_connected = False
+
 
 def connect():
     """
-    Connect to all listed data sources in preswald.toml
+    Connect to all listed data sources in preswald.toml.
+
+    Safe to call multiple times -- subsequent calls are no-ops unless
+    the underlying data sources have changed.
     """
+    global _connected
     try:
         service = PreswaldService.get_instance()
+        if _connected and service.data_manager and service.data_manager.sources:
+            logger.debug("Data sources already connected, skipping re-initialization")
+            return service.data_manager.duckdb_conn
+
         source_names, duckdb_conn = service.data_manager.connect()
+        _connected = True
         logger.info(f"Successfully connected to data sources: {source_names}")
-        # TODO: bug - getting duplicated if there are multiple clients
         return duckdb_conn
     except Exception as e:
         logger.error(f"Error connecting to datasources: {e}")

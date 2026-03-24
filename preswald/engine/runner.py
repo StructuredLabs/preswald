@@ -254,12 +254,15 @@ class ScriptRunner:
 
     @contextmanager
     def _redirect_stdout(self):
-        """Capture and redirect stdout with improved buffering."""
+        """Capture and redirect stdout using a queue to avoid async/sync mixing."""
         logger.debug("[ScriptRunner] Setting up stdout redirection")
 
+        # Collect output lines in a list; send them after script execution
+        # This avoids calling asyncio.create_task() from sync code
+        captured_lines = []
+
         class PreswaldOutputStream:
-            def __init__(self, callback):
-                self.callback = callback
+            def __init__(self):
                 self.buffer = ""
                 self._lock = threading.Lock()
 
@@ -270,39 +273,24 @@ class ScriptRunner:
                         lines = self.buffer.split("\n")
                         for line in lines[:-1]:
                             if line.strip():
-                                if logger.isEnabledFor(logging.DEBUG):
-                                    logger.debug(f"[ScriptRunner] Captured output: {line}")
-                                asyncio.create_task(  # noqa: RUF006
-                                    self.callback(
-                                        {"type": "output", "content": line + "\n"}
-                                    )
-                                )
+                                captured_lines.append(line + "\n")
                         self.buffer = lines[-1]
 
             def flush(self):
                 with self._lock:
-                    if self.buffer:
-                        if self.buffer.strip():
-                            if logger.isEnabledFor(logging.DEBUG):
-                                logger.debug(
-                                    f"[ScriptRunner] Flushing output: {self.buffer}"
-                                )
-                            asyncio.create_task(  # noqa: RUF006
-                                self.callback(
-                                    {"type": "output", "content": self.buffer}
-                                )
-                            )
+                    if self.buffer and self.buffer.strip():
+                        captured_lines.append(self.buffer)
                         self.buffer = ""
 
         old_stdout = sys.stdout
-        output_stream = PreswaldOutputStream(self.send_message)
+        output_stream = PreswaldOutputStream()
         sys.stdout = output_stream
         try:
-            yield
+            yield captured_lines
         finally:
             output_stream.flush()
             sys.stdout = old_stdout
-            logger.debug("[ScriptRunner] Restored stdout")
+            logger.debug(f"[ScriptRunner] Restored stdout, captured {len(captured_lines)} lines")
 
     def run_sync(self, script_path: str):
         """Run the script synchronously for CLI tools like export."""
@@ -344,7 +332,7 @@ class ScriptRunner:
             self._script_globals = {"widget_states": self.widget_states}
 
             # Capture script output
-            with self._redirect_stdout():
+            with self._redirect_stdout() as captured_output:
                 with open(self.script_path, encoding="utf-8") as f:
                     raw_code = f.read()
 
@@ -359,6 +347,11 @@ class ScriptRunner:
                     logger.debug(f"[ScriptRunner] Script executed {execution_context}")
 
                 try:
+                    # Support per-file pragma to disable reactivity
+                    if raw_code.lstrip().startswith("# preswald: no-reactivity"):
+                        logger.info("[ScriptRunner] Reactivity disabled via file pragma")
+                        self._service.disable_reactivity()
+
                     if self._service.is_reactivity_enabled:
                         # Attempt reactive transformation
                         tree, _ = transform_source(raw_code, filename=self.script_path)
@@ -393,6 +386,10 @@ class ScriptRunner:
                             raise e
 
                 os.chdir(current_working_dir)
+
+            # Send captured stdout output to frontend
+            for line in captured_output:
+                await self.send_message({"type": "output", "content": line})
 
             # Collect and process rendered components
             components = self._service.get_rendered_components()
