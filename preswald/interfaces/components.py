@@ -4,26 +4,14 @@ import io
 import json
 import logging
 import os
-import re
-
 # Third-Party
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-# from PIL import Image
-# try:
-#     import fastplotlib as fplt
-#     import msgpack
-#
-#     FASTPLOTLIB_AVAILABLE = True
-# except ImportError:
-#     FASTPLOTLIB_AVAILABLE = False
-#     fplt = None
 # Internal
 from preswald.engine.service import PreswaldService
 from preswald.engine.render_tracking import with_render_tracking
-from preswald.interfaces.workflow import Workflow
 from preswald.interfaces.component_return import ComponentReturn
 
 
@@ -119,56 +107,6 @@ def button(
 
     return ComponentReturn(current_value, component)
 
-@with_render_tracking("chat")
-def chat(source: str, table: str | None = None, component_id: str | None = None, **kwargs) -> ComponentReturn:
-    """Create a chat component to chat with data source"""
-    service = PreswaldService.get_instance()
-
-    # Get current state or initialize empty
-    current_state = service.get_component_state(component_id)
-    if current_state is None:
-        current_state = {"messages": [], "source": source}
-
-    # Get dataframe from source
-    df = (
-        service.data_manager.get_df(source)
-        if table is None
-        else service.data_manager.get_df(source, table)
-    )
-
-    # Convert DataFrame to serializable format
-    serializable_data = None
-    if df is not None:
-        records = df.to_dict("records")
-        # Handle timestamp fields before general serialization
-        processed_records = []
-        for record in records:
-            processed_record = {}
-            for key, value in record.items():
-                if isinstance(value, pd.Timestamp | pd.NaT.__class__):
-                    processed_record[key] = (
-                        value.isoformat() if not pd.isna(value) else None
-                    )
-                else:
-                    processed_record[key] = value
-            processed_records.append(processed_record)
-        serializable_data = convert_to_serializable(processed_records)
-
-    logger.debug(f"Creating chat component with id {component_id}, source: {source}")
-    component = {
-        "type": "chat",
-        "id": component_id,
-        "state": {
-            "messages": current_state.get("messages", []),
-        },
-        "config": {
-            "source": source,
-            "data": serializable_data,
-        },
-    }
-
-    return ComponentReturn(component, component)
-
 @with_render_tracking("checkbox")
 def checkbox(label: str, default: bool = False, size: float = 1.0, component_id: str | None = None, **kwargs) -> ComponentReturn:
     """Create a checkbox component with consistent ID based on label."""
@@ -189,80 +127,6 @@ def checkbox(label: str, default: bool = False, size: float = 1.0, component_id:
     }
 
     return ComponentReturn(current_value, component)
-
-
-# def fastplotlib(fig: "fplt.Figure", size: float = 1.0) -> str:
-#     """
-#     Render a Fastplotlib figure and asynchronously stream the resulting image to the frontend.
-#
-#     This component leverages Fastplotlib's GPU-accelerated offscreen rendering capabilities.
-#     Rendering and transmission are triggered only when the figure state or the client changes,
-#     ensuring efficient updates. The rendered image is encoded as a PNG and sent to the frontend
-#     via WebSocket using MessagePack.
-#
-#     Args:
-#         fig (fplt.Figure): A configured Fastplotlib figure ready to be rendered.
-#         size (float, optional): Width of the rendered component relative to its container (0.0-1.0).
-#                                 Defaults to 1.0.
-#
-#     Returns:
-#         str: A deterministic component ID used to reference the figure on the frontend.
-#
-#     Notes:
-#         - The figure must have '_label' and '_client_id' attributes set externally.
-#         - Rendering occurs asynchronously if the figure state or client_id changes.
-#         - If client_id is not provided, a warning is logged and no rendering task is triggered.
-#     """
-#     if not FASTPLOTLIB_AVAILABLE:
-#         logger.warning(
-#             "fastplotlib is not available. Please install it with 'pip install fastplotlib'"
-#         )
-#         return None
-#
-#     service = PreswaldService.get_instance()
-#
-#     label = getattr(fig, "_label", "fastplotlib")
-#     component_id = generate_id_by_label("fastplotlib", label)
-#
-#     try:
-#         state = fig.get_state()
-#     except Exception:
-#         state = label
-#
-#     # hash input data early and use hash to avoid unnecessary rendering
-#     client_id = getattr(fig, "_client_id", None)
-#     hashable_data = {
-#         "client_id": client_id,
-#         "state": state,
-#         "label": label,
-#         "size": size,
-#     }
-#     data_hash = hashlib.sha256(msgpack.packb(hashable_data)).hexdigest()
-#
-#     component = {
-#         "id": component_id,
-#         "type": "fastplotlib_component",
-#         "label": label,
-#         "size": size,
-#         "format": "websocket-png",
-#         "value": None,
-#         "hash": data_hash[:8],
-#     }
-#
-#     # skip rendering if unchanged
-#     if data_hash != service.get_component_state(f"{component_id}_img_hash"):
-#         if client_id:
-#             # Render and send concurrently (async task)
-#             asyncio.create_task(
-#                 render_and_send_fastplotlib(
-#                     fig, component_id, label, size, client_id, data_hash
-#                 )
-#             )
-#         else:
-#             logger.warning(f"No client_id provided for {component_id}")
-#
-#     service.append_component(component)
-#     return component_id
 
 
 @with_render_tracking("generic")
@@ -417,106 +281,6 @@ def matplotlib(fig: plt.Figure | None = None, label: str = "plot", component_id:
         component_id, component
     )  # Returning ID for potential tracking
 
-
-@with_render_tracking("playground")
-def playground(
-    label: str,
-    query: str,
-    source: str | None = None,
-    size: float = 1.0,
-    component_id: str | None = None,
-    **kwargs
-) -> ComponentReturn:
-    """
-    Create a playground component for interactive data querying and visualization.
-
-    Args:
-        label (str): The label for the playground component (used for identification).
-        query (str): The SQL query string to be executed.
-        source (str, optional): The name of the data source to query from. All data sources are considered by default.
-        size (float, optional): The visual size/scale of the component. Defaults to 1.0.
-
-    Returns:
-        ComponentReturn: The queried data as a pandas DataFrame, along with component metadata for rendering.
-
-    """
-
-    # Get the singleton instance of the PreswaldService
-    service = PreswaldService.get_instance()
-
-    logger.debug(
-        f"Creating playground component with id {component_id}, label: {label}"
-    )
-
-    # Retrieve the current query state (if previously modified by the user)
-    # If no previous state, use the provided query
-    current_query_value = service.get_component_state(component_id)
-    if current_query_value is None:
-        current_query_value = query
-
-    # Initialize data_source with the provided source or auto-detect it
-    data_source = source
-    if source is None:
-        # Auto-extract the first table name from the SQL query using regex
-        # Handles 'FROM' and 'JOIN' clauses with optional backticks or quotes
-        fetched_sources = re.findall(
-            r'(?:FROM|JOIN)\s+[`"]?([a-zA-Z0-9_\.]+)[`"]?',
-            current_query_value,
-            re.IGNORECASE | re.DOTALL,
-        )
-        # Use the first detected source as the data source
-        data_source = fetched_sources[0] if fetched_sources else None
-
-    # Initialize placeholders for data and error
-    data = None
-    error = None
-    processed_data = None
-    column_defs = []
-
-    # Attempt to execute the query against the determined data source
-    try:
-        data = service.data_manager.query(current_query_value, data_source)
-        logger.debug(f"Successfully queried data source: {data_source}")
-
-        # Process data for the table
-        if isinstance(data, pd.DataFrame):
-            data = data.reset_index(drop=True)
-            processed_data = data.to_dict("records")
-            column_defs = [
-                {"headerName": str(col), "field": str(col)} for col in data.columns
-            ]
-
-            # Process each row to ensure JSON serialization
-            processed_data = []
-            for _, row in data.iterrows():
-                processed_row = {
-                    str(key): (
-                        value.item()
-                        if isinstance(value, np.integer | np.floating)
-                        else value
-                    )
-                    if value is not None
-                    else ""  # Ensure no None values
-                    for key, value in row.items()
-                }
-                processed_data.append(processed_row)
-    except Exception as e:
-        error = str(e)
-        logger.error(f"Error querying data source: {e}")
-
-    component = {
-        "type": "playground",
-        "id": component_id,
-        "label": label,
-        "source": source,
-        "value": current_query_value,
-        "size": size,
-        "error": error,
-        "data": {"columnDefs": column_defs, "rowData": processed_data or []},
-    }
-
-    # Return the raw DataFrame
-    return ComponentReturn(data, component)
 
 @with_render_tracking("plotly")
 def plotly(fig, size: float = 1.0, component_id: str | None = None, **kwargs) -> ComponentReturn:  # noqa: C901
@@ -957,72 +721,6 @@ def topbar(component_id: str | None = None, **kwargs) -> ComponentReturn:
     return ComponentReturn(component, component)
 
 
-@with_render_tracking("workflow_dag")
-def workflow_dag(
-        workflow: Workflow,
-        title: str = "Workflow Dependency Graph",
-        component_id: str | None = None,
-        **kwargs
-) -> ComponentReturn:
-    """
-    Render the workflow's DAG visualization.
-
-    Args:
-        workflow: The workflow object to visualize
-        title: Optional title for the visualization
-    """
-    try:
-        from .workflow import WorkflowAnalyzer
-
-        analyzer = WorkflowAnalyzer(workflow)
-        analyzer.build_graph()  # Ensure graph is built
-
-        # Get node data
-        nodes_data = []
-        for node, data in analyzer.graph.nodes(data=True):
-            nodes_data.append(
-                {
-                    "name": node,
-                    "status": data["status"],
-                    "execution_time": data["execution_time"],
-                    "attempts": data["attempts"],
-                    "error": data["error"],
-                    "dependencies": data["dependencies"],
-                    "force_recompute": data["force_recompute"],
-                }
-            )
-
-        # Create the component with the correct type and data structure
-        component = {
-            "type": "dag",  # Changed from "plot" to "dag"
-            "id": component_id,
-            "data": {
-                "data": [
-                    {
-                        "type": "scatter",
-                        "customdata": nodes_data,
-                        "node": {"positions": []},  # Will be calculated by react-flow
-                    }
-                ],
-                "layout": {"title": {"text": title}, "showlegend": True},
-            },
-        }
-
-        logger.debug(f"[WORKFLOW_DAG] Created DAG component with id {component_id}")
-        return ComponentReturn(component, component)
-
-    except Exception as e:
-        logger.error(
-            f"[WORKFLOW_DAG] Error creating DAG visualization: {e!s}", exc_info=True
-        )
-        error_component = {
-            "type": "dag",  # Changed from "plot" to "dag"
-            "id": component_id,
-            "error": f"Failed to create DAG visualization: {e!s}",
-        }
-        return ComponentReturn(error_component, error_component)
-
-
 # Helpers
 
 
@@ -1047,92 +745,3 @@ def convert_to_serializable(obj):
             return None
         return obj.item()
     return obj
-
-
-# async def render_and_send_fastplotlib(
-#     fig: "fplt.Figure",
-#     component_id: str,
-#     label: str,
-#     size: float,
-#     client_id: str,
-#     data_hash: str,
-# ) -> Optional[str]:
-#     """
-#     Asynchronously renders a Fastplotlib figure to an offscreen canvas, encodes it as a PNG,
-#     and streams the resulting image data via WebSocket to the connected frontend client.
-
-#     This helper function handles rendering logic, alpha-blending, and ensures robust error
-#     handling. It updates the component state after successfully sending the image data.
-
-#     Args:
-#         fig (fplt.Figure): The fully configured Fastplotlib figure instance to render.
-#         component_id (str): Unique identifier for the component instance receiving this image.
-#         label (str): Human-readable label describing the component (for logging/debugging).
-#         size (float): Relative size of the component in the UI layout (0.0-1.0).
-#         client_id (str): WebSocket client identifier to route the rendered image correctly.
-#         data_hash (str): SHA-256 hash representing the figure state, used for cache invalidation.
-
-#     Returns:
-#         str: Returns "Render failed" if framebuffer blending fails, otherwise None.
-
-#     Raises:
-#         Logs and handles any exceptions internally without raising further.
-#     """
-#     service = PreswaldService.get_instance()
-
-#     fig.show()  # must call even in offscreen mode to initialize GPU resources
-
-#     # manually render the scene for all subplots
-#     for subplot in fig:
-#         subplot.viewport.render(subplot.scene, subplot.camera)
-
-#     # read from the framebuffer
-#     try:
-#         fig.canvas.request_draw()
-#         raw_img = np.asarray(fig.renderer.target.draw())
-
-#         if raw_img.ndim != 3 or raw_img.shape[2] != 4:
-#             raise ValueError(f"Unexpected image shape: {raw_img.shape}")
-
-#         # handle alpha blending
-#         alpha = raw_img[..., 3:4] / 255.0
-#         rgb = (raw_img[..., :3] * alpha + (1 - alpha) * 255).astype(np.uint8)
-
-#     except Exception as e:
-#         logger.error(f"Framebuffer blending failed for {component_id}: {e}")
-#         return "Render failed"
-
-#     # encode image to PNG
-#     img_buf = io.BytesIO()
-#     Image.fromarray(rgb).save(img_buf, format="PNG")
-#     png_bytes = img_buf.getvalue()
-
-#     # handle websocket communication
-#     client_websocket = service.websocket_connections.get(client_id)
-#     if client_websocket:
-#         packed_msg = msgpack.packb(
-#             {
-#                 "type": "image_update",
-#                 "component_id": component_id,
-#                 "format": "png",
-#                 "label": label,
-#                 "size": size,
-#                 "data": png_bytes,
-#             },
-#             use_bin_type=True,
-#         )
-
-#         try:
-#             await client_websocket.send_bytes(packed_msg)
-#             await service.handle_client_message(
-#                 client_id,
-#                 {
-#                     "type": "component_update",
-#                     "states": {f"{component_id}_img_hash": data_hash},
-#                 },
-#             )
-#             logger.debug(f"✅ Sent {component_id} image to client {client_id}")
-#         except Exception as e:
-#             logger.error(f"WebSocket send failed for {component_id}: {e}")
-#     else:
-#         logger.warning(f"No active WebSocket found for client ID: {client_id}")

@@ -11,16 +11,12 @@ import { createExtractKeyProps } from '@/utils/extractKeyProps';
 import AlertWidget from './widgets/AlertWidget';
 import BigNumberWidget from './widgets/BigNumberWidget';
 import ButtonWidget from './widgets/ButtonWidget';
-import ChatWidget from './widgets/ChatWidget';
 import CheckboxWidget from './widgets/CheckboxWidget';
-import DAGVisualizationWidget from './widgets/DAGVisualizationWidget';
 import DataVisualizationWidget from './widgets/DataVisualizationWidget';
-//import FastplotlibWidget from './widgets/FastplotlibWidget';
 import ImageWidget from './widgets/ImageWidget';
 import JSONViewerWidget from './widgets/JSONViewerWidget';
 import MarkdownRendererWidget from './widgets/MarkdownRendererWidget';
 import MatplotlibWidget from './widgets/MatplotlibWidget';
-import PlaygroundWidget from './widgets/PlaygroundWidget';
 import ProgressWidget from './widgets/ProgressWidget';
 import SelectboxWidget from './widgets/SelectboxWidget';
 import SeparatorWidget from './widgets/SeparatorWidget';
@@ -265,21 +261,6 @@ const MemoizedComponent = memo(
           />
         );
 
-      case 'chat':
-        return (
-          <ChatWidget
-            key={componentKey}
-            {...props}
-            sourceId={component.config?.source || null}
-            sourceData={component.config?.data || null}
-            value={component.value || component.state || { messages: [] }}
-            onChange={(value) => {
-              handleUpdate(componentId, value);
-            }}
-            id={componentId}
-          />
-        );
-
       case 'table':
         return (
           <TableViewerWidget
@@ -299,47 +280,6 @@ const MemoizedComponent = memo(
             data={component.data || {}}
             layout={component.layout || {}}
             config={component.config || {}}
-            id={componentId}
-          />
-        );
-
-      case 'dag':
-        return (
-          <DAGVisualizationWidget
-            key={componentKey}
-            {...props}
-            data={component.data || {}}
-            id={componentId}
-          />
-        );
-
-      // case 'fastplotlib_component':
-      //   const { className, data, config, label, src } = component;
-      //   return (
-      //     <FastplotlibWidget
-      //       key={componentKey}
-      //       {...props}
-      //       data={component.data}
-      //       config={component.config}
-      //       src={src}
-      //       label={label}
-      //       className={className}
-      //       clientId={comm.clientId}
-      //       id={componentId}
-      //     />
-      //   );
-
-      case 'playground':
-        return (
-          <PlaygroundWidget
-            key={componentKey}
-            {...props}
-            label={component.label || 'Query Playground'}
-            source={component.source}
-            value={component.value}
-            onChange={(value) => handleUpdate(componentId, value)}
-            error={component.error}
-            data={component.data}
             id={componentId}
           />
         );

@@ -7,13 +7,10 @@ from .components import (
     alert,
     big_number,
     button,
-    chat,
     checkbox,
-    # fastplotlib,
     image,
     json_viewer,
     matplotlib,
-    playground,
     plotly,
     progress,
     selectbox,
@@ -25,7 +22,6 @@ from .components import (
     text,
     text_input,
     topbar,
-    workflow_dag,
 )
 from .data import connect, get_df, query
 from .workflow import RetryPolicy, Workflow, WorkflowAnalyzer

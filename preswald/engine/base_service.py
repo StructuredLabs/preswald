@@ -7,6 +7,8 @@ from threading import Lock
 from typing import Any, Callable, Dict, Optional
 from contextlib import contextmanager
 
+from fastapi import WebSocket, WebSocketDisconnect
+
 from preswald.engine.runner import ScriptRunner
 from preswald.engine.utils import (
     RenderBuffer,
@@ -26,11 +28,12 @@ logger = logging.getLogger(__name__)
 
 class BasePreswaldService:
     """
-    Abstract base class for shared PreswaldService logic.
-    Manages component states, diffing, and render buffer.
+    Core service class that orchestrates the application components.
+    Manages component states, diffing, render buffer, and client connections.
     """
 
-    _not_initialized_msg = "Base service not initialized."
+    _instance = None
+    _not_initialized_msg = "PreswaldService not initialized. Did you call start_server()?"
 
     def __init__(self):
         self._component_states: dict[str, Any] = {}
@@ -51,6 +54,10 @@ class BasePreswaldService:
 
         # Initialize session tracking
         self.script_runners: dict[str, ScriptRunner] = {}
+
+        # Connection management
+        self.branding_manager = None  # set during server creation
+        self.websocket_connections: dict[str, WebSocket] = {}
 
         # Layout management
         self._layout_manager = LayoutManager()
@@ -352,6 +359,23 @@ class BasePreswaldService:
         for client_id in list(self.websocket_connections.keys()):
             await self.unregister_client(client_id)
 
+    async def register_client(
+        self, client_id: str, websocket: WebSocket
+    ) -> ScriptRunner:
+        """Register a new client connection and create its script runner"""
+        try:
+            logger.info(f"[WebSocket] New connection request from client: {client_id}")
+            await websocket.accept()
+            logger.info(f"[WebSocket] Connection accepted for client: {client_id}")
+
+            return await self._register_common_client_setup(client_id, websocket)
+
+        except WebSocketDisconnect:
+            logger.error(f"[WebSocket] Client disconnected: {client_id}")
+        except Exception as e:
+            logger.error(f"Error registering client {client_id}: {e}")
+            raise
+
     async def unregister_client(self, client_id: str):
         """Clean up resources for a disconnected client"""
         try:
@@ -375,6 +399,31 @@ class BasePreswaldService:
 
         except Exception as e:
             logger.error(f"Error unregistering client {client_id}: {e}")
+
+        asyncio.create_task(self._broadcast_connections())  # noqa: RUF006
+
+    async def _broadcast_connections(self):
+        """Broadcast current connections to all clients"""
+        try:
+            connection_list = []
+            for client_id in self.websocket_connections:
+                connection_info = {
+                    "name": client_id,
+                    "type": "WebSocket",
+                    "details": f"Active WebSocket connection for client {client_id}",
+                }
+                connection_list.append(connection_info)
+
+            for websocket in self.websocket_connections.values():
+                try:
+                    await websocket.send_json(
+                        {"type": "connections_update", "connections": connection_list}
+                    )
+                except Exception as e:
+                    logger.error(f"Error sending connection update to client: {e}")
+
+        except Exception as e:
+            logger.error(f"Error broadcasting connections: {e}")
 
     def _create_send_callback(self, websocket: Any) -> Callable:
         """Create a message sending callback for a specific websocket"""

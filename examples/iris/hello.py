@@ -4,7 +4,6 @@
 import plotly.express as px
 
 from preswald import (
-    chat,
     # fastplotlib,
     get_df,
     sidebar,
@@ -157,10 +156,3 @@ text(
     "## Sample of the Iris Dataset \n Below is a preview of the first 10 rows of the dataset, showing key measurements for each iris species."
 )
 table(df)
-
-# Add an interactive chat interface
-text(
-    "## Interactive Chat Interface\nUse this chat interface to ask questions about the iris dataset analysis. You can inquire about specific patterns, request explanations of the visualizations, or ask for additional insights."
-)
-
-chat("iris_csv")

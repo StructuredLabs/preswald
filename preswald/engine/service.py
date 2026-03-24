@@ -1,5 +1,5 @@
 """
-Modified service module that selects appropriate implementation
+Service module that selects appropriate implementation
 based on environment (server or browser)
 """
 
@@ -20,9 +20,9 @@ if IS_PYODIDE:
     logger.info("Using VirtualPreswaldService (Browser/Pyodide environment)")
 else:
     # In regular Python environment with server capabilities
-    from preswald.engine.server_service import ServerPreswaldService as ServiceImpl
+    from preswald.engine.base_service import BasePreswaldService as ServiceImpl
 
-    logger.info("Using ServerPreswaldService (Native Python environment)")
+    logger.info("Using BasePreswaldService (Native Python environment)")
 
 
 class PreswaldService:

@@ -7,13 +7,11 @@ from preswald import (
     alert,
     big_number,
     button,
-    chat,
     checkbox,
     get_df,
     image,
     json_viewer,
     matplotlib,
-    playground,
     plotly,
     progress,
     selectbox,
@@ -25,7 +23,6 @@ from preswald import (
     text,
     text_input,
     topbar,
-    workflow_dag,
 )
 
 
@@ -244,68 +241,10 @@ def image_demo():
     image("https://www.preswald.com/images/Logo.svg")
 
 
-# --- WORKFLOW DAG COMPONENT ---
-@workflow.atom()
-def workflow_dag_demo():
-    text("## 8. Visualizing Workflow Dependencies with `workflow_dag()`")
-    text(
-        """
-The `workflow_dag()` function renders a Directed Acyclic Graph (DAG) to visualize task dependencies in your workflow.
-"""
-    )
-
-    # Create a demo workflow for visualization
-    demo_workflow = Workflow()
-
-    @demo_workflow.atom()
-    def demo_load_data():
-        return get_df("sample_csv")
-
-    @demo_workflow.atom(dependencies=["demo_load_data"])
-    def demo_clean_data(demo_load_data):
-        return demo_load_data.dropna()
-
-    @demo_workflow.atom(dependencies=["demo_clean_data"])
-    def demo_analyze_data(demo_clean_data):
-        return demo_clean_data.describe()
-
-    # Execute the demo workflow
-    demo_workflow.execute()
-
-    # Render the workflow DAG
-    workflow_dag(demo_workflow, title="Sample Workflow Dependency Graph")
-
-    text(
-        """
-The `workflow_dag()` component helps visualize dependencies and relationships within workflows.
-**Example:**
-```python
-from preswald import workflow_dag, Workflow
-workflow = Workflow()
-@workflow.atom()
-def load_data():
-    return get_df("sample_csv")
-@workflow.atom(dependencies=['load_data'])
-def clean_data(load_data):
-    return load_data.dropna()
-@workflow.atom(dependencies=['clean_data'])
-def analyze_data(clean_data):
-    return clean_data.describe()
-workflow.execute()
-workflow_dag(workflow, title="Workflow Dependency Graph")
-```
-**Key Features:**
-- **Visualize Dependencies:** Clearly see how tasks are interconnected.
-- **Interactive Exploration:** Zoom, pan, and hover over nodes for details.
-- **Customizable Titles:** Make your DAGs more descriptive and easy to understand.
-"""
-    )
-
-
 # --- WORKFLOW ANALYZER COMPONENT ---
-@workflow.atom(dependencies=["workflow_dag_demo"])
+@workflow.atom()
 def workflow_analyzer_demo():
-    text("## 9. Optimizing Workflows with `WorkflowAnalyzer()`")
+    text("## 8. Optimizing Workflows with `WorkflowAnalyzer()`")
     text(
         "The `WorkflowAnalyzer()` provides tools to analyze and optimize workflows, helping you identify bottlenecks and parallel execution opportunities."
     )
@@ -362,7 +301,7 @@ for i, group in enumerate(parallel_groups, 1):
 # --- RETRY POLICY EXPLANATION ---
 @workflow.atom()
 def retry_policy_demo():
-    text("## 10. Making Workflows More Reliable with `RetryPolicy`")
+    text("## 9. Making Workflows More Reliable with `RetryPolicy`")
     text(
         """
 The `RetryPolicy` helps handle failures in your workflow by automatically retrying tasks if they fail. You can control how many times a task is retried, how long to wait between retries, and which errors should trigger a retry.
@@ -389,7 +328,7 @@ def fetch_data():
 
 @workflow.atom()
 def alert_demo():
-    text("## 11. Displaying Alerts with `alert()`")
+    text("## 10. Displaying Alerts with `alert()`")
     text(
         "The `alert()` function displays a message to the user, which can be used to provide information, warnings, or errors."
     )
@@ -398,7 +337,7 @@ def alert_demo():
 
 @workflow.atom()
 def checkbox_demo():
-    text("## 12. Adding Interactivity with `checkbox()`")
+    text("## 11. Adding Interactivity with `checkbox()`")
     text(
         "The `checkbox()` function allows users to select or deselect an option using a checkbox."
     )
@@ -438,7 +377,7 @@ The checkbox returns a boolean value that you can use to control your app's beha
 
 @workflow.atom()
 def progress_demo():
-    text("## 13. Tracking Progress with `progress()`")
+    text("## 12. Tracking Progress with `progress()`")
     text(
         "The `progress()` function displays a progress bar to indicate the completion status of a task."
     )
@@ -447,33 +386,13 @@ def progress_demo():
 
 @workflow.atom()
 def sidebar_demo():
-    text("## 14. Showing sidebar to your app with sidebar()")
+    text("## 13. Showing sidebar to your app with sidebar()")
     sidebar(defaultopen=True)
 
 
 @workflow.atom()
-def playground_demo():
-    text("## 15. Interacting with SQL queries using `playground()` component")
-    text(
-        "The `playground` function provides a dynamic interface for querying connected data sources and visualizing results directly."
-    )
-
-    df = playground(label="Playground Example", query="SELECT * FROM sample_csv")
-    text(f"Total Items: {df.shape[0]}")
-
-
-@workflow.atom()
-def chat_demo():
-    text("## 16. Chat with your data using `chat()`")
-    text(
-        "The `chat()` function allows you to chat with your data using a chat interface."
-    )
-    chat("sample_csv")
-
-
-@workflow.atom()
 def matplotlib_demo():
-    text("## 17. Visualizing data using `matplotlib()`")
+    text("## 14. Visualizing data using `matplotlib()`")
     text("The `matplotlib()` function allows you to visualize data using matplotlib.")
     fig = plt.figure()
     plt.plot([1, 2, 3, 4, 5])
@@ -482,7 +401,7 @@ def matplotlib_demo():
 
 @workflow.atom()
 def button_demo():
-    text("## 18. Adding Interactivity with `button()`")
+    text("## 15. Adding Interactivity with `button()`")
     text(
         "The `button()` function creates a simple interactive button. Here's an example:"
     )
@@ -499,7 +418,7 @@ def button_demo():
 
 @workflow.atom()
 def spinner_demo():
-    text("## 19. Adding a spinner with `spinner()`")
+    text("## 16. Adding a spinner with `spinner()`")
     text(
         "The `spinner()` function creates a loading indicator. Here are some examples:"
     )
@@ -513,7 +432,7 @@ def spinner_demo():
 
 @workflow.atom()
 def text_input_demo():
-    text("## 20. Adding a text input with `text_input()`")
+    text("## 17. Adding a text input with `text_input()`")
     text(
         "The `text_input()` function creates a text input field that returns its current value."
     )
@@ -533,7 +452,7 @@ def text_input_demo():
 # --- JSON VIEWER COMPONENT ---
 @workflow.atom()
 def json_viewer_demo():
-    text("## 21. Exploring Structured Data with `json_viewer()`")
+    text("## 18. Exploring Structured Data with `json_viewer()`")
     text(
         "Use the `json_viewer()` component to visualize deeply nested JSON objects interactively."
     )
@@ -565,7 +484,7 @@ def json_viewer_demo():
 # --- BIG NUMBER METRIC CARDS COMPONENT ---
 @workflow.atom()
 def big_number_demo():
-    text("## 22. Highlighting Key Metrics with `big_number()`")
+    text("## 19. Highlighting Key Metrics with `big_number()`")
     text(
         """The `big_number()` component lets you visually emphasize important single-value KPIs like active users, usage trends, or totals. It supports delta indicators, icons, automatic number formatting (e.g., 1.2M), and stacking layout.**Example Use Cases:**
 - Total Users

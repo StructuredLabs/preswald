@@ -1,25 +1,14 @@
 import os
 import sys
-import tempfile
 
 import click
-
-from preswald.engine.telemetry import TelemetryService
-
-
-# Create a temporary directory for IPC
-TEMP_DIR = os.path.join(tempfile.gettempdir(), "preswald")
-os.makedirs(TEMP_DIR, exist_ok=True)
-
-# Initialize telemetry service
-telemetry = TelemetryService()
 
 
 @click.group()
 @click.version_option()
 def cli():
     """
-    Preswald CLI - A lightweight framework for interactive data apps.
+    Preswald CLI - Write Python. Export HTML. Share anywhere.
     """
     pass
 
@@ -89,21 +78,106 @@ def init(name):
         # Create basic project files
         _create_default_init_files(name, project_slug)
 
-        # Track initialization
-        telemetry.track_command(
-            "init",
-            {
-                "project_name": name,
-                "project_slug": project_slug,
-            },
-        )
-
-        click.echo(f"Initialized a new Preswald project in '{name}/' 🎉!")
+        click.echo(f"Initialized a new Preswald project in '{name}/'")
         click.echo(f"Project slug: {project_slug}")
     except Exception as e:
-        click.echo(f"Error initializing project: {e} ❌")
+        click.echo(f"Error initializing project: {e}")
 
 
+def _resolve_script(script_arg):
+    """Resolve the script path, checking preswald.toml if no script argument given.
+
+    Returns (script_path, config_path_or_none) or calls sys.exit on failure.
+    """
+    import tomli
+
+    # If a script argument is provided directly, use it
+    if script_arg:
+        if not os.path.exists(script_arg):
+            click.echo(f"Error: Script '{script_arg}' not found.")
+            sys.exit(1)
+        # Check for preswald.toml in the script's directory (optional)
+        script_dir = os.path.dirname(os.path.abspath(script_arg))
+        config_path = os.path.join(script_dir, "preswald.toml")
+        return script_arg, config_path if os.path.exists(config_path) else None
+
+    # No script arg -- look for preswald.toml in current directory
+    config_path = "preswald.toml"
+    if not os.path.exists(config_path):
+        click.echo("Error: No script specified and no preswald.toml found.")
+        click.echo("Usage: preswald dev <script.py>  or  run from a project directory.")
+        sys.exit(1)
+
+    try:
+        with open(config_path, "rb") as f:
+            config = tomli.load(f)
+    except Exception as e:
+        click.echo(f"Error reading preswald.toml: {e}")
+        sys.exit(1)
+
+    if "project" not in config or "entrypoint" not in config["project"]:
+        click.echo(
+            "Error: entrypoint not defined in preswald.toml under [project] section."
+        )
+        sys.exit(1)
+
+    script = config["project"]["entrypoint"]
+    if not os.path.exists(script):
+        click.echo(f"Error: Entrypoint script '{script}' not found.")
+        sys.exit(1)
+
+    return script, config_path
+
+
+@cli.command()
+@click.argument("script", default=None, required=False)
+@click.option("--port", default=8501, help="Port to run the server on.")
+@click.option(
+    "--log-level",
+    type=click.Choice(
+        ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], case_sensitive=False
+    ),
+    default=None,
+    help="Set the logging level (overrides config file)",
+)
+@click.option(
+    "--disable-new-tab",
+    is_flag=True,
+    default=False,
+    help="Disable automatically opening a new browser tab",
+)
+def dev(script, port, log_level, disable_new_tab):
+    """
+    Run a Preswald app in development mode.
+
+    You can either pass a script directly (preswald dev app.py) or run from a
+    project directory containing preswald.toml.
+    """
+    from preswald.main import start_server
+    from preswald.utils import configure_logging, read_port_from_config
+
+    script_path, config_path = _resolve_script(script)
+
+    if config_path:
+        log_level = configure_logging(config_path=config_path, level=log_level)
+        port = read_port_from_config(config_path=config_path, port=port)
+
+    url = f"http://localhost:{port}"
+    click.echo(f"Running '{script_path}' on {url}")
+
+    try:
+        if not disable_new_tab:
+            import webbrowser
+
+            webbrowser.open(url)
+
+        start_server(script=script_path, port=port)
+
+    except Exception as e:
+        click.echo(f"Error: {e}")
+
+
+# Keep 'run' as an alias for backwards compatibility
 @cli.command()
 @click.option("--port", default=8501, help="Port to run the server on.")
 @click.option(
@@ -122,55 +196,21 @@ def init(name):
 )
 def run(port, log_level, disable_new_tab):
     """
-    Run a Preswald app from the current directory.
+    Run a Preswald app (alias for 'dev').
 
     Looks for preswald.toml in the current directory and runs the script specified in the entrypoint.
     """
-    config_path = "preswald.toml"
-    if not os.path.exists(config_path):
-        click.echo("Error: preswald.toml not found in current directory. ❌")
-        click.echo("Make sure you're in a Preswald project directory.")
-        return
-
-    import tomli
-
     from preswald.main import start_server
     from preswald.utils import configure_logging, read_port_from_config
 
-    try:
-        with open(config_path, "rb") as f:
-            config = tomli.load(f)
-    except Exception as e:
-        click.echo(f"Error reading preswald.toml: {e} ❌")
-        return
+    script_path, config_path = _resolve_script(None)
 
-    if "project" not in config or "entrypoint" not in config["project"]:
-        click.echo(
-            "Error: entrypoint not defined in preswald.toml under [project] section. ❌"
-        )
-        return
-
-    script = config["project"]["entrypoint"]
-    if not os.path.exists(script):
-        click.echo(f"Error: Entrypoint script '{script}' not found. ❌")
-        return
-
-    log_level = configure_logging(config_path=config_path, level=log_level)
-    port = read_port_from_config(config_path=config_path, port=port)
-
-    # Track run command
-    telemetry.track_command(
-        "run",
-        {
-            "script": script,
-            "port": port,
-            "log_level": log_level,
-            "disable_new_tab": disable_new_tab,
-        },
-    )
+    if config_path:
+        log_level = configure_logging(config_path=config_path, level=log_level)
+        port = read_port_from_config(config_path=config_path, port=port)
 
     url = f"http://localhost:{port}"
-    click.echo(f"Running '{script}' on {url} with log level {log_level}  🎉!")
+    click.echo(f"Running '{script_path}' on {url}")
 
     try:
         if not disable_new_tab:
@@ -178,169 +218,10 @@ def run(port, log_level, disable_new_tab):
 
             webbrowser.open(url)
 
-        start_server(script=script, port=port)
+        start_server(script=script_path, port=port)
 
     except Exception as e:
         click.echo(f"Error: {e}")
-
-
-@cli.command()
-@click.argument("script", default=None, required=False)
-@click.option(
-    "--target",
-    type=click.Choice(["local", "gcp", "aws"], case_sensitive=False),
-    default="local",
-    help="Target platform for deployment.",
-)
-@click.option("--port", default=8501, help="Port for deployment.")
-@click.option(
-    "--log-level",
-    type=click.Choice(
-        ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], case_sensitive=False
-    ),
-    default=None,
-    help="Set the logging level (overrides config file)",
-)
-def deploy(script, target, port, log_level):
-    """
-    Deploy your Preswald app.
-
-    This allows you to share the app within your local network or deploy to production.
-    If no script is provided, it will use the entrypoint defined in preswald.toml.
-    """
-    try:
-        if target == "aws":
-            click.echo(
-                "\nWe're working on supporting AWS soon! Please enjoy some ☕ and 🍌 in the meantime"
-            )
-            return
-
-        # First try to read from preswald.toml in current directory
-        config_path = "preswald.toml"
-        if os.path.exists(config_path):
-            import tomli
-
-            try:
-                with open(config_path, "rb") as f:
-                    config = tomli.load(f)
-                if "project" in config and "entrypoint" in config["project"]:
-                    script = script or config["project"]["entrypoint"]
-            except Exception as e:
-                click.echo(f"Warning: Error reading preswald.toml: {e}")
-                # Continue with provided script argument if config reading fails
-
-        if not script:
-            click.echo(
-                "Error: No script specified and no entrypoint found in preswald.toml ❌"
-            )
-            click.echo(
-                "Either provide a script argument or define entrypoint in preswald.toml"
-            )
-            return
-
-        if not os.path.exists(script):
-            click.echo(f"Error: Script '{script}' not found. ❌")
-            return
-
-        from preswald.deploy import deploy as deploy_app
-        from preswald.utils import configure_logging, read_port_from_config
-
-        config_path = os.path.join(os.path.dirname(script), "preswald.toml")
-        log_level = configure_logging(config_path=config_path, level=log_level)
-        port = read_port_from_config(config_path=config_path, port=port)
-
-        # Track deployment
-        telemetry.track_command(
-            "deploy",
-            {
-                "script": script,
-                "target": target,
-                "port": port,
-                "log_level": log_level,
-            },
-        )
-
-        url = deploy_app(script, target, port=port)
-
-        # Deployment Success Message
-        success_message = f"""
-
-        ===========================================================\n
-        🎉 Deployment successful! ✅
-
-        🌐 Your app is live and running at:
-        {url}
-
-        💡 Next Steps:
-            - Open the URL above in your browser to view your app
-
-        🚀 Deployment Summary:
-            - App: {script}
-            - Environment: {target}
-            - Port: {port}
-        """
-
-        click.echo(click.style(success_message, fg="green"))
-
-    except Exception as e:
-        click.echo(click.style(f"Deployment failed: {e!s} ❌", fg="red"))
-        sys.exit(1)
-
-
-@cli.command()
-@click.option(
-    "--target",
-    type=click.Choice(["local", "gcp", "aws"], case_sensitive=False),
-    default="local",
-    help="Target platform to stop the deployment from.",
-)
-def stop(target):
-    """
-    Stop the currently running deployment.
-
-    This command must be run from the same directory as your Preswald app.
-    """
-    try:
-        from preswald.deploy import cleanup_gcp_deployment
-
-        # Track stop command
-        telemetry.track_command("stop", {"target": target})
-        config_path = "preswald.toml"
-        if not os.path.exists(config_path):
-            click.echo("Error: preswald.toml not found in current directory. ❌")
-            click.echo("Make sure you're in a Preswald project directory.")
-            return
-
-        current_dir = os.getcwd()
-        print(f"Current directory: {current_dir}")
-        if target == "gcp":
-            try:
-                click.echo("Starting GCP deployment cleanup... 🧹")
-                for status_update in cleanup_gcp_deployment(current_dir):
-                    status = status_update.get("status", "")
-                    message = status_update.get("message", "")
-
-                    if status == "error":
-                        click.echo(click.style(f"❌ {message}", fg="red"))
-                    elif status == "success":
-                        click.echo(click.style(f"✅ {message}", fg="green"))
-                    else:
-                        click.echo(f"i {message}")
-                click.echo(
-                    click.style(
-                        "✅ GCP deployment cleaned up successfully!", fg="green"
-                    )
-                )
-            except Exception as e:
-                click.echo(click.style(f"❌ GCP cleanup failed: {e!s}", fg="red"))
-                sys.exit(1)
-        else:
-            from preswald.deploy import stop_local_deployment
-
-            stop_local_deployment(current_dir)
-            click.echo("Deployment stopped successfully. 🛑 ")
-    except Exception:
-        sys.exit(1)
 
 
 @cli.command()
@@ -357,14 +238,11 @@ def tutorial(ctx):
     tutorial_dir = os.path.join(package_dir, "tutorial")
 
     if not os.path.exists(tutorial_dir):
-        click.echo(f"Error: Tutorial directory '{tutorial_dir}' not found. ❌")
-        click.echo("👉 The tutorial files may be missing from your installation.")
+        click.echo(f"Error: Tutorial directory '{tutorial_dir}' not found.")
+        click.echo("The tutorial files may be missing from your installation.")
         return
 
-    # Track tutorial command
-    telemetry.track_command("tutorial", {})
-
-    click.echo("🚀 Launching the Preswald tutorial app! 🎉")
+    click.echo("Launching the Preswald tutorial app!")
 
     # Save current directory
     current_dir = os.getcwd()
@@ -379,6 +257,7 @@ def tutorial(ctx):
 
 
 @cli.command()
+@click.argument("script", default=None, required=False)
 @click.option(
     "--format",
     type=click.Choice(["pdf", "html"]),
@@ -392,45 +271,23 @@ def tutorial(ctx):
     default="comlink",
     help="Communication client to use - auto will choose based on context",
 )
-def export(format, output, client):
+def export(script, format, output, client):
     """Export the current Preswald app as a PDF report or HTML app."""
-    # Check for preswald.toml and get entrypoint
-    config_path = "preswald.toml"
-    if not os.path.exists(config_path):
-        click.echo("Error: preswald.toml not found in current directory. ❌")
-        click.echo("Make sure you're in a Preswald project directory.")
-        return
-
     import tomli
 
-    try:
-        with open(config_path, "rb") as f:
-            config = tomli.load(f)
-        if "project" not in config or "entrypoint" not in config["project"]:
-            click.echo(
-                "Error: entrypoint not defined in preswald.toml under [project] section. ❌"
-            )
-            return
-        script = config["project"]["entrypoint"]
-    except Exception as e:
-        click.echo(f"Error reading preswald.toml: {e} ❌")
-        return
-
-    if not os.path.exists(script):
-        click.echo(f"Error: Entrypoint script '{script}' not found. ❌")
-        return
+    script_path, config_path = _resolve_script(script)
 
     if format == "pdf":
         output_path = output or "preswald_report.pdf"
-        click.echo(f"📄 Rendering '{script}'...")
+        click.echo(f"Rendering '{script_path}'...")
 
         from preswald.main import render_once
         from preswald.utils import export_app_to_pdf
 
-        layout = render_once(script)
+        layout = render_once(script_path)
 
         click.echo(
-            f"✅ Render complete. Found {len(layout['rows'])} rows of components."
+            f"Render complete. Found {len(layout['rows'])} rows of components."
         )
 
         component_ids = []
@@ -444,45 +301,42 @@ def export(format, output, client):
         # Pass the component IDs to the export function
         export_app_to_pdf(component_ids, output_path)
 
-        click.echo(f"\n✅ Export complete. PDF saved to: {output_path}")
+        click.echo(f"\nExport complete. PDF saved to: {output_path}")
 
     elif format == "html":
         # Create output directory
         output_dir = output or "preswald_export"
-        # os.makedirs(output_dir, exist_ok=True) # Handled by prepare_html_export
 
-        click.echo(f"📦 Exporting '{script}' to HTML...")
+        click.echo(f"Exporting '{script_path}' to HTML...")
 
         try:
             from preswald.utils import (
-                prepare_html_export,  # Import the new utility function
+                prepare_html_export,
             )
 
-            # Call the centralized function for preparing HTML export files
-            # project_root_dir is "." because CLI operates from the current project directory
+            # Determine project root from script location
+            project_root = os.path.dirname(os.path.abspath(script_path)) if not config_path else "."
+
             prepare_html_export(
-                script_path=script,
+                script_path=script_path,
                 output_dir=output_dir,
-                project_root_dir=".",
+                project_root_dir=project_root,
                 client_type=client,
             )
 
-            # The rest of the original logic specific to CLI (e.g. click.echo messages) remains.
-            # No need to duplicate fs_snapshot, static file copying, or index.html modification here.
-
             click.echo(f"""
-✨ Export complete! Your interactive HTML app is ready:
+Export complete! Your interactive HTML app is ready:
 
-   📁 {output_dir}/
-      ├── index.html           # The main HTML file
-      ├── project_fs.json      # Your project files
-      └── assets/             # Required JavaScript and CSS
+   {output_dir}/
+      index.html           # The main HTML file
+      project_fs.json      # Your project files
+      assets/             # Required JavaScript and CSS
 
 Note: The app needs to be served via HTTP server - opening index.html directly won't work.
 """)
 
         except Exception as e:
-            click.echo(f"❌ Export failed: {e!s}")
+            click.echo(f"Export failed: {e!s}")
             return
 
 
