@@ -72,6 +72,13 @@ const App = () => {
         setConfig(message.config);
         break;
 
+      case 'reload':
+        // Server detected file change — clear errors and show loading state
+        console.log('[App] Hot reload triggered:', message.reason);
+        setTransformErrors([]);
+        setError(null);
+        break;
+
       case 'initial_state':
         // Handle initial state with bulk processing
         console.log('[App] Received initial state:', message);

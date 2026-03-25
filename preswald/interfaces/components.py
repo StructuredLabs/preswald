@@ -130,7 +130,7 @@ def checkbox(label: str, default: bool = False, size: float = 1.0, component_id:
 
 
 @with_render_tracking("generic")
-def generic(content, mimetype: str, component_id: str | None = None, **kwargs) -> ComponentReturn:
+def generic(content: object, mimetype: str, component_id: str | None = None, **kwargs) -> ComponentReturn:
     """
     A generic rendering fallback that upgrades known mimetypes into rich components.
 
@@ -164,7 +164,7 @@ def generic(content, mimetype: str, component_id: str | None = None, **kwargs) -
 
 
 @with_render_tracking("image")
-def image(src, alt="Image", size=1.0, component_id: str | None = None, **kwargs) -> ComponentReturn:
+def image(src: str, alt: str = "Image", size: float = 1.0, component_id: str | None = None, **kwargs) -> ComponentReturn:
     """Create an image component.
 
     Args:
@@ -232,7 +232,7 @@ def json_viewer(
     size: float = 1.0,
     component_id: str | None = None,
     **kwargs
-) -> dict:
+) -> ComponentReturn:
     """Create a JSON viewer component with collapsible tree view."""
     # Attempt to ensure JSON is serializable and safe
     try:
@@ -724,7 +724,7 @@ def topbar(component_id: str | None = None, **kwargs) -> ComponentReturn:
 # Helpers
 
 
-def convert_to_serializable(obj):
+def convert_to_serializable(obj: object) -> object:
     """Convert numpy arrays and other non-serializable objects to Python native types."""
     if isinstance(obj, np.ndarray):
         return obj.tolist()

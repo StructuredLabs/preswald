@@ -844,11 +844,48 @@
 }
 
 .error-report-container.expanded {
-   max-height: 80vh; /* Limit to 80% of the viewport height */
+   max-height: 80vh;
 }
 
 .error-report-list {
-  @apply list-disc list-inside space-y-1;
+  @apply space-y-3 list-none pl-0;
+}
+
+.error-report-item {
+  @apply text-sm;
+}
+
+.error-report-header {
+  @apply flex items-center gap-2 flex-wrap;
+}
+
+.error-report-location {
+  @apply font-mono text-xs font-semibold;
+}
+
+.error-report-count {
+  @apply text-xs opacity-60;
+}
+
+.error-report-message {
+  @apply mt-0.5 text-sm;
+}
+
+.error-report-source {
+  @apply mt-1 rounded bg-black/10 px-2 py-1 text-xs font-mono overflow-x-auto;
+}
+
+.error-badge {
+  @apply inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none;
+  background: rgba(0,0,0,0.1);
+}
+
+.error-badge-runtime {
+  @apply bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300;
+}
+
+.error-badge-transform {
+  @apply bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300;
 }
 
 .error-report-toggle {

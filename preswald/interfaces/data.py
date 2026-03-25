@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 import pandas as pd
 
@@ -12,12 +13,15 @@ logger = logging.getLogger(__name__)
 _connected = False
 
 
-def connect():
+def connect() -> Any:
     """
     Connect to all listed data sources in preswald.toml.
 
     Safe to call multiple times -- subsequent calls are no-ops unless
     the underlying data sources have changed.
+
+    Returns:
+        The DuckDB connection object, or None on failure.
     """
     global _connected
     try:
@@ -32,6 +36,7 @@ def connect():
         return duckdb_conn
     except Exception as e:
         logger.error(f"Error connecting to datasources: {e}")
+        return None
 
 
 def query(sql: str, source_name: str) -> pd.DataFrame:

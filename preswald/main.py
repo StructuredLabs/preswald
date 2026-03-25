@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import os
@@ -142,6 +143,72 @@ def render_once(script_path: str) -> dict:
     return service.get_rendered_components()
 
 
+class _FileWatcher:
+    """Polls a script file for changes and triggers reruns for all connected clients."""
+
+    def __init__(self, service: PreswaldService, script_path: str, poll_interval: float = 0.5):
+        self._service = service
+        self._script_path = os.path.abspath(script_path)
+        self._poll_interval = poll_interval
+        self._task: asyncio.Task | None = None
+        self._last_mtime: float = 0.0
+
+    def start(self) -> None:
+        self._last_mtime = self._get_mtime()
+        self._task = asyncio.create_task(self._poll_loop())  # noqa: RUF006
+        logger.info(f"[FileWatcher] Watching {self._script_path} (poll={self._poll_interval}s)")
+
+    async def stop(self) -> None:
+        if self._task and not self._task.done():
+            self._task.cancel()
+            try:
+                await self._task
+            except asyncio.CancelledError:
+                pass
+        logger.info("[FileWatcher] Stopped")
+
+    def _get_mtime(self) -> float:
+        try:
+            return os.stat(self._script_path).st_mtime
+        except OSError:
+            return 0.0
+
+    async def _poll_loop(self) -> None:
+        while True:
+            await asyncio.sleep(self._poll_interval)
+            mtime = self._get_mtime()
+            if mtime > self._last_mtime:
+                self._last_mtime = mtime
+                logger.info(f"[FileWatcher] Change detected in {self._script_path}")
+                await self._trigger_reload()
+
+    async def _trigger_reload(self) -> None:
+        """Notify all connected clients and rerun the script."""
+        service = self._service
+
+        # Notify browsers that a reload is starting
+        for ws in service.websocket_connections.values():
+            try:
+                await ws.send_json({"type": "reload", "reason": "file_change"})
+            except Exception:
+                pass
+
+        # Re-enable reactivity (it may have been disabled by a previous fallback)
+        service.enable_reactivity()
+        if reactivity_explicitly_disabled():
+            service.disable_reactivity()
+
+        # Rerun script for every connected client
+        for client_id, runner in list(service.script_runners.items()):
+            try:
+                logger.info(f"[FileWatcher] Rerunning script for client {client_id}")
+                runner._state = runner._state.__class__("RUNNING")
+                runner._run_count += 1
+                await runner.run_script()
+            except Exception as e:
+                logger.error(f"[FileWatcher] Error rerunning for {client_id}: {e}")
+
+
 def start_server(script: str | None = None, port: int = 8501):
     """Start the FastAPI server"""
     app = create_app(script)
@@ -149,10 +216,14 @@ def start_server(script: str | None = None, port: int = 8501):
     config = uvicorn.Config(app, host="0.0.0.0", port=port, loop="asyncio")
     server = uvicorn.Server(config)
 
+    _file_watcher: _FileWatcher | None = None
+
     # Handle shutdown signals
     async def handle_shutdown(signum=None, frame=None):
         """Handle graceful shutdown of the server"""
         logger.info("Shutting down server...")
+        if _file_watcher:
+            await _file_watcher.stop()
         await app.state.service.shutdown()
 
     # Handle shutdown signals
@@ -164,9 +235,20 @@ def start_server(script: str | None = None, port: int = 8501):
     signal.signal(signal.SIGINT, sync_handle_shutdown)
     signal.signal(signal.SIGTERM, sync_handle_shutdown)
 
-    try:
-        import asyncio
+    # Start file watcher after the event loop is running
+    original_startup = server.startup
 
+    async def startup_with_watcher(*args, **kwargs):
+        nonlocal _file_watcher
+        result = await original_startup(*args, **kwargs)
+        if script:
+            _file_watcher = _FileWatcher(app.state.service, script)
+            _file_watcher.start()
+        return result
+
+    server.startup = startup_with_watcher
+
+    try:
         asyncio.run(server.serve())
     except KeyboardInterrupt:
         asyncio.run(handle_shutdown())
