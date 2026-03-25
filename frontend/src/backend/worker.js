@@ -19,17 +19,22 @@ class PreswaldWorker {
     this.isInitialized = false;
     this.activeScriptPath = null;
     this.components = {};
+    this._matplotlibReady = null;
+    this._duckdbReady = null;
   }
 
   async initializePyodide() {
     console.log('[Worker] Starting Pyodide initialization');
     try {
       const loadPyodide = await _getLoadPyodide();
+
       // Load Pyodide
+      console.time('[Worker] Pyodide load');
       console.log('[Worker] About to call loadPyodide');
       this.pyodide = await loadPyodide({
         indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.27.2/full/',
       });
+      console.timeEnd('[Worker] Pyodide load');
       console.log('[Worker] loadPyodide resolved');
 
       // Set browser mode flag
@@ -47,32 +52,28 @@ class PreswaldWorker {
                 os.chdir('/project')
             `);
 
-      // Inject matplotlibrc file to set backend
-      console.log('[Worker] Configuring matplotlib');
-      await this.pyodide.loadPackage("matplotlib");
-      await this.pyodide.runPythonAsync(`
-        with open("/matplotlibrc", "w") as f:
-          f.write("backend: agg\\n")
-        import matplotlib
-        matplotlib.use("agg")`);
-
-      // Install required packages
-      console.log('[Worker] Installing required packages');
+      // Install micropip then preswald
+      console.time('[Worker] micropip load');
+      console.log('[Worker] Installing micropip');
       await this.pyodide.loadPackage('micropip');
+      console.timeEnd('[Worker] micropip load');
+
+      console.time('[Worker] preswald install');
+      console.log('[Worker] Installing preswald');
       await this.pyodide.runPythonAsync(`
                 import micropip
-                await micropip.install('duckdb')
                 await micropip.install('preswald')
-                # await micropip.install("http://localhost:8000/preswald-0.1.54-py3-none-any.whl")
             `);
+      console.timeEnd('[Worker] preswald install');
 
       // Initialize Preswald
+      console.time('[Worker] preswald init');
       console.log('[Worker] Initializing Preswald');
       await this.pyodide.runPythonAsync(`
                 import preswald.browser.entrypoint
             `);
+      console.timeEnd('[Worker] preswald init');
 
-      // TODO: Do we need to call preswaldInit() here? if not, we can remove it from the entrypoint.py
       this.isInitialized = true;
       console.log('[Worker] Initialization complete');
       return { success: true };
@@ -80,6 +81,38 @@ class PreswaldWorker {
       console.error('[Worker] Initialization error:', error);
       throw error;
     }
+  }
+
+  async ensureMatplotlib() {
+    if (!this._matplotlibReady) {
+      this._matplotlibReady = (async () => {
+        console.time('[Worker] matplotlib load');
+        console.log('[Worker] Lazy-loading matplotlib');
+        await this.pyodide.loadPackage('matplotlib');
+        await this.pyodide.runPythonAsync(`
+          with open("/matplotlibrc", "w") as f:
+            f.write("backend: agg\\n")
+          import matplotlib
+          matplotlib.use("agg")`);
+        console.timeEnd('[Worker] matplotlib load');
+      })();
+    }
+    return this._matplotlibReady;
+  }
+
+  async ensureDuckDB() {
+    if (!this._duckdbReady) {
+      this._duckdbReady = (async () => {
+        console.time('[Worker] duckdb install');
+        console.log('[Worker] Lazy-loading duckdb');
+        await this.pyodide.runPythonAsync(`
+          import micropip
+          await micropip.install('duckdb')
+        `);
+        console.timeEnd('[Worker] duckdb install');
+      })();
+    }
+    return this._duckdbReady;
   }
 
   async runScript(scriptPath) {
@@ -90,6 +123,25 @@ class PreswaldWorker {
 
     try {
       this.activeScriptPath = scriptPath;
+
+      // Read script content from Pyodide FS to check for lazy dependencies
+      let scriptContent = '';
+      try {
+        scriptContent = this.pyodide.FS.readFile(scriptPath, { encoding: 'utf8' });
+      } catch (e) {
+        console.warn('[Worker] Could not read script for dependency check:', e);
+      }
+
+      // Lazy-load matplotlib if needed
+      if (scriptContent.includes('matplotlib') || scriptContent.includes('plt')) {
+        await this.ensureMatplotlib();
+      }
+
+      // Lazy-load duckdb if needed
+      if (scriptContent.includes('duckdb') || scriptContent.includes('get_df') || scriptContent.includes('query(')) {
+        await this.ensureDuckDB();
+      }
+
       const result = await self.preswaldRunScript(scriptPath);
       const resultObj = result.toJs();
 
@@ -200,14 +252,14 @@ class PreswaldWorker {
                 import os
                 import json
                 import base64
-                
+
                 def serialize_fs(root_dir='/project'):
                     result = {}
                     for root, dirs, files in os.walk(root_dir):
                         for file in files:
                             full_path = os.path.join(root, file)
                             rel_path = os.path.relpath(full_path, root_dir)
-                            
+
                             try:
                                 with open(full_path, 'r') as f:
                                   content = f.read()
@@ -217,9 +269,9 @@ class PreswaldWorker {
                                   binary_content = f.read()
                                 encoded = base64.b64encode(binary_content).decode('ascii')
                                 result[rel_path] = {'type': 'binary', 'content': encoded}
-                            
+
                     return result
-                
+
                 result_data = serialize_fs()
                 json.dumps(result_data)
             `);
@@ -251,40 +303,6 @@ class PreswaldWorker {
       return { success: true, data: brandingObject };
     } catch (error) {
       console.error('[Worker] Branding info error:', error);
-      throw error;
-    }
-  }
-
-  // TODO: DELETE
-  async listFilesInDirectory(directory) {
-    try {
-      if (!this.pyodide || !this.isInitialized) {
-        throw new Error('Pyodide not initialized');
-      }
-
-      const filesListString = await this.pyodide.runPythonAsync(`
-                import os
-                import json
-                
-                result = {}
-                try:
-                    directory = "${directory}"
-                    files = os.listdir(directory)
-                    result = files
-                except Exception as e:
-                    result = {"error": str(e)}
-                
-                json.dumps(result)
-            `);
-
-      const result = JSON.parse(filesListString);
-      if (result && result.error) {
-        throw new Error(result.error);
-      }
-
-      return { success: true, files: result };
-    } catch (error) {
-      console.error('[Worker] Directory listing error:', error);
       throw error;
     }
   }

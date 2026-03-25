@@ -601,3 +601,161 @@ def prepare_html_export(
         f.truncate()
     logger.info(f"Modified index.html in {output_dir} with branding and boot scripts.")
     logger.info(f"HTML export preparation complete in {output_dir}")
+
+
+def bundle_single_file_html(export_dir: str, output_path: str) -> str:
+    """
+    Bundle an exported HTML directory into a single self-contained HTML file.
+
+    Reads index.html from export_dir, inlines all referenced JS and CSS files,
+    embeds project_fs.json as a script, and base64-encodes any other assets
+    referenced in the inlined content.
+
+    Args:
+        export_dir: Path to the directory produced by prepare_html_export().
+        output_path: Path where the single HTML file will be written.
+
+    Returns:
+        The output_path.
+    """
+    import base64
+    import json
+    import mimetypes
+
+    index_path = os.path.join(export_dir, "index.html")
+    with open(index_path, "r") as f:
+        html = f.read()
+
+    # 1. Embed project_fs.json as window.__PRESWALD_PROJECT_FS
+    project_fs_path = os.path.join(export_dir, "project_fs.json")
+    if os.path.exists(project_fs_path):
+        with open(project_fs_path, "r") as f:
+            project_fs_data = f.read()
+        fs_script = f"<script>window.__PRESWALD_PROJECT_FS = {project_fs_data};</script>"
+        # Insert before the first <script> tag in <head>, or before </head>
+        if "</head>" in html:
+            html = html.replace("</head>", f"{fs_script}\n</head>", 1)
+        else:
+            html = fs_script + "\n" + html
+
+    # 2. Inline CSS: <link rel="stylesheet" href="...">
+    css_pattern = re.compile(
+        r'<link\s+[^>]*rel=["\']stylesheet["\']\s+[^>]*href=["\']([^"\']+)["\'][^>]*/?>',
+        re.IGNORECASE,
+    )
+    # Also handle href before rel
+    css_pattern_alt = re.compile(
+        r'<link\s+[^>]*href=["\']([^"\']+)["\'][^>]*rel=["\']stylesheet["\'][^>]*/?>',
+        re.IGNORECASE,
+    )
+
+    def _inline_css(match):
+        href = match.group(1)
+        css_file = os.path.join(export_dir, href)
+        if os.path.exists(css_file):
+            with open(css_file, "r") as f:
+                css_content = f.read()
+            # Inline asset references within CSS (url(...))
+            css_content = _inline_css_assets(css_content, os.path.dirname(css_file), export_dir)
+            return f"<style>{css_content}</style>"
+        return match.group(0)
+
+    html = css_pattern.sub(_inline_css, html)
+    html = css_pattern_alt.sub(_inline_css, html)
+
+    # 3. Inline JS: <script src="...">
+    js_pattern = re.compile(
+        r'<script\s+([^>]*?)src=["\']([^"\']+)["\']([^>]*)>\s*</script>',
+        re.IGNORECASE,
+    )
+
+    def _inline_js(match):
+        pre_attrs = match.group(1)
+        src = match.group(2)
+        post_attrs = match.group(3)
+        js_file = os.path.join(export_dir, src)
+        if os.path.exists(js_file):
+            with open(js_file, "r") as f:
+                js_content = f.read()
+            # Preserve type="module" and other attributes, but remove src
+            attrs = (pre_attrs + post_attrs).strip()
+            return f"<script {attrs}>{js_content}</script>"
+        return match.group(0)
+
+    html = js_pattern.sub(_inline_js, html)
+
+    # 4. Inline remaining asset references in the HTML (images, etc.)
+    # Collect all files in export_dir for reference
+    asset_files = {}
+    for root, _dirs, fnames in os.walk(export_dir):
+        for fname in fnames:
+            full = os.path.join(root, fname)
+            rel = os.path.relpath(full, export_dir)
+            asset_files[rel] = full
+
+    # Replace remaining src="..." and href="..." references to local files
+    def _replace_asset_ref(match):
+        prefix = match.group(1)
+        ref_path = match.group(2)
+        suffix = match.group(3)
+        # Skip external URLs, data URIs, and anchors
+        if ref_path.startswith(("http://", "https://", "data:", "#", "mailto:")):
+            return match.group(0)
+        # Normalize path
+        norm = os.path.normpath(ref_path)
+        if norm in asset_files:
+            mime_type, _ = mimetypes.guess_type(asset_files[norm])
+            if mime_type is None:
+                mime_type = "application/octet-stream"
+            with open(asset_files[norm], "rb") as f:
+                encoded = base64.b64encode(f.read()).decode("ascii")
+            return f'{prefix}data:{mime_type};base64,{encoded}{suffix}'
+        return match.group(0)
+
+    asset_ref_pattern = re.compile(
+        r'((?:src|href)=["\'])([^"\']+)(["\'])',
+        re.IGNORECASE,
+    )
+    html = asset_ref_pattern.sub(_replace_asset_ref, html)
+
+    # Write the final single file
+    with open(output_path, "w") as f:
+        f.write(html)
+
+    logger.info(f"Single-file HTML export written to {output_path}")
+    return output_path
+
+
+def _inline_css_assets(css_content: str, css_dir: str, export_dir: str) -> str:
+    """
+    Replace url(...) references in CSS content with base64 data URIs.
+
+    Args:
+        css_content: The CSS text.
+        css_dir: The directory containing the CSS file (for resolving relative paths).
+        export_dir: The root export directory.
+
+    Returns:
+        CSS content with url() references replaced by data URIs.
+    """
+    import base64
+    import mimetypes
+
+    url_pattern = re.compile(r'url\(["\']?([^"\')\s]+)["\']?\)')
+
+    def _replace_url(match):
+        ref = match.group(1)
+        if ref.startswith(("data:", "http://", "https://")):
+            return match.group(0)
+        # Resolve relative to the CSS file's directory
+        resolved = os.path.normpath(os.path.join(css_dir, ref))
+        if os.path.exists(resolved):
+            mime_type, _ = mimetypes.guess_type(resolved)
+            if mime_type is None:
+                mime_type = "application/octet-stream"
+            with open(resolved, "rb") as f:
+                encoded = base64.b64encode(f.read()).decode("ascii")
+            return f"url(data:{mime_type};base64,{encoded})"
+        return match.group(0)
+
+    return url_pattern.sub(_replace_url, css_content)

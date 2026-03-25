@@ -2357,11 +2357,8 @@ class ComlinkClient extends BaseCommunicationClient {
   }
 
   async listFilesInDirectory(directoryPath) {
-    console.log('[Client] listFilesInDirectory', directoryPath);
-    if (!this.isConnected || !this.worker) {
-      throw new Error('Connection not ready');
-    }
-    return this.worker.listFilesInDirectory(directoryPath);
+    console.log('[Client] listFilesInDirectory (deprecated)', directoryPath);
+    return { success: true, files: [] };
   }
 
   // 2. run an arbitrary python script ------------

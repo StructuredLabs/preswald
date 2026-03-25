@@ -15,3 +15,14 @@ root.render(
     <App />
   </React.StrictMode>
 );
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker
+    .register('./sw.js', { scope: './' })
+    .then((registration) => {
+      console.log('Service worker registered:', registration.scope);
+    })
+    .catch((error) => {
+      console.log('Service worker registration failed:', error);
+    });
+}

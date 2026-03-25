@@ -271,7 +271,13 @@ def tutorial(ctx):
     default="comlink",
     help="Communication client to use - auto will choose based on context",
 )
-def export(script, format, output, client):
+@click.option(
+    "--single-file",
+    is_flag=True,
+    default=False,
+    help="Bundle HTML export into a single self-contained HTML file",
+)
+def export(script, format, output, client, single_file):
     """Export the current Preswald app as a PDF report or HTML app."""
     import tomli
 
@@ -304,9 +310,6 @@ def export(script, format, output, client):
         click.echo(f"\nExport complete. PDF saved to: {output_path}")
 
     elif format == "html":
-        # Create output directory
-        output_dir = output or "preswald_export"
-
         click.echo(f"Exporting '{script_path}' to HTML...")
 
         try:
@@ -317,14 +320,48 @@ def export(script, format, output, client):
             # Determine project root from script location
             project_root = os.path.dirname(os.path.abspath(script_path)) if not config_path else "."
 
-            prepare_html_export(
-                script_path=script_path,
-                output_dir=output_dir,
-                project_root_dir=project_root,
-                client_type=client,
-            )
+            if single_file:
+                import shutil
+                import tempfile
 
-            click.echo(f"""
+                from preswald.utils import bundle_single_file_html
+
+                output_path = output or "preswald_export.html"
+
+                # Export to a temp directory first
+                temp_dir = tempfile.mkdtemp(prefix="preswald_export_")
+                try:
+                    prepare_html_export(
+                        script_path=script_path,
+                        output_dir=temp_dir,
+                        project_root_dir=project_root,
+                        client_type=client,
+                    )
+
+                    bundle_single_file_html(temp_dir, output_path)
+
+                    file_size = os.path.getsize(output_path)
+                    size_mb = file_size / (1024 * 1024)
+                    click.echo(f"\nExport complete! Single-file HTML saved to: {output_path}")
+                    click.echo(f"File size: {size_mb:.1f} MB")
+                    if size_mb > 10:
+                        click.echo(
+                            "Warning: File is larger than 10 MB. "
+                            "Some browsers may be slow to load very large single-file exports."
+                        )
+                finally:
+                    shutil.rmtree(temp_dir, ignore_errors=True)
+            else:
+                output_dir = output or "preswald_export"
+
+                prepare_html_export(
+                    script_path=script_path,
+                    output_dir=output_dir,
+                    project_root_dir=project_root,
+                    client_type=client,
+                )
+
+                click.echo(f"""
 Export complete! Your interactive HTML app is ready:
 
    {output_dir}/
