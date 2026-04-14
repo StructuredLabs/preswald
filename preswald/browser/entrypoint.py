@@ -62,12 +62,10 @@ async def initialize_preswald(script_path: str | None = None):
 
             branding_json = json.dumps(branding)
 
-            # Set as string property on window
             window.PRESWALD_BRANDING = branding_json
-            console.log(f"Set PRESWALD_BRANDING as JSON string: {branding_json}")
+            logger.debug(f"Set PRESWALD_BRANDING as JSON string: {branding_json}")
 
         logger.info(f"Preswald initialized in browser with script: {script_path}")
-        console.log("Preswald initialized in browser")
 
         # Return success
         return {"success": True, "message": "Preswald initialized successfully"}
@@ -240,9 +238,9 @@ def expose_to_js():
 
     window.handleMessageFromJS = create_proxy(handle_js_message)
 
-    console.log("Preswald Python API exposed to JavaScript")
+    logger.debug("Preswald Python API exposed to JavaScript")
 
 
 # Auto-expose functions when module is imported
 expose_to_js()
-console.log("Preswald browser entrypoint loaded")
+logger.debug("Preswald browser entrypoint loaded")

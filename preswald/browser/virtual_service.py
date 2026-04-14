@@ -34,7 +34,7 @@ class VirtualWebSocket:
         self.is_browser_mode = IS_PYODIDE and getattr(
             window, "__PRESWALD_BROWSER_MODE", False
         )
-        console.log(f"[Communication] is browser mode: {self.is_browser_mode}")
+        logger.debug(f"[Communication] is browser mode: {self.is_browser_mode}")
 
     async def send_json(self, data: dict[str, Any]):
         """
@@ -248,7 +248,7 @@ class VirtualPreswaldService(BasePreswaldService):
 
         window.handleMessageFromJS = handle_message_proxy
 
-        console.log("Registered Python message handlers with JavaScript")
+        logger.debug("Registered Python message handlers with JavaScript")
 
     async def register_client(self, client_id: str, websocket=None):
         """Register a client with the service"""

@@ -17,10 +17,10 @@ def connect():
         service = PreswaldService.get_instance()
         source_names, duckdb_conn = service.data_manager.connect()
         logger.info(f"Successfully connected to data sources: {source_names}")
-        # TODO: bug - getting duplicated if there are multiple clients
         return duckdb_conn
     except Exception as e:
         logger.error(f"Error connecting to datasources: {e}")
+        raise
 
 
 def query(sql: str, source_name: str) -> pd.DataFrame:
@@ -34,6 +34,7 @@ def query(sql: str, source_name: str) -> pd.DataFrame:
         return df_result
     except Exception as e:
         logger.error(f"Error querying data source: {e}")
+        raise
 
 
 def get_df(source_name: str, table_name: str | None = None) -> pd.DataFrame:
@@ -48,3 +49,4 @@ def get_df(source_name: str, table_name: str | None = None) -> pd.DataFrame:
         return df_result
     except Exception as e:
         logger.error(f"Error getting a dataframe from data source: {e}")
+        raise
