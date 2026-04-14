@@ -253,7 +253,7 @@ def display_matplotlib_show(component_id: str):
         identifiers.append(identifier)
 
     plt.close('all')
-    logger.debug(f'[DEBUG] display_matplotlib_show - returning {len(components)} with {identifiers=}')
+    logger.debug(f'display_matplotlib_show - returning {len(components)} with {identifiers=}')
     return tuple(components)
 
 def display_plotly_figure_show(fig, component_id=None):
@@ -336,7 +336,7 @@ import time  # noqa: E402
 
 t0 = time.perf_counter()
 try:
-    logger.info('[DEBUG] pre-registering display methods')
+    logger.debug('pre-registering display methods')
 
     # --- Matplotlib Registration ---
     register_display_method(MatplotlibFigure, "show")

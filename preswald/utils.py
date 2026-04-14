@@ -52,7 +52,8 @@ def read_port_from_config(config_path: str, port: int):
                 port = config["project"]["port"]
         return port
     except Exception as e:
-        print(f"Warning: Could not load port config from {config_path}: {e}")
+        logger.warning(f"Could not load port config from {config_path}: {e}")
+        return port
 
 
 def configure_logging(config_path: str | None = None, level: str | None = None):

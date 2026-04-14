@@ -276,7 +276,7 @@ class ClickhouseSource(DataSource):
         try:
             # Clean up the CHSQL connection
             self._duckdb.execute("CALL chsql_cleanup();")
-        except:  # noqa: E722
+        except Exception:  # noqa: S110
             pass  # Ignore cleanup errors on destruction
 
 
