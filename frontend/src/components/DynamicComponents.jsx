@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 // Utilities
 import { createExtractKeyProps } from '@/utils/extractKeyProps';
+import { debugLog, debugWarn, debugError } from '@/utils/debug';
 
 // Widgets
 import AlertWidget from './widgets/AlertWidget';
@@ -47,7 +48,7 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('[DynamicComponents] Component Error:', error, errorInfo);
+    debugError('[DynamicComponents] Component Error:', error, errorInfo);
   }
 
   render() {
@@ -362,7 +363,7 @@ const MemoizedComponent = memo(
         );
 
       default:
-        console.warn(`[DynamicComponents] Unknown component type: ${component.type}`);
+        debugWarn(`[DynamicComponents] Unknown component type: ${component.type}`);
         return (
           <UnknownWidget
             key={componentKey}
@@ -390,15 +391,15 @@ const DynamicComponents = ({ components, onComponentUpdate }) => {
     extractKeyProps.reset();
   }, []);
 
-  console.log('[DynamicComponents] Rendering with components:', components);
+  debugLog('[DynamicComponents] Rendering with components:', components);
 
   if (!components?.rows) {
-    console.warn('[DynamicComponents] No components or invalid structure received');
+    debugWarn('[DynamicComponents] No components or invalid structure received');
     return null;
   }
 
   const handleUpdate = (componentId, value) => {
-    console.log(`[DynamicComponents] Component update triggered:`, {
+    debugLog(`[DynamicComponents] Component update triggered:`, {
       componentId,
       value,
       timestamp: new Date().toISOString(),
@@ -408,7 +409,7 @@ const DynamicComponents = ({ components, onComponentUpdate }) => {
 
   const renderRow = (row, rowIndex) => {
     if (!Array.isArray(row)) {
-      console.warn(`[DynamicComponents] Invalid row at index ${rowIndex}`);
+      debugWarn(`[DynamicComponents] Invalid row at index ${rowIndex}`);
       return null;
     }
 

@@ -177,7 +177,6 @@ class VirtualPreswaldService(BasePreswaldService):
     without requiring FastAPI, uvicorn, or websockets.
     """
 
-    _instance = None
     _not_initialized_msg = (
         "VirtualPreswaldService not initialized. Did you call initialize()?"
     )

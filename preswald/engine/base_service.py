@@ -30,6 +30,8 @@ class BasePreswaldService:
     Manages component states, diffing, and render buffer.
     """
 
+    _instance = None
+    _lock = Lock()
     _not_initialized_msg = "Base service not initialized."
 
     def __init__(self):
@@ -85,10 +87,12 @@ class BasePreswaldService:
     @classmethod
     def initialize(cls, script_path=None):
         if cls._instance is None:
-            cls._instance = cls()
-            if script_path:
-                cls._instance._script_path = os.path.abspath(script_path)
-                cls._instance._initialize_data_manager(script_path)
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = cls()
+                    if script_path:
+                        cls._instance._script_path = os.path.abspath(script_path)
+                        cls._instance._initialize_data_manager(script_path)
         return cls._instance
 
     @property

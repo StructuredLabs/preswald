@@ -1,6 +1,11 @@
 import { createWorker } from '../backend/service';
 import { decode } from '@msgpack/msgpack';
 
+const DEBUG = import.meta.env?.DEV ?? false;
+const debugLog = DEBUG ? console.log.bind(console) : () => {};
+const debugWarn = DEBUG ? console.warn.bind(console) : () => {};
+const debugError = DEBUG ? console.error.bind(console) : () => {};
+
 /**
  * Message types used throughout the Preswald communication system
  */
@@ -55,7 +60,7 @@ class ServerUrlResolver {
     const startTime = performance.now();
 
     try {
-      console.log('[ServerUrlResolver] Starting server URL resolution...');
+      debugLog('[ServerUrlResolver] Starting server URL resolution...');
 
       // Priority 1: URL Parameters (if enabled and not in production build)
       if (enableUrlParams) {
@@ -63,7 +68,7 @@ class ServerUrlResolver {
         if (urlServerUrl) {
           const validatedUrl = await this._validateAndNormalizeUrl(urlServerUrl);
           if (validatedUrl) {
-            console.log(`[ServerUrlResolver] Using URL parameter: ${validatedUrl}`);
+            debugLog(`[ServerUrlResolver] Using URL parameter: ${validatedUrl}`);
             this._saveToStorage(validatedUrl);
             return validatedUrl;
           }
@@ -76,10 +81,10 @@ class ServerUrlResolver {
         if (storedUrl) {
           const validatedUrl = await this._validateAndNormalizeUrl(storedUrl);
           if (validatedUrl) {
-            console.log(`[ServerUrlResolver] Using stored URL: ${validatedUrl}`);
+            debugLog(`[ServerUrlResolver] Using stored URL: ${validatedUrl}`);
             return validatedUrl;
           } else {
-            console.warn('[ServerUrlResolver] Stored URL is invalid, clearing storage');
+            debugWarn('[ServerUrlResolver] Stored URL is invalid, clearing storage');
             this._clearStorage();
           }
         }
@@ -90,7 +95,7 @@ class ServerUrlResolver {
       if (envUrl) {
         const validatedUrl = await this._validateAndNormalizeUrl(envUrl);
         if (validatedUrl) {
-          console.log(`[ServerUrlResolver] Using environment variable: ${validatedUrl}`);
+          debugLog(`[ServerUrlResolver] Using environment variable: ${validatedUrl}`);
           this._saveToStorage(validatedUrl);
           return validatedUrl;
         }
@@ -102,7 +107,7 @@ class ServerUrlResolver {
         if (sessionUrl) {
           const validatedUrl = await this._validateAndNormalizeUrl(sessionUrl);
           if (validatedUrl) {
-            console.log(`[ServerUrlResolver] Using session storage: ${validatedUrl}`);
+            debugLog(`[ServerUrlResolver] Using session storage: ${validatedUrl}`);
             return validatedUrl;
           }
         }
@@ -111,24 +116,24 @@ class ServerUrlResolver {
       // Priority 5: Auto-detect localhost server
       const autoDetectedUrl = await this._autoDetectLocalhost();
       if (autoDetectedUrl) {
-        console.log(`[ServerUrlResolver] Auto-detected localhost: ${autoDetectedUrl}`);
+        debugLog(`[ServerUrlResolver] Auto-detected localhost: ${autoDetectedUrl}`);
         this._saveToStorage(autoDetectedUrl);
         return autoDetectedUrl;
       }
 
       // Final fallback: Default localhost configuration
       const fallbackUrl = `${window.location.protocol}//${fallbackHost}:${fallbackPort}`;
-      console.log(`[ServerUrlResolver] Using final fallback: ${fallbackUrl}`);
+      debugLog(`[ServerUrlResolver] Using final fallback: ${fallbackUrl}`);
 
       const resolveTime = performance.now() - startTime;
-      console.log(`[ServerUrlResolver] Resolution completed in ${resolveTime.toFixed(2)}ms`);
+      debugLog(`[ServerUrlResolver] Resolution completed in ${resolveTime.toFixed(2)}ms`);
 
       return fallbackUrl;
 
     } catch (error) {
-      console.error('[ServerUrlResolver] Error during resolution:', error);
+      debugError('[ServerUrlResolver] Error during resolution:', error);
       const errorFallback = `${window.location.protocol}//${fallbackHost}:${fallbackPort}`;
-      console.log(`[ServerUrlResolver] Using error fallback: ${errorFallback}`);
+      debugLog(`[ServerUrlResolver] Using error fallback: ${errorFallback}`);
       return errorFallback;
     }
   }
@@ -140,7 +145,7 @@ class ServerUrlResolver {
       for (const paramName of this.URL_PARAM_NAMES) {
         const value = urlParams.get(paramName);
         if (value) {
-          console.log(`[ServerUrlResolver] Found URL parameter '${paramName}': ${value}`);
+          debugLog(`[ServerUrlResolver] Found URL parameter '${paramName}': ${value}`);
           return value.trim();
         }
       }
@@ -151,7 +156,7 @@ class ServerUrlResolver {
         for (const paramName of this.URL_PARAM_NAMES) {
           const value = hashParams.get(paramName);
           if (value) {
-            console.log(`[ServerUrlResolver] Found hash parameter '${paramName}': ${value}`);
+            debugLog(`[ServerUrlResolver] Found hash parameter '${paramName}': ${value}`);
             return value.trim();
           }
         }
@@ -159,7 +164,7 @@ class ServerUrlResolver {
 
       return null;
     } catch (error) {
-      console.error('[ServerUrlResolver] Error parsing URL parameters:', error);
+      debugError('[ServerUrlResolver] Error parsing URL parameters:', error);
       return null;
     }
   }
@@ -168,12 +173,12 @@ class ServerUrlResolver {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
-        console.log(`[ServerUrlResolver] Found in localStorage: ${stored}`);
+        debugLog(`[ServerUrlResolver] Found in localStorage: ${stored}`);
         return stored.trim();
       }
       return null;
     } catch (error) {
-      console.error('[ServerUrlResolver] Error accessing localStorage:', error);
+      debugError('[ServerUrlResolver] Error accessing localStorage:', error);
       return null;
     }
   }
@@ -182,12 +187,12 @@ class ServerUrlResolver {
     try {
       const stored = sessionStorage.getItem(this.STORAGE_KEY);
       if (stored) {
-        console.log(`[ServerUrlResolver] Found in sessionStorage: ${stored}`);
+        debugLog(`[ServerUrlResolver] Found in sessionStorage: ${stored}`);
         return stored.trim();
       }
       return null;
     } catch (error) {
-      console.error('[ServerUrlResolver] Error accessing sessionStorage:', error);
+      debugError('[ServerUrlResolver] Error accessing sessionStorage:', error);
       return null;
     }
   }
@@ -198,26 +203,26 @@ class ServerUrlResolver {
       if (metaTag) {
         const content = metaTag.getAttribute('content');
         if (content) {
-          console.log(`[ServerUrlResolver] Found in meta tag: ${content}`);
+          debugLog(`[ServerUrlResolver] Found in meta tag: ${content}`);
           return content.trim();
         }
       }
 
       // Check for global environment variable
       if (window.PRESWALD_SERVER_URL) {
-        console.log(`[ServerUrlResolver] Found in global variable: ${window.PRESWALD_SERVER_URL}`);
+        debugLog(`[ServerUrlResolver] Found in global variable: ${window.PRESWALD_SERVER_URL}`);
         return window.PRESWALD_SERVER_URL.trim();
       }
 
       return null;
     } catch (error) {
-      console.error('[ServerUrlResolver] Error accessing environment:', error);
+      debugError('[ServerUrlResolver] Error accessing environment:', error);
       return null;
     }
   }
 
   static async _autoDetectLocalhost() {
-    console.log('[ServerUrlResolver] Starting localhost auto-detection...');
+    debugLog('[ServerUrlResolver] Starting localhost auto-detection...');
 
     const protocol = window.location.protocol;
     const detectionPromises = this.DEFAULT_LOCALHOST_PORTS.map(async (port) => {
@@ -238,7 +243,7 @@ class ServerUrlResolver {
         clearTimeout(timeoutId);
 
         if (response.ok) {
-          console.log(`[ServerUrlResolver] Localhost server detected at port ${port}`);
+          debugLog(`[ServerUrlResolver] Localhost server detected at port ${port}`);
           return testUrl;
         }
       } catch (error) {
@@ -256,7 +261,7 @@ class ServerUrlResolver {
           clearTimeout(timeoutId);
 
           if (response.ok) {
-            console.log(`[ServerUrlResolver] Localhost server detected at port ${port} (root endpoint)`);
+            debugLog(`[ServerUrlResolver] Localhost server detected at port ${port} (root endpoint)`);
             return testUrl;
           }
         } catch (rootError) {
@@ -277,10 +282,10 @@ class ServerUrlResolver {
         return successfulUrl;
       }
 
-      console.log('[ServerUrlResolver] No localhost server auto-detected');
+      debugLog('[ServerUrlResolver] No localhost server auto-detected');
       return null;
     } catch (error) {
-      console.error('[ServerUrlResolver] Error during localhost auto-detection:', error);
+      debugError('[ServerUrlResolver] Error during localhost auto-detection:', error);
       return null;
     }
   }
@@ -305,18 +310,18 @@ class ServerUrlResolver {
 
       // Ensure it's HTTP/HTTPS
       if (!['http:', 'https:'].includes(urlObj.protocol)) {
-        console.warn(`[ServerUrlResolver] Invalid protocol in URL: ${normalizedUrl}`);
+        debugWarn(`[ServerUrlResolver] Invalid protocol in URL: ${normalizedUrl}`);
         return null;
       }
 
       // Remove trailing slash for consistency
       const cleanUrl = normalizedUrl.replace(/\/$/, '');
 
-      console.log(`[ServerUrlResolver] Validated and normalized URL: ${cleanUrl}`);
+      debugLog(`[ServerUrlResolver] Validated and normalized URL: ${cleanUrl}`);
       return cleanUrl;
 
     } catch (error) {
-      console.error(`[ServerUrlResolver] Invalid URL format: ${url}`, error);
+      debugError(`[ServerUrlResolver] Invalid URL format: ${url}`, error);
       return null;
     }
   }
@@ -324,9 +329,9 @@ class ServerUrlResolver {
   static _saveToStorage(url) {
     try {
       localStorage.setItem(this.STORAGE_KEY, url);
-      console.log(`[ServerUrlResolver] Saved to localStorage: ${url}`);
+      debugLog(`[ServerUrlResolver] Saved to localStorage: ${url}`);
     } catch (error) {
-      console.error('[ServerUrlResolver] Error saving to localStorage:', error);
+      debugError('[ServerUrlResolver] Error saving to localStorage:', error);
     }
   }
 
@@ -334,9 +339,9 @@ class ServerUrlResolver {
     try {
       localStorage.removeItem(this.STORAGE_KEY);
       sessionStorage.removeItem(this.STORAGE_KEY);
-      console.log('[ServerUrlResolver] Cleared stored server URLs');
+      debugLog('[ServerUrlResolver] Cleared stored server URLs');
     } catch (error) {
-      console.error('[ServerUrlResolver] Error clearing storage:', error);
+      debugError('[ServerUrlResolver] Error clearing storage:', error);
     }
   }
 
@@ -347,13 +352,13 @@ class ServerUrlResolver {
   static setServerUrl(url) {
     if (url && typeof url === 'string') {
       this._saveToStorage(url.trim());
-      console.log(`[ServerUrlResolver] Manually set server URL: ${url}`);
+      debugLog(`[ServerUrlResolver] Manually set server URL: ${url}`);
     }
   }
 
   static resetServerUrl() {
     this._clearStorage();
-    console.log('[ServerUrlResolver] Reset server URL configuration');
+    debugLog('[ServerUrlResolver] Reset server URL configuration');
   }
 }
 
@@ -515,7 +520,7 @@ class MessageEncoder {
     try {
       return this.COMPRESSION_PREFIX + btoa(jsonString);
     } catch (error) {
-      console.warn('[MessageEncoder] Compression failed, using uncompressed:', error);
+      debugWarn('[MessageEncoder] Compression failed, using uncompressed:', error);
       return jsonString;
     }
   }
@@ -602,7 +607,7 @@ class ComponentStateManager {
    */
   getState(componentId) {
     if (!componentId || typeof componentId !== 'string') {
-      console.warn('[ComponentStateManager] Invalid componentId:', componentId);
+      debugWarn('[ComponentStateManager] Invalid componentId:', componentId);
       return undefined;
     }
 
@@ -723,7 +728,7 @@ class ComponentStateManager {
         this.metrics.lastBulkDuration = duration;
       }
 
-      console.log(`[ComponentStateManager] Bulk update completed: ${changedCount}/${updateMap.size} changed in ${duration.toFixed(2)}ms`);
+      debugLog(`[ComponentStateManager] Bulk update completed: ${changedCount}/${updateMap.size} changed in ${duration.toFixed(2)}ms`);
 
       return {
         success: true,
@@ -734,7 +739,7 @@ class ComponentStateManager {
       };
 
     } catch (error) {
-      console.error('[ComponentStateManager] Bulk update failed:', error);
+      debugError('[ComponentStateManager] Bulk update failed:', error);
       throw new Error(`Bulk state update failed: ${error.message}`);
     }
   }
@@ -903,7 +908,7 @@ class ComponentStateManager {
         try {
           callback(componentId, newValue, oldValue);
         } catch (error) {
-          console.error(`[ComponentStateManager] Subscriber error for ${componentId}:`, error);
+          debugError(`[ComponentStateManager] Subscriber error for ${componentId}:`, error);
         }
       }
     }
@@ -913,7 +918,7 @@ class ComponentStateManager {
       try {
         callback(componentId, newValue, oldValue);
       } catch (error) {
-        console.error('[ComponentStateManager] Global subscriber error:', error);
+        debugError('[ComponentStateManager] Global subscriber error:', error);
       }
     }
   }
@@ -953,7 +958,7 @@ class ComponentStateManager {
               callback(notif.componentId, notif.newValue, notif.oldValue);
             }
           } catch (error) {
-            console.error(`[ComponentStateManager] Batch subscriber error for ${componentId}:`, error);
+            debugError(`[ComponentStateManager] Batch subscriber error for ${componentId}:`, error);
           }
         }
       }
@@ -967,7 +972,7 @@ class ComponentStateManager {
           callback(notif.componentId, notif.newValue, notif.oldValue);
         }
       } catch (error) {
-        console.error('[ComponentStateManager] Global batch subscriber error:', error);
+        debugError('[ComponentStateManager] Global batch subscriber error:', error);
       }
     }
   }
@@ -1093,11 +1098,11 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
     }
 
     this.callbacks.add(callback);
-    console.log(`[${this.constructor.name}] Subscriber added, total: ${this.callbacks.size}`);
+    debugLog(`[${this.constructor.name}] Subscriber added, total: ${this.callbacks.size}`);
 
     return () => {
       this.callbacks.delete(callback);
-      console.log(`[${this.constructor.name}] Subscriber removed, total: ${this.callbacks.size}`);
+      debugLog(`[${this.constructor.name}] Subscriber removed, total: ${this.callbacks.size}`);
     };
   }
 
@@ -1112,7 +1117,7 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
       try {
         callback(message);
       } catch (error) {
-        console.error(`[${this.constructor.name}] Error in subscriber callback:`, error);
+        debugError(`[${this.constructor.name}] Error in subscriber callback:`, error);
         this.metrics.errors++;
       }
     });
@@ -1123,7 +1128,7 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
    */
   getComponentState(componentId) {
     if (!componentId || typeof componentId !== 'string') {
-      console.warn(`[${this.constructor.name}] Invalid componentId:`, componentId);
+      debugWarn(`[${this.constructor.name}] Invalid componentId:`, componentId);
       return undefined;
     }
 
@@ -1149,7 +1154,7 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
       const stateResult = this.stateManager.bulkSetState(updates);
 
       if (stateResult.changedCount === 0) {
-        console.log(`[${this.constructor.name}] No state changes detected in bulk update`);
+        debugLog(`[${this.constructor.name}] No state changes detected in bulk update`);
         return {
           results: [],
           totalProcessed: stateResult.totalCount,
@@ -1182,7 +1187,7 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
             throw new Error('Bulk update failed on transport level');
           }
         } catch (error) {
-          console.warn(`[${this.constructor.name}] Bulk update failed, falling back to individual updates:`, error);
+          debugWarn(`[${this.constructor.name}] Bulk update failed, falling back to individual updates:`, error);
           // Fall back to individual updates
           return this._fallbackBulkUpdate(changedUpdates, startTime);
         }
@@ -1192,7 +1197,7 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
       }
 
       const duration = performance.now() - startTime;
-      console.log(`[${this.constructor.name}] Bulk update completed: ${successCount}/${changedUpdates.size} network updates (${stateResult.changedCount}/${stateResult.totalCount} local changes) in ${duration.toFixed(2)}ms`);
+      debugLog(`[${this.constructor.name}] Bulk update completed: ${successCount}/${changedUpdates.size} network updates (${stateResult.changedCount}/${stateResult.totalCount} local changes) in ${duration.toFixed(2)}ms`);
 
       return {
         results,
@@ -1205,7 +1210,7 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
       };
 
     } catch (error) {
-      console.error(`[${this.constructor.name}] Enhanced bulk update failed:`, error);
+      debugError(`[${this.constructor.name}] Enhanced bulk update failed:`, error);
       throw error;
     }
   }
@@ -1226,16 +1231,16 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
           successCount++;
         } catch (error) {
           results.push({ componentId, success: false, error: error.message });
-          console.error(`[${this.constructor.name}] Bulk update failed for ${componentId}:`, error);
+          debugError(`[${this.constructor.name}] Bulk update failed for ${componentId}:`, error);
         }
       }
     } catch (error) {
-      console.error(`[${this.constructor.name}] Bulk update iteration failed:`, error);
+      debugError(`[${this.constructor.name}] Bulk update iteration failed:`, error);
       throw error;
     }
 
     const duration = performance.now() - startTime;
-    console.log(`[${this.constructor.name}] Fallback bulk update completed: ${successCount}/${results.length} in ${duration.toFixed(2)}ms`);
+    debugLog(`[${this.constructor.name}] Fallback bulk update completed: ${successCount}/${results.length} in ${duration.toFixed(2)}ms`);
 
     return {
       results,
@@ -1310,7 +1315,7 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
   _handleError(error, context = '') {
     this.metrics.errors++;
     const errorMessage = `[${this.constructor.name}] ${context ? context + ': ' : ''}${error.message}`;
-    console.error(errorMessage, error);
+    debugError(errorMessage, error);
 
     // Create standardized error message
     const errorPayload = {
@@ -1336,9 +1341,9 @@ class BaseCommunicationClient extends IPreswaldCommunicator {
 
     if (connected && !wasConnected) {
       this.connectTime = performance.now();
-      console.log(`[${this.constructor.name}] Connection established`);
+      debugLog(`[${this.constructor.name}] Connection established`);
     } else if (!connected && wasConnected) {
-      console.log(`[${this.constructor.name}] Connection lost`);
+      debugLog(`[${this.constructor.name}] Connection lost`);
     }
 
     this._notifySubscribers({
@@ -1379,12 +1384,12 @@ class WebSocketClient extends BaseCommunicationClient {
 
   async connect(config = {}) {
     if (this.isConnecting || (this.socket && this.socket.readyState === WebSocket.OPEN)) {
-      console.log('[WebSocket] Already connected or connecting');
+      debugLog('[WebSocket] Already connected or connecting');
       return { success: true, message: 'Already connected' };
     }
 
     this.isConnecting = true;
-    console.log('[WebSocket] Connecting...');
+    debugLog('[WebSocket] Connecting...');
 
     try {
       const serverUrl = await ServerUrlResolver.resolveServerUrl({
@@ -1398,7 +1403,7 @@ class WebSocketClient extends BaseCommunicationClient {
       const serverHost = serverUrl.replace(/^https?:\/\//, '');
       const wsUrl = `${wsProtocol}//${serverHost}/ws/${this.clientId}`;
 
-      console.log(`[WebSocket] Connecting to: ${wsUrl} (resolved from: ${serverUrl})`);
+      debugLog(`[WebSocket] Connecting to: ${wsUrl} (resolved from: ${serverUrl})`);
 
       this.socket = new WebSocket(wsUrl);
 
@@ -1413,7 +1418,7 @@ class WebSocketClient extends BaseCommunicationClient {
 
         this.socket.onopen = () => {
           clearTimeout(timeout);
-          console.log('[WebSocket] Connected successfully');
+          debugLog('[WebSocket] Connected successfully');
           this.isConnecting = false;
           this.reconnectAttempts = 0;
           this.reconnectDelay = 1000;
@@ -1430,7 +1435,7 @@ class WebSocketClient extends BaseCommunicationClient {
 
         this.socket.onclose = (event) => {
           clearTimeout(timeout);
-          console.log('[WebSocket] Connection closed:', event);
+          debugLog('[WebSocket] Connection closed:', event);
           this.isConnecting = false;
           this.socket = null;
           this._setConnected(false);
@@ -1442,7 +1447,7 @@ class WebSocketClient extends BaseCommunicationClient {
 
         this.socket.onerror = (error) => {
           clearTimeout(timeout);
-          console.error('[WebSocket] Error:', error);
+          debugError('[WebSocket] Error:', error);
           this.isConnecting = false;
           this._handleError(error, 'Connection error');
           reject(new Error('WebSocket connection error'));
@@ -1461,11 +1466,11 @@ class WebSocketClient extends BaseCommunicationClient {
                 }
               } catch (decodeError) {
                 // Fallback to legacy JSON parsing for backwards compatibility
-                console.warn('[WebSocket] Using legacy JSON parsing:', decodeError.message);
+                debugWarn('[WebSocket] Using legacy JSON parsing:', decodeError.message);
                 data = JSON.parse(event.data);
               }
 
-              console.log('[WebSocket] Message received:', {
+              debugLog('[WebSocket] Message received:', {
                 ...data,
                 timestamp: new Date().toISOString(),
               });
@@ -1475,7 +1480,7 @@ class WebSocketClient extends BaseCommunicationClient {
                   // Use ComponentStateManager for bulk initial state loading
                   if (data.states) {
                     this.stateManager.bulkSetState(data.states);
-                    console.log('[WebSocket] Initial states loaded via ComponentStateManager:', Object.keys(data.states).length, 'components');
+                    debugLog('[WebSocket] Initial states loaded via ComponentStateManager:', Object.keys(data.states).length, 'components');
                   }
                   // Legacy compatibility
                   this.componentStates = { ...data.states };
@@ -1485,7 +1490,7 @@ class WebSocketClient extends BaseCommunicationClient {
                   if (data.component_id) {
                     // Use ComponentStateManager for individual updates
                     this.stateManager.setState(data.component_id, data.value);
-                    console.log('[WebSocket] Component state updated:', {
+                    debugLog('[WebSocket] Component state updated:', {
                       componentId: data.component_id,
                       value: data.value,
                     });
@@ -1496,7 +1501,7 @@ class WebSocketClient extends BaseCommunicationClient {
                   if (data.states) {
                     // Handle bulk updates efficiently
                     const bulkResult = this.stateManager.bulkSetState(data.states);
-                    console.log('[WebSocket] Bulk state update processed:', {
+                    debugLog('[WebSocket] Bulk state update processed:', {
                       totalCount: bulkResult.totalCount,
                       changedCount: bulkResult.changedCount,
                       duration: bulkResult.duration
@@ -1506,7 +1511,7 @@ class WebSocketClient extends BaseCommunicationClient {
 
                 case 'bulk_update_ack':
                   // Handle server acknowledgment of bulk updates
-                  console.log('[WebSocket] Bulk update acknowledged by server:', {
+                  debugLog('[WebSocket] Bulk update acknowledged by server:', {
                     totalCount: data.total_count,
                     changedCount: data.changed_count,
                     processingTime: data.processing_time,
@@ -1543,7 +1548,7 @@ class WebSocketClient extends BaseCommunicationClient {
 
                     if (stateUpdates.size > 0) {
                       const bulkResult = this.stateManager.bulkSetState(stateUpdates);
-                      console.log('[WebSocket] Component states bulk updated:', {
+                      debugLog('[WebSocket] Component states bulk updated:', {
                         totalCount: bulkResult.totalCount,
                         changedCount: bulkResult.changedCount,
                         duration: bulkResult.duration
@@ -1554,7 +1559,7 @@ class WebSocketClient extends BaseCommunicationClient {
 
                 case 'connections_update':
                   this.connections = data.connections || [];
-                  console.log('[WebSocket] Connections updated:', this.connections);
+                  debugLog('[WebSocket] Connections updated:', this.connections);
                   break;
               }
 
@@ -1583,19 +1588,19 @@ class WebSocketClient extends BaseCommunicationClient {
                   label,
                 });
               } else {
-                console.warn('[WebSocket] Unknown binary message format:', decoded);
+                debugWarn('[WebSocket] Unknown binary message format:', decoded);
               }
             } else {
-              console.warn('[WebSocket] Unrecognized message format:', event.data);
+              debugWarn('[WebSocket] Unrecognized message format:', event.data);
             }
           } catch (error) {
-            console.error('[WebSocket] Error processing message:', error);
+            debugError('[WebSocket] Error processing message:', error);
             this._handleError(error, 'Message processing');
           }
         };
       });
     } catch (error) {
-      console.error('[WebSocket] Error creating connection:', error);
+      debugError('[WebSocket] Error creating connection:', error);
       this.isConnecting = false;
       this._handleError(error, 'Connection creation');
       return { success: false, message: error.message };
@@ -1604,7 +1609,7 @@ class WebSocketClient extends BaseCommunicationClient {
 
   async disconnect() {
     if (this.socket) {
-      console.log('[WebSocket] Disconnecting...');
+      debugLog('[WebSocket] Disconnecting...');
 
       // Process any pending` batched messages before disconnecting
       if (this.batchTimeout) {
@@ -1624,7 +1629,7 @@ class WebSocketClient extends BaseCommunicationClient {
 
   _handleReconnect() {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.log('[WebSocket] Max reconnection attempts reached');
+      debugLog('[WebSocket] Max reconnection attempts reached');
       this._notifySubscribers({
         type: 'error',
         content: { message: 'Failed to reconnect after multiple attempts' },
@@ -1634,13 +1639,13 @@ class WebSocketClient extends BaseCommunicationClient {
 
     this.reconnectAttempts++;
     const delay = Math.min(this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1), 30000);
-    console.log(
+    debugLog(
       `[WebSocket] Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts})`
     );
 
     setTimeout(() => {
       if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
-        console.log('[WebSocket] Attempting reconnection...');
+        debugLog('[WebSocket] Attempting reconnection...');
         this.connect();
       }
     }, delay);
@@ -1709,14 +1714,14 @@ class WebSocketClient extends BaseCommunicationClient {
         this.componentStates[componentId] = value;
       });
 
-      console.log(`[WebSocket] Sent batched update: ${Object.keys(stateUpdates).length} components from ${this.messageQueue.length} queued messages`);
+      debugLog(`[WebSocket] Sent batched update: ${Object.keys(stateUpdates).length} components from ${this.messageQueue.length} queued messages`);
 
       // Clear the queue
       this.messageQueue = [];
       this.batchTimeout = null;
 
     } catch (error) {
-      console.error('[WebSocket] Error processing batched messages:', error);
+      debugError('[WebSocket] Error processing batched messages:', error);
       // Fallback to individual sends
       this.messageQueue.forEach(({ componentId, value }) => {
         const message = { type: 'component_update', states: { [componentId]: value } };
@@ -1752,7 +1757,7 @@ class WebSocketClient extends BaseCommunicationClient {
         }
 
       } catch (encodeError) {
-        console.warn('[WebSocket] Using legacy JSON encoding:', encodeError.message);
+        debugWarn('[WebSocket] Using legacy JSON encoding:', encodeError.message);
         encodedMessage = JSON.stringify(message);
         compressedSize = encodedMessage.length;
       }
@@ -1766,13 +1771,13 @@ class WebSocketClient extends BaseCommunicationClient {
       // Enhanced logging with compression info
       if (originalSize && compressedSize < originalSize) {
         const compressionRatio = ((originalSize - compressedSize) / originalSize * 100).toFixed(1);
-        console.log(`[WebSocket] Sent compressed message: ${originalSize}B → ${compressedSize}B (${compressionRatio}% reduction)`);
+        debugLog(`[WebSocket] Sent compressed message: ${originalSize}B → ${compressedSize}B (${compressionRatio}% reduction)`);
       } else {
-        console.log('[WebSocket] Sent message:', message.type, compressedSize ? `${compressedSize}B` : '');
+        debugLog('[WebSocket] Sent message:', message.type, compressedSize ? `${compressedSize}B` : '');
       }
 
     } catch (error) {
-      console.error('[WebSocket] Error sending message:', error);
+      debugError('[WebSocket] Error sending message:', error);
       throw error;
     }
   }
@@ -1792,10 +1797,10 @@ class WebSocketClient extends BaseCommunicationClient {
       this.socket.send(encodedMessage);
       this.metrics.messagesSent++;
 
-      console.log(`[WebSocket] Sent bulk update for ${updates instanceof Map ? updates.size : Object.keys(updates).length} components`);
+      debugLog(`[WebSocket] Sent bulk update for ${updates instanceof Map ? updates.size : Object.keys(updates).length} components`);
       return { success: true };
     } catch (error) {
-      console.error('[WebSocket] Error sending bulk update:', error);
+      debugError('[WebSocket] Error sending bulk update:', error);
       throw error;
     }
   }
@@ -1829,12 +1834,12 @@ class PostMessageClient extends BaseCommunicationClient {
   }
 
   async connect(config = {}) {
-    console.log('[PostMessage] Setting up listener...');
+    debugLog('[PostMessage] Setting up listener...');
     window.addEventListener('message', this._handleMessage.bind(this));
 
     // Assume connected in browser context
     this._setConnected(true);
-    console.log('[PostMessage] Connected successfully');
+    debugLog('[PostMessage] Connected successfully');
 
     // Send pending updates
     Object.entries(this.pendingUpdates).forEach(([componentId, value]) => {
@@ -1846,7 +1851,7 @@ class PostMessageClient extends BaseCommunicationClient {
   }
 
   async disconnect() {
-    console.log('[PostMessage] Disconnecting...');
+    debugLog('[PostMessage] Disconnecting...');
 
     // Process any pending batched messages before disconnecting
     if (this.batchTimeout) {
@@ -1877,24 +1882,24 @@ class PostMessageClient extends BaseCommunicationClient {
           }
         } catch (decodeError) {
           // Fallback to legacy JSON parsing
-          console.warn('[PostMessage] Using legacy JSON parsing:', decodeError.message);
+          debugWarn('[PostMessage] Using legacy JSON parsing:', decodeError.message);
           data = JSON.parse(event.data);
         }
       } else {
         data = event.data;
       }
     } catch (error) {
-      console.error('[PostMessage] Error parsing message:', error);
+      debugError('[PostMessage] Error parsing message:', error);
       return;
     }
-    console.log('[PostMessage] Message received:', {
+    debugLog('[PostMessage] Message received:', {
       ...data,
       timestamp: new Date().toISOString(),
     });
     switch (data.type) {
       case 'connection_status':
         this.isConnected = data.connected;
-        console.log('[PostMessage] Connection status:', this.isConnected);
+        debugLog('[PostMessage] Connection status:', this.isConnected);
         this._notifySubscribers(data);
         break;
 
@@ -1902,7 +1907,7 @@ class PostMessageClient extends BaseCommunicationClient {
         // Use ComponentStateManager for bulk initial state loading
         if (data.states) {
           this.stateManager.bulkSetState(data.states);
-          console.log('[PostMessage] Initial states loaded via ComponentStateManager:', Object.keys(data.states).length, 'components');
+          debugLog('[PostMessage] Initial states loaded via ComponentStateManager:', Object.keys(data.states).length, 'components');
         }
         // Legacy compatibility
         this.componentStates = { ...data.states };
@@ -1913,7 +1918,7 @@ class PostMessageClient extends BaseCommunicationClient {
         if (data.component_id) {
           // Use ComponentStateManager for individual updates
           this.stateManager.setState(data.component_id, data.value);
-          console.log('[PostMessage] Component state updated:', {
+          debugLog('[PostMessage] Component state updated:', {
             componentId: data.component_id,
             value: data.value,
           });
@@ -1925,7 +1930,7 @@ class PostMessageClient extends BaseCommunicationClient {
         if (data.states) {
           // Handle bulk updates efficiently
           const bulkResult = this.stateManager.bulkSetState(data.states);
-          console.log('[PostMessage] Bulk state update processed:', {
+          debugLog('[PostMessage] Bulk state update processed:', {
             totalCount: bulkResult.totalCount,
             changedCount: bulkResult.changedCount,
             duration: bulkResult.duration
@@ -1936,7 +1941,7 @@ class PostMessageClient extends BaseCommunicationClient {
 
       case 'bulk_update_ack':
         // Handle server acknowledgment of bulk updates
-        console.log('[PostMessage] Bulk update acknowledged by server:', {
+        debugLog('[PostMessage] Bulk update acknowledged by server:', {
           totalCount: data.total_count,
           changedCount: data.changed_count,
           processingTime: data.processing_time,
@@ -1974,7 +1979,7 @@ class PostMessageClient extends BaseCommunicationClient {
 
           if (stateUpdates.size > 0) {
             const bulkResult = this.stateManager.bulkSetState(stateUpdates);
-            console.log('[PostMessage] Component states bulk updated:', {
+            debugLog('[PostMessage] Component states bulk updated:', {
               totalCount: bulkResult.totalCount,
               changedCount: bulkResult.changedCount,
               duration: bulkResult.duration
@@ -2003,7 +2008,7 @@ class PostMessageClient extends BaseCommunicationClient {
 
   _sendComponentUpdate(componentId, value) {
     if (!window.parent) {
-      console.warn('[PostMessage] No parent window to send update');
+      debugWarn('[PostMessage] No parent window to send update');
       return;
     }
 
@@ -2062,14 +2067,14 @@ class PostMessageClient extends BaseCommunicationClient {
         this.componentStates[componentId] = value;
       });
 
-      console.log(`[PostMessage] Sent batched update: ${Object.keys(stateUpdates).length} components from ${this.messageQueue.length} queued messages`);
+      debugLog(`[PostMessage] Sent batched update: ${Object.keys(stateUpdates).length} components from ${this.messageQueue.length} queued messages`);
 
       // Clear the queue
       this.messageQueue = [];
       this.batchTimeout = null;
 
     } catch (error) {
-      console.error('[PostMessage] Error processing batched messages:', error);
+      debugError('[PostMessage] Error processing batched messages:', error);
       // Fallback to individual sends
       this.messageQueue.forEach(({ componentId, value }) => {
         const message = {
@@ -2112,7 +2117,7 @@ class PostMessageClient extends BaseCommunicationClient {
         }
 
       } catch (encodeError) {
-        console.warn('[PostMessage] Using legacy format:', encodeError.message);
+        debugWarn('[PostMessage] Using legacy format:', encodeError.message);
         encodedMessage = message;
         optimizedSize = JSON.stringify(message).length;
       }
@@ -2126,13 +2131,13 @@ class PostMessageClient extends BaseCommunicationClient {
       // Enhanced logging with optimization info
       if (originalSize && optimizedSize < originalSize) {
         const reductionRatio = ((originalSize - optimizedSize) / originalSize * 100).toFixed(1);
-        console.log(`[PostMessage] Sent optimized message: ${originalSize}B → ${optimizedSize}B (${reductionRatio}% reduction)`);
+        debugLog(`[PostMessage] Sent optimized message: ${originalSize}B → ${optimizedSize}B (${reductionRatio}% reduction)`);
       } else {
-        console.log('[PostMessage] Sent message:', message.type, optimizedSize ? `${optimizedSize}B` : '');
+        debugLog('[PostMessage] Sent message:', message.type, optimizedSize ? `${optimizedSize}B` : '');
       }
 
     } catch (error) {
-      console.error('[PostMessage] Error sending message:', error);
+      debugError('[PostMessage] Error sending message:', error);
       throw error;
     }
   }
@@ -2195,7 +2200,7 @@ class PostMessageClient extends BaseCommunicationClient {
 class ComlinkClient extends BaseCommunicationClient {
   constructor(config = {}) {
     super();
-    console.log('[Client] Initializing ComlinkClient');
+    debugLog('[Client] Initializing ComlinkClient');
     this.worker = null;
 
     this.messageQueue = [];
@@ -2210,28 +2215,28 @@ class ComlinkClient extends BaseCommunicationClient {
   }
 
   async connect() {
-    console.log('[Client] Starting connection');
+    debugLog('[Client] Starting connection');
     try {
       if (this.isConnected) {
-        console.log('[Client] Already connected');
+        debugLog('[Client] Already connected');
         return;
       }
 
-      console.log('[Client] About to create worker');
+      debugLog('[Client] About to create worker');
       this.worker = createWorker();
-      console.log('[Client] Worker created');
+      debugLog('[Client] Worker created');
 
-      console.log('[Client] About to initialize Pyodide');
+      debugLog('[Client] About to initialize Pyodide');
       const result = await this.worker.initializePyodide();
       if (!result.success) {
         throw new Error('Failed to initialize Pyodide');
       }
 
       this.isConnected = true;
-      console.log('[Client] Connection established');
+      debugLog('[Client] Connection established');
       this._notifySubscribers({ type: 'connection_status', connected: true });
 
-      console.log('[Client] Loading project fs');
+      debugLog('[Client] Loading project fs');
       const resp = await fetch('project_fs.json', { cache: 'no-cache' });
 
       const raw = await resp.json();
@@ -2246,7 +2251,7 @@ class ComlinkClient extends BaseCommunicationClient {
       }
 
       await this.worker.loadFilesToFS(files);
-      console.log('[Client] Project fs loaded');
+      debugLog('[Client] Project fs loaded');
 
       const scriptResult = await this.worker.runScript(
         '/project/' + (raw.__entrypoint__ || 'hello.py')
@@ -2261,14 +2266,14 @@ class ComlinkClient extends BaseCommunicationClient {
       // Process any pending updates
       const pendingCount = Object.keys(this.pendingUpdates).length;
       if (pendingCount > 0) {
-        console.log('[Client] Processing pending updates:', pendingCount);
+        debugLog('[Client] Processing pending updates:', pendingCount);
         for (const [componentId, value] of Object.entries(this.pendingUpdates)) {
           await this._sendComponentUpdate(componentId, value);
         }
         this.pendingUpdates = {};
       }
     } catch (error) {
-      console.error('[Client] Connection error:', error);
+      debugError('[Client] Connection error:', error);
       this.isConnected = false;
       this._notifySubscribers({
         type: 'error',
@@ -2279,7 +2284,7 @@ class ComlinkClient extends BaseCommunicationClient {
   }
 
   _handleComponentUpdate(components) {
-    console.log('[Client] Handling component update:', components);
+    debugLog('[Client] Handling component update:', components);
     if (components?.rows) {
       // Extract state updates from component data for bulk processing
       const stateUpdates = new Map();
@@ -2293,7 +2298,7 @@ class ComlinkClient extends BaseCommunicationClient {
 
       if (stateUpdates.size > 0) {
         const bulkResult = this.stateManager.bulkSetState(stateUpdates);
-        console.log('[Client] Component states bulk updated:', {
+        debugLog('[Client] Component states bulk updated:', {
           totalCount: bulkResult.totalCount,
           changedCount: bulkResult.changedCount,
           duration: bulkResult.duration
@@ -2308,21 +2313,21 @@ class ComlinkClient extends BaseCommunicationClient {
   }
 
   async disconnect() {
-    console.log('[Client] Disconnecting');
+    debugLog('[Client] Disconnecting');
     if (this.worker) {
       this.worker.shutdown();
       this.worker = null;
       this._setConnected(false);
-      console.log('[Client] Disconnected');
+      debugLog('[Client] Disconnected');
     }
   }
 
   // subscribe, _notifySubscribers, getComponentState are inherited from BaseCommunicationClient
 
   async updateComponentState(componentId, value) {
-    console.log(`[Client] Updating state for component ${componentId}:`, value);
+    debugLog(`[Client] Updating state for component ${componentId}:`, value);
     if (!this.isConnected || !this.worker) {
-      console.log('[Client] Not connected, queueing update');
+      debugLog('[Client] Not connected, queueing update');
       this.pendingUpdates[componentId] = value;
       throw new Error('Connection not ready');
     }
@@ -2330,7 +2335,7 @@ class ComlinkClient extends BaseCommunicationClient {
   }
 
   async _sendComponentUpdate(componentId, value) {
-    console.log(`[Client] Sending component update - ${componentId}:`, value);
+    debugLog(`[Client] Sending component update - ${componentId}:`, value);
     try {
       const result = await this.worker.updateComponent(componentId, value);
       if (!result.success) {
@@ -2339,7 +2344,7 @@ class ComlinkClient extends BaseCommunicationClient {
       this._handleComponentUpdate(result.components);
       return true;
     } catch (error) {
-      console.error('[Client] Error updating component:', error);
+      debugError('[Client] Error updating component:', error);
       this._notifySubscribers({
         type: 'error',
         content: { message: error.message },
@@ -2349,7 +2354,7 @@ class ComlinkClient extends BaseCommunicationClient {
   }
 
   async loadFilesToFS(files) {
-    console.log('[Client] loadFilesToFS', files);
+    debugLog('[Client] loadFilesToFS', files);
     if (!this.isConnected || !this.worker) {
       throw new Error('Connection not ready');
     }
@@ -2357,7 +2362,7 @@ class ComlinkClient extends BaseCommunicationClient {
   }
 
   async listFilesInDirectory(directoryPath) {
-    console.log('[Client] listFilesInDirectory', directoryPath);
+    debugLog('[Client] listFilesInDirectory', directoryPath);
     if (!this.isConnected || !this.worker) {
       throw new Error('Connection not ready');
     }
@@ -2366,7 +2371,7 @@ class ComlinkClient extends BaseCommunicationClient {
 
   // 2. run an arbitrary python script ------------
   async runScript(scriptPath) {
-    console.log('[Client] runScript', scriptPath);
+    debugLog('[Client] runScript', scriptPath);
     if (!this.isConnected || !this.worker) {
       throw new Error('Connection not ready');
     }
@@ -2429,14 +2434,14 @@ class ConnectionPoolManager {
       lastHealthCheck: 0
     };
 
-    console.log('[ConnectionPool] Initialized with config:', this.config);
+    debugLog('[ConnectionPool] Initialized with config:', this.config);
   }
 
   /**
    * Initialize the connection pool
    */
   async initialize(transportType, transportConfig = {}) {
-    console.log(`[ConnectionPool] Initializing pool with ${this.config.minPoolSize} ${transportType} connections`);
+    debugLog(`[ConnectionPool] Initializing pool with ${this.config.minPoolSize} ${transportType} connections`);
 
     const initPromises = [];
     for (let i = 0; i < this.config.minPoolSize; i++) {
@@ -2451,7 +2456,7 @@ class ConnectionPoolManager {
       throw new Error('Failed to initialize any connections in the pool');
     }
 
-    console.log(`[ConnectionPool] Initialized ${successfulConnections}/${this.config.minPoolSize} connections`);
+    debugLog(`[ConnectionPool] Initialized ${successfulConnections}/${this.config.minPoolSize} connections`);
 
     // Start health monitoring
     this._startHealthMonitoring();
@@ -2499,7 +2504,7 @@ class ConnectionPoolManager {
    */
   async addConnection(transportType, transportConfig = {}) {
     if (this.connectionPool.size >= this.config.maxPoolSize) {
-      console.warn('[ConnectionPool] Pool is at maximum capacity');
+      debugWarn('[ConnectionPool] Pool is at maximum capacity');
       return null;
     }
 
@@ -2513,16 +2518,16 @@ class ConnectionPoolManager {
   async removeConnection(connectionId) {
     const connection = this.connectionPool.get(connectionId);
     if (!connection) {
-      console.warn(`[ConnectionPool] Connection ${connectionId} not found`);
+      debugWarn(`[ConnectionPool] Connection ${connectionId} not found`);
       return;
     }
 
-    console.log(`[ConnectionPool] Removing connection ${connectionId}`);
+    debugLog(`[ConnectionPool] Removing connection ${connectionId}`);
 
     try {
       await connection.client.disconnect();
     } catch (error) {
-      console.error(`[ConnectionPool] Error disconnecting ${connectionId}:`, error);
+      debugError(`[ConnectionPool] Error disconnecting ${connectionId}:`, error);
     }
 
     this.connectionPool.delete(connectionId);
@@ -2552,7 +2557,7 @@ class ConnectionPoolManager {
    * Shutdown the connection pool
    */
   async shutdown() {
-    console.log('[ConnectionPool] Shutting down connection pool');
+    debugLog('[ConnectionPool] Shutting down connection pool');
     this.isShuttingDown = true;
 
     if (this.healthCheckTimer) {
@@ -2564,7 +2569,7 @@ class ConnectionPoolManager {
       try {
         await connection.client.disconnect();
       } catch (error) {
-        console.error(`[ConnectionPool] Error disconnecting ${connection.connectionId}:`, error);
+        debugError(`[ConnectionPool] Error disconnecting ${connection.connectionId}:`, error);
       }
     });
 
@@ -2574,7 +2579,7 @@ class ConnectionPoolManager {
     this.connectionMetrics.clear();
     this.activeConnections.clear();
 
-    console.log('[ConnectionPool] Shutdown complete');
+    debugLog('[ConnectionPool] Shutdown complete');
   }
 
   /**
@@ -2582,7 +2587,7 @@ class ConnectionPoolManager {
    * @private
    */
   async _createConnection(connectionId, transportType, transportConfig) {
-    console.log(`[ConnectionPool] Creating connection ${connectionId}`);
+    debugLog(`[ConnectionPool] Creating connection ${connectionId}`);
 
     try {
       const client = createTransportClient(transportType, transportConfig);
@@ -2613,11 +2618,11 @@ class ConnectionPoolManager {
         isHealthy: true
       });
 
-      console.log(`[ConnectionPool] Connection ${connectionId} created successfully in ${connectionTime.toFixed(2)}ms`);
+      debugLog(`[ConnectionPool] Connection ${connectionId} created successfully in ${connectionTime.toFixed(2)}ms`);
       return connection;
 
     } catch (error) {
-      console.error(`[ConnectionPool] Failed to create connection ${connectionId}:`, error);
+      debugError(`[ConnectionPool] Failed to create connection ${connectionId}:`, error);
       this.poolMetrics.failedConnections++;
       throw error;
     }
@@ -2732,7 +2737,7 @@ class ConnectionPoolManager {
       this._performHealthCheck();
     }, this.config.healthCheckInterval);
 
-    console.log(`[ConnectionPool] Health monitoring started (interval: ${this.config.healthCheckInterval}ms)`);
+    debugLog(`[ConnectionPool] Health monitoring started (interval: ${this.config.healthCheckInterval}ms)`);
   }
 
   /**
@@ -2742,7 +2747,7 @@ class ConnectionPoolManager {
   async _performHealthCheck() {
     if (this.isShuttingDown) return;
 
-    console.log('[ConnectionPool] Performing health check');
+    debugLog('[ConnectionPool] Performing health check');
     const startTime = performance.now();
 
     const healthCheckPromises = Array.from(this.connectionPool.entries()).map(async ([connectionId, connection]) => {
@@ -2756,7 +2761,7 @@ class ConnectionPoolManager {
         }
 
         if (!isHealthy) {
-          console.warn(`[ConnectionPool] Connection ${connectionId} is unhealthy`);
+          debugWarn(`[ConnectionPool] Connection ${connectionId} is unhealthy`);
           this.activeConnections.delete(connection);
 
           // Attempt to reconnect if failover is enabled
@@ -2764,9 +2769,9 @@ class ConnectionPoolManager {
             try {
               await connection.client.connect();
               this.activeConnections.add(connection);
-              console.log(`[ConnectionPool] Connection ${connectionId} reconnected successfully`);
+              debugLog(`[ConnectionPool] Connection ${connectionId} reconnected successfully`);
             } catch (error) {
-              console.error(`[ConnectionPool] Failed to reconnect ${connectionId}:`, error);
+              debugError(`[ConnectionPool] Failed to reconnect ${connectionId}:`, error);
             }
           }
         } else {
@@ -2774,7 +2779,7 @@ class ConnectionPoolManager {
         }
 
       } catch (error) {
-        console.error(`[ConnectionPool] Health check failed for ${connectionId}:`, error);
+        debugError(`[ConnectionPool] Health check failed for ${connectionId}:`, error);
         this.activeConnections.delete(connection);
       }
     });
@@ -2785,7 +2790,7 @@ class ConnectionPoolManager {
     this.poolMetrics.lastHealthCheck = Date.now();
     this.poolMetrics.activeConnections = this.activeConnections.size;
 
-    console.log(`[ConnectionPool] Health check completed in ${healthCheckTime.toFixed(2)}ms - ${this.activeConnections.size}/${this.connectionPool.size} connections healthy`);
+    debugLog(`[ConnectionPool] Health check completed in ${healthCheckTime.toFixed(2)}ms - ${this.activeConnections.size}/${this.connectionPool.size} connections healthy`);
   }
 }
 
@@ -2802,8 +2807,8 @@ class TransportSelector {
     const environment = this.detectEnvironment();
     const optimalTransport = this.selectForEnvironment(environment, config);
 
-    console.log('[TransportSelector] Environment detected:', environment);
-    console.log('[TransportSelector] Selected transport:', optimalTransport);
+    debugLog('[TransportSelector] Environment detected:', environment);
+    debugLog('[TransportSelector] Selected transport:', optimalTransport);
 
     return optimalTransport;
   }
@@ -2851,7 +2856,7 @@ class TransportSelector {
         (window.location.pathname.endsWith('.html') || window.location.pathname.endsWith('/'))
       );
     } catch (error) {
-      console.warn('[TransportSelector] Error detecting HTML export environment:', error);
+      debugWarn('[TransportSelector] Error detecting HTML export environment:', error);
       return false;
     }
   }
@@ -2870,7 +2875,7 @@ class TransportSelector {
   static selectForEnvironment(environment, config) {
     // Priority 1: HTML export environment should always use Comlink
     if (environment.isHtmlExport && environment.hasWorkers && config.enableWorkers !== false) {
-      console.log('[TransportSelector] HTML export environment detected, using Comlink transport');
+      debugLog('[TransportSelector] HTML export environment detected, using Comlink transport');
       return TransportType.COMLINK;
     }
 
@@ -2895,7 +2900,7 @@ class TransportSelector {
     }
 
     // Last resort fallback (should rarely be reached)
-    console.warn('[TransportSelector] No optimal transport found, defaulting to WebSocket');
+    debugWarn('[TransportSelector] No optimal transport found, defaulting to WebSocket');
     return TransportType.WEBSOCKET;
   }
 
@@ -2948,11 +2953,11 @@ class PooledCommunicationClient extends IPreswaldCommunicator {
 
   async connect(config = {}) {
     if (this.isInitialized) {
-      console.log('[PooledClient] Already initialized');
+      debugLog('[PooledClient] Already initialized');
       return { success: true, message: 'Already connected' };
     }
 
-    console.log('[PooledClient] Initializing connection pool');
+    debugLog('[PooledClient] Initializing connection pool');
 
     try {
       const poolConfig = {
@@ -2969,18 +2974,18 @@ class PooledCommunicationClient extends IPreswaldCommunicator {
       this.isInitialized = true;
       this.isConnected = true;
 
-      console.log(`[PooledClient] Initialized with ${connectionsCreated} connections`);
+      debugLog(`[PooledClient] Initialized with ${connectionsCreated} connections`);
       return { success: true, message: `Connected with ${connectionsCreated} pooled connections` };
 
     } catch (error) {
-      console.error('[PooledClient] Failed to initialize connection pool:', error);
+      debugError('[PooledClient] Failed to initialize connection pool:', error);
       throw error;
     }
   }
 
   async disconnect() {
     if (this.connectionPool) {
-      console.log('[PooledClient] Shutting down connection pool');
+      debugLog('[PooledClient] Shutting down connection pool');
       await this.connectionPool.shutdown();
       this.connectionPool = null;
     }
@@ -2997,7 +3002,7 @@ class PooledCommunicationClient extends IPreswaldCommunicator {
       const connection = this.connectionPool.getConnection();
       return connection.getComponentState(componentId);
     } catch (error) {
-      console.error('[PooledClient] Error getting component state:', error);
+      debugError('[PooledClient] Error getting component state:', error);
       throw error;
     }
   }
@@ -3019,7 +3024,7 @@ class PooledCommunicationClient extends IPreswaldCommunicator {
       return result;
     } catch (error) {
       this._updateAggregateMetrics('error', performance.now() - startTime);
-      console.error('[PooledClient] Error updating component state:', error);
+      debugError('[PooledClient] Error updating component state:', error);
       throw error;
     }
   }
@@ -3041,7 +3046,7 @@ class PooledCommunicationClient extends IPreswaldCommunicator {
       return result;
     } catch (error) {
       this._updateAggregateMetrics('error', performance.now() - startTime);
-      console.error('[PooledClient] Error in bulk state update:', error);
+      debugError('[PooledClient] Error in bulk state update:', error);
       throw error;
     }
   }
@@ -3059,7 +3064,7 @@ class PooledCommunicationClient extends IPreswaldCommunicator {
         const unsubscribe = connection.client.subscribe(callback);
         unsubscribeFunctions.push(unsubscribe);
       } catch (error) {
-        console.error('[PooledClient] Error subscribing to connection:', error);
+        debugError('[PooledClient] Error subscribing to connection:', error);
       }
     }
 
@@ -3069,7 +3074,7 @@ class PooledCommunicationClient extends IPreswaldCommunicator {
         try {
           unsubscribe();
         } catch (error) {
-          console.error('[PooledClient] Error unsubscribing:', error);
+          debugError('[PooledClient] Error unsubscribing:', error);
         }
       });
     };
@@ -3161,21 +3166,21 @@ export const createCommunicationLayer = (config = {}) => {
       ...config
     };
 
-    console.log('[CommunicationFactory] Creating communicator with config:', enhancedConfig);
+    debugLog('[CommunicationFactory] Creating communicator with config:', enhancedConfig);
 
     // Select optimal transport
     const selectedTransport = TransportSelector.selectOptimalTransport(enhancedConfig);
-    console.log('[CommunicationFactory] Selected transport:', selectedTransport);
+    debugLog('[CommunicationFactory] Selected transport:', selectedTransport);
 
     let client;
 
     // Create pooled or single client based on configuration
     if (enhancedConfig.enableConnectionPooling && selectedTransport === TransportType.WEBSOCKET) {
-      console.log('[CommunicationFactory] Creating pooled communication client');
+      debugLog('[CommunicationFactory] Creating pooled communication client');
       client = new PooledCommunicationClient(selectedTransport, enhancedConfig);
     } else {
       if (enhancedConfig.enableConnectionPooling) {
-        console.warn(`[CommunicationFactory] Connection pooling not supported for ${selectedTransport}, falling back to single connection`);
+        debugWarn(`[CommunicationFactory] Connection pooling not supported for ${selectedTransport}, falling back to single connection`);
       }
       client = createTransportClient(selectedTransport, enhancedConfig);
     }
@@ -3192,21 +3197,21 @@ export const createCommunicationLayer = (config = {}) => {
     }
 
     const creationTime = performance.now() - startTime;
-    console.log(`[CommunicationFactory] Created ${client.constructor.name} in ${creationTime.toFixed(2)}ms`);
+    debugLog(`[CommunicationFactory] Created ${client.constructor.name} in ${creationTime.toFixed(2)}ms`);
 
     return client;
 
   } catch (error) {
-    console.error('[CommunicationFactory] Failed to create communication layer:', error);
+    debugError('[CommunicationFactory] Failed to create communication layer:', error);
 
     // Attempt fallback to basic WebSocket client
     try {
-      console.log('[CommunicationFactory] Attempting fallback to WebSocket...');
+      debugLog('[CommunicationFactory] Attempting fallback to WebSocket...');
       const fallbackClient = new WebSocketClient();
-      console.warn('[CommunicationFactory] Using fallback WebSocket client');
+      debugWarn('[CommunicationFactory] Using fallback WebSocket client');
       return fallbackClient;
     } catch (fallbackError) {
-      console.error('[CommunicationFactory] Fallback also failed:', fallbackError);
+      debugError('[CommunicationFactory] Fallback also failed:', fallbackError);
       throw new Error(`Failed to create communication layer: ${error.message}`);
     }
   }
@@ -3281,7 +3286,7 @@ export const createProductionCommunicationLayer = (config = {}) => {
     ...config
   };
 
-  console.log('[ProductionFactory] Creating production communication layer with pooling');
+  debugLog('[ProductionFactory] Creating production communication layer with pooling');
   return createCommunicationLayer(productionConfig);
 };
 
@@ -3299,7 +3304,7 @@ const initializeServerConfiguration = async () => {
   try {
     // Pre-resolve server URL to cache it and validate configuration
     const serverUrl = await ServerUrlResolver.resolveServerUrl();
-    console.log(`[WebSocket Module] Pre-resolved server URL: ${serverUrl}`);
+    debugLog(`[WebSocket Module] Pre-resolved server URL: ${serverUrl}`);
 
     // Make server URL available globally for debugging
     if (typeof window !== 'undefined') {
@@ -3308,7 +3313,7 @@ const initializeServerConfiguration = async () => {
 
     return serverUrl;
   } catch (error) {
-    console.error('[WebSocket Module] Error pre-resolving server URL:', error);
+    debugError('[WebSocket Module] Error pre-resolving server URL:', error);
     return null;
   }
 };
@@ -3335,7 +3340,7 @@ function getOrCreateCommunicationLayer() {
     const isHtmlExport = detectHtmlExportEnvironment();
     const clientType = window.__PRESWALD_CLIENT_TYPE;
 
-    console.log(`[WebSocket Module] Environment analysis:`, {
+    debugLog(`[WebSocket Module] Environment analysis:`, {
       isHtmlExport,
       clientType,
       pathname: window.location.pathname,
@@ -3346,7 +3351,7 @@ function getOrCreateCommunicationLayer() {
 
     // Priority 1: Explicit client type 'comlink' always uses Comlink
     if (clientType === 'comlink' || clientType === TransportType.COMLINK) {
-      console.log(`[WebSocket Module] Using Comlink transport due to explicit client type: ${clientType}`);
+      debugLog(`[WebSocket Module] Using Comlink transport due to explicit client type: ${clientType}`);
       _globalCommInstance = createCommunicationLayer({
         transport: TransportType.COMLINK,
         enableUrlParams: false,
@@ -3355,18 +3360,18 @@ function getOrCreateCommunicationLayer() {
     }
     // Priority 2: Check if we have a server available (even in HTML export environment)
     else if (isHtmlExport) {
-      console.log(`[WebSocket Module] HTML export environment detected, checking server availability...`);
+      debugLog(`[WebSocket Module] HTML export environment detected, checking server availability...`);
 
       // Check if we can reach a server (quick check)
       const hasServerConnection = checkServerAvailability();
 
       if (hasServerConnection) {
-        console.log(`[WebSocket Module] Server available in HTML export environment, using WebSocket transport`);
+        debugLog(`[WebSocket Module] Server available in HTML export environment, using WebSocket transport`);
         _globalCommInstance = createCommunicationLayer({
           transport: TransportType.WEBSOCKET
         });
       } else {
-        console.log(`[WebSocket Module] No server available in HTML export environment, using Comlink transport`);
+        debugLog(`[WebSocket Module] No server available in HTML export environment, using Comlink transport`);
         _globalCommInstance = createCommunicationLayer({
           transport: TransportType.COMLINK,
           enableUrlParams: false,
@@ -3376,18 +3381,18 @@ function getOrCreateCommunicationLayer() {
     }
     // Priority 3: Other explicit client types
     else if (clientType && clientType !== TransportType.AUTO) {
-      console.log(`[WebSocket Module] Explicit client type specified: ${clientType}`);
+      debugLog(`[WebSocket Module] Explicit client type specified: ${clientType}`);
       _globalCommInstance = createCommunicationLayer({ transport: clientType });
     }
     // Priority 4: Default auto-detection
     else {
-      console.log(`[WebSocket Module] Using auto-detection for transport selection`);
+      debugLog(`[WebSocket Module] Using auto-detection for transport selection`);
       _globalCommInstance = createCommunicationLayer();
     }
 
     return _globalCommInstance;
   } catch (error) {
-    console.error('[WebSocket Module] Error creating communication layer:', error);
+    debugError('[WebSocket Module] Error creating communication layer:', error);
     // Fallback to basic creation
     _globalCommInstance = createCommunicationLayer();
     return _globalCommInstance;
@@ -3414,7 +3419,7 @@ function checkServerAvailability() {
     // 4. Check if project_fs.json is NOT available locally (indicates server environment)
     const hasLocalProjectFs = checkForProjectFsSync();
 
-    console.log(`[WebSocket Module] Server availability check:`, {
+    debugLog(`[WebSocket Module] Server availability check:`, {
       isServerPort,
       storedServerUrl: !!storedServerUrl,
       hasServerEndpoints,
@@ -3426,7 +3431,7 @@ function checkServerAvailability() {
 
     return hasServerConnection;
   } catch (error) {
-    console.warn('[WebSocket Module] Error checking server availability:', error);
+    debugWarn('[WebSocket Module] Error checking server availability:', error);
     return false;
   }
 }
@@ -3435,14 +3440,14 @@ function detectHtmlExportEnvironment() {
   try {
     // Primary detection: Check for explicit client type first
     if (window.__PRESWALD_CLIENT_TYPE === 'comlink') {
-      console.log('[WebSocket Module] HTML export detected via explicit client type: comlink');
+      debugLog('[WebSocket Module] HTML export detected via explicit client type: comlink');
       return true;
     }
 
     // Secondary detection: Check for project_fs.json existence (synchronous check)
     const hasProjectFs = checkForProjectFsSync();
     if (hasProjectFs) {
-      console.log('[WebSocket Module] HTML export detected via project_fs.json presence');
+      debugLog('[WebSocket Module] HTML export detected via project_fs.json presence');
       return true;
     }
 
@@ -3479,7 +3484,7 @@ function detectHtmlExportEnvironment() {
     const isHtmlExport = positiveIndicators >= 2;
 
     if (isHtmlExport) {
-      console.log(`[WebSocket Module] HTML export detected with ${positiveIndicators} indicators:`, {
+      debugLog(`[WebSocket Module] HTML export detected with ${positiveIndicators} indicators:`, {
         clientType: window.__PRESWALD_CLIENT_TYPE,
         pathname: window.location.pathname,
         protocol: window.location.protocol,
@@ -3493,7 +3498,7 @@ function detectHtmlExportEnvironment() {
 
     return isHtmlExport;
   } catch (error) {
-    console.warn('[WebSocket Module] Error detecting HTML export environment:', error);
+    debugWarn('[WebSocket Module] Error detecting HTML export environment:', error);
     return false;
   }
 }
@@ -3554,7 +3559,7 @@ const createCommunicationLayerWithServerUrl = (serverUrl, additionalConfig = {})
  */
 const reconnectWithServerUrl = async (newServerUrl = null) => {
   try {
-    console.log(`[WebSocket Module] Reconnecting with server URL: ${newServerUrl || 'auto-resolve'}`);
+    debugLog(`[WebSocket Module] Reconnecting with server URL: ${newServerUrl || 'auto-resolve'}`);
 
     if (newServerUrl) {
       ServerUrlResolver.setServerUrl(newServerUrl);
@@ -3570,13 +3575,13 @@ const reconnectWithServerUrl = async (newServerUrl = null) => {
     // Reconnect with new configuration
     if (comm && typeof comm.connect === 'function') {
       const result = await comm.connect({ forceReconnect: true });
-      console.log('[WebSocket Module] Reconnection result:', result);
+      debugLog('[WebSocket Module] Reconnection result:', result);
       return result.success || false;
     }
 
     return false;
   } catch (error) {
-    console.error('[WebSocket Module] Error during reconnection:', error);
+    debugError('[WebSocket Module] Error during reconnection:', error);
     return false;
   }
 };
@@ -3605,7 +3610,7 @@ const getServerConfiguration = async () => {
       }
     };
   } catch (error) {
-    console.error('[WebSocket Module] Error getting server configuration:', error);
+    debugError('[WebSocket Module] Error getting server configuration:', error);
     return {
       currentServerUrl: 'unknown',
       isConnected: false,
