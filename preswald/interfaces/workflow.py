@@ -570,12 +570,12 @@ class Workflow:
 
                 if self._service:
                     if isinstance(result, ComponentReturn):
-                        logger.info('[DEBUG] - register_component_producer from workflow _execute_inner')
+                        logger.debug('register_component_producer from workflow _execute_inner')
                         self.register_component_producer(result.component_id, atom.name)
                     elif isinstance(result, tuple):
                         for item in result:
                             if isinstance(item, ComponentReturn):
-                                logger.info('[DEBUG] - register_component_producer from workflow _execute_inner. result is tuple.')
+                                logger.debug('register_component_producer from workflow _execute_inner. result is tuple.')
                                 self.register_component_producer(item.component_id, atom.name)
 
                 end_time = time.time()
@@ -737,7 +737,7 @@ class WorkflowAnalyzer:
             return max(path_weights, key=lambda x: x[0])[1]
 
         except nx.NetworkXException as e:
-            print(f"Error finding critical path: {e}")
+            logger.error(f"Error finding critical path: {e}")
             return []
 
     def get_parallel_groups(self) -> list[set[str]]:
@@ -750,7 +750,7 @@ class WorkflowAnalyzer:
         try:
             return list(nx.topological_generations(self.graph))
         except nx.NetworkXException as e:
-            print(f"Error finding parallel groups: {e}")
+            logger.error(f"Error finding parallel groups: {e}")
             return []
 
     def visualize(

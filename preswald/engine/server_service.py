@@ -18,7 +18,6 @@ class ServerPreswaldService(BasePreswaldService):
     Acts as a facade to provide a simplified interface to the complex subsystem.
     """
 
-    _instance = None
     _not_initialized_msg = (
         "ServerPreswaldService not initialized. Did you call start_server()?"
     )

@@ -149,7 +149,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         register_error(
             type='ast_transform',
             filename=self.filename,
-            lineno=lineno or getattr(node, "lineno", 0), # TODO: upate this to default to artificial lineno
+            lineno=lineno or getattr(node, "lineno", 0), # TODO: update this to default to artificial lineno
             message=message,
             source=source,
             component_id=component_id,
@@ -1494,7 +1494,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
                         logger.warning("[AST] register_display_dependency_resolver: expected lambda as second argument")
                         continue
 
-                    logger.info('[DEBUG] inside register_display_dependency_resolver gaurd')
+                    logger.debug('inside register_display_dependency_resolver guard')
 
                     try:
                         func_name = func_name_node.value  # e.g. "matplotlib.pyplot.show"
@@ -2306,7 +2306,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
             node.body = self._lift_statements(node.body, component_metadata=component_metadata)
 
             for atom in self._current_frame.generated_atoms:
-                logger.info(f"[DEBUG] Atom lifted inside function {node.name}: {atom.name}")
+                logger.debug(f"Atom lifted inside function {node.name}: {atom.name}")
 
         finally:
             self._module_frame.generated_atoms.extend(self._current_frame.generated_atoms)

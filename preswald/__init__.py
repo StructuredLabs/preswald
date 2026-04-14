@@ -1,7 +1,10 @@
-from importlib.metadata import version
+from importlib.metadata import version, PackageNotFoundError
 
 
-__version__ = version("preswald")
+try:
+    __version__ = version("preswald")
+except PackageNotFoundError:
+    __version__ = "0.0.0-dev"
 
 from . import interfaces as _interfaces
 from .interfaces import *  # noqa: F403
