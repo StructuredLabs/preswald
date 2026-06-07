@@ -164,11 +164,11 @@ describe('Integration: provider switching workflow', () => {
 
     await createChatCompletion([{ role: 'user', content: 'hi' }], 'src', null);
     let body = JSON.parse(mockFetch.mock.calls[0][1].body);
-    expect(body.model).toBe('MiniMax-M2.7');
+    expect(body.model).toBe('MiniMax-M3');
 
     // Switch model
-    setSelectedModel('minimax', 'MiniMax-M2.5-highspeed');
-    expect(getSelectedModel('minimax')).toBe('MiniMax-M2.5-highspeed');
+    setSelectedModel('minimax', 'MiniMax-M2.7-highspeed');
+    expect(getSelectedModel('minimax')).toBe('MiniMax-M2.7-highspeed');
 
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -179,6 +179,6 @@ describe('Integration: provider switching workflow', () => {
 
     await createChatCompletion([{ role: 'user', content: 'hi' }], 'src', null);
     body = JSON.parse(mockFetch.mock.calls[1][1].body);
-    expect(body.model).toBe('MiniMax-M2.5-highspeed');
+    expect(body.model).toBe('MiniMax-M2.7-highspeed');
   });
 });

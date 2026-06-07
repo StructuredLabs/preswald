@@ -7,8 +7,8 @@ describe('LLM Service', () => {
   describe('LLM_PROVIDERS', () => {
     it('includes OpenAI provider', () => { expect(LLM_PROVIDERS.openai).toBeDefined(); expect(LLM_PROVIDERS.openai.name).toBe('OpenAI'); });
     it('includes MiniMax provider', () => { expect(LLM_PROVIDERS.minimax).toBeDefined(); expect(LLM_PROVIDERS.minimax.name).toBe('MiniMax'); expect(LLM_PROVIDERS.minimax.baseUrl).toBe('https://api.minimax.io/v1/chat/completions'); });
-    it('MiniMax lists M2.7 and M2.5 models', () => { const m = LLM_PROVIDERS.minimax.models; expect(m).toContain('MiniMax-M2.7'); expect(m).toContain('MiniMax-M2.7-highspeed'); expect(m).toContain('MiniMax-M2.5'); expect(m).toContain('MiniMax-M2.5-highspeed'); });
-    it('MiniMax defaults to M2.7', () => { expect(LLM_PROVIDERS.minimax.defaultModel).toBe('MiniMax-M2.7'); });
+    it('MiniMax lists M3 and M2.7 models', () => { const m = LLM_PROVIDERS.minimax.models; expect(m).toContain('MiniMax-M3'); expect(m).toContain('MiniMax-M2.7'); expect(m).toContain('MiniMax-M2.7-highspeed'); });
+    it('MiniMax defaults to M3', () => { expect(LLM_PROVIDERS.minimax.defaultModel).toBe('MiniMax-M3'); });
     it('each provider has required fields', () => { Object.values(LLM_PROVIDERS).forEach((cfg) => { expect(cfg.name).toBeTruthy(); expect(cfg.baseUrl).toBeTruthy(); expect(cfg.defaultModel).toBeTruthy(); expect(cfg.models.length).toBeGreaterThan(0); expect(cfg.apiKeyStorageKey).toBeTruthy(); }); });
   });
 
@@ -34,8 +34,8 @@ describe('LLM Service', () => {
   });
 
   describe('model selection', () => {
-    it('defaults to provider model', () => { expect(getSelectedModel('openai')).toBe('gpt-3.5-turbo'); expect(getSelectedModel('minimax')).toBe('MiniMax-M2.7'); });
-    it('persists model', () => { setSelectedModel('minimax', 'MiniMax-M2.5-highspeed'); expect(getSelectedModel('minimax')).toBe('MiniMax-M2.5-highspeed'); });
+    it('defaults to provider model', () => { expect(getSelectedModel('openai')).toBe('gpt-3.5-turbo'); expect(getSelectedModel('minimax')).toBe('MiniMax-M3'); });
+    it('persists model', () => { setSelectedModel('minimax', 'MiniMax-M2.7-highspeed'); expect(getSelectedModel('minimax')).toBe('MiniMax-M2.7-highspeed'); });
     it('models are isolated', () => { setSelectedModel('openai', 'gpt-4'); setSelectedModel('minimax', 'MiniMax-M2.7-highspeed'); expect(getSelectedModel('openai')).toBe('gpt-4'); expect(getSelectedModel('minimax')).toBe('MiniMax-M2.7-highspeed'); });
   });
 
@@ -48,8 +48,8 @@ describe('LLM Service', () => {
     afterEach(() => { vi.restoreAllMocks(); });
     it('throws without key', async () => { await expect(createChatCompletion([{role:'user',content:'hi'}])).rejects.toThrow(/API key not found/); });
     it('calls OpenAI endpoint', async () => { setApiKey('openai','sk-t'); setSelectedProvider('openai'); const f = vi.spyOn(globalThis,'fetch').mockResolvedValue({ok:true,json:()=>Promise.resolve({choices:[{message:{role:'assistant',content:'hi'}}]})}); await createChatCompletion([{role:'user',content:'hello'}]); expect(f).toHaveBeenCalledWith('https://api.openai.com/v1/chat/completions',expect.objectContaining({method:'POST'})); });
-    it('calls MiniMax endpoint', async () => { setApiKey('minimax','eyJ'); setSelectedProvider('minimax'); const f = vi.spyOn(globalThis,'fetch').mockResolvedValue({ok:true,json:()=>Promise.resolve({choices:[{message:{role:'assistant',content:'hi'}}]})}); await createChatCompletion([{role:'user',content:'hello'}]); expect(f).toHaveBeenCalledWith('https://api.minimax.io/v1/chat/completions',expect.objectContaining({method:'POST'})); const b = JSON.parse(f.mock.calls[0][1].body); expect(b.model).toBe('MiniMax-M2.7'); });
-    it('uses selected model', async () => { setApiKey('minimax','eyJ'); setSelectedProvider('minimax'); setSelectedModel('minimax','MiniMax-M2.5-highspeed'); const f = vi.spyOn(globalThis,'fetch').mockResolvedValue({ok:true,json:()=>Promise.resolve({choices:[{message:{role:'assistant',content:'ok'}}]})}); await createChatCompletion([{role:'user',content:'t'}]); expect(JSON.parse(f.mock.calls[0][1].body).model).toBe('MiniMax-M2.5-highspeed'); });
+    it('calls MiniMax endpoint', async () => { setApiKey('minimax','eyJ'); setSelectedProvider('minimax'); const f = vi.spyOn(globalThis,'fetch').mockResolvedValue({ok:true,json:()=>Promise.resolve({choices:[{message:{role:'assistant',content:'hi'}}]})}); await createChatCompletion([{role:'user',content:'hello'}]); expect(f).toHaveBeenCalledWith('https://api.minimax.io/v1/chat/completions',expect.objectContaining({method:'POST'})); const b = JSON.parse(f.mock.calls[0][1].body); expect(b.model).toBe('MiniMax-M3'); });
+    it('uses selected model', async () => { setApiKey('minimax','eyJ'); setSelectedProvider('minimax'); setSelectedModel('minimax','MiniMax-M2.7-highspeed'); const f = vi.spyOn(globalThis,'fetch').mockResolvedValue({ok:true,json:()=>Promise.resolve({choices:[{message:{role:'assistant',content:'ok'}}]})}); await createChatCompletion([{role:'user',content:'t'}]); expect(JSON.parse(f.mock.calls[0][1].body).model).toBe('MiniMax-M2.7-highspeed'); });
     it('prepends system context', async () => { setApiKey('openai','sk'); setSelectedProvider('openai'); const f = vi.spyOn(globalThis,'fetch').mockResolvedValue({ok:true,json:()=>Promise.resolve({choices:[{message:{role:'assistant',content:'ok'}}]})}); await createChatCompletion([{role:'user',content:'hi'}],'s','ctx'); const b = JSON.parse(f.mock.calls[0][1].body); expect(b.messages[0]).toEqual({role:'system',content:'ctx'}); });
     it('propagates error', async () => { setApiKey('minimax','k'); setSelectedProvider('minimax'); vi.spyOn(globalThis,'fetch').mockResolvedValue({ok:false,json:()=>Promise.resolve({error:{message:'bad key'}})}); await expect(createChatCompletion([{role:'user',content:'t'}])).rejects.toThrow('bad key'); });
     it('handles network error', async () => { setApiKey('openai','sk'); setSelectedProvider('openai'); vi.spyOn(globalThis,'fetch').mockRejectedValue(new Error('net')); await expect(createChatCompletion([{role:'user',content:'t'}])).rejects.toThrow('net'); });

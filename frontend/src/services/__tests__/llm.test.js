@@ -47,11 +47,10 @@ describe('LLM_PROVIDERS', () => {
     expect(LLM_PROVIDERS.minimax).toBeDefined();
     expect(LLM_PROVIDERS.minimax.name).toBe('MiniMax');
     expect(LLM_PROVIDERS.minimax.baseUrl).toContain('api.minimax.io');
-    expect(LLM_PROVIDERS.minimax.defaultModel).toBe('MiniMax-M2.7');
+    expect(LLM_PROVIDERS.minimax.defaultModel).toBe('MiniMax-M3');
+    expect(LLM_PROVIDERS.minimax.models).toContain('MiniMax-M3');
     expect(LLM_PROVIDERS.minimax.models).toContain('MiniMax-M2.7');
     expect(LLM_PROVIDERS.minimax.models).toContain('MiniMax-M2.7-highspeed');
-    expect(LLM_PROVIDERS.minimax.models).toContain('MiniMax-M2.5');
-    expect(LLM_PROVIDERS.minimax.models).toContain('MiniMax-M2.5-highspeed');
   });
 
   it('should have separate API key storage keys per provider', () => {
@@ -140,13 +139,13 @@ describe('getSelectedModel / setSelectedModel', () => {
 
   it('should return default model when nothing set', () => {
     expect(getSelectedModel('openai')).toBe('gpt-3.5-turbo');
-    expect(getSelectedModel('minimax')).toBe('MiniMax-M2.7');
+    expect(getSelectedModel('minimax')).toBe('MiniMax-M3');
   });
 
   it('should store and retrieve selected model', () => {
-    setSelectedModel('minimax', 'MiniMax-M2.5');
-    expect(sessionStorageMock.setItem).toHaveBeenCalledWith('minimax_model', 'MiniMax-M2.5');
-    expect(getSelectedModel('minimax')).toBe('MiniMax-M2.5');
+    setSelectedModel('minimax', 'MiniMax-M2.7');
+    expect(sessionStorageMock.setItem).toHaveBeenCalledWith('minimax_model', 'MiniMax-M2.7');
+    expect(getSelectedModel('minimax')).toBe('MiniMax-M2.7');
   });
 
   it('should keep models independent per provider', () => {
@@ -233,7 +232,7 @@ describe('createChatCompletion', () => {
     expect(url).toContain('api.minimax.io');
     expect(options.headers.Authorization).toBe('Bearer eyJ-minimax-key');
     const body = JSON.parse(options.body);
-    expect(body.model).toBe('MiniMax-M2.7');
+    expect(body.model).toBe('MiniMax-M3');
     expect(result).toEqual({ role: 'assistant', content: 'MiniMax reply' });
   });
 
@@ -262,7 +261,7 @@ describe('createChatCompletion', () => {
   it('should use selected model when overridden', async () => {
     setSelectedProvider('minimax');
     setApiKey('minimax', 'eyJ-key');
-    setSelectedModel('minimax', 'MiniMax-M2.5-highspeed');
+    setSelectedModel('minimax', 'MiniMax-M2.7-highspeed');
 
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -274,7 +273,7 @@ describe('createChatCompletion', () => {
     await createChatCompletion([{ role: 'user', content: 'hi' }], 'src', null);
 
     const body = JSON.parse(mockFetch.mock.calls[0][1].body);
-    expect(body.model).toBe('MiniMax-M2.5-highspeed');
+    expect(body.model).toBe('MiniMax-M2.7-highspeed');
   });
 
   it('should throw on API error response', async () => {

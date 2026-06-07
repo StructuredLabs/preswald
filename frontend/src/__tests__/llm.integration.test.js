@@ -10,14 +10,14 @@ describe('LLM Service integration', () => {
     setSelectedProvider('minimax');
     setApiKey('minimax', 'eyJ-int');
     expect(hasApiKey('minimax')).toBe(true);
-    setSelectedModel('minimax', 'MiniMax-M2.5-highspeed');
+    setSelectedModel('minimax', 'MiniMax-M2.7-highspeed');
     const f = vi.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: true, json: () => Promise.resolve({ choices: [{ message: { role: 'assistant', content: 'ok' } }] }) });
     const r = await createChatCompletion([{ role: 'user', content: 'hi' }]);
     expect(r).toEqual({ role: 'assistant', content: 'ok' });
     const [url, opts] = f.mock.calls[0];
     expect(url).toBe('https://api.minimax.io/v1/chat/completions');
     expect(opts.headers.Authorization).toBe('Bearer eyJ-int');
-    expect(JSON.parse(opts.body).model).toBe('MiniMax-M2.5-highspeed');
+    expect(JSON.parse(opts.body).model).toBe('MiniMax-M2.7-highspeed');
   });
 
   it('provider switch preserves state', async () => {

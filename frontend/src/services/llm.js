@@ -18,8 +18,8 @@ const LLM_PROVIDERS = {
   minimax: {
     name: 'MiniMax',
     baseUrl: 'https://api.minimax.io/v1/chat/completions',
-    defaultModel: 'MiniMax-M2.7',
-    models: ['MiniMax-M2.7', 'MiniMax-M2.7-highspeed', 'MiniMax-M2.5', 'MiniMax-M2.5-highspeed'],
+    defaultModel: 'MiniMax-M3',
+    models: ['MiniMax-M3', 'MiniMax-M2.7', 'MiniMax-M2.7-highspeed'],
     apiKeyPlaceholder: 'eyJ...',
     apiKeyStorageKey: 'minimax_api_key',
   },

@@ -5,7 +5,7 @@ import ChatWidget from '@/components/widgets/ChatWidget';
 vi.mock('@/services/llm', () => {
   const providers = {
     openai: { name: 'OpenAI', baseUrl: 'https://api.openai.com/v1/chat/completions', defaultModel: 'gpt-3.5-turbo', models: ['gpt-3.5-turbo', 'gpt-4'], apiKeyPlaceholder: 'sk-...', apiKeyStorageKey: 'openai_api_key' },
-    minimax: { name: 'MiniMax', baseUrl: 'https://api.minimax.io/v1/chat/completions', defaultModel: 'MiniMax-M2.7', models: ['MiniMax-M2.7', 'MiniMax-M2.7-highspeed'], apiKeyPlaceholder: 'eyJ...', apiKeyStorageKey: 'minimax_api_key' },
+    minimax: { name: 'MiniMax', baseUrl: 'https://api.minimax.io/v1/chat/completions', defaultModel: 'MiniMax-M3', models: ['MiniMax-M3', 'MiniMax-M2.7', 'MiniMax-M2.7-highspeed'], apiKeyPlaceholder: 'eyJ...', apiKeyStorageKey: 'minimax_api_key' },
   };
   let sp = 'openai', ak = {}, md = {};
   return {
