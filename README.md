@@ -59,6 +59,7 @@ Preswald is especially useful when:
 - Reactive engine. Only re-run what's needed, powered by a DAG of dependencies
 - Local execution. No server. Runs offline, even with large data
 - AI-ready. Apps are fully inspectable and modifiable by agents
+- Multi-provider chat. Built-in chat widget supports [OpenAI](https://openai.com/) and [MiniMax](https://www.minimaxi.com/) LLMs
 
 ## Export as a Static App
 

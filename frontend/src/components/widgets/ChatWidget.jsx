@@ -7,9 +7,27 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 import { cn } from '@/lib/utils';
-import { createChatCompletion } from '@/services/openai';
+import {
+  LLM_PROVIDERS,
+  createChatCompletion,
+  getSelectedProvider,
+  setSelectedProvider,
+  getApiKey,
+  setApiKey,
+  hasApiKey as checkHasApiKey,
+  getSelectedModel,
+  setSelectedModel,
+  getProviderConfig,
+} from '@/services/llm';
 
 const ChatWidget = ({
   id,
@@ -26,10 +44,14 @@ const ChatWidget = ({
 
   const [inputValue, setInputValue] = useState('');
   const [showSettings, setShowSettings] = useState(false);
-  const [apiKey, setApiKey] = useState('');
+  const [apiKeyInput, setApiKeyInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const hasApiKey = useMemo(() => !!sessionStorage.getItem('openai_api_key'), []);
+
+  const [providerId, setProviderId] = useState(getSelectedProvider());
+  const [modelId, setModelId] = useState(getSelectedModel(providerId));
+  const providerConfig = useMemo(() => getProviderConfig(providerId), [providerId]);
+  const apiKeyReady = useMemo(() => checkHasApiKey(providerId), [providerId]);
 
   // Add this state to store the processed context
   const [sourceContext, setSourceContext] = useState(null);
@@ -92,23 +114,23 @@ const ChatWidget = ({
       - Source Name: ${sourceName}
       - Number of Records: ${rowCount}
       - Available Columns: ${columns.join(', ')}
-      
+
       Sample Data Preview:
       ${JSON.stringify(sampleData, null, 2)}
-      
+
       Your responsibilities:
       1. Analyze the data structure and relationships
       2. Provide detailed insights based on the available information
       3. Answer questions specifically referencing this dataset
       4. Highlight any patterns or anomalies you observe
       5. Make data-driven recommendations when appropriate
-      
+
       Please ensure your responses are:
       - Accurate and based on the provided data
       - Clear and well-structured
       - Include specific examples from the dataset when relevant
       - Highlight any assumptions or limitations in your analysis
-      
+
       When answering questions, always reference specific data points to support your conclusions.`;
     } catch (error) {
       console.error('Error formatting source context:', error);
@@ -163,13 +185,25 @@ const ChatWidget = ({
     return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Add this function to handle API key submission
+  const handleProviderChange = (newProviderId) => {
+    setSelectedProvider(newProviderId);
+    setProviderId(newProviderId);
+    const newModel = getSelectedModel(newProviderId);
+    setModelId(newModel);
+    setApiKeyInput('');
+  };
+
+  const handleModelChange = (newModelId) => {
+    setSelectedModel(providerId, newModelId);
+    setModelId(newModelId);
+  };
+
   const handleApiKeySubmit = (e) => {
     e.preventDefault();
-    if (apiKey.trim()) {
-      sessionStorage.setItem('openai_api_key', apiKey.trim());
+    if (apiKeyInput.trim()) {
+      setApiKey(providerId, apiKeyInput.trim());
       setShowSettings(false);
-      window.location.reload(); // Refresh to update hasApiKey state
+      window.location.reload();
     }
   };
 
@@ -187,11 +221,11 @@ const ChatWidget = ({
           <span
             className={cn(
               'h-2 w-2 rounded-full animate-pulse',
-              hasApiKey ? 'bg-emerald-500' : 'bg-amber-500'
+              apiKeyReady ? 'bg-emerald-500' : 'bg-amber-500'
             )}
           />
           <p className="text-xs sm:text-sm text-muted-foreground">
-            {hasApiKey ? 'Online' : 'API Key Required'}
+            {apiKeyReady ? `${providerConfig.name} Online` : 'API Key Required'}
           </p>
         </div>
         <Button
@@ -209,12 +243,44 @@ const ChatWidget = ({
           <div className="px-3 sm:px-4 py-3">
             <form onSubmit={handleApiKeySubmit} className="space-y-3">
               <div className="space-y-2">
-                <h3 className="text-sm font-medium">OpenAI API Key</h3>
+                <h3 className="text-sm font-medium">LLM Provider</h3>
+                <Select value={providerId} onValueChange={handleProviderChange}>
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(LLM_PROVIDERS).map(([key, cfg]) => (
+                      <SelectItem key={key} value={key}>
+                        {cfg.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium">Model</h3>
+                <Select value={modelId} onValueChange={handleModelChange}>
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {providerConfig.models.map((m) => (
+                      <SelectItem key={m} value={m}>
+                        {m}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium">{providerConfig.name} API Key</h3>
                 <Input
                   type="password"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="sk-..."
+                  value={apiKeyInput}
+                  onChange={(e) => setApiKeyInput(e.target.value)}
+                  placeholder={providerConfig.apiKeyPlaceholder}
                   className="flex-1 transition-colors text-sm h-8"
                 />
                 <p className="text-xs text-muted-foreground/80">
@@ -222,7 +288,7 @@ const ChatWidget = ({
                 </p>
               </div>
               <div className="flex justify-end">
-                <Button type="submit" disabled={!apiKey.trim()} size="sm" className="h-8">
+                <Button type="submit" disabled={!apiKeyInput.trim()} size="sm" className="h-8">
                   Save Key
                 </Button>
               </div>
@@ -236,13 +302,13 @@ const ChatWidget = ({
         ref={chatContainerRef}
       >
         <div className="space-y-4">
-          {!hasApiKey && !showSettings ? (
+          {!apiKeyReady && !showSettings ? (
             <div className="flex flex-col items-center justify-center h-full text-center space-y-3">
               <Bot className="h-10 w-10 text-muted-foreground/30" />
               <div className="space-y-1">
                 <h3 className="text-sm font-medium text-muted-foreground">API Key Required</h3>
                 <p className="text-xs text-muted-foreground/70">
-                  Please set your OpenAI API key to start chatting
+                  Please set your {providerConfig.name} API key to start chatting
                 </p>
                 <Button
                   variant="outline"
@@ -315,21 +381,21 @@ const ChatWidget = ({
           <Input
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder={hasApiKey ? placeholder : 'Please set API key first...'}
+            placeholder={apiKeyReady ? placeholder : 'Please set API key first...'}
             className="flex-1 transition-colors text-sm h-8 bg-background"
             autoComplete="off"
             spellCheck="true"
             maxLength={1000}
-            disabled={!hasApiKey}
+            disabled={!apiKeyReady}
           />
           <Button
             type="submit"
             size="icon"
             className={cn(
               'h-8 w-8 rounded-md bg-primary text-primary-foreground transition-colors inline-flex items-center justify-center',
-              !hasApiKey && 'opacity-50'
+              !apiKeyReady && 'opacity-50'
             )}
-            disabled={!inputValue.trim() || isLoading || !hasApiKey}
+            disabled={!inputValue.trim() || isLoading || !apiKeyReady}
           >
             <Send className="h-4 w-4" />
           </Button>
