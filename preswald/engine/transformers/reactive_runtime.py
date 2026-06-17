@@ -283,7 +283,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
         for stmt in body:
             # Skip function bodies entirely
             if isinstance(stmt, ast.FunctionDef):
-                logger.debug(f'[DEBUG] skipping _generate_component_metadata for {stmt.name=}')
+                logger.debug(f'skipping _generate_component_metadata for {stmt.name=}')
                 continue
 
             call_node = stmt.value if isinstance(stmt, ast.Expr) else getattr(stmt, "value", None)
@@ -937,7 +937,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
             )
             return
 
-        logger.debug(f'[DEBUG] _lift_blackbox_function_call {component_id=}; {atom_name=}; {dep_names=}')
+        logger.debug(f'_lift_blackbox_function_call {component_id=}; {atom_name=}; {dep_names=}')
         self._finalize_and_register_atom(
             atom_name,
             component_id,
@@ -1264,11 +1264,11 @@ class AutoAtomTransformer(ast.NodeTransformer):
         Returns:
             True if lifting succeeded and the atom was registered, False otherwise.
         """
-        logger.debug(f"[DEBUG] Attempting to lift display renderer: {candidate=}, {component_id=}, {dependencies=}")
+        logger.debug(f"Attempting to lift display renderer: {candidate=}, {component_id=}, {dependencies=}")
 
         renderer_fn = get_display_renderers().get(candidate)
         if not renderer_fn:
-            logger.warning(f"[DEBUG] No renderer function registered for: {candidate}")
+            logger.debug(f"No renderer function registered for: {candidate}")
             return False
 
         self._used_display_renderer_fns.add(renderer_fn.__name__)
@@ -1278,11 +1278,11 @@ class AutoAtomTransformer(ast.NodeTransformer):
         else:
             atom_name = generate_stable_atom_name_from_component_id(component_id)
 
-        logger.debug(f'[DEBUG] in _try_lift_display_renderer component id and atom name generated for {renderer_fn.__name__=} {component_id=} {atom_name=}')
+        logger.debug(f'in _try_lift_display_renderer component id and atom name generated for {renderer_fn.__name__=} {component_id=} {atom_name=}')
 
         call_node = stmt.value if isinstance(stmt, ast.Expr) else stmt.value if isinstance(stmt, ast.Assign) else None
         if not isinstance(call_node, ast.Call):
-            logger.warning(f"[DEBUG] Statement does not contain a valid call: {stmt}")
+            logger.debug(f"Statement does not contain a valid call: {stmt}")
             return False
 
         # Inspect the renderer function to determine parameter names
@@ -1343,14 +1343,14 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         self._finalize_and_register_atom(atom_name, component_id, callsite_deps, renderer_call, callsite_node=stmt)
 
-        #logger.debug(f"[DEBUG] Replacing .show call with call to: {renderer_fn.__name__}({object_arg=}, {component_id=})")
+        #logger.debug(f"Replacing .show call with call to: {renderer_fn.__name__}({object_arg=}, {component_id=})")
 
         return True
 
     def _maybe_lift_display_renderer_from_expr(self, stmt: ast.Expr, call_node: ast.Call) -> bool:
-        logger.debug(f'[DEBUG] _maybe_lift_display_renderer_from_expr - {stmt=}; {call_node=}')
+        logger.debug(f'_maybe_lift_display_renderer_from_expr - {stmt=}; {call_node=}')
         if not isinstance(call_node.func, ast.Attribute):
-            logger.debug('[DEBUG] _maybe_lift_display_renderer_from_expr - returning because call_node.func is not an instance of attribute')
+            logger.debug(f'_maybe_lift_display_renderer_from_expr - returning because call_node.func is not an instance of attribute')
             return False
 
         attr = call_node.func.attr
@@ -1362,11 +1362,11 @@ class AutoAtomTransformer(ast.NodeTransformer):
         elif isinstance(receiver, ast.Subscript) and isinstance(receiver.value, ast.Name):
             varname = receiver.value.id
         else:
-            logger.debug(f'[DEBUG] _maybe_lift_display_renderer_from_expr - returning receiver is not a Name or Subscript {receiver=}')
+            logger.debug(f'_maybe_lift_display_renderer_from_expr - returning receiver is not a Name or Subscript {receiver=}')
 
             return False
 
-        logger.debug(f'[DEBUG] _maybe_lift_display_renderer_from_expr - {receiver=}; {attr=}; {varname=}')
+        logger.debug(f'_maybe_lift_display_renderer_from_expr - {receiver=}; {attr=}; {varname=}')
 
         atom_name = self._current_frame.variable_to_atom.get(varname)
         return_type = self._resolve_display_return_type(atom_name, varname)
@@ -1391,15 +1391,15 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         # check detectors
         for detector in get_display_detectors():
-            logger.debug(f'[DEBUG] _maybe_lift_display_renderer_from_expr - applying detector to {call_node=}')
+            logger.debug(f'_maybe_lift_display_renderer_from_expr - applying detector to {call_node=}')
             if detector(call_node):
                 candidate = f"{self.import_aliases.get(varname, varname)}.{attr}"
                 resolver = get_display_dependency_resolvers().get(candidate)
                 deps = resolver(self._current_frame) if resolver else []
-                logger.debug(f'[DEBUG] _maybe_lift_display_renderer_from_expr - detected candidate {resolver=}; {candidate=}; {stmt=}; {deps=}')
+                logger.debug(f'_maybe_lift_display_renderer_from_expr - detected candidate {resolver=}; {candidate=}; {stmt=}; {deps=}')
                 return self._try_lift_display_renderer(candidate=candidate, stmt=stmt, dependencies=deps)
 
-        logger.debug(f'[DEBUG] _maybe_lift_display_renderer_from_expr - nothing handled, returning False {candidate=}')
+        logger.debug(f'_maybe_lift_display_renderer_from_expr - nothing handled, returning False {candidate=}')
 
         return False
 
@@ -1426,8 +1426,8 @@ class AutoAtomTransformer(ast.NodeTransformer):
         Returns:
             A list of top level statements that are not lifted, to include in the rewritten module.
         """
-        logger.debug(f"[DEBUG] Lifting statements inside function: {self.current_function.name if self.current_function else '<module>'}")
-        logger.debug(f"[DEBUG] _lift_statements in {self.current_function.name if self.current_function else '<module>'}")
+        logger.debug(f"Lifting statements inside function: {self.current_function.name if self.current_function else '<module>'}")
+        logger.debug(f"_lift_statements in {self.current_function.name if self.current_function else '<module>'}")
 
         component_metadata = component_metadata or {}
         return_renderers = {} if self._in_function_body else get_return_renderers()
@@ -1436,7 +1436,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         stmt_variable_maps, _ = self._generate_stmt_variable_maps(body, component_metadata)
 
-        logger.debug(f'[DEBUG] {return_renderers=} {output_stream_calls}')
+        logger.debug(f'{return_renderers=} {output_stream_calls}')
 
         new_body = []
         pending_assignments = []
@@ -1449,7 +1449,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
             # skip user defined functions unless they are explicitly decorated or contain reactive calls
             if isinstance(stmt, ast.FunctionDef):
                 if self._is_undecorated(stmt) and self._is_user_defined_blackbox_function(stmt):
-                    logger.debug(f"[DEBUG] Skipping non-reactive user function: {stmt.name}")
+                    logger.debug(f"Skipping non-reactive user function: {stmt.name}")
                     new_body.append(stmt)
                     continue
 
@@ -1461,8 +1461,8 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 self._lift_blackbox_function_call(stmt, stmt.value.func.id, scoped_map, variable_map)
                 continue
 
-            logger.debug(f"[DEBUG] variable_map for stmt: {stmt} -> {stmt_variable_maps.get(stmt)}")
-            logger.debug(f"[DEBUG] Examining stmt: {ast.dump(stmt)}")
+            logger.debug(f"variable_map for stmt: {stmt} -> {stmt_variable_maps.get(stmt)}")
+            logger.debug(f"Examining stmt: {ast.dump(stmt)}")
 
             # Handle in script resolver registrations, such as register_display_dependency_resolver
             if (
@@ -1494,7 +1494,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
                         logger.warning("[AST] register_display_dependency_resolver: expected lambda as second argument")
                         continue
 
-                    logger.info('[DEBUG] inside register_display_dependency_resolver gaurd')
+                    logger.debug(f'inside register_display_dependency_resolver guard')
 
                     try:
                         func_name = func_name_node.value  # e.g. "matplotlib.pyplot.show"
@@ -1530,7 +1530,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 logger.debug(f'handing known compnent calls {display_methods.items()=}')
                 if self._is_known_component_call(call_node):
                     full_func_name = self._get_call_func_name(call_node)
-                    logger.debug(f"[DEBUG] Attempting to lift known component call '{full_func_name}' inside {self.current_function.name if self.current_function else '<module>'}")
+                    logger.debug(f"Attempting to lift known component call '{full_func_name}' inside {self.current_function.name if self.current_function else '<module>'}")
                     component_id, atom_name = component_metadata.get(id(call_node), (None, None))
 
                     if not atom_name:
@@ -1628,7 +1628,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
                     and isinstance(stmt.value.func.value, ast.Name)
                     and stmt.value.func.value.id in self._current_frame.variable_to_atom
                 ):
-                    logger.debug('[DEBUG] going to call _lift_side_effect_stmt for %s', stmt.value.func.value.id)
+                    logger.debug(f'going to call _lift_side_effect_stmt for %s', stmt.value.func.value.id)
                     self._lift_side_effect_stmt(stmt)
                     continue
 
@@ -2282,7 +2282,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
 
         if self._is_top_level(node):
             if self._is_undecorated(node) and self._is_user_defined_blackbox_function(node):
-                logger.debug(f"[DEBUG] visit_FunctionDef: Skipping top level user function: {node.name}")
+                logger.debug(f"visit_FunctionDef: Skipping top level user function: {node.name}")
                 return node
 
             # Attach atom decorator
@@ -2306,7 +2306,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
             node.body = self._lift_statements(node.body, component_metadata=component_metadata)
 
             for atom in self._current_frame.generated_atoms:
-                logger.info(f"[DEBUG] Atom lifted inside function {node.name}: {atom.name}")
+                logger.debug(f"Atom lifted inside function {node.name}: {atom.name}")
 
         finally:
             self._module_frame.generated_atoms.extend(self._current_frame.generated_atoms)
@@ -2382,7 +2382,7 @@ class AutoAtomTransformer(ast.NodeTransformer):
                 super().generic_visit(node)
 
         finder = Finder()
-        #logger.debug(f"[DEBUG] AST node for dependency scan: {ast.dump(node, indent=2)}")
+        #logger.debug(f"AST node for dependency scan: {ast.dump(node, indent=2)}")
         finder.visit(node)
 
         return deps, dep_names
