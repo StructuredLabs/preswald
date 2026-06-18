@@ -1,0 +1,28 @@
+[project]
+title = "GitHub Repository Analyzer"
+version = "0.1.0"
+port = 8501
+slug = "repo-analyzer-761317"
+entrypoint = "hello.py"
+
+[branding]
+name = "GitHub Repository Analyzer"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#F89613"
+
+[logging]
+level = "INFO"
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+[data.sample_csv]
+type = "csv"
+path = "data/sample.csv"
+
+[data.contributors]
+type = "csv"
+path = "data/contributors.csv"
+
+[data.commit_activity]
+type = "csv"
+path = "data/commit_activity.csv"
