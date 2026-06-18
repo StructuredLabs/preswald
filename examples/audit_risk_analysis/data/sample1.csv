@@ -1,0 +1,10 @@
+Year,Firm_Name,Total_Audit_Engagements,High_Risk_Cases,Compliance_Violations,Fraud_Cases_Detected,Industry_Affected,AI_Used_for_Auditing,Audit_Effectiveness_Score,Client_Satisfaction_Score
+2020,PwC,2829,51,123,39,Healthcare,No,5.8,8.4
+2022,Deloitte,3589,185,30,60,Healthcare,Yes,5.3,6.7
+2021,PwC,2646,397,55,97,Healthcare,No,5.1,8.6
+2023,Deloitte,818,448,10,30,Finance,No,5.3,7.1
+2020,PwC,4092,500,152,69,Tech,Yes,9.4,9.5
+2021,PwC,4156,362,53,95,Finance,No,6.0,6.0
+2024,Ernst & Young,2712,408,186,61,Healthcare,Yes,9.5,8.9
+2023,PwC,2267,164,125,42,Retail,Yes,7.3,7.7
+2021,Deloitte,3490,127,17,62,Finance,Yes,8.4,7.5
