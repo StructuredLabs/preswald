@@ -125,7 +125,7 @@ Now run your app locally with:
 preswald run
 ```
 
-This command launches a development server, and Preswald will let you know where your app is hosted. Typically, it’s here:
+This command launches a development server, and Preswald will let you know where your app is hosted. Typically, it's here:
 
 ```
 🌐 App running at: http://localhost:8501
@@ -154,7 +154,8 @@ primaryColor = "#F89613"
 
 [logging]
 level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
-format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+format = "%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s - %(message)s"
+datefmt = "%Y-%m-%d %H:%M:%S"  # Optional: Customize timestamp format
 ```
 
 ## **Use Cases**
@@ -169,7 +170,7 @@ format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
 ## **📚 Documentation**
 
-We’re here to help! Check out our full documentation at [Preswald Docs](https://docs.preswald.com/).
+We're here to help! Check out our full documentation at [Preswald Docs](https://docs.preswald.com/).
 
 <br>
 
