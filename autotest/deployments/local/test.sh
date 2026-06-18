@@ -65,6 +65,8 @@ test_example() {
         return 1
     }
     
+    local log_file="local_deployment_test.log"
+    
     log "INFO" "Deploying locally..." "$log_file"
     start_time=$(date +%s)
     
