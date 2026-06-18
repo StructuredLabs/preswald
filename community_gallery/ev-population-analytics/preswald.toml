@@ -1,0 +1,20 @@
+[project]
+title = "EV Population Analytics"
+version = "0.1.0"
+port = 8501
+slug = "ev-population-analytics"  # Unique identifier for your project
+entrypoint = "hello.py"  # Main script to run when executing 'preswald run'
+
+[branding]
+name = "EV Population Analytics"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#F89613"
+
+[data.Electric_Vehicle_Population_Data]
+type = "csv"
+path = "data/Electric_Vehicle_Population_Data.csv"
+
+[logging]
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
