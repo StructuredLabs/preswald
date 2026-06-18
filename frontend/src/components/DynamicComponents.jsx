@@ -28,6 +28,7 @@ import SidebarWidget from './widgets/SidebarWidget';
 import SliderWidget from './widgets/SliderWidget';
 import SpinnerWidget from './widgets/SpinnerWidget';
 import TableViewerWidget from './widgets/TableViewerWidget';
+import MapWidget from './widgets/MapWidget';
 import TextInputWidget from './widgets/TextInputWidget';
 import TopbarWidget from './widgets/TopbarWidget';
 import GenericWidget from './widgets/GenericWidget';
@@ -360,7 +361,14 @@ const MemoizedComponent = memo(
             id={componentId}
           />
         );
-
+        case 'map':
+          return (
+            <MapWidget
+              key={componentKey}
+              component={component}
+              id={componentId}
+            />
+         );
       default:
         console.warn(`[DynamicComponents] Unknown component type: ${component.type}`);
         return (
