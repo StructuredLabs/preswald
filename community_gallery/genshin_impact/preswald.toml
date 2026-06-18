@@ -1,0 +1,24 @@
+[project]
+title = "Genshin Impact"
+version = "0.1.0"
+port = 8501
+slug = "genshinimpact"
+entrypoint = "hello.py"
+
+[branding]
+name = "Preswald Project"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#F89613"
+
+[theme]
+primary_color = "#3498db"
+font = "Arial, sans-serif"
+
+[data.data]
+type = "csv"
+path = "data.csv"
+
+[logging]
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
