@@ -1,0 +1,346 @@
+,Type of Record,Rank,Name,Total
+0,Total Fights,1,Jim Miller,45.0
+1,Total Fights,2,Andrei Arlovski,42.0
+2,Total Fights,3,Donald Cerrone,38.0
+3,Total Fights,4,Clay Guida,37.0
+4,Total Fights,5,Rafael Dos Anjos,36.0
+5,Total Fights,6,Jeremy Stephens,34.0
+6,Total Fights,6,Charles Oliveira,34.0
+7,Total Fights,6,Neil Magny,34.0
+8,Total Fights,9,Demian Maia,33.0
+9,Total Fights,10,Diego Sanchez,32.0
+10,Wins,1,Jim Miller,27.0
+11,Wins,2,Andrei Arlovski,23.0
+12,Wins,2,Donald Cerrone,23.0
+13,Wins,2,Charles Oliveira,23.0
+14,Wins,5,Demian Maia,22.0
+15,Wins,5,Jon Jones,22.0
+16,Wins,5,Dustin Poirier,22.0
+17,Wins,5,Max Holloway,22.0
+18,Wins,5,Neil Magny,22.0
+19,Wins,10,Rafael Dos Anjos,21.0
+20,Finishes,1,Charles Oliveira,20.0
+21,Finishes,2,Jim Miller,19.0
+22,Finishes,3,Donald Cerrone,16.0
+23,Finishes,4,Matt Brown,15.0
+24,Finishes,4,Dustin Poirier,15.0
+25,Finishes,4,Derrick Lewis,15.0
+26,Finishes,7,Anderson Silva,14.0
+27,Finishes,7,Vicente Luque,14.0
+28,Finishes,9,Frank Mir,13.0
+29,Finishes,9,Joe Lauzon,13.0
+30,Finishes,9,Max Holloway,13.0
+31,Finishes,9,Glover Teixeira,13.0
+32,KO/TKO Wins,1,Derrick Lewis,15.0
+33,KO/TKO Wins,2,Matt Brown,13.0
+34,KO/TKO Wins,3,Anderson Silva,11.0
+35,KO/TKO Wins,3,Anthony Johnson,11.0
+36,KO/TKO Wins,3,Dustin Poirier,11.0
+37,KO/TKO Wins,3,Max Holloway,11.0
+38,KO/TKO Wins,3,Thiago Santos,11.0
+39,KO/TKO Wins,8,Michael Bisping,10.0
+40,KO/TKO Wins,8,Cain Velasquez,10.0
+41,KO/TKO Wins,8,Junior Dos Santos,10.0
+42,KO/TKO Wins,8,Donald Cerrone,10.0
+43,KO/TKO Wins,8,Francis Ngannou,10.0
+44,Submission Wins,1,Charles Oliveira,16.0
+45,Submission Wins,2,Jim Miller,13.0
+46,Submission Wins,3,Demian Maia,11.0
+47,Submission Wins,3,Gerald Meerschaert,11.0
+48,Submission Wins,5,Nate Diaz,10.0
+49,Submission Wins,6,Frank Mir,8.0
+50,Submission Wins,6,Michael Chiesa,8.0
+51,Submission Wins,6,Gunnar Nelson,8.0
+52,Submission Wins,6,Islam Makhachev,8.0
+53,Submission Wins,10,Kenny Florian,7.0
+54,Submission Wins,10,Cole Miller,7.0
+55,Submission Wins,10,Joe Lauzon,7.0
+56,Submission Wins,10,Rani Yahya,7.0
+57,Submission Wins,10,Glover Teixeira,7.0
+58,Submission Wins,10,Aleksei Oleinik,7.0
+59,Submission Wins,10,Gillian Robertson,7.0
+60,Submission Wins,10,Brendan Allen,7.0
+61,Decision Wins,1,Neil Magny,14.0
+62,Decision Wins,2,Brad Tavares,13.0
+63,Decision Wins,3,Andrei Arlovski,12.0
+64,Decision Wins,3,Georges St-Pierre,12.0
+65,Decision Wins,3,Diego Sanchez,12.0
+66,Decision Wins,3,Rafael Dos Anjos,12.0
+67,Decision Wins,3,Darren Elkins,12.0
+68,Decision Wins,3,Belal Muhammad,12.0
+69,Decision Wins,9,Frankie Edgar,11.0
+70,Decision Wins,9,Clay Guida,11.0
+71,Decision Wins,9,Gleison Tibau,11.0
+72,Decision Wins,9,Francisco Trinaldo,11.0
+73,Decision Wins,9,Robert Whittaker,11.0
+74,Decision Wins,9,Sean Strickland,11.0
+75,Decision Wins,9,Katlyn Cerminara,11.0
+76,Decision Wins,9,Merab Dvalishvili,11.0
+77,Win Streak,1,Anderson Silva,16.0
+78,Win Streak,2,Islam Makhachev,15.0
+79,Win Streak,2,Kamaru Usman,15.0
+80,Win Streak,4,Georges St-Pierre,13.0
+81,Win Streak,4,Jon Jones,13.0
+82,Win Streak,4,Demetrious Johnson,13.0
+83,Win Streak,4,Khabib Nurmagomedov,13.0
+84,Win Streak,4,Max Holloway,13.0
+85,Win Streak,9,Amanda Nunes,12.0
+86,Win Streak,9,Tony Ferguson,12.0
+87,Win Streak,9,Alexander Volkanovski,12.0
+88,Win Streak,9,Merab Dvalishvili,12.0
+89,Title Fight Wins,1,Jon Jones,16.0
+90,Title Fight Wins,2,Georges St-Pierre,13.0
+91,Title Fight Wins,3,Demetrious Johnson,12.0
+92,Title Fight Wins,4,Anderson Silva,11.0
+93,Title Fight Wins,4,Amanda Nunes,11.0
+94,Title Fight Wins,6,Matt Hughes,9.0
+95,Title Fight Wins,6,Valentina Shevchenko,9.0
+96,Title Fight Wins,8,Randy Couture,8.0
+97,Title Fight Wins,8,Jose Aldo,8.0
+98,Title Fight Wins,8,Israel Adesanya,8.0
+99,Total Fight Night Bonuses,1,Charles Oliveira,20.0
+100,Total Fight Night Bonuses,2,Donald Cerrone,18.0
+101,Total Fight Night Bonuses,3,Nate Diaz,16.0
+102,Total Fight Night Bonuses,4,Jim Miller,15.0
+103,Total Fight Night Bonuses,4,Joe Lauzon,15.0
+104,Total Fight Night Bonuses,4,Dustin Poirier,15.0
+105,Total Fight Night Bonuses,7,Anderson Silva,14.0
+106,Total Fight Night Bonuses,8,Edson Barboza,13.0
+107,Total Fight Night Bonuses,8,Max Holloway,13.0
+108,Total Fight Night Bonuses,8,Justin Gaethje,13.0
+109,Shortest Avg. Fight Time,1,Tom Aspinall,2.02
+110,Shortest Avg. Fight Time,2,Drew McFedries,2.2
+111,Shortest Avg. Fight Time,3,Terrance McKinney,2.34
+112,Shortest Avg. Fight Time,4,James Irvin,2.53
+113,Shortest Avg. Fight Time,5,Ronda Rousey,3.06
+114,Shortest Avg. Fight Time,6,Chris Daukaus,3.11
+115,Shortest Avg. Fight Time,7,Cyril Asker,3.24
+116,Shortest Avg. Fight Time,8,Todd Duffee,3.26
+117,Shortest Avg. Fight Time,9,Gadzhimurad Antigulov,3.27
+118,Shortest Avg. Fight Time,10,Ottman Azaitar,3.45
+119,Longest Avg. Fight Time,1,Joanna Jedrzejczyk,18.37
+120,Longest Avg. Fight Time,2,Demetrious Johnson,18.34
+121,Longest Avg. Fight Time,3,Valentina Shevchenko,18.22
+122,Longest Avg. Fight Time,4,Dominick Cruz,18.2
+123,Longest Avg. Fight Time,5,Benson Henderson,18.02
+124,Longest Avg. Fight Time,6,Israel Adesanya,17.35
+125,Longest Avg. Fight Time,7,Kamaru Usman,17.27
+126,Longest Avg. Fight Time,8,Leon Edwards,17.22
+127,Longest Avg. Fight Time,9,Petr Yan,17.17
+128,Longest Avg. Fight Time,10,Colby Covington,16.57
+129,Total Fight Time,1,Rafael Dos Anjos,523.32
+130,Total Fight Time,2,Max Holloway,482.43
+131,Total Fight Time,3,Frankie Edgar,477.17
+132,Total Fight Time,4,Jim Miller,434.47
+133,Total Fight Time,5,Clay Guida,423.28
+134,Total Fight Time,6,Neil Magny,416.8
+135,Total Fight Time,7,Andrei Arlovski,409.98
+136,Total Fight Time,8,Demian Maia,409.67
+137,Total Fight Time,9,Diego Sanchez,397.12
+138,Total Fight Time,10,Jeremy Stephens,389.53
+139,Control Time,1,Georges St-Pierre,162.07
+140,Control Time,2,Clay Guida,156.47
+141,Control Time,3,Demian Maia,155.33
+142,Control Time,4,Rafael Dos Anjos,136.72
+143,Control Time,5,Kamaru Usman,133.92
+144,Control Time,6,Jon Fitch,128.43
+145,Control Time,7,Darren Elkins,128.15
+146,Control Time,8,Randy Couture,126.7
+147,Control Time,9,Colby Covington,125.08
+148,Control Time,10,Matt Hughes,113.7
+149,Control Time Percentage,1,Jailton Almeida,0.842
+150,Control Time Percentage,2,Bartosz Fabinski,0.791
+151,Control Time Percentage,3,Gregor Gillespie,0.719
+152,Control Time Percentage,4,Chael Sonnen,0.693
+153,Control Time Percentage,5,Grant Dawson,0.677
+154,Control Time Percentage,6,Matt Lindland,0.661
+155,Control Time Percentage,7,Philip De Fries,0.656
+156,Control Time Percentage,8,Pat Sabatini,0.649
+157,Control Time Percentage,9,Themba Gorimbo,0.618
+158,Control Time Percentage,10,Charlie Brenneman,0.617
+159,Top Position Time,1,Georges St-Pierre,142.08
+160,Top Position Time,2,Demian Maia,121.25
+161,Top Position Time,3,Clay Guida,108.23
+162,Top Position Time,4,Jon Fitch,106.58
+163,Top Position Time,5,Matt Hughes,105.13
+164,Top Position Time,6,Darren Elkins,99.43
+165,Top Position Time,7,Frankie Edgar,92.57
+166,Top Position Time,8,Rafael Dos Anjos,90.97
+167,Top Position Time,9,Grant Dawson,90.6
+168,Top Position Time,10,Chael Sonnen,89.87
+169,Top Position Percentage,1,Jailton Almeida,0.772
+170,Top Position Percentage,2,Chael Sonnen,0.63
+171,Top Position Percentage,3,Bartosz Fabinski,0.622
+172,Top Position Percentage,4,Grant Dawson,0.594
+173,Top Position Percentage,5,Charlie Brenneman,0.548
+174,Top Position Percentage,6,Matt Lindland,0.543
+175,Top Position Percentage,7,Gregor Gillespie,0.525
+176,Top Position Percentage,8,Matt Hughes,0.516
+177,Top Position Percentage,9,Pat Sabatini,0.506
+178,Top Position Percentage,10,Khamzat Chimaev,0.501
+179,Bottom Position Time,1,Tom Aspinall,0.01
+180,Bottom Position Time,2,Ike Villanueva,0.04
+181,Bottom Position Time,3,Philipe Lins,0.05
+182,Bottom Position Time,4,Khamzat Chimaev,0.06
+183,Bottom Position Time,5,Adriano Martins,0.09
+184,Bottom Position Time,6,Riki Fukuda,0.1
+185,Bottom Position Time,7,Chris Daukaus,0.13
+186,Bottom Position Time,7,Carlos Ulberg,0.13
+187,Bottom Position Time,7,Manon Fiorot,0.13
+188,Bottom Position Time,7,Daniel Zellhuber,0.13
+189,Bottom Position Time,7,Emily Ducote,0.13
+190,Bottom Position Percentage,1,Tom Aspinall,0.0009
+191,Bottom Position Percentage,2,Philipe Lins,0.0013
+192,Bottom Position Percentage,3,Jon Jones,0.0019
+193,Bottom Position Percentage,4,Khamzat Chimaev,0.0021
+194,Bottom Position Percentage,5,Manon Fiorot,0.0021
+195,Bottom Position Percentage,6,Riki Fukuda,0.0022
+196,Bottom Position Percentage,7,Adriano Martins,0.0026
+197,Bottom Position Percentage,8,Ike Villanueva,0.0027
+198,Bottom Position Percentage,9,Emily Ducote,0.0029
+199,Bottom Position Percentage,10,Daniel Zellhuber,0.0032
+200,Knockdowns Landed,1,Donald Cerrone,20.0
+201,Knockdowns Landed,2,Anderson Silva,18.0
+202,Knockdowns Landed,2,Jeremy Stephens,18.0
+203,Knockdowns Landed,4,Edson Barboza,16.0
+204,Knockdowns Landed,5,Chuck Liddell,14.0
+205,Knockdowns Landed,5,Lyoto Machida,14.0
+206,Knockdowns Landed,5,Mauricio Rua,14.0
+207,Knockdowns Landed,5,Junior Dos Santos,14.0
+208,Knockdowns Landed,5,Dustin Poirier,14.0
+209,Knockdowns Landed,5,Thiago Santos,14.0
+210,Knockdown Avg. per 15 Min.,1,Drew McFedries,4.27
+211,Knockdown Avg. per 15 Min.,2,Tom Aspinall,4.09
+212,Knockdown Avg. per 15 Min.,3,Chris Daukaus,3.54
+213,Knockdown Avg. per 15 Min.,4,Todd Duffee,2.91
+214,Knockdown Avg. per 15 Min.,5,Sergei Pavlovich,2.2
+215,Knockdown Avg. per 15 Min.,6,Steve Garcia,2.15
+216,Knockdown Avg. per 15 Min.,7,Shane Carwin,2.03
+217,Knockdown Avg. per 15 Min.,8,Uros Medic,1.96
+218,Knockdown Avg. per 15 Min.,9,Houston Alexander,1.78
+219,Knockdown Avg. per 15 Min.,10,Terrance McKinney,1.75
+220,Sig Strikes Landed,1,Max Holloway,3457.0
+221,Sig Strikes Landed,2,Sean Strickland,2197.0
+222,Sig Strikes Landed,3,Angela Hill,2122.0
+223,Sig Strikes Landed,4,King Green,1869.0
+224,Sig Strikes Landed,5,Rafael Dos Anjos,1822.0
+225,Sig Strikes Landed,6,Frankie Edgar,1801.0
+226,Sig Strikes Landed,7,Joanna Jedrzejczyk,1754.0
+227,Sig Strikes Landed,8,Dustin Poirier,1752.0
+228,Sig Strikes Landed,9,Donald Cerrone,1748.0
+229,Sig Strikes Landed,10,Jessica Andrade,1730.0
+230,Sig Strike Accuracy,1,Alistair Overeem,0.743
+231,Sig Strike Accuracy,2,Anthony Hamilton,0.656
+232,Sig Strike Accuracy,3,Anthony Hernandez,0.634
+233,Sig Strike Accuracy,4,Alex Pereira,0.631
+234,Sig Strike Accuracy,5,Christian Leroy Duncan,0.625
+235,Sig Strike Accuracy,6,Shara Magomedov,0.624
+236,Sig Strike Accuracy,7,Chidi Njokuani,0.62
+237,Sig Strike Accuracy,8,Tatiana Suarez,0.617
+238,Sig Strike Accuracy,9,Josh Barnett,0.615
+239,Sig Strike Accuracy,10,Sean O'Malley,0.615
+240,Strikes Landed per Min.,1,Joshua Van,8.88
+241,Strikes Landed per Min.,2,Tom Aspinall,8.07
+242,Strikes Landed per Min.,2,Esteban Ribovics,8.07
+243,Strikes Landed per Min.,4,Casey O'Neill,7.89
+244,Strikes Landed per Min.,5,Victor Henry,7.66
+245,Strikes Landed per Min.,6,Leslie Smith,7.56
+246,Strikes Landed per Min.,7,Daniel Rodriguez,7.53
+247,Strikes Landed per Min.,8,Emily Ducote,7.45
+248,Strikes Landed per Min.,9,Shane Burgos,7.4
+249,Strikes Landed per Min.,10,Carlos Ulberg,7.28
+250,Striking Differential,1,Tom Aspinall,5.18
+251,Striking Differential,2,Cristiane Justino,4.79
+252,Striking Differential,3,Cain Velasquez,4.08
+253,Striking Differential,4,Terrance McKinney,4.05
+254,Striking Differential,5,Sean O'Malley,3.31
+255,Striking Differential,6,Todd Duffee,3.26
+256,Striking Differential,7,Joshua Van,3.06
+257,Striking Differential,8,Joanna Jedrzejczyk,3.03
+258,Striking Differential,8,Ciryl Gane,3.03
+259,Striking Differential,10,Carlos Ulberg,2.98
+260,Sig Strike Defense,1,Jon Madsen,0.814
+261,Sig Strike Defense,2,Georges St-Pierre,0.731
+262,Sig Strike Defense,3,Phil Davis,0.723
+263,Sig Strike Defense,4,Ryan Bader,0.718
+264,Sig Strike Defense,5,Danielle Taylor,0.717
+265,Sig Strike Defense,6,Aiemann Zahabi,0.712
+266,Sig Strike Defense,6,Mara Romero Borella,0.712
+267,Sig Strike Defense,8,Vaughan Lee,0.702
+268,Sig Strike Defense,9,Luigi Fioravanti,0.699
+269,Sig Strike Defense,10,Miles Johns,0.698
+270,Strikes Absorbed per Min.,1,Jailton Almeida,0.88
+271,Strikes Absorbed per Min.,2,Pete Spratt,1.04
+272,Strikes Absorbed per Min.,3,Jesus Aguilar,1.07
+273,Strikes Absorbed per Min.,4,Themba Gorimbo,1.09
+274,Strikes Absorbed per Min.,5,Ivan Salaverry,1.15
+275,Strikes Absorbed per Min.,6,Jon Madsen,1.18
+276,Strikes Absorbed per Min.,7,Renato Sobral,1.25
+277,Strikes Absorbed per Min.,8,Matt Lindland,1.31
+278,Strikes Absorbed per Min.,8,Ricco Rodriguez,1.31
+279,Strikes Absorbed per Min.,8,Jeremiah Wells,1.31
+280,Total Strikes Landed,1,Max Holloway,3706.0
+281,Total Strikes Landed,2,Darren Elkins,2603.0
+282,Total Strikes Landed,3,Georges St-Pierre,2591.0
+283,Total Strikes Landed,3,Rafael Dos Anjos,2591.0
+284,Total Strikes Landed,5,Neil Magny,2561.0
+285,Total Strikes Landed,6,Nate Diaz,2487.0
+286,Total Strikes Landed,7,Angela Hill,2482.0
+287,Total Strikes Landed,8,Frankie Edgar,2481.0
+288,Total Strikes Landed,9,Kamaru Usman,2427.0
+289,Total Strikes Landed,10,Sean Strickland,2372.0
+290,Takedowns Landed,1,Merab Dvalishvili,92.0
+291,Takedowns Landed,2,Georges St-Pierre,90.0
+292,Takedowns Landed,3,Gleison Tibau,84.0
+293,Takedowns Landed,4,Clay Guida,78.0
+294,Takedowns Landed,5,Demetrious Johnson,74.0
+295,Takedowns Landed,6,Frankie Edgar,73.0
+296,Takedowns Landed,7,Colby Covington,70.0
+297,Takedowns Landed,8,Nik Lentz,69.0
+298,Takedowns Landed,9,Demian Maia,68.0
+299,Takedowns Landed,9,Rafael Dos Anjos,68.0
+300,Takedown Accuracy,1,Nordine Taleb,0.762
+301,Takedown Accuracy,2,Taila Santos,0.75
+302,Takedown Accuracy,3,Robbie Lawler,0.739
+303,Takedown Accuracy,4,Georges St-Pierre,0.738
+304,Takedown Accuracy,5,Bartosz Fabinski,0.706
+305,Takedown Accuracy,6,Jonathan Goulet,0.7
+306,Takedown Accuracy,7,Montel Jackson,0.688
+307,Takedown Accuracy,8,Diego Brandao,0.68
+308,Takedown Accuracy,9,Renato Sobral,0.667
+309,Takedown Accuracy,9,Melvin Guillard,0.667
+310,Takedown Accuracy,9,Makhmud Muradov,0.667
+311,Takedown Defense,1,Julio Arce,0.962
+312,Takedown Defense,2,Jon Jones,0.95
+313,Takedown Defense,3,Eddie Wineland,0.933
+314,Takedown Defense,4,Jimmie Rivera,0.926
+315,Takedown Defense,5,Renan Barao,0.925
+316,Takedown Defense,6,Gleison Tibau,0.921
+317,Takedown Defense,7,Natalia Silva,0.917
+318,Takedown Defense,8,Jose Aldo,0.916
+319,Takedown Defense,9,Shane Burgos,0.915
+320,Takedown Defense,10,Ludovit Klein,0.913
+321,Takedown Defense,10,Michael Morales,0.913
+322,Submission Attempts,1,Jim Miller,49.0
+323,Submission Attempts,2,Charles Oliveira,46.0
+324,Submission Attempts,3,Chris Lytle,31.0
+325,Submission Attempts,4,Joe Lauzon,29.0
+326,Submission Attempts,5,Demian Maia,27.0
+327,Submission Attempts,6,Nate Diaz,26.0
+328,Submission Attempts,6,Nik Lentz,26.0
+329,Submission Attempts,8,Darren Elkins,25.0
+330,Submission Attempts,9,Matt Brown,24.0
+331,Submission Attempts,9,Georges St-Pierre,24.0
+332,Submission Attempts,9,Joe Stevenson,24.0
+333,Submission Attempts,9,Cole Miller,24.0
+334,Submission Attempts,9,Dustin Poirier,24.0
+335,Submission Avg. per 15 Min.,1,Paul Sass,7.38
+336,Submission Avg. per 15 Min.,2,John Albert,6.14
+337,Submission Avg. per 15 Min.,3,TJ Waldburger,4.79
+338,Submission Avg. per 15 Min.,4,Dustin Hazelett,4.14
+339,Submission Avg. per 15 Min.,5,Shannon Gugerty,3.41
+340,Submission Avg. per 15 Min.,6,Tim Credeur,3.29
+341,Submission Avg. per 15 Min.,7,Jason High,3.26
+342,Submission Avg. per 15 Min.,8,Dave Menne,3.25
+343,Submission Avg. per 15 Min.,9,Renato Sobral,3.16
+344,Submission Avg. per 15 Min.,10,Rousimar Palhares,3.14
