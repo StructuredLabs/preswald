@@ -11,6 +11,7 @@ import requests
 import toml
 from requests.auth import HTTPBasicAuth
 
+import geopandas as gpd
 
 logger = logging.getLogger(__name__)
 
@@ -430,6 +431,15 @@ class DataManager:
                 if source_type == "csv":
                     cfg = CSVConfig(path=source_config["path"])
                     self.sources[name] = CSVSource(name, cfg, self.duckdb_conn)
+                
+                elif source_type in ["geojson", "shapefile"]:
+                    df = load_geospatial_source(source_config)
+                    table_name = f"geo_{uuid.uuid4().hex[:8]}"
+                    self.duckdb_conn.register(table_name, df)
+                    self.sources[name] = DataSource(name, self.duckdb_conn)
+                    self.sources[name]._table_name = table_name
+                    self.sources[name].to_df = lambda: df
+                    self.sources[name].query = lambda sql: self.duckdb_conn.execute(sql.replace(name, table_name)).df()
 
                 elif source_type == "json":
                     cfg = JSONConfig(
@@ -618,3 +628,11 @@ def _load_json_source(config: dict[str, Any]) -> pd.DataFrame:
         raise ValueError(
             f"Error converting JSON data from file '{path}' to DataFrame: {e}"
         ) from e
+
+def load_geospatial_source(config: dict[str, Any]) -> pd.DataFrame:
+    df = gpd.read_file(config["path"])
+    
+    if config.get("flatten_geometry", True):
+        df["geometry"] = df["geometry"].apply(lambda g: g.__geo_interface__)
+    
+    return df

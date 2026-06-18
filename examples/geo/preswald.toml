@@ -1,0 +1,17 @@
+[project]
+title = "Monuments App"
+version = "0.1.0"
+port = 8501
+entrypoint = "hello.py"
+slug = "monuments"
+
+[branding]
+name = "Monuments App"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#395886"
+
+[data.monuments_geo]
+type = "geojson"
+path = "data/monuments_geo.geojson"
+flatten_geometry = true
