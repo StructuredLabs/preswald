@@ -166,7 +166,6 @@ cython_debug/
 # frontend build assets in preswald server
 preswald/static/assets/
 preswald/static/index.html
-temp**
 preswald_project/
 
 notes.md

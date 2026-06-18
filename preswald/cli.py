@@ -24,12 +24,25 @@ def cli():
     pass
 
 
-def _create_default_init_files(target_dir: str, project_slug: str):
+def get_available_templates():
+    templates_dir = os.path.join(os.path.dirname(__file__), "templates")
+    if not os.path.exists(templates_dir):
+        return []
+    return [
+        name
+        for name in os.listdir(templates_dir)
+        if os.path.isdir(os.path.join(templates_dir, name))
+    ]
+
+
+def _create_default_init_files(target_dir: str, project_slug: str, template: str):
     """Create default project files in the target directory using templates."""
     from importlib.resources import as_file, files
 
     # Read and write hello.py from template
-    with as_file(files("preswald").joinpath("templates/hello.py.template")) as path:
+    with as_file(
+        files("preswald").joinpath(f"templates/{template}/hello.py.template")
+    ) as path:
         with open(path) as f:
             hello_content = f.read()
         with open(os.path.join(target_dir, "hello.py"), "w") as f:
@@ -37,7 +50,7 @@ def _create_default_init_files(target_dir: str, project_slug: str):
 
     # Read and write preswald.toml from template
     with as_file(
-        files("preswald").joinpath("templates/preswald.toml.template")
+        files("preswald").joinpath(f"templates/{template}/preswald.toml.template")
     ) as path:
         with open(path) as f:
             toml_content = f.read().format(project_slug=project_slug)
@@ -45,14 +58,18 @@ def _create_default_init_files(target_dir: str, project_slug: str):
             f.write(toml_content)
 
     # Read and write secrets.toml from template
-    with as_file(files("preswald").joinpath("templates/secrets.toml.template")) as path:
+    with as_file(
+        files("preswald").joinpath(f"templates/{template}/secrets.toml.template")
+    ) as path:
         with open(path) as f:
             secrets_content = f.read()
         with open(os.path.join(target_dir, "secrets.toml"), "w") as f:
             f.write(secrets_content)
 
     # Read and write sample.csv from template
-    with as_file(files("preswald").joinpath("templates/sample.csv.template")) as path:
+    with as_file(
+        files("preswald").joinpath(f"templates/{template}/data/sample.csv.template")
+    ) as path:
         with open(path) as f:
             sample_data = f.read()
         with open(os.path.join(target_dir, "data", "sample.csv"), "w") as f:
@@ -61,7 +78,13 @@ def _create_default_init_files(target_dir: str, project_slug: str):
 
 @cli.command()
 @click.argument("name", default="preswald_project")
-def init(name):
+@click.option(
+    "--template",
+    type=click.Choice(get_available_templates(), case_sensitive=True),
+    default="default",
+    help="Use a template to initialize the project.",
+)
+def init(name, template):
     """
     Initialize a new Preswald project.
     Creates a directory with basic project structure.
@@ -87,7 +110,7 @@ def init(name):
             shutil.copy2(path, os.path.join(name, "images", "logo.png"))
 
         # Create basic project files
-        _create_default_init_files(name, project_slug)
+        _create_default_init_files(name, project_slug, template)
 
         # Track initialization
         telemetry.track_command(
@@ -95,11 +118,13 @@ def init(name):
             {
                 "project_name": name,
                 "project_slug": project_slug,
+                "template": template,
             },
         )
 
         click.echo(f"Initialized a new Preswald project in '{name}/' 🎉!")
         click.echo(f"Project slug: {project_slug}")
+        click.echo(f"Template used: {template}")
     except Exception as e:
         click.echo(f"Error initializing project: {e} ❌")
 

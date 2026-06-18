@@ -1,0 +1,45 @@
+from preswald import connect, get_df, text, query,table, slider, plotly, sidebar, Workflow
+import plotly.express as px
+    
+connect()  
+workflow = Workflow()
+df = get_df('sample_csv')
+
+#i want a slider that maintains the minimum rate and then two charts that tell about number of movies for en and hi per year that exceeds that number of rate
+
+text("# Analysis of movies on IMDb")
+text("## Language vs Rating")
+
+min_rate = slider(
+        label="Minimum Vote Average",
+        min_val=5,
+        max_val=10,
+        step=0.1,
+        default=7
+    )
+
+en_query = f"""
+SELECT COUNT(*) AS num, substr(release_date,1,4) AS release_year
+FROM sample_csv
+WHERE original_language='en' AND CAST(vote_average AS float)>{min_rate}
+GROUP BY release_year
+ORDER BY release_year
+"""
+
+hi_query = f"""
+SELECT COUNT(*) AS num, substr(release_date,1,4) AS release_year
+FROM sample_csv
+WHERE original_language='hi' AND CAST(vote_average AS float)>{min_rate}
+GROUP BY release_year
+ORDER BY release_year
+"""
+
+
+en_data=query(en_query, 'sample_csv')
+hi_data=query(hi_query, 'sample_csv')
+
+en_fig = px.bar(en_data,x='release_year',y='num',title=f'Movies in English higher than {min_rate}')
+hi_fig = px.bar(hi_data,x='release_year',y='num',title=f'Movies in Hindi higher than {min_rate}')
+
+plotly(en_fig,size=0.5)
+plotly(hi_fig,size=0.5)
