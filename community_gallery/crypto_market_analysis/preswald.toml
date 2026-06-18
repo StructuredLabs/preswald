@@ -1,0 +1,18 @@
+[project]
+title = "Crypto Market Analysis"
+version = "0.1.0"
+port = 8501
+slug = "crypto_market_analysis"
+entrypoint = "hello.py"
+
+[branding]
+name = "Crypto Market Analysis"
+primaryColor = "#F89613"
+
+[data.coins_csv]
+type = "csv"
+path = "data/coins.csv"
+
+[logging]
+level = "INFO"
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
