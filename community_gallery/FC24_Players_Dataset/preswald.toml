@@ -1,0 +1,20 @@
+[project]
+title = "FC 24 Player Stats Explorer"
+version = "0.1.0"
+port = 8501
+slug = "fc24-stats-explorer"  
+entrypoint = "hello.py"       
+
+[branding]
+name = "FC 24 Stats"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#F89613"
+
+[data.all_fc_24_players]
+type = "csv"
+path = "data/all_fc_24_players_small.csv"  
+
+[logging]
+level = "INFO"
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
