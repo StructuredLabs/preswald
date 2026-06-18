@@ -1,0 +1,20 @@
+[project]
+title = "Startup Funding Tracker"
+version = "0.1.0"
+port = 8501
+slug = "startup-funding"
+entrypoint = "hello.py"
+
+[branding]
+name = "Startup Funding Tracker"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#4CAF50"
+
+[data.startup_data]
+type = "csv"
+path = "data/funding.csv"
+
+[logging]
+level = "INFO"
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
