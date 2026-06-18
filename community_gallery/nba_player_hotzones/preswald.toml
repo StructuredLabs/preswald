@@ -1,0 +1,86 @@
+[project]
+title = "Preswald Project"
+version = "0.1.0"
+port = 8501
+slug = "nba-player-hotzones-422993"  # Required: Unique identifier for your project
+entrypoint = "hello.py"    # Required: Main script to run when executing preswald run
+
+[branding]
+name = "Preswald Project"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#F89613"
+
+
+[data.SC]
+type = "csv"
+path = "data/SC.csv"
+[data.AD]
+type = "csv"
+path = "data/AD.csv"
+[data.GA]
+type = "csv"
+path = "data/GA.csv"
+[data.JE]
+type = "csv"
+path = "data/JE.csv"
+[data.JT]
+type = "csv"
+path = "data/JT.csv"
+[data.KD]
+type = "csv"
+path = "data/KD.csv"
+[data.LBJ]
+type = "csv"
+path = "data/LBJ.csv"
+[data.LD]
+type = "csv"
+path = "data/LD.csv"
+[data.NJ]
+type = "csv"
+path = "data/NJ.csv"
+[data.SGA]
+type = "csv"
+path = "data/SGA.csv"
+
+[data.SCstats]
+type = "csv"
+path = "data/SCstats.csv"
+[data.ADstats]
+type = "csv"
+path = "data/ADstats.csv"
+[data.GAstats]
+type = "csv"
+path = "data/GAstats.csv"
+[data.JEstats]
+type = "csv"
+path = "data/JEstats.csv"
+[data.JTstats]
+type = "csv"
+path = "data/JTstats.csv"
+[data.KDstats]
+type = "csv"
+path = "data/KDstats.csv"
+[data.LBJstats]
+type = "csv"
+path = "data/LBJstats.csv"
+[data.LDstats]
+type = "csv"
+path = "data/LDstats.csv"
+[data.NJstats]
+type = "csv"
+path = "data/NJstats.csv"
+[data.SGAstats]
+type = "csv"
+path = "data/SGAstats.csv"
+
+
+
+[data.common_player_info_csv]
+type = "csv"
+path = "data/common_player_info.csv"
+
+
+[logging]
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
