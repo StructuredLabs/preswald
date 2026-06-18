@@ -382,7 +382,7 @@ def tutorial(ctx):
 @click.option(
     "--format",
     type=click.Choice(["pdf", "html"]),
-    required=True,
+    default="html",
     help="Export format - pdf creates a static report, html creates an interactive web app",
 )
 @click.option("--output", type=click.Path(), help="Path to the output directory")
