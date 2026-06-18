@@ -1,0 +1,23 @@
+[project]
+title = "NVIDIA Stock Volatility Dashboard"
+version = "0.1.0"
+port = 8501
+slug = "nvidia-stock-volatility"  # Updated to a simpler slug
+entrypoint = "hello.py"    # Required: Main script to run when executing preswald run
+
+[branding]
+name = "NVIDIA Stock Volatility Dashboard"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#76B900"
+
+[data.nvidia_stock]
+type = "csv"
+path = "data/NVIDIA_Stock_Volatility_2014_2024.csv"
+
+[logging]
+level = "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+[deployment.structured]
+github_username = "johnniewhite"
