@@ -1,0 +1,21 @@
+
+[project]
+title = "Traffic Crashes Project"
+version = "0.1.0"
+port = 8501
+slug = "my-example-project-485062"
+entrypoint = "hello.py"
+
+[branding]
+name = "Traffic Crashes Project"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#F89613"
+
+[data_sources]
+traffic_crashes = "data/Traffic.csv"
+
+[logging]
+level = "INFO"
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
