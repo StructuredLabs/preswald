@@ -187,7 +187,7 @@ const DataVisualizationWidget = ({ id, data: rawData, content, error, className 
       </Alert>
     );
   }
-
+  const isDark = document.body.classList.contains('dark');
   return (
     <Card id={id} className={cn('plotly-container', className)} ref={setRefs}>
       <CardContent className="plotly-card-content">
@@ -209,9 +209,27 @@ const DataVisualizationWidget = ({ id, data: rawData, content, error, className 
                 data={processedData.data}
                 layout={{
                   ...processedData.layout,
-                  font: { family: 'Inter, system-ui, sans-serif' },
+                  font: {
+                    family: 'Inter, system-ui, sans-serif',
+                    color: isDark ? '#FFFFFF' : '#000000',
+                  },
                   paper_bgcolor: 'transparent',
                   plot_bgcolor: 'transparent',
+                  geo: {
+                    // Copy existing geo properties and override with transparent values for various theme support
+                    ...processedData.layout.geo,
+                    bgcolor: 'transparent',
+                    landcolor: 'transparent',
+                    oceancolor: 'transparent',
+                    lakecolor: 'transparent',
+                    coastlinecolor: 'transparent',
+                    countrycolor: 'transparent',
+                  },
+                  mapbox: {
+                    ...processedData.layout.mapbox,
+                    style: isDark ? 'carto-darkmatter' : 'open-street-map', // Use dark or light map style based on theme
+                  },
+
                   margin: { t: 40, r: 10, l: 60, b: 40 },
                   showlegend: true,
                   hovermode: 'closest',
