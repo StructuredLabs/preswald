@@ -1,0 +1,97 @@
+<h1>☕ Coffee Sales Data Explorer</h1>
+
+<p>Find the app here- <a href="https://my-project-804057-1obtjchz-ndjz2ws6la-ue.a.run.app/" target="_blank">Coffee Sales Analyzer</a></p>
+
+<h2>Dataset Source</h2>
+
+<p>The dataset used in this project is derived from <strong>global coffee sales data</strong>. It includes various indicators related to coffee sales across different regions, including transaction volumes, revenue, discount impacts, and customer preferences from 2015 to 2023. This dataset allows for in-depth analysis and visualization of coffee sales trends across different markets and time periods.</p>
+
+<p>The dataset used is a CSV file named <code>Coffee_Sales.csv</code></p>
+
+
+<p>The dataset is essential for analyzing coffee sales patterns, understanding customer preferences, and optimizing pricing and discount strategies.</p>
+
+<h2>What Does the App Do?</h2>
+
+<p>The <strong>Coffee Sales Data Explorer</strong> is an interactive dashboard that visualizes and analyzes global coffee sales trends. The app provides:</p>
+
+<ul>
+  <li><strong>Dataset Overview</strong>: Displays basic statistics about the dataset, including total transactions, revenue, and sales distribution.</li>
+  <li><strong>Product Sales Analysis</strong>:
+    <ul>
+      <li>Top-selling products based on total sales and quantity sold</li>
+      <li>Revenue contribution by product category</li>
+      <li>Sales trends over time with interactive filters</li>
+    </ul>
+  </li>
+  <li><strong>Discount Impact Assessment</strong>:
+    <ul>
+      <li>Analysis of how discounts affect sales volume and revenue</li>
+      <li>Scatter plots showing correlation between discount percentage and sales increase</li>
+      <li>Box plots displaying discount distribution across different coffee types</li>
+    </ul>
+  </li>
+  <li><strong>Regional Sales Insights</strong>:
+    <ul>
+      <li>Sales performance across different regions with heatmaps</li>
+      <li>Comparison of regional preferences for different coffee types</li>
+      <li>Identification of high-revenue markets</li>
+    </ul>
+  </li>
+  <li><strong>Data Explorer</strong>:
+    <ul>
+      <li>An interactive table that allows users to browse raw sales data</li>
+      <li>Configurable number of rows to display with sorting and filtering options</li>
+    </ul>
+  </li>
+</ul>
+
+<p>This tool enables business owners, analysts, and coffee shop managers to gain valuable insights into sales patterns and make data-driven decisions.</p>
+
+<h2>How to Run the App Locally</h2>
+
+<h3>Prerequisites</h3>
+
+<ol>
+  <li><strong>Install Python</strong>: Ensure you have Python 3.7 or higher installed. You can download Python from <a href="https://www.python.org/downloads/" target="_blank">here</a>.</li>
+  <li><strong>Install Required Packages</strong>: The project relies on the following Python libraries:
+    <ul>
+      <li><code>pandas</code> for data manipulation</li>
+      <li><code>plotly</code> for visualizations</li>
+      <li><code>preswald</code> for app functionality</li>
+      <li><code>numpy</code> for numerical operations</li>
+    </ul>
+    To install the required packages, run the following command in your terminal:
+    <pre><code>pip install pandas plotly preswald numpy</code></pre>
+  </li>
+</ol>
+
+<h3>Running the App</h3>
+
+<ol>
+  <li><strong>Clone the repository</strong> or download the necessary files.</li>
+  <li><strong>Ensure the Dataset is Available</strong>: The data file <code>DatasetForCoffeeSales2.csv</code> should be in the <code>data</code> directory.</li>
+  <li><strong>Run the App with Preswald</strong>: The application entry point is set to <code>hello.py</code>. Execute the following command to start the app locally:
+    <pre><code>preswald run</code></pre>
+    The app will launch on port <strong>8501</strong>, and you can access it at the provided local URL.
+  </li>
+</ol>
+
+
+
+<h2>Additional Notes</h2>
+
+<ul>
+  <li>This dataset provides rich insights into coffee sales trends, customer preferences, and discount strategies.</li>
+  <li>Consider enhancing the app with additional features such as:
+    <ul>
+      <li>Forecasting future coffee sales based on historical trends</li>
+      <li>Correlation analysis between discount rates and sales growth</li>
+      <li>Customer segmentation to tailor marketing strategies</li>
+      <li>Seasonal trends in coffee sales based on weather patterns</li>
+    </ul>
+  </li>
+  <li>Regular updates to the dataset will ensure the most current sales data is available for analysis.</li>
+</ul>
+
+<p>Explore coffee sales trends and optimize your business strategies with this interactive and insightful dashboard!</p>
