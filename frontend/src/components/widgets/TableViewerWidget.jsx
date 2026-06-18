@@ -50,7 +50,8 @@ const TableViewerWidget = ({
               sortable: true,
               filter: true,
               resizable: true,
-              flex: 1,
+              minWidth: 100,
+              suppressSizeToFit: false,
             }}
             pagination={pagination}
             paginationPageSize={paginationPageSize}
@@ -59,7 +60,10 @@ const TableViewerWidget = ({
             })}
             rowHeight={36}
             headerHeight={28}
-            onGridReady={(params) => params.api.sizeColumnsToFit()}
+            onGridReady={(params) => {
+              params.api.sizeColumnsToFit();
+              params.columnApi.autoSizeAllColumns();
+            }}
             {...commonProps}
           />
         ) : (
