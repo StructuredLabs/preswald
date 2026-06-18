@@ -1,0 +1,36 @@
+[project]
+title = "Preswald Project"
+version = "0.1.0"
+port = 8501
+slug = "f1-new-598598"
+entrypoint = "hello.py"
+
+[branding]
+name = "F1 Project"
+logo = "images/logo.png"
+favicon = "images/favicon.ico"
+primaryColor = "#F89613"
+
+[logging]
+level = "INFO"
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+[data.races_csv]
+type = "csv"
+path = "data/races.csv"
+
+[data.results_csv]
+type = "csv"
+path = "data/results.csv"
+
+[data.drivers_csv]
+type = "csv"
+path = "data/drivers.csv"
+
+[data.constructors_csv]
+type = "csv"
+path = "data/constructors.csv"
+
+[data.circuits_csv]
+type = "csv"
+path = "data/circuits.csv"
