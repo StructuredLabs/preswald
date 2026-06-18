@@ -1,9 +1,14 @@
 """Build utilities for preswald."""
 
+import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+
+env = os.environ.copy()
+env["NODE_OPTIONS"] = env.get("NODE_OPTIONS", "--max-old-space-size=4096")
 
 
 def _run_npm_command(cmd: str, cwd: Path) -> int:
@@ -13,7 +18,7 @@ def _run_npm_command(cmd: str, cwd: Path) -> int:
         print("Error: npm not found. Please install npm first.", file=sys.stderr)
         return 1
 
-    result = subprocess.run([npm_path, *cmd.split()], cwd=cwd, check=False)
+    result = subprocess.run([npm_path, *cmd.split()], cwd=cwd, check=False, env=env)
     return result.returncode
 
 
