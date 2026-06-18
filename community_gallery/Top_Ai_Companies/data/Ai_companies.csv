@@ -1,0 +1,101 @@
+Company Name,Description,Headquarters,Founded,Annual Revenue,Glassdoor Score
+Alibaba Cloud,Best for Big Data Analytics,"Hangzhou, China",2009,$479.5 million,3.7/5
+DataRobot,Best for Automated Machine Learning,"Boston, Massachusetts",2012,$338.2 million,3.7/5
+Google,Best for AI Development,"Mountain View, California",1998,$305.6 billion,4.4/5
+Hugging Face,Best for Deploying AI Models in the Cloud,"Brooklyn, New York",2016,$40 million,4.3/5
+H2O.ai,Best for Time Series Forecasting,"Mountain View, California",2011,$69.2 million,3.1/5
+Rasa,Best for Managing Conversational AI Applications,"San Francisco, California",2016,$18.8 million,3.9/5
+Replicate,Best for Scalability and Cost-Effectiveness,"San Francisco, California",2019,$1.2 million,N/A
+ActiveCampaign,Best for Email and Marketing Automation,"Chicago, Illinois",2003,$195 million,3.7/5
+ClickUp,Best for Project Management,"San Diego, California",2017,$158.7 million,3.4/5
+Freshworks,Best for Intelligent Customer Engagement,"Chennai, India",2010,$596.4 million,3.8/5
+HubSpot,Best for Scaling Businesses,"Cambridge, Massachusetts",2006,$2.17 billion,4.1/5
+monday.com,Best for Collaborative Work Management,"Tel-Aviv, Israel",2012,$730 million,4.4/5
+Pipedrive,Best for Growing Small Businesses,"New York, United States",2010,$189 million,3.6/5
+"Salesforce, Inc.",Best for Predictive Analytics,"San Francisco, California",1999,$31.4 billion,4.1/5
+Zoho Corporation,Best for Smart Business Tools,"Chennai, India",1996,$1 billion,4.5/5
+Anomali,Best for Threat Intelligence Aggregation,"Redwood City, California",2013,$48.5 million,3.4/5
+CUJO AI,Best for Advanced Network Security,"El Segundo, California",2015,$125.9 million,4.3/5
+Cybereason,Best for AI-Powered Endpoint Protection,"Boston, Massachusetts",2012,$120 million,3.1/5
+Darktrace,Best for AI-Driven Cybersecurity,"Cambridge, United Kingdom",2013,$544.3 million,3.3/5
+Deep Instinct,Best for Deep Learning-Based Threat Prevention and Detection,"New York, New York",2015,$62.5 million,3.8/5
+Proofpoint,Best for Email Security and Compliance,"Sunnyvale, California",2002,$1.13 billion,3.8/5
+SentinelOne,Best for Autonomous Response to Cyberthreats,"Mountain View, California",2013,$663.9 million,4.8/5
+Tessian,Best for Preventing Human-Error Security Incidents,"London, United Kingdom",2013,$21.4 million,3.9/5
+Vectra AI,Best for Threat Detection and Response,"San Jose, California",2011,$121.8 million,4.3/5
+IBM (International Business Machines Corporation),Best for Data Preparation and Integration,"Armonk, New York",1911,$61.9 billion,4.1/5
+Qlik,Best for Self-Service Business Intelligence Tools,"King of Prussia, Pennsylvania",1993,$612.7 million,3.7/5
+Sisense,Best for Business Intelligence,"New York, New York",2004,$140 million,3.2/5
+Splunk,Best for Business and Web Analytics,"San Francisco, California",2003,$4.208 billion,3.9/5
+"ThoughtSpot, Inc",Best for Search-Driven Analytics,"Sunnyvale, California",2012,$210 million,3.9/5
+Ataccama,Best for Versatile Data Management,"Toronto, Canada",2007,$37.7 million,4.4/5
+Informatica,Best for Multi-Hybrid Workload Management,"Redwood City, California",1993,$1.57 billion,3.9/5
+Oracle,Best for Large-Scale AI Model Training,"Austin, Texas",1977,$49.954 billion,3.8/5
+Precisely,Best for Customized Data Solutions,"Burlington, Massachusetts",1968,$525.1 million,4.1/5
+SAP,Best for Data-Driven Decision-Making,"Walldorf, Germany",1972,$33.54 billion,4.3/5
+SAS,Best for Comprehensive Analytics and Data Management,"Cary, North Carolina",1976,$3 billion,5-Apr
+AIMLEAP Outsource BigData,Best for Expert Data Management Services,"Manhattan, New York",2012,$12.3 million,4.6/5
+Akkio,Best for Data Cleaning and Transformation,"Boston, Massachusetts",2019,$3.1 million,N/A
+Analytics8,Best for Accelerating the Development of Data Solutions,"Chicago, Illinois",2002,$34.9 million,4.7/5
+Domo,Best for Real-Time Enterprise Data Access,"American Fork, Utah",2010,$237 million,4.3/5
+Microsoft,Best for Advanced Data Analysis and Predictive Modeling,"Redmond, Washington",1975,$211 billion,4.3/5
+MicroStrategy,Best for Enterprise Analytics,"Tysons, Virginia",1989,$496.26 million,3.7/5
+MonkeyLearn,Best for Extracting Insights from Unstructured Data Sources,"San Francisco, California",2014,$5.7 million,4.3/5
+Amazon,Best for Managing and Analyzing Large Datasets,"Seattle, Washington; Arlington, Virginia",1994,$574.79 billion,3.7/5
+Databricks,Best for Large-Scale Data Engineering,"San Francisco, California",2013,$1.5 billion,4.4/5
+OpenText,Best for Advanced Data Management,"Waterloo, Canada",1991,$4.485 billion,3.5/5
+Rubrik,Best for Proactive Threat Protection in VMware Workloads,"Palo Alto, California",2014,$900 million,3.8/5
+Snowflake,Best for Cloud-Based Data Warehousing,"Bozeman, Montana",2012,$2.066 billion,5-Apr
+Teradata,Best for Integrating Diverse Data Sources,"San Diego, California",1979,$1.83 billion,3.8/5
+AlphaSense,Best for Intelligent Search Engine,"New York, New York",2011,$2.6 billion,3.9/5
+Bizzabo,Best for Hybrid Event Management,"New York, New York",2011,$36 million,3.7/5
+C3 AI,Best for Rapid AI Application Development,"Redwood City, California",2009,$267 million,3.5/5
+Icertis,Best for End-to-End Contract Management,"Bellevue, Washington",2009,$250 million,3.5/5
+People.ai,Best for Sales Coaching,"San Francisco, California",2016,$55.6 million,4.4/5
+Phrasee,Best for High-Performing Marketing Language,"London, United Kingdom",2015,$13.4 million,5-Apr
+The Trade Desk,Best for Data-Driven Audience Targeting,"Ventura, California",2009,$1.95 billion,3.8/5
+Brainly,Best for Personalized Learning Experiences,"Kraków, Poland and New York City, New York",2009,$75 million,3.1/5
+Carnegie Learning,Best for Data-Driven Decision-Making for Educators and Administrators,"Pittsburgh, Pennsylvania",1998,$22.4 million,3.7/5
+CENTURY Tech,Best for Increasing Student Engagement,"London, United Kingdom",2013,$18.8 million,5-Apr
+Harbinger Group,Best for Educational Content Creation,"Pune, India",1990,$96.6 million,4.3/5
+AutoGrid,Best for Distributed Energy Optimization,"Redwood City, California",2011,$25 million,4.3/5
+GE Vernova,Best for Wind Turbine Model,"Cambridge, Massachusets",2022,$68 billion,3.8/5
+Siemens,Best for Industrial Automation and Digitalization,"Munich, Germany",1847,$83.65 billion,4.2/5
+Via Science,Best for Web3-Native Security and Privacy,"Somerville, Massachusetts",2016,$7.4 million,4.9/5
+Xanadu,Best for Quantum Computing,"Toronto, Canada",2016,$87.7 million,4.4/5
+AIBrain,Best for Conversational AI,"Menlo Park, California",2012,$5 million,2.9/5
+OpenAI,Best for Natural Language Processing (NLP) Research,"San Francisco, California",2015,$2 billion,4.2/5
+SoundHound,Best for Music Recognition,"Santa Clara, California",2005,$38 million,3.2/5
+Tencent,Best for Social Media and Communication,"Shenzhen, China",1998,$85 billion,5-Apr
+Cleo,Best for Building Credit,"New York, New York",2016,$35.5 million,3.8/5
+HighRadius,Best for Automating Accounts Receivable (AR) Processes,"Houston, Texas",2006,$945.2 million,3.6/5
+Numerai,Best for Crowdsourcing AI Predictions,"San Francisco, California",2015,$6 million,3.4/5
+Signifyd,Best for Chargeback Guarantee,"San Jose, California",2011,$90 million,4.7/5
+Upstart,Best for Risk Assessment for Lenders,"San Mateo, California",2012,$514 million,3.8/5
+Atomwise,Best for Drug Discovery,"San Francisco, California",2012,$15.7 million,3.7/5
+Enlitic,Best for AI-Driven Medical Imaging Analysis Solutions,"Fort Collins, Colorado",2014,$9.2 million,3.8/5
+PathAI,Best for Comprehensive Precision Pathology Solutions,"Boston, Massachusetts",2016,$88.8 million,3.1/5
+Suki AI,Best for Clinical Documentation,"Redwood City, California",2017,$25 million,4.4/5
+Tempus Labs,Best for Precision Medicine,"Chicago, Illinois",2015,$231 million,3.2/5
+AVEVA,Best for Asset Performance,"Cambridge, United Kingdom",1967,$1.55 billion,3.9/5
+Bright Machines,Best for Software-Defined Manufacturing,"San Francisco, California",2018,$77.7 million,3.6/5
+Dataiku,Best for Democratizing AI,"New York, New York",2013,$230 million,3.7/5
+DataRobot,Best for Automated Machine Learning (AutoML),"Boston, Massachusetts",2012,$176 million,3.7/5
+DataToBiz,Best for Data-Driven Decision-Making,"London, United Kingdom",2018,$5 million,4.8/5
+Domino Data Lab,Best for Predictive Maintenance,"London, UK",2013,$18 million,3.7/5
+Graphcore,Best for IPU Architecture,"Bristol, United Kingdom",2016,$2.7 million,5-Apr
+N5 Sensors,Best for Detecting Chemical Threats and Accidents,"Rockville, Maryland",2012,$7 million,3.9/5
+SenseTime,Best for Facial Recognition,Hong Kong,2014,$500 million,3.6/5
+Agility Robotics,Best for Developing Agile and Mobile Robots,"Tangent, Oregon",2015,$14.7 million,3.7/5
+Boston Dynamics,Best for Research and Development,"Waltham, Massachusetts",1992,$27.6 million,4.7/5
+Diligent Robotics,Best for Healthcare Data Integration and Analysis,"Austin, Texas",2017,$34 million,3.1/5
+Honeybee Robotics,Best for Developing Robotic Systems for Challenging Environments,"Longmont, Colorado",1983,$36.2 million,3.7/5
+iRobot,Best for Consumer and Military Robotic Solutions,"Bedford, Massachusetts",1990,$1.56 billion,3.7/5
+Skydio,Best for Autonomous Drone Solutions,"San Mateo, California",2014,$196.2 million,4.7/5
+"AEye, Inc.",Best for Adaptive Sensing,"Dublin, California",2013,$2.5 million,4.1/5
+Anduril Industries,Best for Advanced Defense Technology,"Costa Mesa, California",2017,$342 million,4.3/5
+Nuro,Best for Driverless Operation,"Mountain View, California",2016,$438.8 million,3.8/5
+Pony.ai,Best for Robotruck Development,"Fremont, California",2016,$100 million,3.4/5
+Tesla,Best for Electric Vehicles,"Austin, Texas",2003,$96.77 billion,3.6/5
+Waymo,Best for Experience and Testing,"Mountain View, California",2016,$1.4 billion,3.7/5
+Zoox,Best for Robotaxi Services,"Foster City, California",2014,$897.1 million,3.9/5
