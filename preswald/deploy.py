@@ -29,6 +29,12 @@ def get_deploy_dir(script_path: str) -> Path:
     return deploy_dir
 
 
+# Google Cloud Run rejects service names of 50 characters or more
+# (`CreateServiceRequest.service_id`), so the generated container name must
+# stay under that limit even after the "preswald-app-" prefix is added.
+GCP_SERVICE_NAME_MAX_LENGTH = 49
+
+
 def get_container_name(script_path: str) -> str:
     """Generate a consistent container name for a given script"""
     script_dir = Path(script_path).parent
@@ -39,6 +45,7 @@ def get_container_name(script_path: str) -> str:
     container_name = container_name.lower()
     container_name = re.sub(r"[^a-z0-9-]", "", container_name)
     container_name = container_name.strip("-")
+    container_name = container_name[:GCP_SERVICE_NAME_MAX_LENGTH].rstrip("-")
     return container_name
 
 
